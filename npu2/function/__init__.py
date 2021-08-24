@@ -17,6 +17,11 @@ def __validate_io_object_dict__(object_dict: dict):
     for io_object in object_dict.values():
         __validate_io_object__(io_object)
 
+def __validate_function__(func):
+    if hasattr(func, "__npu_inputs__"):
+        __validate_io_object_dict__(func.__npu_inputs__)
+    if hasattr(func, "__npu_outputs__"):
+        __validate_io_object_dict__(func.__npu_outputs__)
 
 def function_inputs(**inputs):
     def inner_wrapper(func):
