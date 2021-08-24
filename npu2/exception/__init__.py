@@ -1,0 +1,1 @@
+from npu2.exception.InvalidObject import InvalidObject
