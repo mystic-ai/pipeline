@@ -17,3 +17,4 @@ class Pipeline:
         for func in self.pipeline_array[1:]:
             output_args = func(**output_args)
             
+        return output_args
