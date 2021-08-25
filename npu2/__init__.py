@@ -1,1 +1,1 @@
-import npu2.function
+from npu2.function import function

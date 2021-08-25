@@ -4,13 +4,12 @@ from npu2.object import Object, Scalar, Tensor
 from npu2.pipeline import create_pipeline, save_pipeline, load_pipeline
 
 
-@npu2.function.function_inputs(input_1=Scalar, input_2=Scalar)
-@npu2.function.function_outputs(input_1=Scalar)
+@npu2.function(inputs={"input_1":Scalar, "input_2":Scalar}, outputs={"input_1":Scalar})
 def pipeline_func1(input_1, input_2):
     return {"input_1": input_1 + input_2}
 
 
-@npu2.function.function_inputs(input_1=Scalar)
+@npu2.function(inputs={"input_1":Scalar})
 def pipeline_func2(input_1):
     return input_1
 

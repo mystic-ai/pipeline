@@ -23,28 +23,21 @@ def __validate_function__(func):
     if hasattr(func, "__npu_outputs__"):
         __validate_io_object_dict__(func.__npu_outputs__)
 
-def function_inputs(**inputs):
+def function(inputs={}, outputs={}):
     def inner_wrapper(func):
         def execute_func(*args, **kwargs):
             return func(*args, **kwargs)
 
         __carry_npu_args__(func, execute_func)
+
+        # Handle decorator inputs
         __validate_io_object_dict__(inputs)
         execute_func.__npu_inputs__ = inputs
-
-        return execute_func
-
-    return inner_wrapper
-
-
-def function_outputs(**outputs):
-    def inner_wrapper(func):
-        def execute_func(*args, **kwargs):
-            return func(*args, **kwargs)
-
-        __carry_npu_args__(func, execute_func)
+        
+        # Handle decorator outputs
         __validate_io_object_dict__(outputs)
         execute_func.__npu_outputs__ = outputs
+        
         return execute_func
 
     return inner_wrapper
