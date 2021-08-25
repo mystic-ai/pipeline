@@ -13,7 +13,7 @@ def load_pipeline(path: str):
     pipeline_dict["pipeline_array"] = []
 
     for index in range(pipeline_dict["pipeline_array_length"]):
-        with open("%s/%u" % (path, index), "rb") as pipline_func_file:
+        with open("%s/%u.nf" % (path, index), "rb") as pipline_func_file:
             pipeline_func = pipline_func_file.read()
             pipeline_dict["pipeline_array"].append(pipeline_func)
 

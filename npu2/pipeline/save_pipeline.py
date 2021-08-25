@@ -14,6 +14,6 @@ def save_pipeline(pipeline: Pipeline, path: str):
         if not os.path.exists("%s/" % (path)):
             os.makedirs("%s/" % (path))
 
-        with open("%s/%u" % (path, index), "wb") as pipline_func_file:
+        with open("%s/%u.nf" % (path, index), "wb") as pipline_func_file:
             pipline_func_file.write(pipeline_func)
 
