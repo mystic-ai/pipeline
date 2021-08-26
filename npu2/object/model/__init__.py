@@ -1,0 +1,1 @@
+from npu2.object.model.Model import Model
