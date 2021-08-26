@@ -7,7 +7,7 @@ from npu2.pipeline import Pipeline
 def load_pipeline(path: str):
     pipeline_dict = {}
 
-    with open("%s/model.json" % (path), "r") as conf_file:
+    with open("%s/pipeline.json" % (path), "r") as conf_file:
         pipeline_dict = json.loads(conf_file.read())
 
     pipeline_dict["pipeline_array"] = []

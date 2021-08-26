@@ -21,12 +21,12 @@ class Pipeline:
             raise PipelineFunctionOutputFormatError(func, function_output)
 
     def run(self, *args, **kwargs):
-        output_args = None
+
         outputs = self.pipeline_array[0](*args, **kwargs)
+        
         output_args, output_kwargs = self.__handle_function_output__(self.pipeline_array[0], outputs)
 
         for func in self.pipeline_array[1:]:
             outputs = func(*output_args, **output_kwargs)
             output_args, output_kwargs = self.__handle_function_output__(func, outputs)
-            
         return output_args, output_kwargs
