@@ -3,6 +3,8 @@ import inspect
 from npu2.object.Object import Object
 
 from npu2.exception import InvalidObject
+from npu2.function.save_function import save_function
+from npu2.function.load_function import load_function
 
 def __carry_npu_args__(func, execute_func):
     for arg in dir(func):
@@ -29,6 +31,8 @@ def function(inputs={}, outputs={}):
             return func(*args, **kwargs)
 
         __carry_npu_args__(func, execute_func)
+        
+        execute_func.__npu_func__ = func
 
         # Handle decorator inputs
         __validate_io_object_dict__(inputs)

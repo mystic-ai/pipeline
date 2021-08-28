@@ -5,14 +5,14 @@ from npu2.pipeline.Pipeline import Pipeline
 def __pipline_to_dict__(pipeline: Pipeline):
     pipeline_dict = {}
 
-    pipeline_dict["pipeline_array"] = [dumps(pipeline_conf) for pipeline_conf in pipeline.pipeline_array]
+    pipeline_dict["pipeline_array"] = [(pipeline_conf) for pipeline_conf in pipeline.pipeline_array]
     pipeline_dict["name"] = pipeline.name
 
     return pipeline_dict
 
 def __pipline_from_dict__(pipeline_dict: dict):
 
-    pipeline_array = [loads(pipeline_func) for pipeline_func in pipeline_dict["pipeline_array"]]
+    pipeline_array = [(pipeline_func) for pipeline_func in pipeline_dict["pipeline_array"]]
     pipeline_name = pipeline_dict["name"]
     new_pipeline = Pipeline(name=pipeline_name, pipeline_array=pipeline_array)
     return new_pipeline
