@@ -1,2 +1,4 @@
 dill==0.3.4
 numpy==1.21.2
+#-i https://test.pypi.org/simple/ npu2
+https://test-files.pythonhosted.org/packages/23/db/8fdd7efa3214ce1f73122ea82f2819402a5e429e959df20bcf9b1524294f/npu2-0.0.1.tar.gz
