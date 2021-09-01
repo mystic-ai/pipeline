@@ -1,0 +1,1 @@
+from npu2.api.function.create_function import create_function
