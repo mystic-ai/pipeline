@@ -27,8 +27,6 @@ save_pipeline(new_pipeline, "./first_pipeline/")
 new_pipeline = load_pipeline("./first_pipeline/")
 print(new_pipeline.run(90,48))
 
-
-
 npu2.link("0197246120897461209476120983613409861230986")
 
 print(npu2.upload(pipeline_func1))
