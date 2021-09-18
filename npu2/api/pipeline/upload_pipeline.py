@@ -1,7 +1,7 @@
 from npu2.api.call import post
 
 
-def create_pipeline(pipeline_name="undefined_pipeline", functions=[]):
+def upload_pipeline(pipeline_name="undefined_pipeline", functions=[]):
     pipeline_name = "undefined_pipeline" if pipeline_name == "" else pipeline_name
     print(pipeline_name)
     pipeline_dict = {
