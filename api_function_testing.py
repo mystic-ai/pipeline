@@ -8,7 +8,7 @@ from npu2.function import save_function, load_function
 @npu2.function(
     inputs={"input_1": Object}, outputs={"input_1": Object}
 )
-def func1(input_1: str):
+def func1(input_1):
     return ((), {"input_1": input_1 + " lol"})
 
 
