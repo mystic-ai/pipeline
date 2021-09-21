@@ -20,6 +20,7 @@ npu2.api.API_ENDPOINT = "http://localhost:5002/v2"
 npu2.link("0197246120897461209476120983613409861230986")
 
 # print(npu2.upload(pipeline_func1))
+
 uploaded_function = npu2.upload(func1)
 
 function_id = uploaded_function["id"]
