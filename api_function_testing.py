@@ -3,7 +3,7 @@ from npu2 import pipeline
 from npu2.object import Object, Scalar, Tensor
 from npu2.pipeline import create_pipeline, save_pipeline, load_pipeline
 from npu2.function import save_function, load_function
-from npu2.api.run import run
+import npu2.api
 
 
 @npu2.function(
@@ -26,4 +26,4 @@ function_id = uploaded_function["id"]
 
 print(function_id)
 
-run_call = run(function_id, "HELLO")
+run_call = npu2.api.run(function_id, "HELLO")
