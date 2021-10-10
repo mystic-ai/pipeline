@@ -6,12 +6,9 @@ from npu2.function import save_function, load_function
 import npu2.api
 
 
-@npu2.function(
-    inputs={"input_1": Object}, outputs={"input_1": Object}
-)
+@npu2.function(inputs={"input_1": Object}, outputs={"input_1": Object})
 def func1(input_1):
     return ((), {"input_1": input_1 + " lol"})
-
 
 
 import npu2.api
@@ -27,3 +24,5 @@ function_id = uploaded_function["id"]
 print(function_id)
 
 run_call = npu2.api.run(function_id, "HELLO")
+
+print(run_call)
