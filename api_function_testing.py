@@ -8,7 +8,7 @@ import npu2.api
 
 @npu2.function(inputs={"input_1": Object}, outputs={"input_1": Object})
 def func1(input_1):
-    return ((), {"input_1": input_1 + " lol"})
+    return ((), {"input_1": input_1 + " die"})
 
 
 import npu2.api
