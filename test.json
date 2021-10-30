@@ -1,0 +1,240 @@
+{
+  "inputs": [
+    {
+      "variable": {
+        "variable_type": "float",
+        "variable_name": "urbgmguyid",
+        "is_input": true,
+        "is_output": false
+      }
+    },
+    {
+      "variable": {
+        "variable_type": "float",
+        "variable_name": "lppetfrsdy",
+        "is_input": true,
+        "is_output": false
+      }
+    }
+  ],
+  "variables": [
+    {
+      "variable_type": "float",
+      "variable_name": "urbgmguyid",
+      "is_input": true,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_name": "lppetfrsdy",
+      "is_input": true,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_name": "svbjzbebcc",
+      "is_input": false,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_name": "fyhnjeormm",
+      "is_input": false,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_name": "tmurvhmacm",
+      "is_input": false,
+      "is_output": true
+    },
+    {
+      "variable_type": "float",
+      "variable_name": "srvfqtysep",
+      "is_input": false,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_name": "dysagvqkrq",
+      "is_input": false,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_name": "qvkwhkwmbs",
+      "is_input": false,
+      "is_output": true
+    }
+  ],
+  "outputs": [
+    {
+      "variable": {
+        "variable_type": "float",
+        "variable_name": "tmurvhmacm",
+        "is_input": false,
+        "is_output": true
+      }
+    },
+    {
+      "variable": {
+        "variable_type": "float",
+        "variable_name": "qvkwhkwmbs",
+        "is_input": false,
+        "is_output": true
+      }
+    }
+  ],
+  "graph_nodes": [
+    {
+      "pipeline_function": {
+        "inputs": { "a": "type" },
+        "name": "square",
+        "hash": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_name": "urbgmguyid",
+          "is_input": true,
+          "is_output": false
+        }
+      ],
+      "output": {
+        "variable_type": "float",
+        "variable_name": "svbjzbebcc",
+        "is_input": false,
+        "is_output": false
+      }
+    },
+    {
+      "pipeline_function": {
+        "inputs": { "a": "type", "b": "type" },
+        "name": "multiply",
+        "hash": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_name": "lppetfrsdy",
+          "is_input": true,
+          "is_output": false
+        },
+        {
+          "variable_type": "float",
+          "variable_name": "svbjzbebcc",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "output": {
+        "variable_type": "float",
+        "variable_name": "fyhnjeormm",
+        "is_input": false,
+        "is_output": false
+      }
+    },
+    {
+      "pipeline_function": {
+        "inputs": { "a": "type", "b": "type" },
+        "name": "minus",
+        "hash": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_name": "fyhnjeormm",
+          "is_input": false,
+          "is_output": false
+        },
+        {
+          "variable_type": "float",
+          "variable_name": "svbjzbebcc",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "output": {
+        "variable_type": "float",
+        "variable_name": "tmurvhmacm",
+        "is_input": false,
+        "is_output": false
+      }
+    },
+    {
+      "pipeline_function": {
+        "inputs": { "a": "type" },
+        "name": "square",
+        "hash": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_name": "tmurvhmacm",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "output": {
+        "variable_type": "float",
+        "variable_name": "srvfqtysep",
+        "is_input": false,
+        "is_output": false
+      }
+    },
+    {
+      "pipeline_function": {
+        "inputs": { "a": "type", "b": "type" },
+        "name": "multiply",
+        "hash": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_name": "lppetfrsdy",
+          "is_input": true,
+          "is_output": false
+        },
+        {
+          "variable_type": "float",
+          "variable_name": "srvfqtysep",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "output": {
+        "variable_type": "float",
+        "variable_name": "dysagvqkrq",
+        "is_input": false,
+        "is_output": false
+      }
+    },
+    {
+      "pipeline_function": {
+        "inputs": { "a": "type", "b": "type" },
+        "name": "minus",
+        "hash": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_name": "dysagvqkrq",
+          "is_input": false,
+          "is_output": false
+        },
+        {
+          "variable_type": "float",
+          "variable_name": "svbjzbebcc",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "output": {
+        "variable_type": "float",
+        "variable_name": "qvkwhkwmbs",
+        "is_input": false,
+        "is_output": false
+      }
+    }
+  ]
+}

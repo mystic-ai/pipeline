@@ -24,7 +24,7 @@ class PipelineVariableSchema(BaseModel):
     def dict(self, *args, **kwargs):
         # print("Things")
         return {
-            "variable_type": str(self.variable_type.__class__.__name__),
+            "variable_type": str(self.variable_type.__name__),
             "variable_name": self.variable_name,
             "is_input": self.is_input,
             "is_output": self.is_output,

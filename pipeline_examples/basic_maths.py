@@ -23,7 +23,11 @@ with Pipeline() as pipeline:
     sq_1 = square(flt_1)
     res_1 = multiply(flt_2, sq_1)
     res_2 = minus(res_1, sq_1)
-    pipeline.output(res_1, sq_1, res_2)
+    sq_2 = square(res_2)
+    res_3 = multiply(flt_2, sq_2)
+    res_4 = minus(res_3, sq_1)
+    pipeline.output(res_2, res_4)
 
-
+output_pipeline = Pipeline.get_pipeline()
+print("Pipeline graph:\n%s" % output_pipeline.json())
 print(pipeline.run(5.0, 6.0))

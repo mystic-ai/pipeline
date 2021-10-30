@@ -49,11 +49,16 @@ class Pipeline(object):
             if not isinstance(_output, PipelineVariableSchema):
                 raise Exception("Can only return PipelineVariables idiot.")
 
-            _output.is_output = True
+            variable_index = self._current_pipeline.variables.index(_output)
+            if variable_index != -1:
 
-            Pipeline._current_pipeline.outputs.append(
-                PipelineOutputVariableSchema(variable=_output)
-            )
+                self._current_pipeline.variables[variable_index].is_output = True
+
+                Pipeline._current_pipeline.outputs.append(
+                    PipelineOutputVariableSchema(
+                        variable=self._current_pipeline.variables[variable_index]
+                    )
+                )
 
     # Run the pipeline
     def run(self, *inputs):
