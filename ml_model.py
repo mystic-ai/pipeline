@@ -1,14 +1,18 @@
-from pipeline import Pipeline, pipeline_function, Variable, pipeline_model
+from typing import List
+
+
+from pipeline import Pipeline, pipeline_function, Variable
+from pipeline.model import pipeline_model
 
 
 @pipeline_model
 class MyModel(object):
     def __init__(self):
-        ...
+        print("Created new ml model")
 
     @pipeline_function
-    def predict(self, input_ids):
-        ...
+    def predict(self, input_ids: List[int]) -> str:
+        return "model inference result"
 
 
 @pipeline_function
@@ -20,7 +24,6 @@ with Pipeline() as pipeline:
     input_str = Variable(variable_type=str, is_input=True)
 
     ml_model = MyModel()
-
     token_ids = tokenize_str(input_str)
     output_str = ml_model.predict(token_ids)
 

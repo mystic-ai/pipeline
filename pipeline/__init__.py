@@ -3,6 +3,8 @@ import dill
 import random
 import string
 
+import inspect
+
 from pipeline.schemas import (
     PipelineVariableSchema,
     PipelineFunctionSchema,
@@ -160,9 +162,11 @@ def pipeline_function(function):
                             "Vairble not found, have you forgotten to define it as in input? "
                         )
                     processed_args.append(input_arg)
+                elif hasattr(input_arg, "__pipeline_model__"):
+                    print("ignore self")
                 else:
                     raise Exception(
-                        "You can't input random variables, follow the way of the Pipeline."
+                        "You can't input random variables, follow the way of the Pipeline. Got type"
                     )
 
             node_output = PipelineVariableSchema(
@@ -191,4 +195,5 @@ def pipeline_function(function):
         name=function.__name__,
         function=function,
     )
+
     return execute_func
