@@ -133,7 +133,6 @@ class Pipeline(object):
             ) as variable_type_file:
                 variable_type_data = loads(variable_type_file.read())
                 variable.variable.variable_type = variable_type_data
-        print(Pipeline._current_pipeline)
 
     # Run the pipeline
     def run(self, *inputs):
