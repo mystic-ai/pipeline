@@ -1,3 +1,5 @@
+import os
+
 import dill
 
 import random
@@ -13,6 +15,13 @@ from pipeline.schemas import (
     PipelineInputVariableSchema,
     PipelineGraph,
 )
+
+CACHE_DIR = os.getenv("PIPELINE_CACHE_DIR", "./cache")
+
+if not os.path.exists(CACHE_DIR):
+    os.makedirs(CACHE_DIR)
+elif not os.path.isdir(CACHE_DIR):
+    raise Exception("Cache dir '%s' is not a valid dir." % CACHE_DIR)
 
 
 class Variable(object):
@@ -36,7 +45,7 @@ class Pipeline(object):
     def __enter__(self):
 
         Pipeline._current_pipeline = PipelineGraph(
-            inputs=[], outputs=[], variables=[], graph_nodes=[]
+            inputs=[], outputs=[], variables=[], graph_nodes=[], models=[]
         )
 
         Pipeline._current_pipeline_defining = True
@@ -64,7 +73,9 @@ class Pipeline(object):
 
     # Run the pipeline
     def run(self, *inputs):
-
+        for model in self._current_pipeline.models:
+            if hasattr(model.model, "load"):
+                model.model.load(None)
         # Verify we have all of the inputs
         if len(inputs) != len(Pipeline._current_pipeline.inputs):
             raise Exception(
@@ -97,7 +108,12 @@ class Pipeline(object):
             for _input in node_inputs:
                 function_inputs.append(running_variables[_input.variable_name])
 
-            output = node_function.function(*function_inputs)
+            if node_function.bound_class != None:
+                output = node_function.function(
+                    node_function.bound_class, *function_inputs
+                )
+            else:
+                output = node_function.function(*function_inputs)
 
             running_variables[node_output.variable_name] = output
 
@@ -138,6 +154,7 @@ def pipeline_function(function):
     def execute_func(*args, **kwargs):
 
         if not Pipeline._current_pipeline_defining:
+            print("Call")
             return function(*args, **kwargs)
         else:
 
@@ -156,14 +173,16 @@ def pipeline_function(function):
                             "Vairble not found, have you forgotten to define it as in input? "
                         )
                     processed_args.append(input_arg.schema)
+                elif hasattr(input_arg, "__pipeline_model__"):
+                    if function.__pipeline_function__.bound_class == None:
+                        function.__pipeline_function__.bound_class = input_arg
                 elif isinstance(input_arg, PipelineVariableSchema):
+                    print(input_arg)
                     if not input_arg in Pipeline._current_pipeline.variables:
                         raise Exception(
                             "Vairble not found, have you forgotten to define it as in input? "
                         )
                     processed_args.append(input_arg)
-                elif hasattr(input_arg, "__pipeline_model__"):
-                    print("ignore self")
                 else:
                     raise Exception(
                         "You can't input random variables, follow the way of the Pipeline. Got type"

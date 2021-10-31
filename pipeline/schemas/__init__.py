@@ -39,11 +39,24 @@ class PipelineOutputVariableSchema(BaseModel):
     variable: PipelineVariableSchema
 
 
+class PipelineModel(BaseModel):
+    model: Any
+    name: str
+
+    def __init__(self,*args, **kwargs):
+        if not "name" in kwargs:
+            kwargs["name"] = "".join(
+                random.choice(string.ascii_lowercase) for i in range(10)
+            )
+        super().__init__(**kwargs)
+
+
 class PipelineFunctionSchema(BaseModel):
     inputs: dict
     name: str
     hash: Optional[str]
     function: Callable
+    bound_class: Optional[Any]
 
     def dict(self, *args, **kwargs):
         return {
@@ -68,3 +81,4 @@ class PipelineGraph(BaseModel):
     variables: List[PipelineVariableSchema]
     outputs: List[PipelineOutputVariableSchema]
     graph_nodes: List[PipelineGraphNodeSchema]
+    models: List[PipelineModel]
