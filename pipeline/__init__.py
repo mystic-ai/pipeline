@@ -1,6 +1,7 @@
 import os
+from pickle import load
 
-import dill
+from dill import loads, dumps
 
 import random
 import string
@@ -38,14 +39,19 @@ class Pipeline(object):
     _current_pipeline: PipelineGraph = None
     _current_pipeline_defining = False
 
-    def __init__(self):
-        ...
+    def __init__(self, pipeline_name=None):
+        self.pipeline_name = pipeline_name
 
     # __enter__ - called at the end of a "with" block.
     def __enter__(self):
 
         Pipeline._current_pipeline = PipelineGraph(
-            inputs=[], outputs=[], variables=[], graph_nodes=[], models=[]
+            inputs=[],
+            outputs=[],
+            variables=[],
+            graph_nodes=[],
+            models=[],
+            name=self.pipeline_name,
         )
 
         Pipeline._current_pipeline_defining = True
@@ -71,6 +77,64 @@ class Pipeline(object):
                     )
                 )
 
+    def save(self, dir, **kwargs):
+        return self._current_pipeline.save(dir, **kwargs)
+
+    @staticmethod
+    def load(path):
+        # with open(os.path.join(path, "config.json"), "r") as config_file:
+        Pipeline._current_pipeline = PipelineGraph.parse_file(
+            os.path.join(path, "config.json")
+        )
+
+        # Load functions in graph nodes
+        for node in Pipeline._current_pipeline.graph_nodes:
+            function_file_name = node.pipeline_function.function_file_name
+            with open(os.path.join(path, function_file_name), "rb") as function_file:
+                function_data = loads(function_file.read())
+                node.pipeline_function.function = function_data
+            if node.pipeline_function.bound_class_file_name != None:
+                with open(
+                    os.path.join(path, node.pipeline_function.bound_class_file_name),
+                    "rb",
+                ) as cls_file:
+                    cls_data = loads(cls_file.read())
+                    node.pipeline_function.bound_class = cls_data
+
+        # Load models
+        for model in Pipeline._current_pipeline.models:
+            with open(
+                os.path.join(path, model.model_file_name),
+                "rb",
+            ) as model_file:
+                model_data = loads(model_file.read())
+                model.model = model_data
+        # Load variables
+        for variable in Pipeline._current_pipeline.variables:
+            with open(
+                os.path.join(path, variable.variable_type_file_path),
+                "rb",
+            ) as variable_type_file:
+                variable_type_data = loads(variable_type_file.read())
+                variable.variable_type = variable_type_data
+
+        for variable in Pipeline._current_pipeline.inputs:
+            with open(
+                os.path.join(path, variable.variable.variable_type_file_path),
+                "rb",
+            ) as variable_type_file:
+                variable_type_data = loads(variable_type_file.read())
+                variable.variable.variable_type = variable_type_data
+
+        for variable in Pipeline._current_pipeline.outputs:
+            with open(
+                os.path.join(path, variable.variable.variable_type_file_path),
+                "rb",
+            ) as variable_type_file:
+                variable_type_data = loads(variable_type_file.read())
+                variable.variable.variable_type = variable_type_data
+        print(Pipeline._current_pipeline)
+
     # Run the pipeline
     def run(self, *inputs):
         for model in self._current_pipeline.models:
@@ -83,7 +147,6 @@ class Pipeline(object):
                 % (len(Pipeline._current_pipeline.inputs), len(inputs))
             )
         running_variables = {}
-
         for i, input in enumerate(inputs):
             if not isinstance(
                 input, Pipeline._current_pipeline.inputs[i].variable.variable_type

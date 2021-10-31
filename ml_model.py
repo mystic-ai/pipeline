@@ -30,7 +30,7 @@ def tokenize_str(
     return output_list
 
 
-with Pipeline() as pipeline:
+with Pipeline(pipeline_name="ML pipeline") as pipeline:
     input_str = Variable(variable_type=str, is_input=True)
 
     ml_model = MyModel()
@@ -38,9 +38,8 @@ with Pipeline() as pipeline:
     output_str = ml_model.predict(token_ids)
 
     pipeline.output(output_str)
-    # pipeline.output(token_ids)
 
 output_pipeline = Pipeline.get_pipeline()
 
-# print("Pipeline graph:\n%s" % output_pipeline.json())
 print(pipeline.run("Hello"))
+output_pipeline.save(".")
