@@ -1,0 +1,5 @@
+[build-system]
+requires = [
+    'dill==0.3.4'
+]
+build-backend = "setuptools.build_meta"
