@@ -6,8 +6,4 @@ from pipeline.model import pipeline_model
 
 
 my_pipeline = Pipeline.load("ML pipeline")
-
-
-output_pipeline = Pipeline.get_pipeline()
-pipeline = Pipeline()
-print(pipeline.run("Hello"))
+print(my_pipeline.run("Hello"))

@@ -12,8 +12,6 @@ from pipeline.schemas import (
     PipelineVariableSchema,
     PipelineFunctionSchema,
     PipelineGraphNodeSchema,
-    PipelineOutputVariableSchema,
-    PipelineInputVariableSchema,
     PipelineGraph,
 )
 
@@ -35,11 +33,12 @@ class Variable(object):
 
 
 class Pipeline(object):
+    defined_pipelines = {}
 
     _current_pipeline: PipelineGraph = None
     _current_pipeline_defining = False
 
-    def __init__(self, pipeline_name=None):
+    def __init__(self, pipeline_name):
         self.pipeline_name = pipeline_name
 
     # __enter__ - called at the end of a "with" block.
@@ -59,6 +58,8 @@ class Pipeline(object):
 
     # __exit__ - called at the end of a "with" block.
     def __exit__(self, type, value, traceback):
+        Pipeline.defined_pipelines[self.pipeline_name] = self._current_pipeline.copy()
+
         Pipeline._current_pipeline_defining = False
 
     def output(self, *outputs):
@@ -71,11 +72,11 @@ class Pipeline(object):
 
                 self._current_pipeline.variables[variable_index].is_output = True
 
-                Pipeline._current_pipeline.outputs.append(
+                """Pipeline._current_pipeline.outputs.append(
                     PipelineOutputVariableSchema(
                         variable=self._current_pipeline.variables[variable_index]
                     )
-                )
+                )"""
 
     def save(self, dir, **kwargs):
         return self._current_pipeline.save(dir, **kwargs)
@@ -118,74 +119,7 @@ class Pipeline(object):
                 variable_type_data = loads(variable_type_file.read())
                 variable.variable_type = variable_type_data
 
-        for variable in Pipeline._current_pipeline.inputs:
-            with open(
-                os.path.join(path, variable.variable.variable_type_file_path),
-                "rb",
-            ) as variable_type_file:
-                variable_type_data = loads(variable_type_file.read())
-                variable.variable.variable_type = variable_type_data
-
-        for variable in Pipeline._current_pipeline.outputs:
-            with open(
-                os.path.join(path, variable.variable.variable_type_file_path),
-                "rb",
-            ) as variable_type_file:
-                variable_type_data = loads(variable_type_file.read())
-                variable.variable.variable_type = variable_type_data
-
-    # Run the pipeline
-    def run(self, *inputs):
-        for model in self._current_pipeline.models:
-            if hasattr(model.model, "load"):
-                model.model.load(None)
-        # Verify we have all of the inputs
-        if len(inputs) != len(Pipeline._current_pipeline.inputs):
-            raise Exception(
-                "Mismatch of number of inputs, expecting %u got %s"
-                % (len(Pipeline._current_pipeline.inputs), len(inputs))
-            )
-        running_variables = {}
-        for i, input in enumerate(inputs):
-            if not isinstance(
-                input, Pipeline._current_pipeline.inputs[i].variable.variable_type
-            ):
-                raise Exception(
-                    "Input type mismatch, expceted %s got %s"
-                    % (
-                        Pipeline._current_pipeline.inputs[i].variable.variable_type,
-                        input.__class__,
-                    )
-                )
-            running_variables[
-                Pipeline._current_pipeline.inputs[i].variable.variable_name
-            ] = input
-
-        for node in Pipeline._current_pipeline.graph_nodes:
-            node_inputs = node.inputs
-            node_function = node.pipeline_function
-            node_output = node.output
-
-            function_inputs = []
-            for _input in node_inputs:
-                function_inputs.append(running_variables[_input.variable_name])
-
-            if node_function.bound_class != None:
-                output = node_function.function(
-                    node_function.bound_class, *function_inputs
-                )
-            else:
-                output = node_function.function(*function_inputs)
-
-            running_variables[node_output.variable_name] = output
-
-        output_variables = []
-        for output_variable in Pipeline._current_pipeline.outputs:
-            output_variables.append(
-                running_variables[output_variable.variable.variable_name]
-            )
-
-        return output_variables
+        return Pipeline._current_pipeline
 
     # def save(path):
 
@@ -196,20 +130,20 @@ class Pipeline(object):
 
             Pipeline._current_pipeline.variables.append(new_variable)
 
-            if new_variable.is_input:
+            """if new_variable.is_input:
                 Pipeline._current_pipeline.inputs.append(
                     PipelineInputVariableSchema(variable=new_variable)
                 )
             elif new_variable.is_output:
                 Pipeline._current_pipeline.outputs.append(
                     PipelineOutputVariableSchema(variable=new_variable)
-                )
+                )"""
         else:
             raise Exception("Cant add a variable when not defining a pipeline!")
 
     @staticmethod
-    def get_pipeline():
-        return Pipeline._current_pipeline
+    def get_pipeline(pipeline_name) -> PipelineGraph:
+        return Pipeline.defined_pipelines[pipeline_name]
 
 
 def pipeline_function(function):

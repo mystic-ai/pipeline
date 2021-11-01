@@ -41,14 +41,6 @@ class PipelineVariableSchema(BaseModel):
         }
 
 
-class PipelineInputVariableSchema(BaseModel):
-    variable: PipelineVariableSchema
-
-
-class PipelineOutputVariableSchema(BaseModel):
-    variable: PipelineVariableSchema
-
-
 class PipelineModel(BaseModel):
     model: Any
     name: str
@@ -100,11 +92,63 @@ class PipelineGraphNodeSchema(BaseModel):
 
 class PipelineGraph(BaseModel):
     name: str
-    inputs: List[PipelineInputVariableSchema]
     variables: List[PipelineVariableSchema]
-    outputs: List[PipelineOutputVariableSchema]
     graph_nodes: List[PipelineGraphNodeSchema]
     models: List[PipelineModel]
+
+    def run(self, *inputs):
+
+        input_variables: List[PipelineVariableSchema] = [
+            var for var in self.variables if var.is_input
+        ]
+        output_variables: List[PipelineVariableSchema] = [
+            var for var in self.variables if var.is_output
+        ]
+
+        for model in self.models:
+            if hasattr(model.model, "load"):
+                model.model.load(None)
+
+        if len(inputs) != len(input_variables):
+            raise Exception(
+                "Mismatch of number of inputs, expecting %u got %s"
+                % (len(input_variables), len(inputs))
+            )
+        running_variables = {}
+        for i, input in enumerate(inputs):
+            if not isinstance(input, input_variables[i].variable_type):
+                raise Exception(
+                    "Input type mismatch, expceted %s got %s"
+                    % (
+                        input_variables[i].variable_type,
+                        input.__class__,
+                    )
+                )
+            running_variables[input_variables[i].variable_name] = input
+
+        for node in self.graph_nodes:
+            node_inputs = node.inputs
+            node_function = node.pipeline_function
+            node_output = node.output
+
+            function_inputs = []
+            for _input in node_inputs:
+                function_inputs.append(running_variables[_input.variable_name])
+
+            if node_function.bound_class != None:
+                output = node_function.function(
+                    node_function.bound_class, *function_inputs
+                )
+            else:
+                output = node_function.function(*function_inputs)
+
+            running_variables[node_output.variable_name] = output
+
+        return_variables = []
+        for output_variable in output_variables:
+            return_variables.append(running_variables[output_variable.variable_name])
+
+        return return_variables
 
     def save(self, save_dir, tar=False, overwrite=True):
 
@@ -167,20 +211,7 @@ class PipelineGraph(BaseModel):
             variable.variable_type_file_path = type_file_name
             with open(os.path.join(base_save_path, type_file_name), "wb") as type_file:
                 type_file.write(type_data)
-        for variable in self.inputs:
-            type_data = dumps(variable.variable.variable_type)
-            type_hash = sha256(type_data).hexdigest()
-            type_file_name = type_hash + ".typ"
-            variable.variable.variable_type_file_path = type_file_name
-            with open(os.path.join(base_save_path, type_file_name), "wb") as type_file:
-                type_file.write(type_data)
-        for variable in self.outputs:
-            type_data = dumps(variable.variable.variable_type)
-            type_hash = sha256(type_data).hexdigest()
-            type_file_name = type_hash + ".typ"
-            variable.variable.variable_type_file_path = type_file_name
-            with open(os.path.join(base_save_path, type_file_name), "wb") as type_file:
-                type_file.write(type_data)
 
         with open(os.path.join(base_save_path, "config.json"), "w") as config_file:
+
             config_file.write(self.json())
