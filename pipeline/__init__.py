@@ -72,6 +72,11 @@ class Pipeline(object):
 
                 self._current_pipeline.variables[variable_index].is_output = True
 
+                for node in self._current_pipeline.graph_nodes:
+                    for op in node.outputs:
+                        if op.variable_name == _output.variable_name:
+                            op.is_output = True
+
                 """Pipeline._current_pipeline.outputs.append(
                     PipelineOutputVariableSchema(
                         variable=self._current_pipeline.variables[variable_index]
@@ -193,11 +198,11 @@ def pipeline_function(function):
             graph_node = PipelineGraphNodeSchema(
                 pipeline_function=function.__pipeline_function__,
                 inputs=processed_args,
-                output=node_output,
+                outputs=[node_output],
             )
             Pipeline._current_pipeline.graph_nodes.append(graph_node)
 
-            return graph_node.output
+            return graph_node.outputs[0]
 
     function_inputs = {
         function_i: function.__annotations__[function_i]

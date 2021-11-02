@@ -85,9 +85,17 @@ class PipelineFunctionSchema(BaseModel):
 
 
 class PipelineGraphNodeSchema(BaseModel):
+    id: str
     pipeline_function: PipelineFunctionSchema
     inputs: List[PipelineVariableSchema]
-    output: PipelineVariableSchema
+    outputs: List[PipelineVariableSchema]
+
+    def __init__(self, *args, **kwargs):
+        if not "id" in kwargs:
+            kwargs["id"] = "pipeline_graph_node_" + "".join(
+                random.choice(string.ascii_lowercase) for i in range(20)
+            )
+        super().__init__(*args, **kwargs)
 
 
 class PipelineGraph(BaseModel):
@@ -129,7 +137,7 @@ class PipelineGraph(BaseModel):
         for node in self.graph_nodes:
             node_inputs = node.inputs
             node_function = node.pipeline_function
-            node_output = node.output
+            node_output = node.outputs[0]
 
             function_inputs = []
             for _input in node_inputs:
@@ -153,12 +161,12 @@ class PipelineGraph(BaseModel):
     def save(self, save_dir, tar=False, overwrite=True):
 
         base_save_path = os.path.join(save_dir, "%s" % self.name)
-
-        if not overwrite and len(os.listdir(base_save_path)) > 0:
-            raise Exception("Save directory not empty.")
-        elif overwrite and len(os.listdir(base_save_path)) > 0:
-            for file in os.listdir(base_save_path):
-                os.remove(os.path.join(base_save_path, file))
+        if os.path.exists(base_save_path):
+            if not overwrite and len(os.listdir(base_save_path)) > 0:
+                raise Exception("Save directory not empty.")
+            elif overwrite and len(os.listdir(base_save_path)) > 0:
+                for file in os.listdir(base_save_path):
+                    os.remove(os.path.join(base_save_path, file))
 
         print("Saving pipeline in: '%s'" % base_save_path)
         os.makedirs(base_save_path, exist_ok=True)

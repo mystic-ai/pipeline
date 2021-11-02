@@ -8,7 +8,7 @@ with Pipeline(pipeline_name="HF pipeline") as pipeline:
     hf_model = TransformersModel("EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-125M")
     output_str = hf_model.predict(input_str)
 
-    pipeline.output(input_str.schema, output_str)
+    pipeline.output(output_str)
 
 output_pipeline = Pipeline.get_pipeline("HF pipeline")
 

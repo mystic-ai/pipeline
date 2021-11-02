@@ -16,7 +16,7 @@ def multiply(a: float, b: float) -> float:
     return a * b
 
 
-with Pipeline() as pipeline:
+with Pipeline("MathsIsFun") as pipeline:
     flt_1 = Variable(variable_type=float, is_input=True)
     flt_2 = Variable(variable_type=float, is_input=True)
 
@@ -28,6 +28,7 @@ with Pipeline() as pipeline:
     res_4 = minus(res_3, sq_1)
     pipeline.output(res_2, res_4)
 
-output_pipeline = Pipeline.get_pipeline()
+output_pipeline = Pipeline.get_pipeline("MathsIsFun")
 print("Pipeline graph:\n%s" % output_pipeline.json())
-print(pipeline.run(5.0, 6.0))
+print(output_pipeline.run(5.0, 6.0))
+output_pipeline.save(".")

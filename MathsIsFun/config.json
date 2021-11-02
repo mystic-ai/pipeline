@@ -1,0 +1,260 @@
+{
+  "name": "MathsIsFun",
+  "variables": [
+    {
+      "variable_type": "float",
+      "variable_type_file_path": "e718d01109e7e5f912a5b535c420549888a4390f9d9405052c6e0e3de52cf114.typ",
+      "variable_name": "yymjjiqugb",
+      "is_input": true,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_type_file_path": "e718d01109e7e5f912a5b535c420549888a4390f9d9405052c6e0e3de52cf114.typ",
+      "variable_name": "mtbpvhuxod",
+      "is_input": true,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_type_file_path": "e718d01109e7e5f912a5b535c420549888a4390f9d9405052c6e0e3de52cf114.typ",
+      "variable_name": "bcjomaqzpb",
+      "is_input": false,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_type_file_path": "e718d01109e7e5f912a5b535c420549888a4390f9d9405052c6e0e3de52cf114.typ",
+      "variable_name": "clxjpxbjhu",
+      "is_input": false,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_type_file_path": "e718d01109e7e5f912a5b535c420549888a4390f9d9405052c6e0e3de52cf114.typ",
+      "variable_name": "flxnhtmfrf",
+      "is_input": false,
+      "is_output": true
+    },
+    {
+      "variable_type": "float",
+      "variable_type_file_path": "e718d01109e7e5f912a5b535c420549888a4390f9d9405052c6e0e3de52cf114.typ",
+      "variable_name": "wvbsewvtao",
+      "is_input": false,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_type_file_path": "e718d01109e7e5f912a5b535c420549888a4390f9d9405052c6e0e3de52cf114.typ",
+      "variable_name": "tsxqezlesm",
+      "is_input": false,
+      "is_output": false
+    },
+    {
+      "variable_type": "float",
+      "variable_type_file_path": "e718d01109e7e5f912a5b535c420549888a4390f9d9405052c6e0e3de52cf114.typ",
+      "variable_name": "grdxqnlnpu",
+      "is_input": false,
+      "is_output": true
+    }
+  ],
+  "graph_nodes": [
+    {
+      "id": "pipeline_graph_node_mekgjhkzeftpvnyrlree",
+      "pipeline_function": {
+        "inputs": { "a": "type" },
+        "name": "square",
+        "hash": "8625961a321b11cd16808d44a59fb98540eb86199d462b93d003e3c62d06f797",
+        "function_file_name": "8625961a321b11cd16808d44a59fb98540eb86199d462b93d003e3c62d06f797.fn",
+        "bound_class_file_name": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "yymjjiqugb",
+          "is_input": true,
+          "is_output": false
+        }
+      ],
+      "outputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "bcjomaqzpb",
+          "is_input": false,
+          "is_output": false
+        }
+      ]
+    },
+    {
+      "id": "pipeline_graph_node_oztxfoyaqabiqgrnyeid",
+      "pipeline_function": {
+        "inputs": { "a": "type", "b": "type" },
+        "name": "multiply",
+        "hash": "e41091d2deb6eb6c90f494173bca7b077729c20bf8b116a2d107fc345a9396c1",
+        "function_file_name": "e41091d2deb6eb6c90f494173bca7b077729c20bf8b116a2d107fc345a9396c1.fn",
+        "bound_class_file_name": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "mtbpvhuxod",
+          "is_input": true,
+          "is_output": false
+        },
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "bcjomaqzpb",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "outputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "clxjpxbjhu",
+          "is_input": false,
+          "is_output": false
+        }
+      ]
+    },
+    {
+      "id": "pipeline_graph_node_lhxvylyuzskjlgpowjzb",
+      "pipeline_function": {
+        "inputs": { "a": "type", "b": "type" },
+        "name": "minus",
+        "hash": "8f9b017ff956a547a63dd9b6be8f515b7f0982b76f105c8bc37739583c41ebde",
+        "function_file_name": "8f9b017ff956a547a63dd9b6be8f515b7f0982b76f105c8bc37739583c41ebde.fn",
+        "bound_class_file_name": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "clxjpxbjhu",
+          "is_input": false,
+          "is_output": false
+        },
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "bcjomaqzpb",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "outputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "flxnhtmfrf",
+          "is_input": false,
+          "is_output": true
+        }
+      ]
+    },
+    {
+      "id": "pipeline_graph_node_jcwhccinkaevstxwagye",
+      "pipeline_function": {
+        "inputs": { "a": "type" },
+        "name": "square",
+        "hash": "8625961a321b11cd16808d44a59fb98540eb86199d462b93d003e3c62d06f797",
+        "function_file_name": "8625961a321b11cd16808d44a59fb98540eb86199d462b93d003e3c62d06f797.fn",
+        "bound_class_file_name": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "flxnhtmfrf",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "outputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "wvbsewvtao",
+          "is_input": false,
+          "is_output": false
+        }
+      ]
+    },
+    {
+      "id": "pipeline_graph_node_ewczgqrsodkzmgxbbbvl",
+      "pipeline_function": {
+        "inputs": { "a": "type", "b": "type" },
+        "name": "multiply",
+        "hash": "e41091d2deb6eb6c90f494173bca7b077729c20bf8b116a2d107fc345a9396c1",
+        "function_file_name": "e41091d2deb6eb6c90f494173bca7b077729c20bf8b116a2d107fc345a9396c1.fn",
+        "bound_class_file_name": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "mtbpvhuxod",
+          "is_input": true,
+          "is_output": false
+        },
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "wvbsewvtao",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "outputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "tsxqezlesm",
+          "is_input": false,
+          "is_output": false
+        }
+      ]
+    },
+    {
+      "id": "pipeline_graph_node_nblduflcxoazcdodkxdm",
+      "pipeline_function": {
+        "inputs": { "a": "type", "b": "type" },
+        "name": "minus",
+        "hash": "8f9b017ff956a547a63dd9b6be8f515b7f0982b76f105c8bc37739583c41ebde",
+        "function_file_name": "8f9b017ff956a547a63dd9b6be8f515b7f0982b76f105c8bc37739583c41ebde.fn",
+        "bound_class_file_name": null
+      },
+      "inputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "tsxqezlesm",
+          "is_input": false,
+          "is_output": false
+        },
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "bcjomaqzpb",
+          "is_input": false,
+          "is_output": false
+        }
+      ],
+      "outputs": [
+        {
+          "variable_type": "float",
+          "variable_type_file_path": null,
+          "variable_name": "grdxqnlnpu",
+          "is_input": false,
+          "is_output": true
+        }
+      ]
+    }
+  ],
+  "models": []
+}
