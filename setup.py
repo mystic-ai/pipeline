@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="pipeline-ai",
-    version="0.0.1",
+    version="0.0.2",
     author="Paul Hetherington",
     author_email="paul@getneuro.ai",
     description="A simple way to constuct processing pipelines for AI/ML projects.",
