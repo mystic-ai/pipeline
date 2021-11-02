@@ -5,5 +5,5 @@ from pipeline import Pipeline, pipeline_function, Variable
 from pipeline.model import pipeline_model
 
 
-my_pipeline = Pipeline.load("ML pipeline")
+my_pipeline = Pipeline.load("examples/ML pipeline")
 print(my_pipeline.run("Hello"))
