@@ -31,4 +31,4 @@ with Pipeline("MathsIsFun") as pipeline:
 output_pipeline = Pipeline.get_pipeline("MathsIsFun")
 print("Pipeline graph:\n%s" % output_pipeline.json())
 print(output_pipeline.run(5.0, 6.0))
-output_pipeline.save(".")
+output_pipeline.save("examples")

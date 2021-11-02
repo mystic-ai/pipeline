@@ -42,4 +42,4 @@ with Pipeline(pipeline_name="ML pipeline") as pipeline:
 output_pipeline = Pipeline.get_pipeline("ML pipeline")
 
 print(output_pipeline.run("Hello"))
-output_pipeline.save(".")
+output_pipeline.save("/examples")
