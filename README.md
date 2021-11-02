@@ -1,4 +1,4 @@
-# [Pipeline](https://pipeline.ai) [![Production workflow](https://github.com/neuro-ai-dev/pipeline/actions/workflows/prod-wf.yml/badge.svg?branch=main)](https://github.com/neuro-ai-dev/pipeline/actions/workflows/prod-wf.yml)[![Version](https://img.shields.io/pypi/v/pipeline-ai)](https://pypi.org/project/pipeline-ai)
+# [Pipeline](https://pipeline.ai) [![Production workflow](https://github.com/neuro-ai-dev/pipeline/actions/workflows/prod-wf.yml/badge.svg?branch=main)](https://github.com/neuro-ai-dev/pipeline/actions/workflows/prod-wf.yml) [![Version](https://img.shields.io/pypi/v/pipeline-ai)](https://pypi.org/project/pipeline-ai)
 
 [_by neuro_](https://getneuro.ai)
 
