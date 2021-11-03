@@ -13,6 +13,7 @@ black = "^21.10b0"
 dill = "^0.3.4"
 transformers = "^4.12.2"
 pydantic = "^1.8.2"
+requests = "^2.26.0"
 
 [tool.poetry.dev-dependencies]
 

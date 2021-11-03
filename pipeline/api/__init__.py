@@ -1,5 +1,5 @@
-import urllib.parse
 import requests
+import urllib.parse
 
 from pipeline.logging import _print
 
