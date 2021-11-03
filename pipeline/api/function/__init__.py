@@ -1,4 +1,4 @@
-from npu2.api.call import post
+from pipeline.api.call import post
 
 
 def upload_function(function_name, function_hex, function_source):

@@ -1,4 +1,4 @@
-from pipeline import Pipeline, Variable, pipeline_function
+from pipeline import Pipeline, Variable, pipeline_function, for_loop
 from pipeline.model.transformer_models import TransformersModel
 
 
