@@ -6,6 +6,36 @@
 
 ## Linux, Mac OS (intel)
 
+Make sure that your Python package manager is upto date e.g.
+
+```
+pip install -U pip
+```
+
+- If you're python/pip is directing to Python 3.7> run the following:
+
+```
+pip install -U pipeline-ai
+```
+
+OR
+
+```
+python -m pip install -U pipeline-ai
+```
+
+- If you're python/pip is directing to Python 3.7> run the following:
+
+```
+pip3 install -U pipeline-ai
+```
+
+OR
+
+```
+python3 -m pip install -U pipeline-ai
+```
+
 ## Mac OS (ARM/M1)
 
 Due to the ARM architecture of the M1 core it is necessary to take additional steps to install Pipeline, mostly due to the transformers library. We recoomend running inside of a conda environment as shown below.
