@@ -36,9 +36,9 @@ python -m pip install -U tensorflow-metal
 
 6. Install transformers
 
-'''
+```
 conda install -c huggingface transformers -y
-'''
+```
 
 7. Install pipeline
 
