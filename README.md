@@ -17,11 +17,17 @@ Due to the ARM architecture of the M1 core it is necessary to take additional st
 xcode-select --install
 ```
 
-3. Install Miniforge, instructions here: [https://github.com/conda-forge/miniforge](https://github.com/conda-forge/miniforge)
+3. Install Miniforge, instructions here: [https://github.com/conda-forge/miniforge](https://github.com/conda-forge/miniforge) or follow the below:
+   1. Download the Miniforge install script here: [https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh](https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh)
+   2. Make the shell executable and run
+   ```
+   sudo chmod 775 Miniforge3-MacOSX-arm64.sh
+   ./Miniforge3-MacOSX-arm64.sh
+   ```
 4. Create a conda based virtual env and activate:
 
 ```
-conda create -name pipeline-env python=3.9
+conda create --name pipeline-env python=3.9
 conda activate pipeline-env
 ```
 
