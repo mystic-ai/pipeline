@@ -14,6 +14,7 @@ from pipeline.schemas import (
     PipelineGraphNodeSchema,
     PipelineGraph,
 )
+from pipeline import logging
 
 CACHE_DIR = os.getenv("PIPELINE_CACHE_DIR", "./cache")
 
@@ -38,8 +39,10 @@ class Pipeline(object):
     _current_pipeline: PipelineGraph = None
     _current_pipeline_defining = False
 
-    def __init__(self, pipeline_name):
+    def __init__(self, pipeline_name, log_file: str = None):
+
         self.pipeline_name = pipeline_name
+        self.log_file = log_file
 
     # __enter__ - called at the end of a "with" block.
     def __enter__(self):
@@ -54,6 +57,10 @@ class Pipeline(object):
         )
 
         Pipeline._current_pipeline_defining = True
+
+        if self.log_file != None:
+            logging.set_print_to_file(self.log_file)
+
         return self
 
     # __exit__ - called at the end of a "with" block.
@@ -61,6 +68,9 @@ class Pipeline(object):
         Pipeline.defined_pipelines[self.pipeline_name] = self._current_pipeline.copy()
 
         Pipeline._current_pipeline_defining = False
+
+        if self.log_file != None:
+            logging.stop_print_to_file()
 
     def output(self, *outputs):
         for _output in outputs:
