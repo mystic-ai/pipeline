@@ -165,7 +165,6 @@ def pipeline_function(function):
     def execute_func(*args, **kwargs):
 
         if not Pipeline._current_pipeline_defining:
-            print("Call")
             return function(*args, **kwargs)
         else:
 

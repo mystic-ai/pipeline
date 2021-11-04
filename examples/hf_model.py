@@ -1,11 +1,14 @@
-from pipeline import Pipeline, Variable, pipeline_function, for_loop
-from pipeline.model.transformer_models import TransformersModel
+from pipeline import Pipeline, Variable
+from pipeline.model.hf_transformer import TransformersModelForCausalLM
 
 
 with Pipeline(pipeline_name="HF pipeline") as pipeline:
     input_str = Variable(variable_type=str, is_input=True)
 
-    hf_model = TransformersModel("EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-125M")
+    hf_model = TransformersModelForCausalLM(
+        model_path="EleutherAI/gpt-neo-125M",
+        tokenizer_path="EleutherAI/gpt-neo-125M",
+    )
     output_str = hf_model.predict(input_str)
 
     pipeline.output(output_str)

@@ -5,11 +5,11 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 @pipeline_model()
-class TransformersModel(object):
+class TransformersModelForCausalLM(object):
     model: AutoModelForCausalLM = None
     tokenizer: AutoTokenizer = None
 
-    def __init__(self, model_path, tokenizer_path):
+    def __init__(self, model_path="", tokenizer_path=""):
         self.model_path = model_path
         self.tokenizer_path = tokenizer_path
 
