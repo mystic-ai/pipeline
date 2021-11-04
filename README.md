@@ -4,41 +4,41 @@
 
 # About
 
+Pipeline is a python library that provides a simple way to construct computational graphs for AI/ML. The library is suitable for both development and production environments supporting inference and training/finetuning. This library is also a direct interface to [Pipeline.ai](https://pipeline.ai) which provides a compute engine to run pipelines at scale and on enterprise GPUs.
+
+The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect). In future releases we will be moving away from this syntax to a C based graph compiler which interprets python directly (and other languages).
+
+# Usage
+
+## Huggingface Transformers
+
+```
+from pipeline import Pipeline, Variable, pipeline_function, for_loop
+from pipeline.model.transformer_models import TransformersModel
+
+
+with Pipeline(pipeline_name="GPTNeo") as pipeline:
+    input_str = Variable(variable_type=str, is_input=True)
+
+    hf_model = TransformersModel("EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-125M")
+    output_str = hf_model.predict(input_str)
+
+    pipeline.output(output_str)
+
+output_pipeline = Pipeline.get_pipeline("GPTNeo")
+
+print(output_pipeline.run("Hello"))
+```
+
 # Installation instructions
 
-## Linux, Mac OS (intel)
-
-Make sure that your Python package manager is upto date e.g.
-
-```
-pip install -U pip
-```
-
-- If you're python/pip is directing to Python 3.7> run the following:
+## Linux, Mac (intel)
 
 ```
 pip install -U pipeline-ai
 ```
 
-OR
-
-```
-python -m pip install -U pipeline-ai
-```
-
-- If you're python/pip is directing to Python 3.7> run the following:
-
-```
-pip3 install -U pipeline-ai
-```
-
-OR
-
-```
-python3 -m pip install -U pipeline-ai
-```
-
-## Mac OS (ARM/M1)
+## Mac (arm/M1)
 
 Due to the ARM architecture of the M1 core it is necessary to take additional steps to install Pipeline, mostly due to the transformers library. We recoomend running inside of a conda environment as shown below.
 
