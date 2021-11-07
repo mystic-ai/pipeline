@@ -7,11 +7,12 @@ from dill import loads, dumps
 
 from pipeline.schemas import (
     PipelineVariableSchema,
-    PipelineFunctionSchema,
     PipelineGraphNodeSchema,
     PipelineGraph,
 )
 from pipeline import logging
+
+from pipeline.objects import PipelineFunction
 
 CACHE_DIR = os.getenv("PIPELINE_CACHE_DIR", "./cache")
 
@@ -134,7 +135,7 @@ class Pipeline(object):
             raise Exception("Cant add a variable when not defining a pipeline!")
 
     @staticmethod
-    def add_function(new_function: PipelineFunctionSchema):
+    def add_function(new_function: PipelineFunction):
 
         for _function in Pipeline._current_pipeline.functions:
             if _function.name == new_function.name:
@@ -211,10 +212,6 @@ def pipeline_function(function):
         if not function_i == "return"
     }
 
-    function.__pipeline_function__ = PipelineFunctionSchema(
-        inputs=function_inputs,
-        name=function.__name__,
-        function=function,
-    )
+    function.__pipeline_function__ = PipelineFunction(function)
     execute_func.__function__ = function
     return execute_func

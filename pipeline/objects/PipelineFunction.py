@@ -11,23 +11,23 @@ from typing import Optional, Callable, Any, Union
 from pipeline.pipeline_schemas.function import FunctionCreate
 
 
-def PipelineFunction(object):
-    local_id: str
-    api_id: Optional[str]
+class PipelineFunction(object):
+    local_id: str = None
+    api_id: Optional[str] = None
 
-    name: str
-    hash: Optional[str]
-    inputs: dict
-    output: dict
+    name: str = None
+    hash: Optional[str] = None
+    inputs: dict = None
+    output: dict = None
 
-    function_hex: str
-    function_source: str
+    function_hex: str = None
+    function_source: str = None
 
-    function: Optional[Callable]
-    function_file_name: Optional[str]
+    function: Optional[Callable] = None
+    function_file_name: Optional[str] = None
 
-    bound_class: Optional[Any]
-    bound_class_file_name: Optional[str]
+    bound_class: Optional[Any] = None
+    bound_class_file_name: Optional[str] = None
 
     def __init__(self, function: Callable):
         self.local_id = "".join(
@@ -47,7 +47,21 @@ def PipelineFunction(object):
 
         self.function_source = inspect.getsource(function)
         self.function_hex = dumps(function).hex()
-        self.hash = sha256(self.function_source).hexdigest()
+        self.hash = sha256(self.function_source.encode()).hexdigest()
+
+    def dict(self, *args, **kwargs):
+        return dict(
+            local_id=self.local_id,
+            remote_id=self.remote_id,
+            inputs=self.inputs,
+            name=self.name,
+            hash=self.hash,
+            function_file_name=self.function_file_name,
+            bound_class_file_name=self.bound_class_file_name,
+        )
+
+    def json(self, *args, **kwargs):
+        return self.dict()
 
     @property
     def _api_create_schema(self) -> FunctionCreate:
@@ -60,3 +74,6 @@ def PipelineFunction(object):
             output=self.output,
         )
         return create_schema
+
+    def _set_bound_class(self, bound_class) -> None:
+        self.bound_class = bound_class

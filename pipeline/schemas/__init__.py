@@ -11,6 +11,8 @@ from pydantic import BaseModel
 
 from typing import List, Optional, Callable, Any
 
+from pipeline.objects import PipelineFunction
+
 
 class PipelineVariableSchema(BaseModel):
     id: str
@@ -73,6 +75,7 @@ class PipelineModel(BaseModel):
         }
 
 
+"""
 class PipelineFunctionSchema(BaseModel):
     id: str
     remote_id: Optional[str]
@@ -110,6 +113,7 @@ class PipelineFunctionSchema(BaseModel):
             "function_file_name": self.function_file_name,
             "bound_class_file_name": self.bound_class_file_name,
         }
+"""
 
 
 class PipelineGraphNodeSchema(BaseModel):
@@ -129,12 +133,15 @@ class PipelineGraph(BaseModel):
 
     name: str
 
-    functions: List[PipelineFunctionSchema]
+    functions: List[PipelineFunction]
     variables: List[PipelineVariableSchema]
 
     graph_nodes: List[PipelineGraphNodeSchema]
 
     models: List[PipelineModel]
+
+    class Config:
+        arbitrary_types_allowed = True
 
     def __init__(self, *args, **kwargs):
         kwargs["id"] = "".join(random.choice(string.ascii_lowercase) for i in range(20))
@@ -174,7 +181,7 @@ class PipelineGraph(BaseModel):
 
             node_inputs: List[PipelineVariableSchema] = []
             node_outputs: List[PipelineVariableSchema] = []
-            node_function: PipelineFunctionSchema = None
+            node_function: PipelineFunction = None
 
             for _node_input in node.inputs:
                 for variable in self.variables:
@@ -196,7 +203,10 @@ class PipelineGraph(BaseModel):
             for _input in node_inputs:
                 function_inputs.append(running_variables[_input.variable_name])
 
-            if node_function.bound_class != None:
+            if (
+                hasattr(node.pipeline_function, "bound_class")
+                and node_function.bound_class != None
+            ):
                 output = node_function.function(
                     node_function.bound_class, *function_inputs
                 )
@@ -240,7 +250,10 @@ class PipelineGraph(BaseModel):
                 os.path.join(base_save_path, save_file_name), "wb"
             ) as node_function_file:
                 node_function_file.write(function_data)
-            if node.pipeline_function.bound_class != None:
+            if (
+                hasattr(node.pipeline_function, "bound_class")
+                and node.pipeline_function.bound_class != None
+            ):
                 bound_class_data = dumps(node.pipeline_function.bound_class)
                 # bound_class_source = inspect.getsource(
                 #    node.pipeline_function.bound_class
