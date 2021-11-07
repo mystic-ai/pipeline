@@ -17,8 +17,8 @@ class PipelineFunction(object):
 
     name: str = None
     hash: Optional[str] = None
-    inputs: dict = None
-    output: dict = None
+    inputs: dict = {}
+    output: dict = {}
 
     function_hex: str = None
     function_source: str = None
@@ -41,7 +41,7 @@ class PipelineFunction(object):
             if not function_i == "return"
         }
 
-        self.output = function.__annotations__["return"]
+        self.output = {"return": function.__annotations__["return"].__name__}
 
         self.function = function
 
@@ -70,7 +70,7 @@ class PipelineFunction(object):
             hash=self.hash,
             function_hex=self.function_hex,
             function_source=self.function_source,
-            inputs=self.inputs,
+            inputs={_input: self.inputs[_input].__name__ for _input in self.inputs},
             output=self.output,
         )
         return create_schema

@@ -131,3 +131,5 @@ dmypy.json
 *.nf
 
 examples/examples
+
+*/hidden.env

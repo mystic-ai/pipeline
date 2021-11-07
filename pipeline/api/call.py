@@ -10,10 +10,12 @@ def __handle_response__(response: requests.Response):
 
 
 def post(endpoint, json_data):
-    headers = {"Authorization": "Bearer %s" % api.PIPELINE_API_TOKEN}
+    headers = {
+        "Authorization": "Bearer %s" % api.PIPELINE_API_TOKEN,
+        "Content-type": "application/json",
+    }
 
     url = urllib.parse.urljoin(api.PIPELINE_API_URL, endpoint)
-
     response = requests.post(url, headers=headers, json=json_data)
     __handle_response__(response)
     return response.json()

@@ -4,7 +4,7 @@ import urllib.parse
 from dill import dumps
 
 from pipeline.logging import _print
-from pipeline.schemas import PipelineFunctionSchema
+from pipeline.objects import PipelineFunction
 
 from pipeline.api.function import upload_function
 
@@ -38,17 +38,10 @@ def upload(object):
     if (
         hasattr(object, "__function__")
         and hasattr(object.__function__, "__pipeline_function__")
-        and isinstance(
-            object.__function__.__pipeline_function__, PipelineFunctionSchema
-        )
+        and isinstance(object.__function__.__pipeline_function__, PipelineFunction)
     ):
-        function_schema: PipelineFunctionSchema = (
-            object.__function__.__pipeline_function__
-        )
-        function_name = function_schema.name
-        function_bytes = dumps(function_schema.function)
-        function_hex = function_bytes.hex()
-        function_source = inspect.getsource(function_schema.function)
-        return upload_function(function_name, function_hex, function_source)
+        function: PipelineFunction = object.__function__.__pipeline_function__
+
+        return upload_function(function._api_create_schema)
     else:
         raise Exception("Not a pipeline object!")
