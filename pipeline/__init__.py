@@ -1,19 +1,18 @@
 import os
 from pickle import load
 
+from typing import List
+
 from dill import loads, dumps
-
-import random
-import string
-
-import inspect
 
 from pipeline.schemas import (
     PipelineVariableSchema,
-    PipelineFunctionSchema,
     PipelineGraphNodeSchema,
     PipelineGraph,
 )
+from pipeline import logging
+
+from pipeline.objects import PipelineFunction
 
 CACHE_DIR = os.getenv("PIPELINE_CACHE_DIR", "./cache")
 
@@ -38,10 +37,11 @@ class Pipeline(object):
     _current_pipeline: PipelineGraph = None
     _current_pipeline_defining = False
 
-    def __init__(self, pipeline_name):
-        self.pipeline_name = pipeline_name
+    def __init__(self, pipeline_name, log_file: str = None):
 
-    # __enter__ - called at the end of a "with" block.
+        self.pipeline_name = pipeline_name
+        self.log_file = log_file
+
     def __enter__(self):
 
         Pipeline._current_pipeline = PipelineGraph(
@@ -50,45 +50,42 @@ class Pipeline(object):
             variables=[],
             graph_nodes=[],
             models=[],
+            functions=[],
             name=self.pipeline_name,
         )
 
         Pipeline._current_pipeline_defining = True
+
+        if self.log_file != None:
+            logging.set_print_to_file(self.log_file)
+
         return self
 
-    # __exit__ - called at the end of a "with" block.
     def __exit__(self, type, value, traceback):
         Pipeline.defined_pipelines[self.pipeline_name] = self._current_pipeline.copy()
 
         Pipeline._current_pipeline_defining = False
 
+        if self.log_file != None:
+            logging.stop_print_to_file()
+
     def output(self, *outputs):
         for _output in outputs:
-            if not isinstance(_output, PipelineVariableSchema):
-                raise Exception("Can only return PipelineVariables idiot.")
 
             variable_index = self._current_pipeline.variables.index(_output)
             if variable_index != -1:
 
                 self._current_pipeline.variables[variable_index].is_output = True
-
-                for node in self._current_pipeline.graph_nodes:
-                    for op in node.outputs:
-                        if op.variable_name == _output.variable_name:
-                            op.is_output = True
-
-                """Pipeline._current_pipeline.outputs.append(
-                    PipelineOutputVariableSchema(
-                        variable=self._current_pipeline.variables[variable_index]
-                    )
-                )"""
+                for variable in self._current_pipeline.variables:
+                    if variable.variable_name == _output:
+                        variable.is_output = True
+                        break
 
     def save(self, dir, **kwargs):
         return self._current_pipeline.save(dir, **kwargs)
 
     @staticmethod
     def load(path):
-        # with open(os.path.join(path, "config.json"), "r") as config_file:
         Pipeline._current_pipeline = PipelineGraph.parse_file(
             os.path.join(path, "config.json")
         )
@@ -126,36 +123,44 @@ class Pipeline(object):
 
         return Pipeline._current_pipeline
 
-    # def save(path):
+    @staticmethod
+    def get_pipeline(pipeline_name) -> PipelineGraph:
+        return Pipeline.defined_pipelines[pipeline_name]
 
     @staticmethod
     def add_variable(new_variable: PipelineVariableSchema):
-
         if Pipeline._current_pipeline_defining:
-
             Pipeline._current_pipeline.variables.append(new_variable)
-
-            """if new_variable.is_input:
-                Pipeline._current_pipeline.inputs.append(
-                    PipelineInputVariableSchema(variable=new_variable)
-                )
-            elif new_variable.is_output:
-                Pipeline._current_pipeline.outputs.append(
-                    PipelineOutputVariableSchema(variable=new_variable)
-                )"""
         else:
             raise Exception("Cant add a variable when not defining a pipeline!")
 
     @staticmethod
-    def get_pipeline(pipeline_name) -> PipelineGraph:
-        return Pipeline.defined_pipelines[pipeline_name]
+    def add_function(new_function: PipelineFunction):
+
+        for _function in Pipeline._current_pipeline.functions:
+            if _function.name == new_function.name:
+                return
+
+        Pipeline._current_pipeline.functions.append(new_function)
+
+    @staticmethod
+    def add_node(
+        function: str,
+        inputs: List[str],
+        outputs: List[str],
+    ):
+        graph_node = PipelineGraphNodeSchema(
+            pipeline_function=function,
+            inputs=inputs,
+            outputs=outputs,
+        )
+        Pipeline._current_pipeline.graph_nodes.append(graph_node)
 
 
 def pipeline_function(function):
     def execute_func(*args, **kwargs):
 
         if not Pipeline._current_pipeline_defining:
-            print("Call")
             return function(*args, **kwargs)
         else:
 
@@ -165,7 +170,7 @@ def pipeline_function(function):
                     "Must include an output type e.g. 'def my_func(...) -> int:'"
                 )
 
-            processed_args = []
+            processed_args: PipelineVariableSchema = []
 
             for input_arg in args:
                 if isinstance(input_arg, Variable):
@@ -178,7 +183,6 @@ def pipeline_function(function):
                     if function.__pipeline_function__.bound_class == None:
                         function.__pipeline_function__.bound_class = input_arg
                 elif isinstance(input_arg, PipelineVariableSchema):
-                    print(input_arg)
                     if not input_arg in Pipeline._current_pipeline.variables:
                         raise Exception(
                             "Vairble not found, have you forgotten to define it as in input? "
@@ -193,16 +197,14 @@ def pipeline_function(function):
                 variable_type=function.__annotations__["return"]
             )
             Pipeline.add_variable(node_output)
-
-            # Everytime this function is called we have to add a new node in the graph
-            graph_node = PipelineGraphNodeSchema(
-                pipeline_function=function.__pipeline_function__,
-                inputs=processed_args,
-                outputs=[node_output],
+            Pipeline.add_function(function.__pipeline_function__)
+            Pipeline.add_node(
+                function=function.__pipeline_function__.name,
+                inputs=[_input.variable_name for _input in processed_args],
+                outputs=[node_output.variable_name],
             )
-            Pipeline._current_pipeline.graph_nodes.append(graph_node)
 
-            return graph_node.outputs[0]
+            return node_output
 
     function_inputs = {
         function_i: function.__annotations__[function_i]
@@ -210,10 +212,6 @@ def pipeline_function(function):
         if not function_i == "return"
     }
 
-    function.__pipeline_function__ = PipelineFunctionSchema(
-        inputs=function_inputs,
-        name=function.__name__,
-        function=function,
-    )
-
+    function.__pipeline_function__ = PipelineFunction(function)
+    execute_func.__function__ = function
     return execute_func

@@ -1,0 +1,4 @@
+[submodule "pipeline/pipeline_schemas"]
+	path = pipeline/pipeline_schemas
+	url = git@github.com:neuro-ai-dev/pipeline_schemas.git
+	branch = paul-pipelines
