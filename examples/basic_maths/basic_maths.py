@@ -26,6 +26,7 @@ with Pipeline("MathsIsFun") as pipeline:
     sq_2 = square(res_2)
     res_3 = multiply(flt_2, sq_2)
     res_4 = minus(res_3, sq_1)
+
     pipeline.output(res_2, res_4)
 
 output_pipeline = Pipeline.get_pipeline("MathsIsFun")
