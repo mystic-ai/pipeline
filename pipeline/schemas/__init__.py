@@ -9,9 +9,11 @@ from hashlib import sha256
 
 from pydantic import BaseModel
 
-from typing import List, Optional, Callable, Any
+from typing import List, Optional, Any
 
 from pipeline.objects import PipelineFunction
+
+from pipeline.pipeline_schemas.pipeline import PipelineCreateSchema
 
 
 class PipelineVariableSchema(BaseModel):
@@ -146,6 +148,17 @@ class PipelineGraph(BaseModel):
     def __init__(self, *args, **kwargs):
         kwargs["id"] = "".join(random.choice(string.ascii_lowercase) for i in range(20))
         super().__init__(*args, **kwargs)
+
+    @property
+    def _api_create_schema(self):
+        create_schema = PipelineCreateSchema(
+            name=self.name,
+            variables=self.variables,
+            functions=[function._api_get_schema for function in self.functions],
+            graph_nodes=self.graph_nodes,
+            models={},
+        )
+        return create_schema
 
     def run(self, *inputs):
 

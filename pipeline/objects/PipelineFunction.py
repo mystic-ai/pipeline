@@ -8,12 +8,17 @@ from hashlib import sha256
 
 from typing import Optional, Callable, Any, Union
 
-from pipeline.pipeline_schemas.function import FunctionCreate
+from requests.api import get
+
+from pipeline.pipeline_schemas.file import FileSchema
+from pipeline.pipeline_schemas.function import FunctionCreate, FunctionGet
 
 
 class PipelineFunction(object):
     local_id: str = None
     api_id: Optional[str] = None
+
+    api_hex_file: FileSchema = None
 
     name: str = None
     hash: Optional[str] = None
@@ -52,7 +57,7 @@ class PipelineFunction(object):
     def dict(self, *args, **kwargs):
         return dict(
             local_id=self.local_id,
-            remote_id=self.remote_id,
+            api_id=self.api_id,
             inputs=self.inputs,
             name=self.name,
             hash=self.hash,
@@ -74,6 +79,27 @@ class PipelineFunction(object):
             output=self.output,
         )
         return create_schema
+
+    @property
+    def _api_get_schema(self) -> FunctionGet:
+        get_schema = FunctionGet(
+            id=self.api_id,
+            name=self.name,
+            # hash=self.hash,
+            # function_hex=self.function_hex,
+            source_sample=self.function_source,
+            # inputs={_input: self.inputs[_input].__name__ for _input in self.inputs},
+            # output=self.output,
+            hex_file=self.api_hex_file,
+        )
+        return get_schema
+
+    @_api_get_schema.setter
+    def _api_get_schema(self, get_schema: FunctionGet):
+        self.api_id = get_schema.id
+        self.api_hex_file = get_schema.hex_file
+        self.function_source = get_schema.source_sample
+        self.name = get_schema.name
 
     def _set_bound_class(self, bound_class) -> None:
         self.bound_class = bound_class

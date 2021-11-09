@@ -7,7 +7,7 @@ from pipeline import Pipeline, Variable, pipeline_function
 load_dotenv("hidden.env")
 
 api_token = os.getenv("TOKEN")
-pipeline.api.authenticate(api_token, url="http://localhost:5001/")
+pipeline.api.authenticate(api_token)
 
 
 @pipeline_function
@@ -24,5 +24,5 @@ with Pipeline("MathsTest") as builder:
     builder.output(res_1)
 
 test_pipeline = Pipeline.get_pipeline("MathsTest")
-upload_output = pipeline.api.upload(multiply)
-print(upload_output)
+upload_output = pipeline.api.upload(test_pipeline)
+# print(upload_output.functions[0].dict())

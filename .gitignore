@@ -133,3 +133,4 @@ dmypy.json
 examples/examples
 
 */hidden.env
+local/
