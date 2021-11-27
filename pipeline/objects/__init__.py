@@ -3,6 +3,7 @@ from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.graph import Graph
 from pipeline.objects.pipeline import Pipeline
+from pipeline.objects.model import Model
 
 
 def pipeline_function(function):
@@ -18,10 +19,13 @@ def pipeline_function(function):
                 )
 
             processed_args: Variable = []
-
             for input_arg in args:
                 if isinstance(input_arg, Variable):
                     processed_args.append(input_arg)
+                elif hasattr(input_arg, "__pipeline_model__"):
+                    if function.__pipeline_function__.class_instance == None:
+                        function.__pipeline_function__.class_instance = input_arg
+
                 else:
                     raise Exception(
                         "You can't input random variables, follow the way of the Pipeline. Got type"
@@ -42,3 +46,41 @@ def pipeline_function(function):
     execute_func.__function__ = function
     function.__pipeline_function__ = Function(function)
     return execute_func
+
+
+class pipeline_model(object):
+    def __init__(
+        self, model_class=None, *, file_or_dir: str = None, compress_tar=False
+    ):
+        if model_class != None:
+            model_class.__pipeline_model__ = True
+
+        self.compress_tar = compress_tar
+        self.model_class = model_class
+        self.file_or_dir = file_or_dir
+
+    def __call__(self, *args, **kwargs):
+
+        if len(args) + len(kwargs) == 1:
+            self.model_class = args[0]
+            self.model_class.__pipeline_model__ = True
+            return self.__function_exe__
+        else:
+            print(len(args) + len(kwargs))
+            return self.__function_exe__(*args, **kwargs)
+
+    def __function_exe__(self, *args, **kwargs):
+        if not Pipeline._current_pipeline:
+            return self.model_class(*args, **kwargs)
+        else:
+            created_model = self.model_class(*args, **kwargs)
+            model_schema = Model(model=created_model)
+            Pipeline._current_pipeline.models.append(model_schema)
+
+            model_functions = [
+                model_attr
+                for model_attr in dir(created_model)
+                if callable(getattr(created_model, model_attr))
+                and model_attr[:2] != "__"
+            ]
+            return created_model

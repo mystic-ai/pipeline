@@ -3,6 +3,7 @@ from typing import List
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.variable import Variable
+from pipeline.objects.model import Model
 
 from pipeline.schemas.pipeline import (
     PipelineCreate,
@@ -25,6 +26,7 @@ class Graph:
 
     nodes: List[GraphNode]
 
+    models: List[Model]
     # TODO: Add generic objects (e.g. Model) to be included in the graph
 
     def __init__(
@@ -34,7 +36,8 @@ class Graph:
         variables: List[Variable] = None,
         functions: List[Function] = None,
         outputs: List[Variable] = None,
-        nodes: List[GraphNode] = None
+        nodes: List[GraphNode] = None,
+        models: List[Model] = None
     ):
         self.name = name
         self.local_id = generate_id(10)
@@ -43,6 +46,7 @@ class Graph:
         self.functions = functions if functions != None else []
         self.outputs = outputs if outputs != None else []
         self.nodes = nodes if nodes != None else []
+        self.models = models if models != None else []
 
     def run(self, *inputs):
         input_variables: List[Variable] = [
@@ -56,6 +60,10 @@ class Graph:
                 "Mismatch of number of inputs, expecting %u got %s"
                 % (len(input_variables), len(inputs))
             )
+
+        for model in self.models:
+            if hasattr(model.model, "load"):
+                model.model.load(None)
 
         running_variables = {}
         for i, input in enumerate(inputs):
@@ -97,7 +105,7 @@ class Graph:
                 function_inputs.append(running_variables[_input.local_id])
 
             if (
-                hasattr(node.function, "bound_class")
+                hasattr(node.function, "class_instance")
                 and node_function.class_instance != None
             ):
                 output = node_function.function(
