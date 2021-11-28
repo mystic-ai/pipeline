@@ -2,7 +2,6 @@ name: Production workflow
 on: [push]
 jobs:
   test:
-    #runs-on: ubuntu-latest
     runs-on: self-hosted
     strategy:
       matrix:
@@ -22,7 +21,6 @@ jobs:
         uses: snok/install-poetry@v1
         with:
           version: 1.1.11
-          virtualenvs-in-project: true
       - name: Install dependencies
         run: poetry install --no-interaction
       - name: test
