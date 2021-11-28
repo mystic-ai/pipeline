@@ -17,13 +17,14 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Install Poetry ${{ matrix.poetry-version }}
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.1.11
+          virtualenvs-in-project: true
       - name: Install dependencies
+        run: poetry install --no-interaction
+      - name: test
         run: |
-          python -m pip install --upgrade pip
-          pip install pytest
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Install pipeline
-        run: python -m pip install -U .
-      - name: Test with pytest
-        run: |
-          pytest
+          poetry run pytest
