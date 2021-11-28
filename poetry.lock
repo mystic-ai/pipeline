@@ -161,6 +161,14 @@ dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
 
 [[package]]
+name = "pyhumps"
+version = "3.0.2"
+description = "🐫  Convert strings (and dictionary keys) between snake case, camel case and pascal case in Python. Inspired by Humps for Node"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pyparsing"
 version = "2.4.7"
 description = "Python parsing module"
@@ -346,7 +354,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "c89291e9b52f396b6f0e5ca6be59f9bb95aa92d2c2e8c60c2a3ae3b5ecccc646"
+content-hash = "94b8ceb3b580f83413ee5cede1fdcde9914956d52aaa8a0b64cc8c0e684e038f"
 
 [metadata.files]
 certifi = [
@@ -450,6 +458,10 @@ pydantic = [
     {file = "pydantic-1.8.2-cp39-cp39-win_amd64.whl", hash = "sha256:4be75bebf676a5f0f87937c6ddb061fa39cbea067240d98e298508c1bda6f3f3"},
     {file = "pydantic-1.8.2-py3-none-any.whl", hash = "sha256:fec866a0b59f372b7e776f2d7308511784dace622e0992a0b59ea3ccee0ae833"},
     {file = "pydantic-1.8.2.tar.gz", hash = "sha256:26464e57ccaafe72b7ad156fdaa4e9b9ef051f69e175dbbb463283000c05ab7b"},
+]
+pyhumps = [
+    {file = "pyhumps-3.0.2-py3-none-any.whl", hash = "sha256:367b1aadcaa64f8196a3cd14f56559a5602950aeb8486f49318e7394f5e18052"},
+    {file = "pyhumps-3.0.2.tar.gz", hash = "sha256:042b4b6eec6c1f862f8310c0eebbae19293e9edab8cafb030ff78c890ef1aa34"},
 ]
 pyparsing = [
     {file = "pyparsing-2.4.7-py2.py3-none-any.whl", hash = "sha256:ef9d7589ef3c200abe66653d3f1ab1033c3c419ae9b9bdb1240a85b024efc88b"},
