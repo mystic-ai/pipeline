@@ -10,7 +10,6 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.7"
 dill = "^0.3.4"
-transformers = "^4.12.2"
 pydantic = "^1.8.2"
 requests = "^2.26.0"
 setuptools = "^59.2.0"
