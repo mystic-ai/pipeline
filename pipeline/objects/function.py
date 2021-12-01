@@ -80,6 +80,7 @@ class Function:
         """
 
         function_schema = FunctionCreate(
+            local_id=self.local_id,
             name=self.name,
             function_source=self.source,
             hash=self.hash,

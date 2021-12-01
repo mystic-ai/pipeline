@@ -40,6 +40,8 @@ class FunctionIOCreate(BaseModel):
 
 
 class FunctionCreate(BaseModel):
+    local_id: str
+
     # function_hex: str
     function_source: str
 
