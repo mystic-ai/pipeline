@@ -2,7 +2,7 @@ import inspect
 
 from hashlib import sha256
 
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 from pipeline import schemas
 
 from pipeline.util import generate_id, hex_to_python_object
@@ -21,8 +21,8 @@ class Function:
     source: str
     hash: str
 
-    typing_inputs: dict[str, Any]
-    typing_outputs: dict[str, Any]
+    typing_inputs: Dict[str, Any]
+    typing_outputs: Dict[str, Any]
 
     function: Callable
 
