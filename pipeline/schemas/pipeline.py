@@ -61,7 +61,7 @@ class PipelineVariableGet(BaseModel):
 
         if file_defined == file_id_defined:
             raise ValueError(
-                "You must define either the type_file OR type_file_id of a function."
+                "You must define either the type_file OR type_file_id of a variable."
             )
 
         return values
@@ -70,7 +70,7 @@ class PipelineVariableGet(BaseModel):
 class PipelineGet(BaseModel):
     name: str
 
-    remote_id: str
+    id: str
 
     variables: List[PipelineVariableGet]
     functions: List[FunctionGet]
@@ -84,7 +84,7 @@ class PipelineGet(BaseModel):
 class PipelineCreate(BaseModel):
     name: str
     variables: List[PipelineVariableCreate]
-    functions: Union[List[FunctionGet], List[FunctionCreate]]
+    functions: List[Union[FunctionGet, FunctionCreate]]
     graph_nodes: List[PipelineGraphNode]
     models: Optional[dict]
     outputs: List[str]
