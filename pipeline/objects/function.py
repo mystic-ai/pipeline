@@ -5,9 +5,12 @@ from hashlib import sha256
 from typing import Any, Callable, Dict, List, Optional
 from pipeline import schemas
 
-from pipeline.util import generate_id, hex_to_python_object
-
-from pipeline.util import python_object_to_hex
+from pipeline.util import (
+    generate_id,
+    hex_to_python_object,
+    python_object_to_hex,
+    python_object_to_name,
+)
 
 from pipeline.schemas.file import FileCreate
 from pipeline.schemas.function import FunctionGet, FunctionIOCreate, FunctionCreate
@@ -79,13 +82,21 @@ class Function:
         ]
         """
 
+        inputs = [
+            dict(name=name, type_name=python_object_to_name(type))
+            for name, type in self.typing_inputs.items()
+        ]
+        output = [
+            dict(name=name, type_name=python_object_to_name(type))
+            for name, type in self.typing_outputs.items()
+        ]
         function_schema = FunctionCreate(
             local_id=self.local_id,
             name=self.name,
             function_source=self.source,
             hash=self.hash,
-            # inputs=inputs_schema,
-            # outputs=outputs_schema,
+            inputs=inputs,
+            output=output,
             file=FileCreate(name=self.name, file_bytes=python_object_to_hex(self)),
         )
         return function_schema

@@ -19,6 +19,19 @@ class FunctionGet(FunctionBase):
     source_sample: str
 
 
+class FunctionIO(BaseModel):
+    """Descriptive schema of a function's input/output.
+
+    Not intended to be sufficient to create an input/output type object.
+    """
+
+    # If present, the name of the argument
+    name: Optional[str]
+    # The name of the type, if available (some types cannot have their names
+    # extracted)
+    type_name: Optional[str]
+
+
 class FunctionIOCreate(BaseModel):
     name: str
     file_id: Optional[str]
@@ -45,8 +58,8 @@ class FunctionCreate(BaseModel):
     # function_hex: str
     function_source: str
 
-    # inputs: List[FunctionIOCreate]
-    # output: List[FunctionIOCreate]
+    inputs: List[FunctionIO]
+    output: List[FunctionIO]
 
     name: str
     hash: str

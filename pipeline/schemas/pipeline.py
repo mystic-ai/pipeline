@@ -19,6 +19,7 @@ class PipelineVariableCreate(BaseModel):
     local_id: str
     name: Optional[str]
 
+    type_name: Optional[str]
     type_file: Optional[FileCreate]
     type_file_id: Optional[str]
 
