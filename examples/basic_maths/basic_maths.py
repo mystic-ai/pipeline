@@ -1,4 +1,4 @@
-from pipeline import Pipeline, pipeline_function, Variable
+from pipeline.objects import Pipeline, pipeline_function, Variable
 
 
 @pipeline_function
@@ -17,8 +17,8 @@ def multiply(a: float, b: float) -> float:
 
 
 with Pipeline("MathsIsFun") as pipeline:
-    flt_1 = Variable(variable_type=float, is_input=True)
-    flt_2 = Variable(variable_type=float, is_input=True)
+    flt_1 = Variable(float, is_input=True)
+    flt_2 = Variable(float, is_input=True)
 
     sq_1 = square(flt_1)
     res_1 = multiply(flt_2, sq_1)

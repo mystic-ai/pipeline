@@ -2,7 +2,7 @@ from datetime import datetime
 import re
 from typing import Optional
 
-# import humps
+import humps
 from pydantic import BaseModel as PydanticModel, Extra, validator
 from pydantic.generics import GenericModel as PydanticGenericModel
 
@@ -10,15 +10,15 @@ from pydantic.generics import GenericModel as PydanticGenericModel
 #: When set to True, model fields can be get/set by camelCase'd field names
 #: This is useful for JS interop., where camelCase is the convention
 #: (rather than Python's snake_case convention)
-# CAMEL_CASE_ALIASES = False
+CAMEL_CASE_ALIASES = False
 
 
-# def _generate_alias(s):
-#    return humps.camelize(s) if CAMEL_CASE_ALIASES else s
+def _generate_alias(s):
+    return humps.camelize(s) if CAMEL_CASE_ALIASES else s
 
 
 class BaseConfig:
-    # alias_generator = _generate_alias
+    alias_generator = _generate_alias
     allow_population_by_field_name = True
     # Encode datetime objects to JSON as integer timestamps
     json_encoders = {datetime: datetime.timestamp}
