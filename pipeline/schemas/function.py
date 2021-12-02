@@ -53,7 +53,10 @@ class FunctionIOCreate(BaseModel):
 
 
 class FunctionCreate(BaseModel):
-    local_id: str
+    # The local ID is assigned when a new function is used as part of a new
+    # pipeline; the server uses the local ID to associated a function to a
+    # graph node before replacing the local ID with the server-generated one
+    local_id: Optional[str]
 
     # function_hex: str
     function_source: str
