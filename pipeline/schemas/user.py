@@ -72,6 +72,19 @@ class UserPasswordPatch(Patchable):
         return value
 
 
+class UserPasswordResetPatch(Patchable):
+    password: str
+
+    @validator("password")
+    def validate_password(cls, value):
+        if not valid_password(value):
+            raise ValueError(
+                "must contain at least 8 characters, one uppercase letter and one number."
+            )
+        return value
+
+
+
 class UserLogin(BaseModel):
     email: str
     password: str

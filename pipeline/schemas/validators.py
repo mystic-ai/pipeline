@@ -1,5 +1,8 @@
 import re
 
+# TO-DO: refactor validators as below
+# https://pydantic-docs.helpmanual.io/usage/validators/
+
 # Email regex mostly following RFC2822 specification. Covers ~99% of emails in use today
 # Allows groups of alphanumerics and some special characters separated by dots, followed by a @,
 # followed by groups of alphanumerics and non-staring/non-ending dashes, separated by dots.
