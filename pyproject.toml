@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.0.7"
+version = "0.0.8"
 description = "Yay ml pipelines"
 authors = ["Paul Hetherington <paul@getneuro.ai>"]
 packages = [
@@ -9,13 +9,21 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.7"
-black = "^21.10b0"
 dill = "^0.3.4"
-transformers = "^4.12.2"
 pydantic = "^1.8.2"
 requests = "^2.26.0"
+setuptools = "^59.2.0"
+humps = "^0.2.2"
+pyhumps = "^3.0.2"
 
 [tool.poetry.dev-dependencies]
+setuptools = "^59.2.0"
+dill = "^0.3.4"
+transformers = "^4.12.5"
+pydantic = "^1.8.2"
+requests = "^2.26.0"
+pyhumps = "^3.0.2"
+pytest = "^6.2.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
