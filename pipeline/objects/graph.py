@@ -67,7 +67,6 @@ class Graph:
 
         running_variables = {}
         for i, input in enumerate(inputs):
-            print(input_variables[i].type_class)
             if not isinstance(input, input_variables[i].type_class):
                 raise Exception(
                     "Input type mismatch, expceted %s got %s"

@@ -1,7 +1,12 @@
 from typing import Any
 
 
-from pipeline.util import generate_id, python_object_to_hex, hex_to_python_object
+from pipeline.util import (
+    generate_id,
+    python_object_to_hex,
+    python_object_to_name,
+    hex_to_python_object,
+)
 
 from pipeline.schemas.file import FileCreate
 from pipeline.schemas.pipeline import PipelineVariableCreate, PipelineVariableGet
@@ -44,6 +49,7 @@ class Variable:
         return PipelineVariableCreate(
             local_id=self.local_id,
             name=self.name,
+            type_name=python_object_to_name(self.type_class),
             type_file=FileCreate(
                 name=self.name, file_bytes=python_object_to_hex(self.type_class)
             ),
