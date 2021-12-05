@@ -19,7 +19,6 @@ pyhumps = "^3.0.2"
 [tool.poetry.dev-dependencies]
 setuptools = "^59.2.0"
 dill = "^0.3.4"
-transformers = "^4.12.5"
 pydantic = "^1.8.2"
 requests = "^2.26.0"
 pyhumps = "^3.0.2"

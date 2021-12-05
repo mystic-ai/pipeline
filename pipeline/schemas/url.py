@@ -6,7 +6,7 @@ from .base import BaseModel
 
 
 class URLBase(BaseModel):
-    url_string: AnyHttpUrl
+    url_string: str
     static_public_ip: ipaddress.IPv4Address
 
 

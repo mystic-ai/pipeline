@@ -67,7 +67,6 @@ class RunGet(BaseModel):
     run_state: RunState
     compute_time_ms: Optional[int]
     runnable: Union[FunctionGet, PipelineGet]
-    # token: str
     data: DataGet
     blocking: Optional[bool] = False
 
