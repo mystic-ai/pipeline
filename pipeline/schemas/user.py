@@ -84,7 +84,6 @@ class UserPasswordResetPatch(Patchable):
         return value
 
 
-
 class UserLogin(BaseModel):
     email: str
     password: str
