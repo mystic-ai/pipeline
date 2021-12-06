@@ -69,6 +69,7 @@ def test_pipeline_get_schema():
     del graph, my_pipeline
 
     get_schema = PipelineGet(
+        id="pipeline-abc123",
         name=schema.name,
         remote_id="qf34h9uonjl4qf3we",
         variables=[
