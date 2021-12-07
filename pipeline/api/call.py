@@ -4,18 +4,26 @@ import urllib.parse
 from tqdm import tqdm
 
 from requests_toolbelt.multipart import encoder
+from pipeline.schemas.file import FileGet
 
-# from pipeline.api import PIPELINE_API_TOKEN, PIPELINE_API_URL
+from pipeline.util import generate_id
+
 import pipeline.api
+
 from pipeline.util.logging import PIPELINE_STR
 
 
 def __handle_response__(response: requests.Response):
     if response.status_code == 404:
         raise Exception(response)
+    elif response.status_code == 422:
+        raise Exception(response.text)
+    elif response.status_code == 500:
+        raise Exception(response.text)
 
 
 def post(endpoint, json_data):
+
     headers = {
         "Authorization": "Bearer %s" % pipeline.api.PIPELINE_API_TOKEN,
         "Content-type": "application/json",
@@ -28,6 +36,7 @@ def post(endpoint, json_data):
 
 
 def get(endpoint):
+
     headers = {"Authorization": "Bearer %s" % pipeline.api.PIPELINE_API_TOKEN}
 
     url = urllib.parse.urljoin(pipeline.api.PIPELINE_API_URL, endpoint)
@@ -38,6 +47,9 @@ def get(endpoint):
 
 
 def post_file(endpoint, file, remote_path):
+    if not hasattr(file, "name"):
+        file.name = generate_id(20)
+
     url = urllib.parse.urljoin(pipeline.api.PIPELINE_API_URL, endpoint)
     e = encoder.MultipartEncoder(
         fields={
@@ -74,4 +86,4 @@ def post_file(endpoint, file, remote_path):
 
     response = requests.post(url, headers=headers, data=encoded_stream_data)
     __handle_response__(response)
-    return response.json()
+    return FileGet.parse_obj(response.json())

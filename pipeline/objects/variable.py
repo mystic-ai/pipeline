@@ -9,7 +9,7 @@ from pipeline.util import (
 )
 
 from pipeline.schemas.file import FileCreate
-from pipeline.schemas.pipeline import PipelineVariableCreate, PipelineVariableGet
+from pipeline.schemas.pipeline import PipelineVariableGet
 
 
 class Variable:
@@ -44,18 +44,6 @@ class Variable:
 
         if Pipeline._pipeline_context_active:
             Pipeline.add_variable(self)
-
-    def to_create_schema(self):
-        return PipelineVariableCreate(
-            local_id=self.local_id,
-            name=self.name,
-            type_name=python_object_to_name(self.type_class),
-            type_file=FileCreate(
-                name=self.name, file_bytes=python_object_to_hex(self.type_class)
-            ),
-            is_input=self.is_input,
-            is_output=self.is_output,
-        )
 
     @classmethod
     def from_schema(cls, schema: PipelineVariableGet):

@@ -122,6 +122,7 @@ class Graph:
 
         return return_variables
 
+    """
     def to_create_schema(self) -> PipelineCreate:
         variables = [_var.to_create_schema() for _var in self.variables]
         functions = [_func.to_create_schema() for _func in self.functions]
@@ -137,6 +138,7 @@ class Graph:
         )
 
         return create_schema
+    """
 
     @classmethod
     def from_schema(cls, schema: PipelineGet):

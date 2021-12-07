@@ -7,6 +7,8 @@ import os
 import requests
 import urllib.parse
 
+from requests.api import head
+
 from pipeline.util.logging import _print
 
 # from pipeline.objects.graph import Graph
@@ -16,7 +18,11 @@ from pipeline.util.logging import _print
 # from pipeline.api.pipeline import upload_pipeline
 # from pipeline.schemas.function import FunctionGet
 
+
 PIPELINE_API_TOKEN: str = None
+
+
+# PIPELINE_API_TOKEN: str = None
 PIPELINE_API_URL: str = os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
 
 
@@ -25,16 +31,20 @@ def authenticate(token: str, url: str = PIPELINE_API_URL):
     Authenticate with the pipeline.ai API
     """
     _print("Authenticating")
-
+    if token is None:
+        raise Exception("Must input a token")
     global PIPELINE_API_TOKEN
     PIPELINE_API_TOKEN = token
     global PIPELINE_API_URL
     PIPELINE_API_URL = url
     # TODO: Change this url to an actual auth one, not status which just shows if the API is alive.
-    status_url = urllib.parse.urljoin(url, "/v2/status")
+    status_url = urllib.parse.urljoin(url, "/v2/users/me")
 
-    response = requests.get(status_url)
-    if response.json()["alive"]:
+    response = requests.get(
+        status_url, headers={"Authorization": "Bearer %s" % PIPELINE_API_TOKEN}
+    )
+    if response.json():
+        print(response.json())
         _print(
             "Succesfully authenticated with the Pipeline API (%s)" % PIPELINE_API_URL
         )

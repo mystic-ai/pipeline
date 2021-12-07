@@ -15,34 +15,7 @@ class PipelineGraphNode(BaseModel):
     outputs: List[str]
 
 
-class PipelineVariableCreate(BaseModel):
-    local_id: str
-    name: Optional[str]
-
-    type_name: Optional[str]
-    type_file: Optional[FileCreate]
-    type_file_id: Optional[str]
-
-    is_input: bool
-    is_output: bool
-
-    @root_validator
-    def file_or_id_validation(cls, values):
-        file, file_id = values.get("type_file"), values.get("type_file_id")
-
-        file_defined = file != None
-        file_id_defined = file_id != None
-
-        if file_defined == file_id_defined:
-            raise ValueError(
-                "You must define either the type_file OR type_file_id of a function."
-            )
-
-        return values
-
-
 class PipelineVariableGet(BaseModel):
-    remote_id: str
     local_id: str
     name: Optional[str]
 
@@ -68,10 +41,8 @@ class PipelineVariableGet(BaseModel):
 
 
 class PipelineGet(BaseModel):
-    name: str
-
     id: str
-
+    name: str
     variables: List[PipelineVariableGet]
     functions: List[FunctionGet]
     graph_nodes: List[PipelineGraphNode]
@@ -83,8 +54,8 @@ class PipelineGet(BaseModel):
 
 class PipelineCreate(BaseModel):
     name: str
-    variables: List[PipelineVariableCreate]
-    functions: List[Union[FunctionGet, FunctionCreate]]
+    variables: List[PipelineVariableGet]
+    functions: List[FunctionGet]
     graph_nodes: List[PipelineGraphNode]
-    models: Optional[dict]
     outputs: List[str]
+    # models: Optional[dict]

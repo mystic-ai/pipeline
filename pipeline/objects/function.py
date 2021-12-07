@@ -58,49 +58,6 @@ class Function:
 
         self.local_id = generate_id(10)
 
-    def to_create_schema(self) -> FunctionCreate:
-        """
-        inputs_schema = [
-            FunctionIOCreate(
-                name=variable_name,
-                file=FileCreate(
-                    name=variable_name,
-                    file_bytes=python_object_to_hex(self.typing_inputs[variable_name]),
-                ),
-            )
-            for variable_name in self.typing_inputs
-        ]
-        outputs_schema = [
-            FunctionIOCreate(
-                name=variable_name,
-                file=FileCreate(
-                    name=variable_name,
-                    file_bytes=python_object_to_hex(self.typing_outputs[variable_name]),
-                ),
-            )
-            for variable_name in self.typing_outputs
-        ]
-        """
-
-        inputs = [
-            dict(name=name, type_name=python_object_to_name(type))
-            for name, type in self.typing_inputs.items()
-        ]
-        output = [
-            dict(name=name, type_name=python_object_to_name(type))
-            for name, type in self.typing_outputs.items()
-        ]
-        function_schema = FunctionCreate(
-            local_id=self.local_id,
-            name=self.name,
-            function_source=self.source,
-            hash=self.hash,
-            inputs=inputs,
-            output=output,
-            file=FileCreate(name=self.name, file_bytes=python_object_to_hex(self)),
-        )
-        return function_schema
-
     @classmethod
     def from_schema(cls, schema: FunctionGet):
         # TODO: Add loading from files instead
