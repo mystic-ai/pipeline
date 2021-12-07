@@ -2,7 +2,7 @@ from enum import Enum
 import datetime
 from typing import List, Optional, Union
 
-from pydantic import validator
+from pydantic import validator, root_validator
 
 from .base import BaseModel
 from .data import DataGet
@@ -35,13 +35,17 @@ class RunCreate(BaseModel):
     data: Optional[str]
     data_id: Optional[str]
 
-    @validator("function_id")
-    def validate_function(cls, value, **kwargs):
-        if kwargs.get("values", {}).get("pipeline_id") is not None:
-            raise ValueError("Can only pass in function_id or pipeline_id, not both.")
-        elif value is None:
-            raise ValueError("Must pass in function_id or pipeline_id")
-        return value
+    @root_validator
+    def pipeline_or_function(cls, values):
+        pipeline_id, function_id = values.get("pipeline_id"), values.get("function_id")
+
+        pipeline_defined = pipeline_id != None
+        function_defined = function_id != None
+
+        if pipeline_defined == function_defined:
+            raise ValueError("You must define either a pipeline_id OR function_id.")
+
+        return values
 
     @validator("data_id")
     def validate_data_id(cls, value, **kwargs):

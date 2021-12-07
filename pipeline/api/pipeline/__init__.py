@@ -6,6 +6,7 @@ from pipeline.api.call import post
 
 from pipeline.schemas.pipeline import (
     PipelineCreate,
+    PipelineGet,
     PipelineGraphNode,
     PipelineVariableGet,
 )
@@ -20,7 +21,7 @@ from pipeline.api.function import upload_function
 from pipeline.util.logging import _print
 
 
-def upload_pipeline(new_pipeline_graph: Graph):
+def upload_pipeline(new_pipeline_graph: Graph) -> PipelineGet:
 
     new_name = new_pipeline_graph.name
     _print("Uploading functions")
@@ -56,4 +57,4 @@ def upload_pipeline(new_pipeline_graph: Graph):
     _print("Uploading pipeline graph")
     request_result = post("/v2/pipelines", pipeline_create_schema.dict())
 
-    return request_result
+    return PipelineGet.parse_obj(request_result)

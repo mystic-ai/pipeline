@@ -37,4 +37,4 @@ def run_pipeline(
     # TODO: swap "data=data_or_file_id" for "file_id=file_id" later when the generic object inference is added back.
     run_create_schema = RunCreate(pipeline_id=pipeline_id, data=data_or_file_id)
 
-    return post("/v2/runs", run_create_schema.json())
+    return post("/v2/runs", run_create_schema.dict())
