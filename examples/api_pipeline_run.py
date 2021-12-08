@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 
 load_dotenv("../hidden.env")
 
-
 from pipeline.api import authenticate
 from pipeline.api.pipeline import upload_pipeline
 from pipeline.api.run import run_pipeline
@@ -32,5 +31,6 @@ with Pipeline("AddLol") as builder:
 
 test_pipeline = Pipeline.get_pipeline("AddLol")
 upload_output = upload_pipeline(test_pipeline)
+print(upload_output.dict())
 
 print(run_pipeline(upload_output, "Hi I like to"))

@@ -26,6 +26,15 @@ PIPELINE_API_TOKEN: str = None
 PIPELINE_API_URL: str = os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
 
 
+def __handle_response__(response: requests.Response):
+    if response.status_code == 404:
+        raise Exception(response)
+    elif response.status_code == 422:
+        raise Exception(response.text)
+    elif response.status_code == 500:
+        raise Exception(response.text)
+
+
 def authenticate(token: str, url: str = PIPELINE_API_URL):
     """
     Authenticate with the pipeline.ai API
@@ -43,8 +52,10 @@ def authenticate(token: str, url: str = PIPELINE_API_URL):
     response = requests.get(
         status_url, headers={"Authorization": "Bearer %s" % PIPELINE_API_TOKEN}
     )
+
+    __handle_response__(response)
+
     if response.json():
-        print(response.json())
         _print(
             "Succesfully authenticated with the Pipeline API (%s)" % PIPELINE_API_URL
         )

@@ -12,14 +12,7 @@ import pipeline.api
 
 from pipeline.util.logging import PIPELINE_STR
 
-
-def __handle_response__(response: requests.Response):
-    if response.status_code == 404:
-        raise Exception(response)
-    elif response.status_code == 422:
-        raise Exception(response.text)
-    elif response.status_code == 500:
-        raise Exception(response.text)
+from pipeline.api import __handle_response__
 
 
 def post(endpoint, json_data):

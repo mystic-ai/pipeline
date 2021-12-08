@@ -36,7 +36,7 @@ class RunCreate(BaseModel):
     data_id: Optional[str]
 
     @root_validator
-    def pipeline_or_function(cls, values):
+    def pipeline_data_val(cls, values):
         pipeline_id, function_id = values.get("pipeline_id"), values.get("function_id")
 
         pipeline_defined = pipeline_id != None
@@ -45,15 +45,15 @@ class RunCreate(BaseModel):
         if pipeline_defined == function_defined:
             raise ValueError("You must define either a pipeline_id OR function_id.")
 
-        return values
+        data_id, data = values.get("data_id"), values.get("data")
 
-    @validator("data_id")
-    def validate_data_id(cls, value, **kwargs):
-        if kwargs.get("values", {}).get("data") is not None:
-            raise ValueError("Can only pass in data or data_id, not both.")
-        elif value is None:
-            raise ValueError("Must pass in data or data_id")
-        return value
+        data_defined = data != None
+        data_id_defined = data_id != None
+
+        if data_defined == data_id_defined:
+            raise ValueError("You must define either a data_id OR data.")
+
+        return values
 
 
 class RunIOGet(RunnableIOGet):
