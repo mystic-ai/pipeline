@@ -18,6 +18,9 @@ class FunctionGet(FunctionBase):
     # source_file_id: FileGet
     source_sample: str
 
+    class Config:
+        orm_mode = True
+
 
 class FunctionIO(BaseModel):
     """Descriptive schema of a function's input/output.

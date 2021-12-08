@@ -28,7 +28,8 @@ PIPELINE_API_URL: str = os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
 
 def __handle_response__(response: requests.Response):
     if response.status_code == 404:
-        raise Exception(response)
+
+        raise Exception(response.text)
     elif response.status_code == 422:
         raise Exception(response.text)
     elif response.status_code == 500:

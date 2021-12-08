@@ -35,4 +35,4 @@ def upload_function(function: Function) -> FunctionGet:
     print(function_create_schema.json())
     request_result = post("/v2/functions/", function_create_schema.dict())
 
-    return request_result
+    return FunctionGet.parse_obj(request_result)
