@@ -34,6 +34,7 @@ class RunCreate(BaseModel):
     function_id: Optional[str]
     data: Optional[str]
     data_id: Optional[str]
+    blocking: Optional[bool] = False
 
     @root_validator
     def pipeline_data_val(cls, values):
