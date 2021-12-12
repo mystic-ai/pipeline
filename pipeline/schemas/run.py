@@ -87,3 +87,7 @@ class RunGetDetailed(RunGet):
     inputs: List[RunIOGet] = []
     outputs: List[RunIOGet] = []
     token: TokenGet
+
+
+class RunUpdate(BaseModel):
+    run_state: RunState
