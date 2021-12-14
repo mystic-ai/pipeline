@@ -1,13 +1,12 @@
-from pydantic.types import SecretBytes
 from pipeline.objects import Pipeline, Variable, pipeline_function
 from pipeline.objects.graph import Graph
-from pipeline.schemas.function import FunctionCreate, FunctionGet
-from pipeline.schemas.pipeline import PipelineGet, PipelineVariableGet
 from pipeline.schemas.file import FileGet
+from pipeline.schemas.function import FunctionGet
+from pipeline.schemas.pipeline import PipelineGet, PipelineVariableGet
 
 
 def test_pipeline_create_schema():
-    assert Pipeline._current_pipeline == None
+    assert Pipeline._current_pipeline is None
 
     @pipeline_function
     def add(f_1: float, f_2: float) -> float:
@@ -17,7 +16,7 @@ def test_pipeline_create_schema():
     def square(f_1: float) -> float:
         return f_1 ** 2
 
-    assert Pipeline._current_pipeline == None
+    assert Pipeline._current_pipeline is None
 
     with Pipeline("3fq87hiu") as my_pipeline:
         in_1 = Variable(float, is_input=True)
@@ -41,7 +40,7 @@ def test_pipeline_create_schema():
 
 
 def test_pipeline_get_schema():
-    assert Pipeline._current_pipeline == None
+    assert Pipeline._current_pipeline is None
 
     @pipeline_function
     def add(f_1: float, f_2: float) -> float:
@@ -51,7 +50,7 @@ def test_pipeline_get_schema():
     def square(f_1: float) -> float:
         return f_1 ** 2
 
-    assert Pipeline._current_pipeline == None
+    assert Pipeline._current_pipeline is None
 
     with Pipeline("3fq87hiu") as my_pipeline:
         in_1 = Variable(float, is_input=True)

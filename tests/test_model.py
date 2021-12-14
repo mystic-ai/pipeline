@@ -1,4 +1,9 @@
-from pipeline.objects import Pipeline, pipeline_function, pipeline_model, Variable
+from pipeline.objects import (
+    Pipeline,
+    Variable,
+    pipeline_function,
+    pipeline_model,
+)
 
 
 # Test basic Pipeline

@@ -23,7 +23,39 @@ pydantic = "^1.8.2"
 requests = "^2.26.0"
 pyhumps = "^3.0.2"
 pytest = "^6.2.5"
+pre-commit = "^2.16.0"
+flake8 = "^4.0.1"
+black = {version = "^21.12b0", allow-prereleases = true}
+isort = "^5.10.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+[tool.flake8]
+exclude = '''
+
+(
+  /(
+    \.mypy_cache
+    | examples
+    | tests
+  )/
+)
+'''
+[tool.black]
+line-length = 79
+target-version = ['py37', 'py38', 'py39']
+exclude = '''
+
+(
+  /(
+    \.mypy_cache
+  )/
+)
+'''
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 79

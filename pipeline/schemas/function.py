@@ -2,9 +2,8 @@ from typing import List, Optional
 
 from pydantic import root_validator
 
-
 from pipeline.schemas.base import BaseModel
-from pipeline.schemas.file import FileGet, FileCreate
+from pipeline.schemas.file import FileCreate, FileGet
 
 
 class FunctionBase(BaseModel):
@@ -44,8 +43,8 @@ class FunctionIOCreate(BaseModel):
     def file_or_id_validation(cls, values):
         file, file_id = values.get("file"), values.get("file_id")
 
-        file_defined = file != None
-        file_id_defined = file_id != None
+        file_defined = file is not None
+        file_id_defined = file_id is not None
 
         if file_defined == file_id_defined:
             raise ValueError(
@@ -77,8 +76,8 @@ class FunctionCreate(BaseModel):
     def file_or_id_validation(cls, values):
         file, file_id = values.get("file"), values.get("file_id")
 
-        file_defined = file != None
-        file_id_defined = file_id != None
+        file_defined = file is not None
+        file_id_defined = file_id is not None
 
         if file_defined == file_id_defined:
             raise ValueError(

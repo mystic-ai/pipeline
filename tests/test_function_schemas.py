@@ -1,13 +1,10 @@
 import inspect
-
 from hashlib import sha256
+
+from pipeline.objects import Function, pipeline_function
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
-
 from pipeline.util import python_object_to_hex
-
-from pipeline.objects import pipeline_function
-from pipeline.objects import Function
 
 
 def test_function_schema_create():
@@ -31,7 +28,7 @@ def test_function_schema_create():
     )
     assert schema.function_source == inspect.getsource(square.__function__)
 
-    assert schema.file_id == None
+    assert schema.file_id is None
     assert schema.file.name == "square"
     assert schema.file.file_bytes == python_object_to_hex(
         square.__function__.__pipeline_function__

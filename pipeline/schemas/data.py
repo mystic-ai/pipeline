@@ -1,5 +1,5 @@
-from datetime import datetime
 import enum
+from datetime import datetime
 from typing import Optional
 
 from .base import BaseModel

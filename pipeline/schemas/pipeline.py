@@ -1,11 +1,10 @@
+from typing import List, Optional
+
 from pydantic import root_validator
 
-from typing import List, Optional, Any, Union
-
 from pipeline.schemas.base import BaseModel
-
-from pipeline.schemas.file import FileCreate, FileGet
-from pipeline.schemas.function import FunctionGet, FunctionCreate
+from pipeline.schemas.file import FileGet
+from pipeline.schemas.function import FunctionGet
 
 
 class PipelineGraphNode(BaseModel):
@@ -29,12 +28,13 @@ class PipelineVariableGet(BaseModel):
     def file_or_id_validation(cls, values):
         file, file_id = values.get("type_file"), values.get("type_file_id")
 
-        file_defined = file != None
-        file_id_defined = file_id != None
+        file_defined = file is not None
+        file_id_defined = file_id is not None
 
         if file_defined == file_id_defined:
             raise ValueError(
-                "You must define either the type_file OR type_file_id of a variable."
+                "You must define either the type_file OR",
+                "type_file_id of a variable.",
             )
 
         return values

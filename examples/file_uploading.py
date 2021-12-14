@@ -1,17 +1,16 @@
 import os
-import string
 import random
+import string
 
 import numpy as np
-
 from dotenv import load_dotenv
-
-load_dotenv("hidden.env")
-print(os.getenv("PIPELINE_API_URL"))
 
 import pipeline.api
 from pipeline.api import authenticate
 from pipeline.api.file import upload_file
+
+load_dotenv("hidden.env")
+print(os.getenv("PIPELINE_API_URL"))
 
 my_array = np.zeros(
     (
@@ -22,7 +21,9 @@ my_array = np.zeros(
 )
 print("Created array of shape:%s" % str(my_array.shape))
 
-array_file_name = "".join(random.choice(string.ascii_lowercase) for i in range(5))
+array_file_name = "".join(
+    random.choice(string.ascii_lowercase) for i in range(5)
+)
 
 np.save(array_file_name, my_array)
 

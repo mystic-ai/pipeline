@@ -1,7 +1,7 @@
-from pipeline.objects.graph import Graph
-from pipeline.objects.variable import Variable
 from pipeline.objects.function import Function
+from pipeline.objects.graph import Graph
 from pipeline.objects.graph_node import GraphNode
+from pipeline.objects.variable import Variable
 
 
 class Pipeline:
@@ -30,9 +30,13 @@ class Pipeline:
 
     def output(self, *outputs: Variable) -> None:
         for _output in outputs:
-            variable_index = Pipeline._current_pipeline.variables.index(_output)
+            variable_index = Pipeline._current_pipeline.variables.index(
+                _output
+            )
             if variable_index != -1:
-                Pipeline._current_pipeline.variables[variable_index].is_output = True
+                Pipeline._current_pipeline.variables[
+                    variable_index
+                ].is_output = True
 
                 Pipeline._current_pipeline.outputs.append(
                     Pipeline._current_pipeline.variables[variable_index]
@@ -47,23 +51,29 @@ class Pipeline:
         if graph_name in Pipeline.defined_pipelines:
             return Pipeline.defined_pipelines[graph_name]
         else:
-            raise Exception("No Pipeline graph found with name '%s'" % graph_name)
+            raise Exception(
+                "No Pipeline graph found with name '%s'" % graph_name
+            )
 
     @staticmethod
     def add_variable(variable: Variable) -> None:
         if Pipeline._pipeline_context_active:
 
-            if not variable in Pipeline._current_pipeline.variables:
+            if variable not in Pipeline._current_pipeline.variables:
                 Pipeline._current_pipeline.variables.append(variable)
         else:
-            raise Exception("Cant add a variable when not defining a pipeline!")
+            raise Exception(
+                "Cant add a variable when not defining a pipeline!"
+            )
 
     @staticmethod
     def add_function(function: Function) -> None:
         if Pipeline._pipeline_context_active:
             Pipeline._current_pipeline.functions.append(function)
         else:
-            raise Exception("Cant add a function when not defining a pipeline!")
+            raise Exception(
+                "Cant add a function when not defining a pipeline!"
+            )
 
     @staticmethod
     def add_graph_node(graph_node: GraphNode) -> None:

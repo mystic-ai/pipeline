@@ -1,18 +1,14 @@
-import inspect
-import requests
 import urllib.parse
+
+import requests
+from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
 
-from requests_toolbelt.multipart import encoder
-from pipeline.schemas.file import FileGet
-
-from pipeline.util import generate_id
-
 import pipeline.api
-
-from pipeline.util.logging import PIPELINE_STR
-
 from pipeline.api import __handle_response__
+from pipeline.schemas.file import FileGet
+from pipeline.util import generate_id
+from pipeline.util.logging import PIPELINE_STR
 
 
 def post(endpoint, json_data):
@@ -70,7 +66,9 @@ def post_file(endpoint, file, remote_path):
         if monitor.bytes_read == encoder_len:
             bar.close()
 
-    encoded_stream_data = encoder.MultipartEncoderMonitor(e, callback=progress_callback)
+    encoded_stream_data = encoder.MultipartEncoderMonitor(
+        e, callback=progress_callback
+    )
 
     headers = {
         "Authorization": "Bearer %s" % pipeline.api.PIPELINE_API_TOKEN,

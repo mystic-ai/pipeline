@@ -1,23 +1,16 @@
 import io
-
 from typing import List
 
 from pipeline.api.call import post
-
+from pipeline.api.file import upload_file
+from pipeline.api.function import upload_function
+from pipeline.objects.graph import Graph
 from pipeline.schemas.pipeline import (
     PipelineCreate,
     PipelineGet,
-    PipelineGraphNode,
     PipelineVariableGet,
 )
-
-from pipeline.objects.graph import Graph
-
 from pipeline.util import python_object_to_hex
-
-from pipeline.api.file import upload_file
-from pipeline.api.function import upload_function
-
 from pipeline.util.logging import _print
 
 
@@ -26,7 +19,8 @@ def upload_pipeline(new_pipeline_graph: Graph) -> PipelineGet:
     new_name = new_pipeline_graph.name
     _print("Uploading functions")
     new_functions = [
-        upload_function(_function) for _function in new_pipeline_graph.functions
+        upload_function(_function)
+        for _function in new_pipeline_graph.functions
     ]
 
     new_variables: List[PipelineVariableGet] = []
@@ -44,7 +38,9 @@ def upload_pipeline(new_pipeline_graph: Graph) -> PipelineGet:
         )
         new_variables.append(_var_schema)
 
-    new_graph_nodes = [_node.to_create_schema() for _node in new_pipeline_graph.nodes]
+    new_graph_nodes = [
+        _node.to_create_schema() for _node in new_pipeline_graph.nodes
+    ]
     new_outputs = [_output.local_id for _output in new_pipeline_graph.outputs]
 
     pipeline_create_schema = PipelineCreate(

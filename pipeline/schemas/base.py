@@ -1,11 +1,11 @@
-from datetime import datetime
 import re
+from datetime import datetime
 from typing import Optional
 
 import humps
-from pydantic import BaseModel as PydanticModel, Extra, validator
+from pydantic import BaseModel as PydanticModel
+from pydantic import Extra, validator
 from pydantic.generics import GenericModel as PydanticGenericModel
-
 
 #: When set to True, model fields can be get/set by camelCase'd field names
 #: This is useful for JS interop., where camelCase is the convention

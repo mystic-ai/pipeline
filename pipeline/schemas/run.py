@@ -1,17 +1,17 @@
-from enum import Enum
 import datetime
+from enum import Enum
 from typing import List, Optional, Union
 
-from pydantic import validator, root_validator
+from pydantic import root_validator
 
 from .base import BaseModel
 from .data import DataGet
 from .runnable import (
     FunctionGet,
     FunctionGetDetailed,
-    RunnableIOGet,
     PipelineGet,
     PipelineGetDetailed,
+    RunnableIOGet,
 )
 from .tag import TagGet
 from .token import TokenGet
@@ -38,18 +38,22 @@ class RunCreate(BaseModel):
 
     @root_validator
     def pipeline_data_val(cls, values):
-        pipeline_id, function_id = values.get("pipeline_id"), values.get("function_id")
+        pipeline_id, function_id = values.get("pipeline_id"), values.get(
+            "function_id"
+        )
 
-        pipeline_defined = pipeline_id != None
-        function_defined = function_id != None
+        pipeline_defined = pipeline_id is not None
+        function_defined = function_id is not None
 
         if pipeline_defined == function_defined:
-            raise ValueError("You must define either a pipeline_id OR function_id.")
+            raise ValueError(
+                "You must define either a pipeline_id OR function_id."
+            )
 
         data_id, data = values.get("data_id"), values.get("data")
 
-        data_defined = data != None
-        data_id_defined = data_id != None
+        data_defined = data is not None
+        data_id_defined = data_id is not None
 
         if data_defined == data_id_defined:
             raise ValueError("You must define either a data_id OR data.")

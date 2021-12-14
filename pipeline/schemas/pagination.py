@@ -1,7 +1,6 @@
-from typing import Generic, TypeVar, List
+from typing import Generic, List, TypeVar
 
 from .base import BaseModel, GenericModel
-
 
 DataType = TypeVar("DataType")
 
@@ -22,5 +21,8 @@ class Paginated(GenericModel, Generic[DataType]):
     def of(cls, item_list: List[DataType], details: PaginationDetails):
 
         return Paginated(
-            skip=details.skip, limit=details.limit, total=len(item_list), data=item_list
+            skip=details.skip,
+            limit=details.limit,
+            total=len(item_list),
+            data=item_list,
         )
