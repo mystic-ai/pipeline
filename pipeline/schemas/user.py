@@ -15,14 +15,14 @@ class UserBase(AvatarHolder):
     company: Optional[str]
     job_title: Optional[str]
 
-
 class UserGet(UserBase):
     id: str
-    # base_token: TokenGet
     oauth_provider: Optional[str]
     verified: Optional[bool]
     subscribed: Optional[bool]
 
+class EnrichedUserGet(UserGet):
+    base_token: TokenGet
 
 class UserGetDetailed(UserGet):
     tokens: List[TokenGet] = []
