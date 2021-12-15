@@ -23,7 +23,7 @@ class UserGet(UserBase):
     subscribed: Optional[bool]
 
 
-class EnrichedUserGet(UserGet):
+class UserGetEnriched(UserGet):
     base_token: TokenGet
 
 
