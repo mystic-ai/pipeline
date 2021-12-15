@@ -18,10 +18,13 @@ class UserBase(AvatarHolder):
 
 class UserGet(UserBase):
     id: str
-    base_token: TokenGet
     oauth_provider: Optional[str]
     verified: Optional[bool]
     subscribed: Optional[bool]
+
+
+class UserGetEnriched(UserGet):
+    base_token: TokenGet
 
 
 class UserGetDetailed(UserGet):
