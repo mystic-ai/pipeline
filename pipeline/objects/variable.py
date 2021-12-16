@@ -1,6 +1,6 @@
 from typing import Any
 
-from pipeline.objects.pipeline import Pipeline
+# from pipeline.objects.pipeline import Pipeline
 from pipeline.schemas.pipeline import PipelineVariableGet
 from pipeline.util import generate_id, hex_to_python_object
 
@@ -16,6 +16,7 @@ class Variable:
 
     is_input: bool
     is_output: bool
+    belongs_to: str
 
     def __init__(
         self,
@@ -26,17 +27,19 @@ class Variable:
         name: str = None,
         remote_id: str = None,
         local_id: str = None,
+        belongs_to: str = "",
     ):
         self.remote_id = remote_id
         self.name = name
         self.type_class = type_class
         self.is_input = is_input
         self.is_output = is_output
+        self.belongs_to = belongs_to
 
         self.local_id = generate_id(10) if not local_id else local_id
-
-        if Pipeline._pipeline_context_active:
-            Pipeline.add_variable(self)
+        # Variables shouldnt add themselves to the pipeline
+        # if Pipeline._pipeline_context_active:
+        #     Pipeline.add_variable(self)
 
     @classmethod
     def from_schema(cls, schema: PipelineVariableGet):

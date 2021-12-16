@@ -16,6 +16,7 @@ def add_lol(a: str) -> MyClass:
 
 with Pipeline() as pipeline:
     my_class_var = Variable(type_class=str, is_input=True)
+    pipeline.add_variable(my_class_var)
 
     output_class = add_lol(my_class_var)
     print(output_class)

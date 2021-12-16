@@ -16,7 +16,6 @@ class Graph:
 
     functions: List[Function]
     variables: List[Variable]
-
     outputs: List[Variable]
 
     nodes: List[GraphNode]
@@ -28,28 +27,29 @@ class Graph:
         self,
         *,
         name: str = "",
-        variables: List[Variable] = None,
-        functions: List[Function] = None,
-        outputs: List[Variable] = None,
-        nodes: List[GraphNode] = None,
-        models: List[Model] = None,
+        variables: List[Variable] = [],
+        functions: List[Function] = [],
+        outputs: List[Variable] = [],
+        nodes: List[GraphNode] = [],
+        models: List[Model] = [],
     ):
         self.name = name
         self.local_id = generate_id(10)
 
-        self.variables = variables if variables is not None else []
-        self.functions = functions if functions is not None else []
-        self.outputs = outputs if outputs is not None else []
-        self.nodes = nodes if nodes is not None else []
-        self.models = models if models is not None else []
+        self.variables = variables
+        self.functions = functions
+        self.outputs = outputs
+        self.nodes = nodes
+        self.models = models
 
     def run(self, *inputs):
         input_variables: List[Variable] = [
-            var for var in self.variables if var.is_input
+            var
+            for var in self.variables
+            if var.is_input and var.belongs_to == self.name
         ]
 
         # TODO: Add generic object loading
-
         if len(inputs) != len(input_variables):
             raise Exception(
                 "Mismatch of number of inputs, expecting %u got %s"
@@ -73,7 +73,6 @@ class Graph:
             running_variables[input_variables[i].local_id] = input
 
         for node in self.nodes:
-
             node_inputs: List[Variable] = []
             node_outputs: List[Variable] = []
             node_function: Function = None
@@ -83,8 +82,10 @@ class Graph:
                     if variable.local_id == _node_input.local_id:
                         node_inputs.append(variable)
                         break
+            print("node outs", node.outputs[0].belongs_to)
             for _node_output in node.outputs:
                 for variable in self.variables:
+                    print("var id", variable.local_id, variable.is_output, variable.belongs_to)
                     if variable.local_id == _node_output.local_id:
                         node_outputs.append(variable)
                         break
@@ -107,11 +108,9 @@ class Graph:
                 )
             else:
                 output = node_function.function(*function_inputs)
-
             running_variables[node_outputs[0].local_id] = output
 
         return_variables = []
-
         for output_variable in self.outputs:
             return_variables.append(
                 running_variables[output_variable.local_id]

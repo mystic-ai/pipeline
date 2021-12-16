@@ -14,16 +14,19 @@ def test_pipeline_create_schema():
 
     assert Pipeline._current_pipeline is None
 
-    with Pipeline("3fq87hiu") as my_pipeline:
+    with Pipeline("create") as my_pipeline:
         in_1 = Variable(float, is_input=True)
         in_2 = Variable(float, is_input=True)
+
+        my_pipeline.add_variable(in_1)
+        my_pipeline.add_variable(in_2)
 
         add_1 = add(in_1, in_2)
         sq_1 = square(add_1)
 
         my_pipeline.output(sq_1, add_1)
 
-    graph = Pipeline.get_pipeline("3fq87hiu")
+    graph = Pipeline.get_pipeline("create")
     assert graph.run(3.0, 2.0) == [25.0, 5.0]
 
     # schema = graph.to_create_schema()
@@ -48,16 +51,19 @@ def test_pipeline_get_schema():
 
     assert Pipeline._current_pipeline is None
 
-    with Pipeline("3fq87hiu") as my_pipeline:
+    with Pipeline("get") as my_pipeline:
         in_1 = Variable(float, is_input=True)
         in_2 = Variable(float, is_input=True)
+
+        # my_pipeline.add_variable(in_1)
+        # my_pipeline.add_variable(in_2)
 
         add_1 = add(in_1, in_2)
         sq_1 = square(add_1)
 
         my_pipeline.output(sq_1, add_1)
 
-    graph = Pipeline.get_pipeline("3fq87hiu")
+    graph = Pipeline.get_pipeline("get")
     assert graph.run(3.0, 2.0) == [25.0, 5.0]
 
     # schema = graph.to_create_schema()

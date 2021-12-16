@@ -23,13 +23,14 @@ def test_with_exit():
             print("load")
 
     with Pipeline("test") as my_pipeline:
-        in_1 = Variable(str, is_input=True)
+        # in_1 = Variable(str, is_input=True)
+        in_1 = my_pipeline.add_variable(str, is_input=True)
         my_model = CustomModel()
         str_1 = my_model.predict(in_1)
+        out_1 = my_pipeline.add_variable(str_1)
+        my_pipeline.output(out_1)
 
-        my_pipeline.output(str_1)
+    # graph = Pipeline.get_pipeline("test")
 
-    graph = Pipeline.get_pipeline("test")
-
-    output = graph.run("hey")
+    output = Pipeline.run("test", "hey")
     assert output == ["hey lol"]
