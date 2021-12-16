@@ -85,7 +85,12 @@ class Graph:
             print("node outs", node.outputs[0].belongs_to)
             for _node_output in node.outputs:
                 for variable in self.variables:
-                    print("var id", variable.local_id, variable.is_output, variable.belongs_to)
+                    print(
+                        "var id",
+                        variable.local_id,
+                        variable.is_output,
+                        variable.belongs_to,
+                    )
                     if variable.local_id == _node_output.local_id:
                         node_outputs.append(variable)
                         break
