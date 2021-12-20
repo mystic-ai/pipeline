@@ -1,6 +1,5 @@
 from pipeline.objects import (
     Pipeline,
-    Variable,
     pipeline_function,
     pipeline_model,
 )
