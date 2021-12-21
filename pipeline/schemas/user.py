@@ -18,7 +18,6 @@ class UserBase(AvatarHolder):
 
 class UserGet(UserBase):
     id: str
-    base_token: TokenGet
     oauth_provider: Optional[str]
     verified: Optional[bool]
     subscribed: Optional[bool]
@@ -26,6 +25,10 @@ class UserGet(UserBase):
 
 class UserGetDetailed(UserGet):
     tokens: List[TokenGet] = []
+
+
+class UserGetEnriched(UserGetDetailed):
+    base_token: TokenGet
 
 
 class UserPatch(Patchable, AvatarHolder):
