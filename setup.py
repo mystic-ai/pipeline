@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setuptools.setup(
     name="pipeline-ai",
-    version="0.0.8",
+    version="0.0.9",
     author="Paul Hetherington",
     author_email="paul@getneuro.ai",
     description="A simple way to constuct processing pipelines for AI/ML projects.",
