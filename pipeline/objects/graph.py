@@ -82,8 +82,11 @@ class Graph:
                     if variable.local_id == _node_input.local_id:
                         node_inputs.append(variable)
                         break
-            print("node outs", node.outputs[0].belongs_to)
+            print(node.outputs[0].local_id)
             for _node_output in node.outputs:
+                print(self.name, _node_output.name, _node_output.belongs_to)
+                if _node_output.belongs_to == self.name:
+                    node_outputs.append(variable)
                 for variable in self.variables:
                     print(
                         "var id",
@@ -91,7 +94,9 @@ class Graph:
                         variable.is_output,
                         variable.belongs_to,
                     )
-                    if variable.local_id == _node_output.local_id:
+                    if (variable.local_id == _node_output.local_id 
+                    or variable.is_output 
+                    and variable.belongs_to == self.name):
                         node_outputs.append(variable)
                         break
 
