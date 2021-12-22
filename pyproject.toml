@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.0.11+maxautomate-lib-deploy"
+version = "0.0.11+44d52314b29beda1e542785b6c7945b4"
 description = "Yay ml pipelines"
 authors = ["Paul Hetherington <paul@getneuro.ai>"]
 packages = [
