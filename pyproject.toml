@@ -1,12 +1,17 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.0.9"
+version = "0.0.10"
 description = "Yay ml pipelines"
 authors = ["Paul Hetherington <paul@getneuro.ai>"]
 packages = [
     {include="pipeline"}
 ]
 readme = "README.md"
+license = "Apache-2.0"
+classifiers = [
+    'License :: OSI Approved :: Apache Software License',
+    'Programming Language :: Python :: 3',
+]
 
 
 [tool.poetry.dependencies]
