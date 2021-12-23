@@ -4,6 +4,8 @@ from typing import List, Optional, Union
 
 from pydantic import validator, root_validator
 
+from pipeline.schemas.file import FileGet
+
 from .base import BaseModel
 from .data import DataGet
 from .runnable import (
@@ -26,6 +28,10 @@ class RunState(Enum):
     RUNNING = "running"
     COMPLETE = "complete"
     FAILED = "failed"
+
+
+class RunError(Enum):
+    ...
 
 
 class RunCreate(BaseModel):
@@ -73,6 +79,8 @@ class RunGet(BaseModel):
     runnable: Union[FunctionGet, PipelineGet]
     data: DataGet
     blocking: Optional[bool] = False
+    result: Optional[FileGet]
+    error: Optional[RunError]
 
     class Config:
         allow_population_by_field_name = True
