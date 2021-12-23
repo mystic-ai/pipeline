@@ -132,8 +132,6 @@ dmypy.json
 
 examples/examples
 
-*hidden.env
-*/hidden.env
 local/
 pipeline-bak/
-*hidden*.env
+*.env
