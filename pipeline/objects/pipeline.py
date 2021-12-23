@@ -2,8 +2,6 @@ from typing import Any
 
 from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph, GraphNode
-
-# from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.variable import Variable
 
 

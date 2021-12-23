@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List
 
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
@@ -42,7 +42,18 @@ class Graph:
         self.nodes = nodes
         self.models = models
 
-    def run(self, *inputs):
+    def add_node(self, node: GraphNode) -> None:
+        self.nodes.append(node)
+
+    def add_function(self, function: Function) -> None:
+        self.functions.append(function)
+
+    def add_variable(self, variable: Variable) -> Variable:
+        if variable not in self.variables:
+            self.variables.append(variable)
+        return variable
+
+    def run(self, *inputs) -> List[Any]:
         input_variables: List[Variable] = [
             var
             for var in self.variables
@@ -94,9 +105,11 @@ class Graph:
                         variable.is_output,
                         variable.belongs_to,
                     )
-                    if (variable.local_id == _node_output.local_id 
-                    or variable.is_output 
-                    and variable.belongs_to == self.name):
+                    if (
+                        variable.local_id == _node_output.local_id
+                        or variable.is_output
+                        and variable.belongs_to == self.name
+                    ):
                         node_outputs.append(variable)
                         break
 
