@@ -98,5 +98,6 @@ class RunGetDetailed(RunGet):
 
 
 class RunUpdate(BaseModel):
+    result_id: Optional[str]
     run_state: Optional[RunState]
     compute_cluster_id: Optional[str]

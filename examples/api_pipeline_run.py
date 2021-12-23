@@ -33,4 +33,4 @@ test_pipeline = Pipeline.get_pipeline("AddLol")
 upload_output = upload_pipeline(test_pipeline)
 #print("Uploaded pipeline response:%s" % upload_output.dict())
 
-print(run_pipeline(upload_output, "Hi I like to"))
+print(run_pipeline(upload_output, "Hi I like to")["run_state"])
