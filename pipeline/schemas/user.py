@@ -23,12 +23,12 @@ class UserGet(UserBase):
     subscribed: Optional[bool]
 
 
-class UserGetEnriched(UserGet):
-    base_token: TokenGet
-
-
 class UserGetDetailed(UserGet):
     tokens: List[TokenGet] = []
+
+
+class UserGetEnriched(UserGetDetailed):
+    base_token: TokenGet
 
 
 class UserPatch(Patchable, AvatarHolder):
