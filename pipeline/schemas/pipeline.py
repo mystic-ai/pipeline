@@ -1,4 +1,4 @@
-from pydantic import root_validator
+from pydantic import root_validator, Field
 
 from typing import List, Optional, Any, Union
 
@@ -6,6 +6,8 @@ from pipeline.schemas.base import BaseModel
 
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.function import FunctionGet, FunctionCreate
+
+from pipeline.schemas.runnable import RunnableType, RunnableGet
 
 
 class PipelineGraphNode(BaseModel):
@@ -40,9 +42,10 @@ class PipelineVariableGet(BaseModel):
         return values
 
 
-class PipelineGet(BaseModel):
+class PipelineGet(RunnableGet):
     id: str
     name: str
+    type: RunnableType = Field(RunnableType.pipeline, const=True)
     variables: List[PipelineVariableGet]
     functions: List[FunctionGet]
     graph_nodes: List[PipelineGraphNode]
@@ -50,6 +53,10 @@ class PipelineGet(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class PipelineGetDetailed(PipelineGet):
+    ...
 
 
 class PipelineCreate(BaseModel):

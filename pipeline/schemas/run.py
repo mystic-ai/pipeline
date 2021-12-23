@@ -7,12 +7,11 @@ from pydantic import validator, root_validator
 from .base import BaseModel
 from .data import DataGet
 from .runnable import (
-    FunctionGet,
-    FunctionGetDetailed,
     RunnableIOGet,
-    PipelineGet,
-    PipelineGetDetailed,
 )
+
+from pipeline.schemas.function import FunctionGet, FunctionGetDetailed
+from pipeline.schemas.pipeline import PipelineGet, PipelineGetDetailed
 from .tag import TagGet
 from .token import TokenGet
 
