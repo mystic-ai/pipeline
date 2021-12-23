@@ -1,12 +1,10 @@
-name: Publish Pipeline-ai 🐍 distributions 📦 to PyPI
+name: Publish Pipeline-ai 🐍 distributions 📦 to TestPyPI
 
-release:
-  types:
-    - published
+on: push
 
 jobs:
   build-and-publish:
-    name: Build and publish Pipeline-ai 🐍 distributions 📦 to PyPI
+    name: Build and publish Pipeline-ai 🐍 distributions 📦 to TestPyPI
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
@@ -28,7 +26,9 @@ jobs:
         --wheel
         --outdir dist/
         .
-    - name: Publish distribution 📦 to PyPI
+    - name: Publish distribution 📦 to Test PyPI
       uses: pypa/gh-action-pypi-publish@master
       with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
+        password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        repository_url: https://test.pypi.org/legacy/
+        verbose: true
