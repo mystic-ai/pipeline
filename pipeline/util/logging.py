@@ -18,7 +18,7 @@ class bcolors:
 
 
 levels = {"WARNING": bcolors.ORANGE, "INFO": bcolors.PURPLE, "ERROR": bcolors.FAIL}
-PIPELINE_STR = f"[{bcolors.OKBLUE}Pipeline{bcolors.ENDC}]"
+PIPELINE_STR = f"{bcolors.OKBLUE}Pipeline{bcolors.ENDC}"
 
 
 def _print(val, level="INFO"):

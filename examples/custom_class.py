@@ -1,4 +1,7 @@
-from pipeline import Pipeline, pipeline_function, Variable
+# from pipeline import Pipeline, pipeline_function, Variable
+from pipeline.objects.pipeline import Pipeline
+from pipeline.objects.function import pipeline_function
+from pipeline.objects.variable import Variable
 
 
 class MyClass(object):
@@ -12,7 +15,7 @@ def add_lol(a: str) -> MyClass:
 
 
 with Pipeline() as pipeline:
-    my_class_var = Variable(variable_type=str, is_input=True)
+    my_class_var = Variable(type_class=str, is_input=True)
 
     output_class = add_lol(my_class_var)
     print(output_class)
