@@ -21,6 +21,7 @@ from .token import TokenGet
 class RunState(Enum):
     RECEIVED = "received"
     ALLOCATING_CLUSTER = "allocating_cluster"
+    AWAITING_RESOURCE_ALLOCATION = "awaiting_resource_allocation"
     ALLOCATING_RESOURCE = "allocating_resource"
     LOADING_DATA = "loading_data"
     LOADING_FUNCTION = "loading_function"
