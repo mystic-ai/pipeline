@@ -4,15 +4,16 @@ from typing import List, Optional, Union
 
 from pydantic import validator, root_validator
 
+from pipeline.schemas.file import FileGet
+
 from .base import BaseModel
 from .data import DataGet
 from .runnable import (
-    FunctionGet,
-    FunctionGetDetailed,
     RunnableIOGet,
-    PipelineGet,
-    PipelineGetDetailed,
 )
+
+from pipeline.schemas.function import FunctionGet, FunctionGetDetailed
+from pipeline.schemas.pipeline import PipelineGet, PipelineGetDetailed
 from .tag import TagGet
 from .token import TokenGet
 
@@ -20,6 +21,7 @@ from .token import TokenGet
 class RunState(Enum):
     RECEIVED = "received"
     ALLOCATING_CLUSTER = "allocating_cluster"
+    AWAITING_RESOURCE_ALLOCATION = "awaiting_resource_allocation"
     ALLOCATING_RESOURCE = "allocating_resource"
     LOADING_DATA = "loading_data"
     LOADING_FUNCTION = "loading_function"
@@ -27,6 +29,10 @@ class RunState(Enum):
     RUNNING = "running"
     COMPLETE = "complete"
     FAILED = "failed"
+
+
+class RunError(Enum):
+    ...
 
 
 class RunCreate(BaseModel):
@@ -74,6 +80,8 @@ class RunGet(BaseModel):
     runnable: Union[FunctionGet, PipelineGet]
     data: DataGet
     blocking: Optional[bool] = False
+    result: Optional[FileGet]
+    error: Optional[RunError]
 
     class Config:
         allow_population_by_field_name = True
@@ -91,5 +99,6 @@ class RunGetDetailed(RunGet):
 
 
 class RunUpdate(BaseModel):
+    result_id: Optional[str]
     run_state: Optional[RunState]
     compute_cluster_id: Optional[str]

@@ -52,7 +52,6 @@ class Variable:
             is_input=schema.is_input,
             is_output=schema.is_output,
             name=schema.name,
-            remote_id=schema.remote_id,
             local_id=schema.local_id,
         )
 
