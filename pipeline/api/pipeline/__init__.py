@@ -1,4 +1,5 @@
 import io
+import json
 from typing import List
 
 from pipeline.api.call import post
@@ -51,6 +52,6 @@ def upload_pipeline(new_pipeline_graph: Graph) -> PipelineGet:
         outputs=new_outputs,
     )
     _print("Uploading pipeline graph")
-    request_result = post("/v2/pipelines", pipeline_create_schema.dict())
+    request_result = post("/v2/pipelines", json.loads(pipeline_create_schema.json()))
 
     return PipelineGet.parse_obj(request_result)

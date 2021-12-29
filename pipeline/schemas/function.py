@@ -1,9 +1,10 @@
 from typing import List, Optional
 
-from pydantic import root_validator
+from pydantic import root_validator, Field
 
 from pipeline.schemas.base import BaseModel
-from pipeline.schemas.file import FileCreate, FileGet
+from pipeline.schemas.file import FileGet, FileCreate
+from pipeline.schemas.runnable import RunnableType, RunnableGet
 
 
 class FunctionBase(BaseModel):
@@ -11,14 +12,19 @@ class FunctionBase(BaseModel):
     name: str
 
 
-class FunctionGet(FunctionBase):
+class FunctionGet(RunnableGet):
     id: str
     hex_file: FileGet
-    # source_file_id: FileGet
+
     source_sample: str
+    type: RunnableType = Field(RunnableType.function, const=True)
 
     class Config:
         orm_mode = True
+
+
+class FunctionGetDetailed(FunctionGet):
+    ...
 
 
 class FunctionIO(BaseModel):

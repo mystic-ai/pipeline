@@ -1,4 +1,6 @@
-from typing import Any, Union
+import io
+import json
+from typing import Union, Any
 
 from pipeline.api.call import post
 from pipeline.schemas.pipeline import PipelineGet
@@ -35,4 +37,4 @@ def run_pipeline(
         pipeline_id=pipeline_id, data=data_or_file_id
     )
 
-    return post("/v2/runs", run_create_schema.dict())
+    return post("/v2/runs", json.loads(run_create_schema.json()))
