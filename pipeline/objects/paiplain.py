@@ -1,57 +1,68 @@
-from typing import Any
+import functools
+from typing import Any, List, Tuple
 
 from pipeline.objects.function import Function
-from pipeline.objects.graph import Graph, GraphNode
-from pipeline.objects.variable import Variable
+from pipeline.objects.model import Model
 
+_Results = List[Tuple[str, Any]]
 
+# TODO figure out how to set input freely, like current Pipeline does
 class Paiplain:
-    graph: Graph
+    stages: List[Function]
+    stages_results: _Results
     pipeline_context_name: str = None
+    models: List[Model]
 
     def __init__(self, new_pipeline_name):
         self.pipeline_context_name = new_pipeline_name
+        self.stages = []
+        self.stages_results = []
+        self.models = []
 
-    def output(self, *outputs: Variable) -> None:
-        for _output in outputs:
-            if _output in self.graph.variables:
-                variable_index = self.graph.variables.index(_output)
-                self.graph.variables[variable_index].is_output = True
+    def get_results(self) -> List[Any]:
+        return [res[1] for res in self.stages_results]
 
-                self.graph.outputs.append(self.graph.variables[variable_index])
-                for variable in self.graph.variables:
-                    if variable.local_id == _output.local_id:
-                        variable.is_output = True
-                        break
+    def get_named_results(self) -> _Results:
+        return self.stages_results
 
-    def get_graph(self) -> Graph:
-        return self.graph
+    def process(self, *data) -> _Results:
+        for stage in self.stages:
+            new_data = self._run_stage(stage, *data)
+            if new_data is None:
+                break
+            data = new_data
+        return self.stages_results
 
-    def add_variable(
-        self,
-        type_class: Any,
-        is_input: bool = False,
-        is_output: bool = False,
-        name: str = None,
-        remote_id: str = None,
-        local_id: str = None,
-    ) -> Variable:
-        variable = Variable(
-            type_class,
-            is_input=is_input,
-            is_output=is_output,
-            name=name,
-            remote_id=remote_id,
-            local_id=local_id,
-            belongs_to=self.graph.name,
-        )
-        return self.graph.add_variable(variable)
+    def _run_stage(self, stage: Function, *data) -> List[Any]:
+        try:
+            res = stage.function(*data)
+            self.stages_results.append((stage.function.__name__, res))
+            if isinstance(res, List):
+                return res
+            return [res]
+        except Exception as e:
+            print(e)
+            # TODO decide what to do with exception
+            return None
 
-    def add_function(self, function: Function) -> None:
-        self.graph.add_function(function)
+    def stage(self, function):  # rename to "function" to preserve interface
+        @functools.wraps(function)
+        def wrap(*args, **kwargs):
+            print("add step", function.__name__)
+            function_ios = function.__annotations__
+            if "return" not in function_ios:
+                raise Exception(
+                    "Must include an output type e.g.",
+                    "'def my_func(...) -> int:'",
+                )
+            self.stages.append(Function(function))
 
-    def add_graph_node(self, graph_node: GraphNode) -> None:
-        self.graph.add_node(graph_node)
+        return wrap()
 
-    def run(self, *args) -> Any:
-        return self.graph.run(*args)
+    def set_stages(self, *stages):
+        self.stages = [Function(stage) for stage in stages]
+
+    def model(
+        self, model_class=None, *, file_or_dir: str = None, compress_tar=False
+    ):
+        pass

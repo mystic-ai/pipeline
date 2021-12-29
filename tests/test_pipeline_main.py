@@ -1,45 +1,49 @@
-from pipeline.objects import Pipeline, pipeline_function
-
-
-# Check if the decorator correctly uses __init__ and __enter__
-def test_with_decorator():
-    with Pipeline("test"):
-        assert Pipeline._current_pipeline is not None
+from typing import List
+from pipeline.objects import Paiplain, pipeline
 
 
 # Check naming
 def test_with_decorator_name():
-    with Pipeline("test"):
-        assert Pipeline._current_pipeline.name == "test"
+    pipeline = Paiplain("test_instance")
+    assert pipeline.pipeline_context_name == "test_instance"
 
 
-# Test exit
-def test_exit():
-    with Pipeline("test") as pipeline:
-        pipeline.add_variable(type_class=float, is_input=True, is_output=True)
-    assert Pipeline.get_pipeline("test").name == "test"
-
-
-# Test basic Pipeline
+# Test basic Paiplain
 def test_basic_pipeline():
-    @pipeline_function
+    pipeline = Paiplain("basic_test")
+
+    @pipeline.stage
     def add(f_1: float, f_2: float) -> float:
         return f_1 + f_2
 
-    @pipeline_function
+    @pipeline.stage
     def square(f_1: float) -> float:
         return f_1 ** 2
 
-    assert Pipeline._current_pipeline is None
-    with Pipeline("basic_test") as my_pipeline:
-        in_1 = my_pipeline.add_variable(float, is_input=True)
-        in_2 = my_pipeline.add_variable(float, is_input=True)
+    output = pipeline.process(2.0, 3.0)
+    results = pipeline.get_results()
+    assert results == [5.0, 25.0]
+    assert output == pipeline.get_named_results()
 
-        add_1 = add(in_1, in_2)
-        sq_1 = square(add_1)
 
-        my_pipeline.output(sq_1, add_1)
+def test_set_bulk_stages():
+    pipeline = Paiplain("bulk")
 
-    output = Pipeline.run("basic_test", 2.0, 3.0)
-    assert output == [25.0, 5.0]
-    assert Pipeline._current_pipeline is None
+    def add(a: float, b: float) -> float:
+        return a + b
+
+    def square(a: float) -> float:
+        return a ** 2
+
+    def pair(a: float) -> List[float]:
+        return [a, a]
+
+    def minus(a: float, b: float) -> float:
+        return a - b
+
+    pipeline.set_stages(square, pair, add, pair, minus)
+    output = pipeline.process(2.0)
+    results = pipeline.get_results()
+    print(output)
+    assert results == [4.0, [4.0, 4.0], 8.0, [8.0, 8.0], 0.0]
+    assert output == pipeline.get_named_results()

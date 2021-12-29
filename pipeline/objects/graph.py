@@ -14,9 +14,13 @@ class Graph:
 
     name: str
 
-    functions: List[Function]
-    variables: List[Variable]
-    outputs: List[Variable]
+    # functions: List[Function]
+    # FIXME
+    # for some reason a graph is accesing all variables added to all graphs
+    # with belongs_to value we can ignore the incorrect variables, but
+    # not having them spill over at all would be much better
+    # variables: List[Variable]
+    # outputs: List[Variable]
 
     nodes: List[GraphNode]
 
@@ -27,50 +31,137 @@ class Graph:
         self,
         *,
         name: str = "",
-        variables: List[Variable] = [],
-        functions: List[Function] = [],
-        outputs: List[Variable] = [],
+        # variables: List[Variable] = [],
+        # functions: List[Function] = [],
+        # outputs: List[Variable] = [],
         nodes: List[GraphNode] = [],
         models: List[Model] = [],
     ):
         self.name = name
         self.local_id = generate_id(10)
 
-        self.variables = variables
-        self.functions = functions
-        self.outputs = outputs
+        # self.variables = variables
+        # self.functions = functions
+        # self.outputs = outputs
         self.nodes = nodes
         self.models = models
 
     def add_node(self, node: GraphNode) -> None:
         self.nodes.append(node)
 
-    def add_function(self, function: Function) -> None:
-        self.functions.append(function)
+    # def add_function(self, function: Function) -> None:
+    #     self.functions.append(function)
 
-    def add_variable(self, variable: Variable) -> Variable:
-        if variable not in self.variables:
-            self.variables.append(variable)
-        return variable
+    # def add_variable(self, variable: Variable) -> Variable:
+    #     if variable not in self.variables:
+    #         self.variables.append(variable)
+    #     return variable
 
-    def run(self, *inputs) -> List[Any]:
-        input_variables: List[Variable] = [
-            var
-            for var in self.variables
-            if var.is_input and var.belongs_to == self.name
-        ]
+    # def run(self, *inputs) -> List[Any]:
+    #     input_variables: List[Variable] = [
+    #         var
+    #         for var in self.variables
+    #         if var.is_input and var.belongs_to == self.name
+    #     ]
 
-        # TODO: Add generic object loading
+    #     # TODO: Add generic object loading
+    #     if len(inputs) != len(input_variables):
+    #         raise Exception(
+    #             "Mismatch of number of inputs, expecting %u got %s"
+    #             % (len(input_variables), len(inputs))
+    #         )
+
+    #     for model in self.models:
+    #         if hasattr(model.model, "load"):
+    #             model.model.load(None)
+
+    #     running_variables = {}
+    #     for i, input in enumerate(inputs):
+    #         if not isinstance(input, input_variables[i].type_class):
+    #             raise Exception(
+    #                 "Input type mismatch, expceted %s got %s"
+    #                 % (
+    #                     input_variables[i].type_class,
+    #                     input.__class__,
+    #                 )
+    #             )
+    #         running_variables[input_variables[i].local_id] = input
+
+    #     for node in self.nodes:
+    #         node_inputs: List[Variable] = []
+    #         node_outputs: List[Variable] = []
+    #         node_function: Function = None
+
+    #         for _node_input in node.inputs:
+    #             print("node inputs local id",_node_input.local_id)
+    #             for variable in self.variables:
+    #                 print("var local id",variable.local_id)
+    #                 if (
+    #                     variable.local_id == _node_input.local_id
+    #                     or variable.belongs_to == self.name
+    #                 ):
+    #                     node_inputs.append(variable)
+    #                     break
+    #         for _node_output in node.outputs:
+    #             if _node_output.belongs_to == self.name:
+    #                 node_outputs.append(variable)
+    #             for variable in self.variables:
+    #                 # print(
+    #                 #     "var id",
+    #                 #     variable.local_id,
+    #                 #     variable.is_output,
+    #                 #     variable.belongs_to,
+    #                 # )
+    #                 if (
+    #                     variable.local_id == _node_output.local_id
+    #                     or variable.is_output
+    #                 ):
+    #                     node_outputs.append(variable)
+    #                     break
+    #         for function in self.functions:
+    #             if function.local_id == node.function.local_id:
+    #                 node_function = function
+    #                 break
+
+    #         function_inputs = []
+    #         for _input in node_inputs:
+    #             function_inputs.append(running_variables[_input.local_id])
+
+    #         if (
+    #             hasattr(node.function, "class_instance")
+    #             and node_function.class_instance is not None
+    #         ):
+    #             output = node_function.function(
+    #                 node_function.class_instance, *function_inputs
+    #             )
+    #         else:
+    #             output = node_function.function(*function_inputs)
+    #         running_variables[node_outputs[0].local_id] = output
+
+    #     return_variables = []
+    #     for output_variable in self.outputs:
+    #         return_variables.append(
+    #             running_variables[output_variable.local_id]
+    #         )
+
+    #     return return_variables
+
+    def run_node(self, node: GraphNode, *inputs) -> Any:
+        input_variables = node.inputs
+        # input_variables: List[Variable] = [
+        #     var
+        #     for var in self.variables
+        #     if var.is_input and var.belongs_to == self.name
+        # ]
         if len(inputs) != len(input_variables):
             raise Exception(
                 "Mismatch of number of inputs, expecting %u got %s"
                 % (len(input_variables), len(inputs))
             )
+        # for v in input_variables:
+        #     print(v.local_id)
 
-        for model in self.models:
-            if hasattr(model.model, "load"):
-                model.model.load(None)
-
+        # check and store actual values to run with
         running_variables = {}
         for i, input in enumerate(inputs):
             if not isinstance(input, input_variables[i].type_class):
@@ -82,64 +173,21 @@ class Graph:
                     )
                 )
             running_variables[input_variables[i].local_id] = input
+        f_inputs: List[Variable] = []
+        for input in node.inputs:
+            f_inputs.append(running_variables[input.local_id])
 
-        for node in self.nodes:
-            node_inputs: List[Variable] = []
-            node_outputs: List[Variable] = []
-            node_function: Function = None
+        node_exec = node.function
+        return node_exec.function(*f_inputs)
 
-            for _node_input in node.inputs:
-                for variable in self.variables:
-                    if variable.local_id == _node_input.local_id:
-                        node_inputs.append(variable)
-                        break
-            print(node.outputs[0].local_id)
-            for _node_output in node.outputs:
-                print(self.name, _node_output.name, _node_output.belongs_to)
-                if _node_output.belongs_to == self.name:
-                    node_outputs.append(variable)
-                for variable in self.variables:
-                    print(
-                        "var id",
-                        variable.local_id,
-                        variable.is_output,
-                        variable.belongs_to,
-                    )
-                    if (
-                        variable.local_id == _node_output.local_id
-                        or variable.is_output
-                        and variable.belongs_to == self.name
-                    ):
-                        node_outputs.append(variable)
-                        break
-
-            for function in self.functions:
-                if function.local_id == node.function.local_id:
-                    node_function = function
-                    break
-
-            function_inputs = []
-            for _input in node_inputs:
-                function_inputs.append(running_variables[_input.local_id])
-
-            if (
-                hasattr(node.function, "class_instance")
-                and node_function.class_instance is not None
-            ):
-                output = node_function.function(
-                    node_function.class_instance, *function_inputs
-                )
-            else:
-                output = node_function.function(*function_inputs)
-            running_variables[node_outputs[0].local_id] = output
-
-        return_variables = []
-        for output_variable in self.outputs:
-            return_variables.append(
-                running_variables[output_variable.local_id]
-            )
-
-        return return_variables
+    def run(self, *inputs) -> List[Any]:
+        print("INPUTS", inputs)
+        print(self.nodes)
+        if self.nodes is None or len(self.nodes) == 0:
+            return inputs
+        node = self.nodes.pop()
+        results = self.run_node(node, inputs)
+        return self.ran(*results)
 
     """
     def to_create_schema(self) -> PipelineCreate:
