@@ -1,5 +1,7 @@
 from typing import List
+
 from pipeline.objects import Paiplain
+
 
 # Test maths Paiplain
 def test_maths_pipeline():
