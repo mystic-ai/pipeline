@@ -1,6 +1,7 @@
 from typing import List
 
-from pipeline.objects import Paiplain, Pipeline, Variable, pipeline_function
+from pipeline import PipelineV2
+from pipeline.objects import Pipeline, Variable, pipeline_function
 
 
 @pipeline_function
@@ -42,7 +43,7 @@ output_pipeline.save("my_thing")
 #                 example of proposal for comparisson                  #
 ########################################################################
 
-pipeline = Paiplain("MathsIsFun")
+pipeline = PipelineV2("MathsIsFun")
 
 
 @pipeline.stage
