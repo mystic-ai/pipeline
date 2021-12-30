@@ -4,8 +4,11 @@ import requests
 from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
 
-import pipeline.api
-from pipeline.api import __handle_response__
+from pipeline.api import (
+    PIPELINE_API_TOKEN,
+    PIPELINE_API_URL,
+    __handle_response__,
+)
 from pipeline.schemas.file import FileGet
 from pipeline.util import generate_id
 from pipeline.util.logging import PIPELINE_STR
@@ -14,11 +17,11 @@ from pipeline.util.logging import PIPELINE_STR
 def post(endpoint, json_data):
 
     headers = {
-        "Authorization": "Bearer %s" % pipeline.api.PIPELINE_API_TOKEN,
+        "Authorization": "Bearer %s" % PIPELINE_API_TOKEN,
         "Content-type": "application/json",
     }
 
-    url = urllib.parse.urljoin(pipeline.api.PIPELINE_API_URL, endpoint)
+    url = urllib.parse.urljoin(PIPELINE_API_URL, endpoint)
     response = requests.post(url, headers=headers, json=json_data)
     __handle_response__(response)
     return response.json()
@@ -26,9 +29,9 @@ def post(endpoint, json_data):
 
 def get(endpoint):
 
-    headers = {"Authorization": "Bearer %s" % pipeline.api.PIPELINE_API_TOKEN}
+    headers = {"Authorization": "Bearer %s" % PIPELINE_API_TOKEN}
 
-    url = urllib.parse.urljoin(pipeline.api.PIPELINE_API_URL, endpoint)
+    url = urllib.parse.urljoin(PIPELINE_API_URL, endpoint)
 
     response = requests.get(url, headers=headers)
     __handle_response__(response)
@@ -39,7 +42,7 @@ def post_file(endpoint, file, remote_path):
     if not hasattr(file, "name"):
         file.name = generate_id(20)
 
-    url = urllib.parse.urljoin(pipeline.api.PIPELINE_API_URL, endpoint)
+    url = urllib.parse.urljoin(PIPELINE_API_URL, endpoint)
     e = encoder.MultipartEncoder(
         fields={
             "file_path": remote_path,
@@ -71,7 +74,7 @@ def post_file(endpoint, file, remote_path):
     )
 
     headers = {
-        "Authorization": "Bearer %s" % pipeline.api.PIPELINE_API_TOKEN,
+        "Authorization": "Bearer %s" % PIPELINE_API_TOKEN,
         "Content-type": encoded_stream_data.content_type,
     }
 
