@@ -1,4 +1,4 @@
-from pipeline import Paiplain
+from pipeline import PipelineV2
 from pipeline.objects.function import pipeline_function
 from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.variable import Variable
@@ -36,7 +36,7 @@ class YourClass(object):
         self.var = var
 
 
-pipeline = Paiplain("custom_class")
+pipeline = PipelineV2("custom_class")
 
 
 @pipeline.stage

@@ -20,7 +20,7 @@ Results = List[Tuple[str, Any]]
 
 
 # TODO figure out how to set input freely, like current Pipeline does
-class Paiplain:
+class PipelineV2:
     stages: List[Function]
     stages_results: Results
     pipeline_context_name: str = None
@@ -100,7 +100,7 @@ class Paiplain:
 
     def upload(self) -> PipelineGet:
         new_name = self.pipeline_context_name
-        _print("Uploading functions")
+        _print("Uploading stages")
         new_functions = [
             upload_function(_function) for _function in self.stages
         ]
@@ -136,7 +136,7 @@ class Paiplain:
             # graph_nodes=new_graph_nodes,
             # outputs=new_outputs,
         )
-        _print("Uploading pipeline graph")
+        _print("Uploading pipeline")
         request_result = post(
             "/v2/pipelines", json.loads(pipeline_create_schema.json())
         )

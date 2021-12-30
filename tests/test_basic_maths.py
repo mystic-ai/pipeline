@@ -1,11 +1,11 @@
 from typing import List
 
-from pipeline.objects import Paiplain
+from pipeline import PipelineV2
 
 
 # Test maths Paiplain
 def test_maths_pipeline():
-    pipeline = Paiplain("maths")
+    pipeline = PipelineV2("maths")
 
     @pipeline.stage
     def minus(a: float, b: float) -> float:

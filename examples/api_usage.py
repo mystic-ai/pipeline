@@ -1,10 +1,10 @@
 from dotenv import load_dotenv
 
-from pipeline import Paiplain
+from pipeline import PipelineV2
 
 load_dotenv("hidden.env")
 
-pipeline = Paiplain("MathsTest")
+pipeline = PipelineV2("MathsTest")
 
 
 @pipeline.stage

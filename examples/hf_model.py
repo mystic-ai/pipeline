@@ -1,4 +1,4 @@
-from pipeline import Paiplain, Pipeline, Variable
+from pipeline import Pipeline, PipelineV2, Variable
 from pipeline.model.hf_transformer import TransformersModelForCausalLM
 
 with Pipeline(pipeline_name="HF pipeline") as pipeline:
@@ -20,7 +20,7 @@ print(output_pipeline.run("Hello"))
 #                 example of proposal for comparisson                  #
 ########################################################################
 
-pipeline = Paiplain("HF_pipeline")
+pipeline = PipelineV2("HF_pipeline")
 
 hf_model = TransformersModelForCausalLM(
     model_path="EleutherAI/gpt-neo-125M",

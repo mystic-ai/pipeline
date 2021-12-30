@@ -1,17 +1,17 @@
 from typing import List
 
-from pipeline.objects import Paiplain
+from pipeline import PipelineV2
 
 
 # Check naming
 def test_with_decorator_name():
-    pipeline = Paiplain("test_instance")
+    pipeline = PipelineV2("test_instance")
     assert pipeline.pipeline_context_name == "test_instance"
 
 
 # Test basic Paiplain
 def test_basic_pipeline():
-    pipeline = Paiplain("basic_test")
+    pipeline = PipelineV2("basic_test")
 
     @pipeline.stage
     def add(f_1: float, f_2: float) -> float:
@@ -28,7 +28,7 @@ def test_basic_pipeline():
 
 
 def test_set_bulk_stages():
-    pipeline = Paiplain("bulk")
+    pipeline = PipelineV2("bulk")
 
     def add(a: float, b: float) -> float:
         return a + b

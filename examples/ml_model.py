@@ -1,6 +1,6 @@
 from typing import List
 
-from pipeline import Paiplain
+from pipeline import PipelineV2
 
 
 class MyModel(object):
@@ -24,7 +24,7 @@ def tokenize_str(
     return output_list
 
 
-pipeline = Paiplain("ML_pipeline")
+pipeline = PipelineV2("ML_pipeline")
 ml_model = MyModel()
 pipeline.model(ml_model)
 pipeline.set_stages(tokenize_str, MyModel.predict)

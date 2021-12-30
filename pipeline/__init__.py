@@ -1,8 +1,8 @@
 import os
 
-from pipeline.objects.paiplain import Paiplain
+from pipeline.objects.pipeline_v2 import PipelineV2
 
-__all__ = ["Paiplain"]
+__all__ = ["PipelineV2"]
 
 
 CACHE_DIR = os.getenv("PIPELINE_CACHE_DIR", "./cache")

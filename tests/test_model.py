@@ -1,8 +1,8 @@
-from pipeline.objects import Paiplain
+from pipeline import PipelineV2
 
 
 def test_model():
-    p = Paiplain("test")
+    p = PipelineV2("test")
 
     class CustomModel:
         def __init__(self, model_path="", tokenizer_path=""):

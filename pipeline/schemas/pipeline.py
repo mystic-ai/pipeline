@@ -41,6 +41,7 @@ class PipelineVariableGet(BaseModel):
         return values
 
 
+# TODO modify this bad boy to conform to new proposal
 class PipelineGet(RunnableGet):
     id: str
     name: str
@@ -58,6 +59,7 @@ class PipelineGetDetailed(PipelineGet):
     ...
 
 
+# TODO modify this to be in sync with new proposal -- needs parsing from remote
 class PipelineCreate(BaseModel):
     name: str
     variables: List[PipelineVariableGet]

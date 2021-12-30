@@ -1,10 +1,10 @@
 from dotenv import load_dotenv
 
-from pipeline import Paiplain
+from pipeline import PipelineV2
 
 load_dotenv("../hidden.env")  # must contain TOKEN envvar
 
-pipeline = Paiplain("Addlol")
+pipeline = PipelineV2("Addlol")
 
 pipeline.auth()
 
