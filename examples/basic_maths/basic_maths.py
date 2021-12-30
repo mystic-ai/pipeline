@@ -1,4 +1,6 @@
-from pipeline.objects import Pipeline, Variable, pipeline_function
+from typing import List
+
+from pipeline.objects import Paiplain, Pipeline, Variable, pipeline_function
 
 
 @pipeline_function
@@ -35,3 +37,34 @@ output_pipeline = Pipeline.get_pipeline("MathsIsFun")
 print(output_pipeline.run(5.0, 6.0))
 
 output_pipeline.save("my_thing")
+
+########################################################################
+#                 example of proposal for comparisson                  #
+########################################################################
+
+pipeline = Paiplain("MathsIsFun")
+
+
+@pipeline.stage
+def minus(a: float, b: float) -> float:
+    return a - b
+
+
+@pipeline.stage
+def square(a: float) -> float:
+    return a ** 2
+
+
+@pipeline.stage
+def pair(a: float) -> List[float]:
+    return [a, a + 5]
+
+
+@pipeline.stage
+def multiply(a: float, b: float) -> float:
+    return a * b
+
+
+pipeline.run(4.0, 2.0)
+print(pipeline.get_results())
+pipeline.save(filename="my_thing")

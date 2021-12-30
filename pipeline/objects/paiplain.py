@@ -1,3 +1,4 @@
+import csv
 import functools
 import json
 import os
@@ -15,13 +16,13 @@ from pipeline.schemas.pipeline import (  # PipelineVariableGet,
 )
 from pipeline.util.logging import _print
 
-_Results = List[Tuple[str, Any]]
+Results = List[Tuple[str, Any]]
 
 
 # TODO figure out how to set input freely, like current Pipeline does
 class Paiplain:
     stages: List[Function]
-    stages_results: _Results
+    stages_results: Results
     pipeline_context_name: str = None
     models: Dict[str, Model]
     remote_id: Union[str, PipelineGet]
@@ -36,10 +37,10 @@ class Paiplain:
     def get_results(self) -> List[Any]:
         return [res[1] for res in self.stages_results]
 
-    def get_named_results(self) -> _Results:
+    def get_named_results(self) -> Results:
         return self.stages_results
 
-    def run(self, *data) -> _Results:
+    def run(self, *data) -> Results:
         for stage in self.stages:
             new_data = self._run_stage(stage, *data)
             if new_data is None:
@@ -47,7 +48,7 @@ class Paiplain:
             data = new_data
         return self.stages_results
 
-    def run_model(self, *data) -> _Results:
+    def run_model(self, *data) -> Results:
         for stage in self.stages:
             new_data = self._run_stage(stage, *data)
             if new_data is None:
@@ -97,7 +98,7 @@ class Paiplain:
         model_name: str = model.__class__.__qualname__.split(".")[-1]
         self.models[model_name] = pipeline_model
 
-    def upload_pipeline(self) -> PipelineGet:
+    def upload(self) -> PipelineGet:
         new_name = self.pipeline_context_name
         _print("Uploading functions")
         new_functions = [
@@ -126,7 +127,8 @@ class Paiplain:
         # new_outputs = [
         # _output.local_id for _output in new_pipeline_graph.outputs
         # ]
-
+        # TODO tell remote -- Top, to set functions as stages
+        # change schema perhaps
         pipeline_create_schema = PipelineCreate(
             name=new_name,
             # variables=new_variables,
@@ -146,5 +148,18 @@ class Paiplain:
         api_token = os.getenv("TOKEN")
         authenticate(api_token)
 
-    def run_remote(self):
-        return run_pipeline(self.remote_id)
+    def run_remote(self, *initial_data):
+        return run_pipeline(self.remote_id, *initial_data)
+
+    def save(
+        self,
+        relative_path: str = ".",
+        filename: str = "pipeline",
+        extension: str = "csv",
+    ) -> None:
+        f_name = os.path.join(relative_path, filename + "." + extension)
+        with open(f_name, "wb") as out:
+            csv_out = csv.writer(out)
+            csv_out.writerow(["Stage", "Results"])
+            for row in self.stages_results:
+                csv_out.writerow(row)

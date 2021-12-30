@@ -1,6 +1,8 @@
 import os
 
-# from pipeline import logging
+from pipeline.objects.paiplain import Paiplain
+
+__all__ = ["Paiplain"]
 
 
 CACHE_DIR = os.getenv("PIPELINE_CACHE_DIR", "./cache")
