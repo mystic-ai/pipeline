@@ -15,6 +15,7 @@ from pipeline.util import python_object_to_hex
 from pipeline.util.logging import _print
 
 
+# TODO from this branch remove this
 def upload_pipeline(new_pipeline_graph: Graph) -> PipelineGet:
 
     new_name = new_pipeline_graph.name
@@ -52,6 +53,8 @@ def upload_pipeline(new_pipeline_graph: Graph) -> PipelineGet:
         outputs=new_outputs,
     )
     _print("Uploading pipeline graph")
-    request_result = post("/v2/pipelines", json.loads(pipeline_create_schema.json()))
+    request_result = post(
+        "/v2/pipelines", json.loads(pipeline_create_schema.json())
+    )
 
     return PipelineGet.parse_obj(request_result)

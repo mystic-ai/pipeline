@@ -1,6 +1,6 @@
 from typing import List
 
-from pipeline.objects import Paiplain, pipeline
+from pipeline.objects import Paiplain
 
 
 # Check naming
@@ -21,7 +21,7 @@ def test_basic_pipeline():
     def square(f_1: float) -> float:
         return f_1 ** 2
 
-    output = pipeline.process(2.0, 3.0)
+    output = pipeline.run(2.0, 3.0)
     results = pipeline.get_results()
     assert results == [5.0, 25.0]
     assert output == pipeline.get_named_results()
@@ -43,7 +43,7 @@ def test_set_bulk_stages():
         return a - b
 
     pipeline.set_stages(square, pair, add, pair, minus)
-    output = pipeline.process(2.0)
+    output = pipeline.run(2.0)
     results = pipeline.get_results()
     print(output)
     assert results == [4.0, [4.0, 4.0], 8.0, [8.0, 8.0], 0.0]

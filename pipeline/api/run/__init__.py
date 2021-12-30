@@ -1,5 +1,5 @@
 import json
-from typing import Union, Any
+from typing import Any, Union
 
 from pipeline.api.call import post
 from pipeline.schemas.pipeline import PipelineGet
