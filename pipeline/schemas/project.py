@@ -4,7 +4,7 @@ from .base import AvatarHolder, Patchable
 
 
 class ProjectBase(AvatarHolder):
-    name: str
+    name: Optional[str]
 
 
 class ProjectCreate(ProjectBase):

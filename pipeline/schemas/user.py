@@ -9,7 +9,7 @@ from .validators import valid_email, valid_password, valid_username
 
 class UserBase(AvatarHolder):
     email: str
-    username: str
+    username: Optional[str]
     firstname: Optional[str]
     lastname: Optional[str]
     company: Optional[str]
@@ -43,7 +43,7 @@ class UserUsernamePatch(Patchable):
     username: str
 
     @validator("username")
-    def validate_username(cls, value):
+    def validate_username(cls, value: str) -> str:
         if not valid_username(value):
             raise ValueError(
                 "must contain between 3-24 characters,",
@@ -56,7 +56,7 @@ class UserEmailPatch(Patchable):
     email: str
 
     @validator("email")
-    def validate_email(cls, value):
+    def validate_email(cls, value: str) -> str:
         lowered_value = value.lower()
         if not valid_email(lowered_value):
             raise ValueError("doesn't match standard email format")
@@ -68,7 +68,7 @@ class UserPasswordPatch(Patchable):
     password: str
 
     @validator("password")
-    def validate_password(cls, value):
+    def validate_password(cls, value: str) -> str:
         if not valid_password(value):
             raise ValueError(
                 "must contain at least 8 characters, ",
@@ -81,7 +81,7 @@ class UserPasswordResetPatch(Patchable):
     password: str
 
     @validator("password")
-    def validate_password(cls, value):
+    def validate_password(cls, value: str) -> str:
         if not valid_password(value):
             raise ValueError(
                 "must contain at least 8 characters, ",
@@ -95,7 +95,7 @@ class UserLogin(BaseModel):
     password: str
 
     @validator("email")
-    def validate_email(cls, value):
+    def validate_email(cls, value: str) -> str:
         lowered_value = value.lower()
         if not valid_email(lowered_value):
             raise ValueError("doesn't match standard email format")
@@ -114,14 +114,14 @@ class UserCreate(UserBase):
     account_type: Optional[str]
 
     @validator("email")
-    def validate_email(cls, value):
+    def validate_email(cls, value: str) -> str:
         lowered_value = value.lower()
         if not valid_email(lowered_value):
             raise ValueError("doesn't match standard email format")
         return lowered_value
 
     @validator("password")
-    def validate_password(cls, value):
+    def validate_password(cls, value: str) -> str:
         if not valid_password(value):
             raise ValueError(
                 "must contain at least 8 characters, ",
@@ -130,7 +130,7 @@ class UserCreate(UserBase):
         return value
 
     @validator("username")
-    def validate_username(cls, value):
+    def validate_username(cls, value: str) -> str:
         if not valid_username(value):
             raise ValueError(
                 "must contain between 3-24 characters, ",

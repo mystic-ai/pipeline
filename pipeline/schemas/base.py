@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 import humps
 from pydantic import BaseModel as PydanticModel
@@ -13,7 +13,7 @@ from pydantic.generics import GenericModel as PydanticGenericModel
 CAMEL_CASE_ALIASES = False
 
 
-def _generate_alias(s):
+def _generate_alias(s: str) -> Any:
     return humps.camelize(s) if CAMEL_CASE_ALIASES else s
 
 
@@ -58,7 +58,7 @@ class AvatarHolder(BaseModel):
     avatar_image_url: Optional[str]
 
     @validator("avatar_colour")
-    def validate_avatar_colour(cls, value: Optional[str]):
+    def validate_avatar_colour(cls, value: Optional[str]) -> Optional[str]:
         if value is not None and not re.match(r"#[0-9a-f]{6}", value.lower()):
             raise ValueError("not a valid #rrggbb colour")
         return value

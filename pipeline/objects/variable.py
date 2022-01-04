@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from pipeline.schemas.pipeline import PipelineVariableGet
 from pipeline.util import generate_id, hex_to_python_object
@@ -7,9 +7,9 @@ from pipeline.util import generate_id, hex_to_python_object
 class Variable:
 
     local_id: str
-    remote_id: str
+    remote_id: Optional[str]
 
-    name: str
+    name: Optional[str]
 
     type_class: Any
 
@@ -23,8 +23,8 @@ class Variable:
         *,
         is_input: bool = False,
         is_output: bool = False,
-        name: str = None,
-        remote_id: str = None,
+        name: Optional[str] = None,
+        remote_id: Optional[str] = None,
         local_id: str = None,
         belongs_to: str = "",
     ):
@@ -38,7 +38,9 @@ class Variable:
         self.local_id = generate_id(10) if not local_id else local_id
 
     @classmethod
-    def from_schema(cls, schema: PipelineVariableGet):
+    def from_schema(cls, schema: PipelineVariableGet) -> Any:
+        if schema.type_file is None or schema.type_file.data is None:
+            return None
         return cls(
             hex_to_python_object(schema.type_file.data),
             is_input=schema.is_input,

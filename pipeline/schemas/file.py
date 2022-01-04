@@ -4,7 +4,7 @@ from .base import BaseModel
 
 
 class FileBase(BaseModel):
-    name: str
+    name: Optional[str]
 
 
 class FileGet(FileBase):

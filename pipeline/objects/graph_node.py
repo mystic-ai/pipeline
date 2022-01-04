@@ -1,4 +1,4 @@
-from typing import List
+from typing import Any, List, Optional
 
 from pipeline.objects.function import Function
 from pipeline.objects.variable import Variable
@@ -7,12 +7,19 @@ from pipeline.util import generate_id
 
 
 class GraphNode:
-    local_id: str
+    local_id: Optional[str]
     function: Function
     inputs: List[Variable]
     outputs: List[Variable]
 
-    def __init__(self, function, inputs, outputs, *, local_id=None):
+    def __init__(
+        self,
+        function: Function,
+        inputs: List[Variable],
+        outputs: List[Variable],
+        *_: Any,
+        local_id: Optional[str] = None,
+    ):
         self.function = function
         self.inputs = inputs
         self.outputs = outputs

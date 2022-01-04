@@ -1,4 +1,6 @@
-from typing import Any, List
+from __future__ import annotations
+
+from typing import Any, List, Tuple
 
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
@@ -146,7 +148,7 @@ class Graph:
 
     #     return return_variables
 
-    def run_node(self, node: GraphNode, *inputs) -> Any:
+    def run_node(self, node: GraphNode, *inputs: Any) -> Any:
         input_variables = node.inputs
         # input_variables: List[Variable] = [
         #     var
@@ -180,14 +182,13 @@ class Graph:
         node_exec = node.function
         return node_exec.function(*f_inputs)
 
-    def run(self, *inputs) -> List[Any]:
-        print("INPUTS", inputs)
+    def run(self, *inputs: Any) -> Tuple[Any, ...]:
         print(self.nodes)
         if self.nodes is None or len(self.nodes) == 0:
             return inputs
         node = self.nodes.pop()
         results = self.run_node(node, inputs)
-        return self.ran(*results)
+        return self.run(*results)
 
     """
     def to_create_schema(self) -> PipelineCreate:
@@ -208,7 +209,7 @@ class Graph:
     """
 
     @classmethod
-    def from_schema(cls, schema: PipelineGet):
+    def from_schema(cls, schema: PipelineGet) -> Graph:
         variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
         outputs = []
@@ -255,9 +256,9 @@ class Graph:
 
         remade_graph = cls(
             name=schema.name,
-            variables=variables,
-            functions=functions,
-            outputs=outputs,
+            # variables=variables,
+            # functions=functions,
+            # outputs=outputs,
             nodes=nodes,
         )
 

@@ -32,12 +32,8 @@ class Pipeline:
     def output(self, *outputs: Variable) -> None:
         for _output in outputs:
             if _output in Pipeline._current_pipeline.variables:
-                variable_index = Pipeline._current_pipeline.variables.index(
-                    _output
-                )
-                Pipeline._current_pipeline.variables[
-                    variable_index
-                ].is_output = True
+                variable_index = Pipeline._current_pipeline.variables.index(_output)
+                Pipeline._current_pipeline.variables[variable_index].is_output = True
 
                 Pipeline._current_pipeline.outputs.append(
                     Pipeline._current_pipeline.variables[variable_index]
@@ -52,9 +48,7 @@ class Pipeline:
         if graph_name in Pipeline.defined_pipelines:
             return Pipeline.defined_pipelines[graph_name]
         else:
-            raise Exception(
-                "No Pipeline graph found with name '%s'" % graph_name
-            )
+            raise Exception("No Pipeline graph found with name '%s'" % graph_name)
 
     @staticmethod
     def add_variable(
@@ -78,9 +72,7 @@ class Pipeline:
             if variable not in Pipeline._current_pipeline.variables:
                 Pipeline._current_pipeline.variables.append(variable)
         else:
-            raise Exception(
-                "Cant add a variable when not defining a pipeline!"
-            )
+            raise Exception("Cant add a variable when not defining a pipeline!")
         return variable
 
     @staticmethod
@@ -88,9 +80,7 @@ class Pipeline:
         if Pipeline._pipeline_context_active:
             Pipeline._current_pipeline.functions.append(function)
         else:
-            raise Exception(
-                "Cant add a function when not defining a pipeline!"
-            )
+            raise Exception("Cant add a function when not defining a pipeline!")
 
     @staticmethod
     def add_graph_node(graph_node: GraphNode) -> None:

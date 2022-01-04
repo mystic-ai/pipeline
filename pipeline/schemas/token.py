@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import validator
 
@@ -42,7 +42,7 @@ class TokenPatch(Patchable):
     is_enabled: Optional[bool]
 
     @validator("is_enabled")
-    def prevent_none(cls, v):
+    def prevent_none(cls, v: Any) -> Any:
         if v is None:
             raise ValueError("must not be null")
         return v

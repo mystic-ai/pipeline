@@ -1,20 +1,18 @@
 import urllib.parse
+from io import BufferedReader
+from typing import Any, Dict, Union
 
 import requests
 from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
 
-from pipeline.api import (
-    PIPELINE_API_TOKEN,
-    PIPELINE_API_URL,
-    __handle_response__,
-)
+from pipeline.api import PIPELINE_API_TOKEN, PIPELINE_API_URL, __handle_response__
 from pipeline.schemas.file import FileGet
 from pipeline.util import generate_id
 from pipeline.util.logging import PIPELINE_STR
 
 
-def post(endpoint, json_data):
+def post(endpoint: str, json_data: Dict[str, Any]) -> Any:
 
     headers = {
         "Authorization": "Bearer %s" % PIPELINE_API_TOKEN,
@@ -27,7 +25,7 @@ def post(endpoint, json_data):
     return response.json()
 
 
-def get(endpoint):
+def get(endpoint: str) -> Any:
 
     headers = {"Authorization": "Bearer %s" % PIPELINE_API_TOKEN}
 
@@ -38,9 +36,11 @@ def get(endpoint):
     return response.json()
 
 
-def post_file(endpoint, file, remote_path):
+def post_file(
+    endpoint: str, file: Union[BufferedReader, Any], remote_path: str
+) -> FileGet:
     if not hasattr(file, "name"):
-        file.name = generate_id(20)
+        setattr(file, "name", generate_id(20))
 
     url = urllib.parse.urljoin(PIPELINE_API_URL, endpoint)
     e = encoder.MultipartEncoder(
@@ -63,15 +63,13 @@ def post_file(endpoint, file, remote_path):
         unit_divisor=1024,
     )
 
-    def progress_callback(monitor):
+    def progress_callback(monitor: encoder.MultipartEncoderMonitor) -> Any:
         bar.n = monitor.bytes_read
         bar.refresh()
         if monitor.bytes_read == encoder_len:
             bar.close()
 
-    encoded_stream_data = encoder.MultipartEncoderMonitor(
-        e, callback=progress_callback
-    )
+    encoded_stream_data = encoder.MultipartEncoderMonitor(e, callback=progress_callback)
 
     headers = {
         "Authorization": "Bearer %s" % PIPELINE_API_TOKEN,

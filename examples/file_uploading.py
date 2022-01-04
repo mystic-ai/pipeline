@@ -21,9 +21,7 @@ my_array = np.zeros(
 )
 print("Created array of shape:%s" % str(my_array.shape))
 
-array_file_name = "".join(
-    random.choice(string.ascii_lowercase) for i in range(5)
-)
+array_file_name = "".join(random.choice(string.ascii_lowercase) for i in range(5))
 
 np.save(array_file_name, my_array)
 

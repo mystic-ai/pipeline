@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import Field, root_validator
 
@@ -26,7 +26,7 @@ class PipelineVariableGet(BaseModel):
     is_output: bool
 
     @root_validator
-    def file_or_id_validation(cls, values):
+    def file_or_id_validation(cls, values: Dict[str, str]) -> Dict[str, str]:
         file, file_id = values.get("type_file"), values.get("type_file_id")
 
         file_defined = file is not None

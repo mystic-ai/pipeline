@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import inspect
 from hashlib import sha256
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Dict, Optional
 
 # from pipeline.schemas.file import FileCreate
 from pipeline.schemas.function import FunctionGet
@@ -9,30 +11,30 @@ from pipeline.util import generate_id, hex_to_python_object
 
 class Function:
     local_id: str
-    remote_id: str
+    remote_id: Optional[str]
 
-    name: str
+    name: Optional[str]
     source: str
     hash: str
 
     typing_inputs: Dict[str, Any]
     typing_outputs: Dict[str, Any]
 
-    function: Callable
+    function: Any
 
     class_instance: Optional[Any]
 
     def __init__(
         self,
-        function: Callable,
+        function: Any,
         *,
-        remote_id: str = None,
+        remote_id: Optional[str] = None,
         class_instance: Any = None,
     ):
         self.name = function.__name__
         self.remote_id = remote_id
         self.class_instance = class_instance
-        self.function = function
+        self.function = Any
 
         self.source = inspect.getsource(function)
         self.hash = sha256(self.source.encode()).hexdigest()
@@ -56,9 +58,11 @@ class Function:
         self.local_id = generate_id(10)
 
     @classmethod
-    def from_schema(cls, schema: FunctionGet):
+    def from_schema(cls, schema: FunctionGet) -> Function:
         # TODO: Add loading from files instead
         assert isinstance(schema, FunctionGet)
-        function: Function = hex_to_python_object(schema.hex_file.data)
+        data = schema.hex_file.data
+        assert data is not None
+        function: Function = hex_to_python_object(data)
         # print(function.function(5.0))
         return function

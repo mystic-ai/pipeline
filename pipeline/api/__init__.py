@@ -1,5 +1,6 @@
 import os
 import urllib.parse
+from typing import Optional
 
 import requests
 
@@ -13,16 +14,14 @@ from pipeline.util.logging import _print
 # from pipeline.schemas.function import FunctionGet
 
 
-PIPELINE_API_TOKEN: str = None
+PIPELINE_API_TOKEN: Optional[str] = None
 
 
 # PIPELINE_API_TOKEN: str = None
-PIPELINE_API_URL: str = os.getenv(
-    "PIPELINE_API_URL", "https://api.pipeline.ai"
-)
+PIPELINE_API_URL: str = os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
 
 
-def __handle_response__(response: requests.Response):
+def __handle_response__(response: requests.Response) -> None:
     if response.status_code == 404:
 
         raise Exception(response.text)
@@ -32,7 +31,7 @@ def __handle_response__(response: requests.Response):
         raise Exception(response.text)
 
 
-def authenticate(token: str, url: str = PIPELINE_API_URL):
+def authenticate(token: str = "", url: str = PIPELINE_API_URL) -> None:
     """
     Authenticate with the pipeline.ai API
     """
@@ -55,8 +54,7 @@ def authenticate(token: str, url: str = PIPELINE_API_URL):
 
     if response.json():
         _print(
-            "Succesfully authenticated with the Pipeline API (%s)"
-            % PIPELINE_API_URL
+            "Succesfully authenticated with the Pipeline API (%s)" % PIPELINE_API_URL
         )
 
 

@@ -1,5 +1,5 @@
 import enum
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import Field
 
@@ -21,7 +21,7 @@ class RunnableIOGet(BaseModel):
 
 class RunnableGet(BaseModel):
     id: str
-    type: str
+    type: Union[str, RunnableType]
     name: Optional[str]
     project: ProjectGet
 
@@ -30,7 +30,7 @@ class RunnableGetDetailed(RunnableGet):
     expected_inputs: List[RunnableIOGet] = []
     expected_outputs: List[RunnableIOGet] = []
     code_excerpt: Optional[str] = None
-    last_runs = []
+    last_runs: List[RunnableIOGet] = []
 
 
 class FunctionGet(RunnableGet):

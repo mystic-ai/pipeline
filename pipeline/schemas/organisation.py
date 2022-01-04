@@ -4,7 +4,7 @@ from .base import AvatarHolder, Patchable
 
 
 class OrganisationBase(AvatarHolder):
-    name: str
+    name: Optional[str]
 
 
 class OrganisationGet(OrganisationBase):

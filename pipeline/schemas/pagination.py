@@ -1,4 +1,6 @@
-from typing import Generic, List, TypeVar
+from __future__ import annotations
+
+from typing import Any, Generic, List, TypeVar
 
 from .base import BaseModel, GenericModel
 
@@ -18,7 +20,9 @@ class Paginated(GenericModel, Generic[DataType]):
     data: List[DataType]
 
     @classmethod
-    def of(cls, item_list: List[DataType], details: PaginationDetails):
+    def of(
+        cls, item_list: List[DataType], details: PaginationDetails
+    ) -> Paginated[Any]:
 
         return Paginated(
             skip=details.skip,

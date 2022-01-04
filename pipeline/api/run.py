@@ -9,7 +9,7 @@ from pipeline.schemas.run import RunCreate
 def run_pipeline(
     pipeline_id_or_schema: Union[str, PipelineGet],
     data_or_file_id: Union[Any, str],
-):
+) -> Any:
     # TODO: Add support for generic object inference. Only strs at the moment.
     # file_id = None
     # if isinstance(data_or_file_id, str):
@@ -32,8 +32,6 @@ def run_pipeline(
 
     # TODO: swap "data=data_or_file_id" for "file_id=file_id" later
     # when the generic object inference is added back.
-    run_create_schema = RunCreate(
-        pipeline_id=pipeline_id, data=data_or_file_id
-    )
+    run_create_schema = RunCreate(pipeline_id=pipeline_id, data=data_or_file_id)
 
     return post("/v2/runs", json.loads(run_create_schema.json()))

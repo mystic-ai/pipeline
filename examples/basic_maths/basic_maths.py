@@ -56,6 +56,8 @@ def square(a: float) -> float:
     return a ** 2
 
 
+# TODO figure out how to enable inputs to me more flexible,
+# since this mid-step is weird to do
 @pipeline.stage
 def pair(a: float) -> List[float]:
     return [a, a + 5]

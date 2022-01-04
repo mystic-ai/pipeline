@@ -84,6 +84,31 @@ conda install -c huggingface transformers -y
 python -m pip install -U pipeline-ai
 ```
 
+# Development
+
+This project is made with poetry, [so firstly setup poetry on your machine](https://python-poetry.org/docs/#installation).
+
+Once that is done, please run
+
+    poetry install
+
+With this you should be set to work.
+
+
+We have pre-commit hooks to run checks against developed code before commiting and pushing it to remote.
+
+To enable pre-commit hooks please run
+
+    pre-commit install
+
+and to allow autoupdate the hooks to their latest
+
+    pre-commit autoupdate
+
+You can manually run it with
+
+    pre-commit run --all-files
+
 # License
 
 Pipeline is licensed under [Apache Software License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import Field, root_validator
 
@@ -46,13 +46,13 @@ class FunctionIOCreate(BaseModel):
     file: Optional[FileCreate]
 
     @root_validator
-    def file_or_id_validation(cls, values):
+    def file_or_id_validation(cls, values: Dict[str, str]) -> Dict[str, str]:
         file, file_id = values.get("file"), values.get("file_id")
 
         file_defined = file is not None
         file_id_defined = file_id is not None
 
-        if file_defined == file_id_defined:
+        if not file_defined and not file_id_defined:
             raise ValueError(
                 "You must define either the file OR file_id of a function."
             )
@@ -79,7 +79,7 @@ class FunctionCreate(BaseModel):
     file: Optional[FileCreate]
 
     @root_validator
-    def file_or_id_validation(cls, values):
+    def file_or_id_validation(cls, values: Dict[str, str]) -> Dict[str, str]:
         file, file_id = values.get("file"), values.get("file_id")
 
         file_defined = file is not None

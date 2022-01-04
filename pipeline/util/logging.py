@@ -1,5 +1,6 @@
 import sys
 from datetime import datetime
+from typing import Any
 
 LOG_FILE = None
 
@@ -25,7 +26,7 @@ levels = {
 PIPELINE_STR = f"{bcolors.OKBLUE}Pipeline{bcolors.ENDC}"
 
 
-def _print(val, level="INFO"):
+def _print(val: Any, level: str = "INFO") -> None:
     time_stamp = datetime.utcnow().strftime("%H:%M:%S")
 
     log_str = (
@@ -35,7 +36,7 @@ def _print(val, level="INFO"):
     print(f"{log_str}")
 
 
-def set_print_to_file(path: str):
+def set_print_to_file(path: str) -> None:
 
     global LOG_FILE
     if LOG_FILE is None:
@@ -45,7 +46,7 @@ def set_print_to_file(path: str):
         raise Exception("Already printing to a log file.")
 
 
-def stop_print_to_file():
+def stop_print_to_file() -> None:
 
     global LOG_FILE
     if LOG_FILE is not None:

@@ -24,6 +24,7 @@ humps = "^0.2.2"
 pyhumps = "^3.0.2"
 requests-toolbelt = "^0.9.1"
 tqdm = "^4.62.3"
+types-requests = "^2.26.3"
 
 [tool.poetry.dev-dependencies]
 setuptools = "^59.2.0"
@@ -37,13 +38,14 @@ flake8 = "^4.0.1"
 black = {version = "^21.12b0", allow-prereleases = true}
 isort = "^5.10.1"
 python-dotenv = "^0.19.2"
+mypy = "^0.930"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-line-length = 79
+line-length = 88
 target-version = ['py37', 'py38', 'py39']
 exclude = '''
 
@@ -53,9 +55,22 @@ exclude = '''
   )/
 )
 '''
+
 [tool.isort]
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-line_length = 79
+profile = "black"
+
+[tool.mypy]
+follow_imports = "silent"
+strict_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_reexport = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+exclude = "(tests|examples)"
+
+[[tool.mypy.overrides]]
+module = ["pipeline.objects.pipeline"]
+ignore_errors = true

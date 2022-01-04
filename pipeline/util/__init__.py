@@ -8,9 +8,7 @@ from pipeline.schemas.file import FileCreate
 
 
 def generate_id(length: int) -> str:
-    return "".join(
-        (random.choice(string.ascii_letters) for i in range(length))
-    )
+    return "".join((random.choice(string.ascii_letters) for i in range(length)))
 
 
 def python_object_to_hex(obj: Any) -> str:
@@ -29,7 +27,7 @@ def python_object_to_name(obj: Any) -> Optional[str]:
     return name
 
 
-def python_object_to_file_create(obj: Any, name: str = None):
+def python_object_to_file_create(obj: Any, name: str = None) -> FileCreate:
     if name is None:
         name = generate_id(20)
 

@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
@@ -7,6 +7,6 @@ from pydantic import BaseModel, Field
 class RedisCommandSchema(BaseModel):
     command_thread_id: str = Field(default_factory=lambda: str(uuid4()))
     command: str
-    data: dict
+    data: Dict[str, Any]
     to: str
     sender: str

@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import root_validator
 
@@ -40,18 +40,14 @@ class RunCreate(BaseModel):
     blocking: Optional[bool] = False
 
     @root_validator
-    def pipeline_data_val(cls, values):
-        pipeline_id, function_id = values.get("pipeline_id"), values.get(
-            "function_id"
-        )
+    def pipeline_data_val(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        pipeline_id, function_id = values.get("pipeline_id"), values.get("function_id")
 
         pipeline_defined = pipeline_id is not None
         function_defined = function_id is not None
 
         if pipeline_defined == function_defined:
-            raise ValueError(
-                "You must define either a pipeline_id OR function_id."
-            )
+            raise ValueError("You must define either a pipeline_id OR function_id.")
 
         data_id, data = values.get("data_id"), values.get("data")
 
