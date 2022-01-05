@@ -27,8 +27,11 @@ def pipeline_function(function):
 
                 else:
                     raise Exception(
-                        "You can't input random variables,",
-                        "follow the way of the Pipeline. Got type",
+                        (
+                            "You can't input random variables,"
+                            "follow the way of the Pipeline. Got type %s"
+                            % type(input_arg)
+                        )
                     )
 
             node_output = Variable(type_class=function.__annotations__["return"])
@@ -76,11 +79,4 @@ class pipeline_model(object):
             created_model = self.model_class(*args, **kwargs)
             model_schema = Model(model=created_model)
             Pipeline._current_pipeline.models.append(model_schema)
-
-            # model_functions = [
-            #     model_attr
-            #     for model_attr in dir(created_model)
-            #     if callable(getattr(created_model, model_attr))
-            #     and model_attr[:2] != "__"
-            # ]
             return created_model

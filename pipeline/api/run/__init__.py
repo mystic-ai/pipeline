@@ -25,8 +25,10 @@ def run_pipeline(
         pipeline_id = pipeline_id_or_schema.id
     else:
         raise Exception(
-            "Must either pass a pipeline id, or a pipeline get schema.",
-            "Not object of type %s in arg 1." % str(pipeline_id_or_schema),
+            (
+                "Must either pass a pipeline id, or a pipeline get schema."
+                "Not object of type %s in arg 1." % str(pipeline_id_or_schema)
+            )
         )
 
     # TODO: swap "data=data_or_file_id" for "file_id=file_id" later

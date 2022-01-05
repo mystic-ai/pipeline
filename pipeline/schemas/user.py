@@ -46,8 +46,10 @@ class UserUsernamePatch(Patchable):
     def validate_username(cls, value):
         if not valid_username(value):
             raise ValueError(
-                "must contain between 3-24 characters, only alphanumerics,",
-                "hyphens and underscores.",
+                (
+                    "must contain between 3-24 characters, only alphanumerics,"
+                    "hyphens and underscores."
+                )
             )
         return value
 
@@ -71,8 +73,10 @@ class UserPasswordPatch(Patchable):
     def validate_password(cls, value):
         if not valid_password(value):
             raise ValueError(
-                "must contain at least 8 characters,",
-                "one uppercase letter and one number.",
+                (
+                    "must contain at least 8 characters,"
+                    "one uppercase letter and one number."
+                )
             )
         return value
 
@@ -84,8 +88,10 @@ class UserPasswordResetPatch(Patchable):
     def validate_password(cls, value):
         if not valid_password(value):
             raise ValueError(
-                "must contain at least 8 characters,",
-                "one uppercase letter and one number.",
+                (
+                    "must contain at least 8 characters,"
+                    "one uppercase letter and one number."
+                )
             )
         return value
 
@@ -124,8 +130,10 @@ class UserCreate(UserBase):
     def validate_password(cls, value):
         if not valid_password(value):
             raise ValueError(
-                "must contain at least 8 characters,",
-                "one uppercase letter and one number.",
+                (
+                    "must contain at least 8 characters,"
+                    "one uppercase letter and one number."
+                )
             )
         return value
 
@@ -133,7 +141,9 @@ class UserCreate(UserBase):
     def validate_username(cls, value):
         if not valid_username(value):
             raise ValueError(
-                "must contain between 3-24 characters,",
-                "only alphanumerics, hyphens and underscores.",
+                (
+                    "must contain between 3-24 characters,"
+                    "only alphanumerics, hyphens and underscores."
+                )
             )
         return value
