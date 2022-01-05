@@ -1,4 +1,3 @@
-
 from pipeline.util import python_object_to_name
 
 from pipeline.objects.function import Function

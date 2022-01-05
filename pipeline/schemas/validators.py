@@ -9,10 +9,10 @@ import re
 # followed by groups of alphanumerics and non-staring/non-ending dashes,
 # separated by dots.
 EMAIL_REGEX = re.compile(
-        r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*"
-        r"@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)"
-        r"+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
-    )
+    r"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*"
+    r"@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)"
+    r"+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"
+)
 # Simple password regex, requires a minimum of 8 characters, one uppercase letter,
 # one lowercase letter and a number.
 PASSWORD_REGEX = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$")

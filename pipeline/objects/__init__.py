@@ -28,7 +28,7 @@ def pipeline_function(function):
                 else:
                     raise Exception(
                         "You can't input random variables,",
-                        "follow the way of the Pipeline. Got type"
+                        "follow the way of the Pipeline. Got type",
                     )
 
             node_output = Variable(type_class=function.__annotations__["return"])

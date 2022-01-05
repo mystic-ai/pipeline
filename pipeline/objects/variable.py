@@ -30,7 +30,7 @@ class Variable:
         is_output: bool = False,
         name: str = None,
         remote_id: str = None,
-        local_id: str = None
+        local_id: str = None,
     ):
         self.remote_id = remote_id
         self.name = name

@@ -36,7 +36,7 @@ class Graph:
         functions: List[Function] = None,
         outputs: List[Variable] = None,
         nodes: List[GraphNode] = None,
-        models: List[Model] = None
+        models: List[Model] = None,
     ):
         self.name = name
         self.local_id = generate_id(10)
