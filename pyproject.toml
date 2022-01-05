@@ -31,6 +31,7 @@ requests = "^2.26.0"
 pyhumps = "^3.0.2"
 pytest = "^6.2.5"
 black = "^21.12b0"
+pre-commit = "^2.16.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
