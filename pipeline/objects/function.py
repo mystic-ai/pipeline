@@ -2,18 +2,14 @@ import inspect
 
 from hashlib import sha256
 
-from typing import Any, Callable, Dict, List, Optional
-from pipeline import schemas
+from typing import Any, Callable, Dict, Optional
 
 from pipeline.util import (
     generate_id,
     hex_to_python_object,
-    python_object_to_hex,
-    python_object_to_name,
 )
 
-from pipeline.schemas.file import FileCreate
-from pipeline.schemas.function import FunctionGet, FunctionIOCreate, FunctionCreate
+from pipeline.schemas.function import FunctionGet
 
 
 class Function:
@@ -42,10 +38,12 @@ class Function:
         self.source = inspect.getsource(function)
         self.hash = sha256(self.source.encode()).hexdigest()
 
-        # TODO: Add verification that all inputs to function have a typing annotation, except for "self"
-        if not "return" in function.__annotations__:
+        # TODO: Add verification that all inputs to function have a typing annotation,
+        # except for "self"
+        if "return" not in function.__annotations__:
             raise Exception(
-                "You must define an output type for a piepline function. e.g. def my_func(...) -> float:"
+                "You must define an output type for a piepline function.",
+                "e.g. def my_func(...) -> float:"
             )
 
         self.typing_outputs = {"return": function.__annotations__["return"]}

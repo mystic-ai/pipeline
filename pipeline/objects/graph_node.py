@@ -19,7 +19,7 @@ class GraphNode:
         self.inputs = inputs
         self.outputs = outputs
 
-        self.local_id = generate_id(10) if local_id == None else local_id
+        self.local_id = generate_id(10) if local_id is None else local_id
 
     def to_create_schema(self) -> PipelineGraphNode:
         return PipelineGraphNode(

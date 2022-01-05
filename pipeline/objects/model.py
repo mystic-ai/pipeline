@@ -17,4 +17,4 @@ class Model:
         self.name = name
         self.model = model
 
-        self.local_id = generate_id(10) if local_id == None else local_id
+        self.local_id = generate_id(10) if local_id is None else local_id

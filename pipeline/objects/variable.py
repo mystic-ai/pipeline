@@ -3,13 +3,11 @@ from typing import Any
 
 from pipeline.util import (
     generate_id,
-    python_object_to_hex,
-    python_object_to_name,
     hex_to_python_object,
 )
 
-from pipeline.schemas.file import FileCreate
 from pipeline.schemas.pipeline import PipelineVariableGet
+from pipeline.objects.pipeline import Pipeline
 
 
 class Variable:
@@ -54,6 +52,3 @@ class Variable:
             name=schema.name,
             local_id=schema.local_id,
         )
-
-
-from pipeline.objects.pipeline import Pipeline

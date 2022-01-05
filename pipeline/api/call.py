@@ -1,4 +1,3 @@
-import inspect
 import requests
 import urllib.parse
 from tqdm import tqdm

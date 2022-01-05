@@ -6,7 +6,6 @@ from pipeline.objects.variable import Variable
 from pipeline.objects.model import Model
 
 from pipeline.schemas.pipeline import (
-    PipelineCreate,
     PipelineGet,
 )
 
@@ -42,11 +41,11 @@ class Graph:
         self.name = name
         self.local_id = generate_id(10)
 
-        self.variables = variables if variables != None else []
-        self.functions = functions if functions != None else []
-        self.outputs = outputs if outputs != None else []
-        self.nodes = nodes if nodes != None else []
-        self.models = models if models != None else []
+        self.variables = variables if variables is not None else []
+        self.functions = functions if functions is not None else []
+        self.outputs = outputs if outputs is not None else []
+        self.nodes = nodes if nodes is not None else []
+        self.models = models if models is not None else []
 
     def run(self, *inputs):
         input_variables: List[Variable] = [
@@ -105,7 +104,7 @@ class Graph:
 
             if (
                 hasattr(node.function, "class_instance")
-                and node_function.class_instance != None
+                and node_function.class_instance is not None
             ):
                 output = node_function.function(
                     node_function.class_instance, *function_inputs
@@ -174,7 +173,7 @@ class Graph:
                     function = _func
                     break
 
-            if function == None:
+            if function is None:
                 raise Exception("Function not found:%s" % _node.function)
 
             nodes.append(

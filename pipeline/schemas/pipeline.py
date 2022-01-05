@@ -1,11 +1,11 @@
 from pydantic import root_validator, Field
 
-from typing import List, Optional, Any, Union
+from typing import List, Optional
 
 from pipeline.schemas.base import BaseModel
 
-from pipeline.schemas.file import FileCreate, FileGet
-from pipeline.schemas.function import FunctionGet, FunctionCreate
+from pipeline.schemas.file import FileGet
+from pipeline.schemas.function import FunctionGet
 
 from pipeline.schemas.runnable import RunnableType, RunnableGet
 
@@ -31,8 +31,8 @@ class PipelineVariableGet(BaseModel):
     def file_or_id_validation(cls, values):
         file, file_id = values.get("type_file"), values.get("type_file_id")
 
-        file_defined = file != None
-        file_id_defined = file_id != None
+        file_defined = file is not None
+        file_id_defined = file_id is not None
 
         if file_defined == file_id_defined:
             raise ValueError(

@@ -6,12 +6,12 @@ import numpy as np
 
 from dotenv import load_dotenv
 
-load_dotenv("hidden.env")
-print(os.getenv("PIPELINE_API_URL"))
-
 import pipeline.api
 from pipeline.api import authenticate
 from pipeline.api.file import upload_file
+
+load_dotenv("hidden.env")
+print(os.getenv("PIPELINE_API_URL"))
 
 my_array = np.zeros(
     (

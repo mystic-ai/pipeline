@@ -53,7 +53,7 @@ class Pipeline:
     def add_variable(variable: Variable) -> None:
         if Pipeline._pipeline_context_active:
 
-            if not variable in Pipeline._current_pipeline.variables:
+            if variable not in Pipeline._current_pipeline.variables:
                 Pipeline._current_pipeline.variables.append(variable)
         else:
             raise Exception("Cant add a variable when not defining a pipeline!")

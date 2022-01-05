@@ -1,8 +1,4 @@
-from typing import List, Tuple, Any
-
-
-from pipeline import Pipeline, pipeline_function, Variable
-from pipeline.model import pipeline_model
+from pipeline import Pipeline
 
 
 my_pipeline = Pipeline.load("examples/ML pipeline")

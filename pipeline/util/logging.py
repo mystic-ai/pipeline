@@ -33,7 +33,7 @@ def _print(val, level="INFO"):
 def set_print_to_file(path: str):
 
     global LOG_FILE
-    if LOG_FILE == None:
+    if LOG_FILE is None:
         LOG_FILE = open(path, "w")
         sys.stdout = LOG_FILE
     else:
@@ -43,7 +43,7 @@ def set_print_to_file(path: str):
 def stop_print_to_file():
 
     global LOG_FILE
-    if LOG_FILE != None:
+    if LOG_FILE is not None:
         LOG_FILE.close()
     else:
         raise Exception("Not printing to log file")

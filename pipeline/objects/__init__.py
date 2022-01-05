@@ -1,7 +1,6 @@
 from pipeline.objects.variable import Variable
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
-from pipeline.objects.graph import Graph
 from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.model import Model
 
@@ -13,7 +12,7 @@ def pipeline_function(function):
             return function(*args, **kwargs)
         else:
             function_ios = function.__annotations__
-            if not "return" in function_ios:
+            if "return" not in function_ios:
                 raise Exception(
                     "Must include an output type e.g. 'def my_func(...) -> int:'"
                 )
@@ -23,12 +22,13 @@ def pipeline_function(function):
                 if isinstance(input_arg, Variable):
                     processed_args.append(input_arg)
                 elif hasattr(input_arg, "__pipeline_model__"):
-                    if function.__pipeline_function__.class_instance == None:
+                    if function.__pipeline_function__.class_instance is None:
                         function.__pipeline_function__.class_instance = input_arg
 
                 else:
                     raise Exception(
-                        "You can't input random variables, follow the way of the Pipeline. Got type"
+                        "You can't input random variables,",
+                        "follow the way of the Pipeline. Got type"
                     )
 
             node_output = Variable(type_class=function.__annotations__["return"])
@@ -52,7 +52,7 @@ class pipeline_model(object):
     def __init__(
         self, model_class=None, *, file_or_dir: str = None, compress_tar=False
     ):
-        if model_class != None:
+        if model_class is not None:
             model_class.__pipeline_model__ = True
 
         self.compress_tar = compress_tar
@@ -77,10 +77,10 @@ class pipeline_model(object):
             model_schema = Model(model=created_model)
             Pipeline._current_pipeline.models.append(model_schema)
 
-            model_functions = [
-                model_attr
-                for model_attr in dir(created_model)
-                if callable(getattr(created_model, model_attr))
-                and model_attr[:2] != "__"
-            ]
+            # model_functions = [
+            #     model_attr
+            #     for model_attr in dir(created_model)
+            #     if callable(getattr(created_model, model_attr))
+            #     and model_attr[:2] != "__"
+            # ]
             return created_model

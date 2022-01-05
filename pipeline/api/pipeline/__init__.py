@@ -7,7 +7,6 @@ from pipeline.api.call import post
 from pipeline.schemas.pipeline import (
     PipelineCreate,
     PipelineGet,
-    PipelineGraphNode,
     PipelineVariableGet,
 )
 

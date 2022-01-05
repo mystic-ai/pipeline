@@ -1,13 +1,11 @@
-import io
 
-from pydantic.schema import field_schema
-from pipeline.util import python_object_to_name, python_object_to_hex
+from pipeline.util import python_object_to_name
 
 from pipeline.objects.function import Function
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 
 from pipeline.api.call import post
-from pipeline.api.file import upload_file, upload_python_object_to_file
+from pipeline.api.file import upload_python_object_to_file
 
 
 def upload_function(function: Function) -> FunctionGet:
