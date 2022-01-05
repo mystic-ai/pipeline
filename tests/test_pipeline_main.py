@@ -1,6 +1,4 @@
-from pipeline.objects import Pipeline
-from pipeline.objects import Variable
-from pipeline.objects import pipeline_function
+from pipeline.objects import Pipeline, Variable, pipeline_function
 
 
 # Check if the decorator correctly uses __init__ and __enter__

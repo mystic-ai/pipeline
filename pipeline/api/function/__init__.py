@@ -1,10 +1,8 @@
-from pipeline.util import python_object_to_name
-
-from pipeline.objects.function import Function
-from pipeline.schemas.function import FunctionCreate, FunctionGet
-
 from pipeline.api.call import post
 from pipeline.api.file import upload_python_object_to_file
+from pipeline.objects.function import Function
+from pipeline.schemas.function import FunctionCreate, FunctionGet
+from pipeline.util import python_object_to_name
 
 
 def upload_function(function: Function) -> FunctionGet:

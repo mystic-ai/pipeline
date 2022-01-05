@@ -1,9 +1,8 @@
 import os
-import string
 import random
+import string
 
 import numpy as np
-
 from dotenv import load_dotenv
 
 import pipeline.api

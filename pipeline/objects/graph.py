@@ -2,13 +2,9 @@ from typing import List
 
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
-from pipeline.objects.variable import Variable
 from pipeline.objects.model import Model
-
-from pipeline.schemas.pipeline import (
-    PipelineGet,
-)
-
+from pipeline.objects.variable import Variable
+from pipeline.schemas.pipeline import PipelineGet
 from pipeline.util import generate_id
 
 

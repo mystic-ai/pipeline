@@ -1,15 +1,9 @@
 import inspect
-
 from hashlib import sha256
-
 from typing import Any, Callable, Dict, Optional
 
-from pipeline.util import (
-    generate_id,
-    hex_to_python_object,
-)
-
 from pipeline.schemas.function import FunctionGet
+from pipeline.util import generate_id, hex_to_python_object
 
 
 class Function:

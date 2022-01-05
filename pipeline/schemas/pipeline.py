@@ -1,13 +1,11 @@
-from pydantic import root_validator, Field
-
 from typing import List, Optional
 
-from pipeline.schemas.base import BaseModel
+from pydantic import Field, root_validator
 
+from pipeline.schemas.base import BaseModel
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
-
-from pipeline.schemas.runnable import RunnableType, RunnableGet
+from pipeline.schemas.runnable import RunnableGet, RunnableType
 
 
 class PipelineGraphNode(BaseModel):

@@ -1,8 +1,8 @@
-from pipeline.objects.variable import Variable
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
-from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.model import Model
+from pipeline.objects.pipeline import Pipeline
+from pipeline.objects.variable import Variable
 
 
 def pipeline_function(function):

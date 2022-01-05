@@ -1,10 +1,8 @@
 import random
 import string
-from typing import Optional
+from typing import Any, Optional
 
 from dill import dumps, loads
-
-from typing import Any
 
 from pipeline.schemas.file import FileCreate
 

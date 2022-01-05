@@ -1,8 +1,7 @@
-import requests
-
+import os
 import urllib.parse
 
-import os
+import requests
 
 from pipeline.util.logging import _print
 

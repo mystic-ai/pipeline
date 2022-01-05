@@ -1,19 +1,16 @@
-from enum import Enum
 import datetime
+from enum import Enum
 from typing import List, Optional, Union
 
 from pydantic import root_validator
 
 from pipeline.schemas.file import FileGet
+from pipeline.schemas.function import FunctionGet, FunctionGetDetailed
+from pipeline.schemas.pipeline import PipelineGet, PipelineGetDetailed
 
 from .base import BaseModel
 from .data import DataGet
-from .runnable import (
-    RunnableIOGet,
-)
-
-from pipeline.schemas.function import FunctionGet, FunctionGetDetailed
-from pipeline.schemas.pipeline import PipelineGet, PipelineGetDetailed
+from .runnable import RunnableIOGet
 from .tag import TagGet
 from .token import TokenGet
 
