@@ -1,22 +1,26 @@
+import io
 import json
 from typing import Any, Union
 
 from pipeline.api.call import post
+from pipeline.api.file import upload_file
 from pipeline.schemas.pipeline import PipelineGet
 from pipeline.schemas.run import RunCreate
+from pipeline.util import python_object_to_hex
 
 
 def run_pipeline(
     pipeline_id_or_schema: Union[str, PipelineGet], data_or_file_id: Union[Any, str]
 ):
     # TODO: Add support for generic object inference. Only strs at the moment.
-    # file_id = None
-    # if isinstance(data_or_file_id, str):
-    #     file_id = data_or_file_id
-    # else:
-    #     temp_file = io.BytesIO(python_object_to_hex(data_or_file_id).encode())
-    #     uploaded_data = upload_file(temp_file, "/")
-    #     file_id = uploaded_data.id
+    file_id = None
+    if isinstance(data_or_file_id, str):
+        file_id = data_or_file_id
+    else:
+        temp_file = io.BytesIO(python_object_to_hex(data_or_file_id).encode())
+        uploaded_data = upload_file(temp_file, "/")
+        file_id = uploaded_data.id
+    print(file_id)
 
     pipeline_id = None
     if isinstance(pipeline_id_or_schema, str):
