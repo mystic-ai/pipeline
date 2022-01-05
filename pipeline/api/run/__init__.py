@@ -26,7 +26,7 @@ def run_pipeline(
     else:
         raise Exception(
             (
-                "Must either pass a pipeline id, or a pipeline get schema."
+                "Must either pass a pipeline id, or a pipeline get schema. "
                 "Not object of type %s in arg 1." % str(pipeline_id_or_schema)
             )
         )

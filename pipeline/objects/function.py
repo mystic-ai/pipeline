@@ -37,7 +37,7 @@ class Function:
         if "return" not in function.__annotations__:
             raise Exception(
                 (
-                    "You must define an output type for a piepline function."
+                    "You must define an output type for a piepline function. "
                     "e.g. def my_func(...) -> float:"
                 )
             )

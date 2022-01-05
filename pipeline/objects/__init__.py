@@ -28,7 +28,7 @@ def pipeline_function(function):
                 else:
                     raise Exception(
                         (
-                            "You can't input random variables,"
+                            "You can't input random variables, "
                             "follow the way of the Pipeline. Got type %s"
                             % type(input_arg)
                         )

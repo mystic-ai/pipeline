@@ -47,7 +47,7 @@ class UserUsernamePatch(Patchable):
         if not valid_username(value):
             raise ValueError(
                 (
-                    "must contain between 3-24 characters, only alphanumerics,"
+                    "must contain between 3-24 characters, only alphanumerics, "
                     "hyphens and underscores."
                 )
             )
@@ -74,7 +74,7 @@ class UserPasswordPatch(Patchable):
         if not valid_password(value):
             raise ValueError(
                 (
-                    "must contain at least 8 characters,"
+                    "must contain at least 8 characters, "
                     "one uppercase letter and one number."
                 )
             )
@@ -89,7 +89,7 @@ class UserPasswordResetPatch(Patchable):
         if not valid_password(value):
             raise ValueError(
                 (
-                    "must contain at least 8 characters,"
+                    "must contain at least 8 characters, "
                     "one uppercase letter and one number."
                 )
             )
@@ -131,7 +131,7 @@ class UserCreate(UserBase):
         if not valid_password(value):
             raise ValueError(
                 (
-                    "must contain at least 8 characters,"
+                    "must contain at least 8 characters, "
                     "one uppercase letter and one number."
                 )
             )
@@ -142,7 +142,7 @@ class UserCreate(UserBase):
         if not valid_username(value):
             raise ValueError(
                 (
-                    "must contain between 3-24 characters,"
+                    "must contain between 3-24 characters, "
                     "only alphanumerics, hyphens and underscores."
                 )
             )
