@@ -1,7 +1,6 @@
 from typing import List
 
-from pipeline import Pipeline, Variable, pipeline_function
-from pipeline.model import pipeline_model
+from pipeline import Pipeline, Variable, pipeline_function, pipeline_model
 
 
 @pipeline_model(file_or_dir="/lol", compress_tar=False)
