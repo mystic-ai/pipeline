@@ -43,7 +43,7 @@ def pipeline_function(function):
                 outputs=[node_output],
             )
             Pipeline.add_graph_node(new_node)
-
+            Pipeline.add_variable(node_output)
             return node_output
 
     execute_func.__function__ = function
