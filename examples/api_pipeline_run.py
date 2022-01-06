@@ -1,17 +1,12 @@
-import os
-
 from dotenv import load_dotenv
 
-from pipeline import Pipeline, Variable, pipeline_function
-from pipeline.api import authenticate
-from pipeline.api.pipeline import upload_pipeline
-from pipeline.api.run import run_pipeline
+from pipeline import Pipeline, PipelineApi, Variable, pipeline_function
 
 load_dotenv("../hidden.env")
 
 
-api_token = os.getenv("TOKEN")
-authenticate(api_token)
+api = PipelineApi()
+api.authenticate()
 
 
 @pipeline_function
@@ -27,7 +22,6 @@ with Pipeline("AddLol") as builder:
     builder.output(res_1)
 
 test_pipeline = Pipeline.get_pipeline("AddLol")
-upload_output = upload_pipeline(test_pipeline)
-# print("Uploaded pipeline response:%s" % upload_output.dict())
+upload_output = api.upload_pipeline(test_pipeline)
 
-print(run_pipeline(upload_output, "Hi I like to")["run_state"])
+print(api.run_pipeline(upload_output, "Hi I like to")["run_state"])

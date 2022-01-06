@@ -1,21 +1,31 @@
-import os
-
 from dotenv import load_dotenv
 
-import pipeline.api
-from pipeline import Pipeline, Variable, pipeline_function
+from pipeline import Pipeline, PipelineApi, Variable, pipeline_function
 
+#####################################
+# set env vars
+#####################################
 load_dotenv("hidden.env")
 
-api_token = os.getenv("TOKEN")
-pipeline.api.authenticate(api_token)
+
+#####################################
+# setup standalone api and auth
+#####################################
+api = PipelineApi()
+api.authenticate()
 
 
+#####################################
+# set pipeline function
+#####################################
 @pipeline_function
 def multiply(a: float, b: float) -> float:
     return a * b
 
 
+#####################################
+# use ctx manager to configure pipeline
+#####################################
 with Pipeline("MathsTest") as builder:
     flt_1 = Variable(variable_type=float, is_input=True)
     flt_2 = Variable(variable_type=float, is_input=True)
@@ -24,6 +34,15 @@ with Pipeline("MathsTest") as builder:
 
     builder.output(res_1)
 
+
+#####################################
+# Upload Pipeline with built in API
+#####################################
+remote_schema = Pipeline.upload("MathsTest")
+
+
+#####################################
+# Upload Pipeline with standalone API
+#####################################
 test_pipeline = Pipeline.get_pipeline("MathsTest")
-upload_output = pipeline.api.upload(test_pipeline)
-# print(upload_output.functions[0].dict())
+upload_output = api.upload_pipeline(test_pipeline)
