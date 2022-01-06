@@ -1,6 +1,6 @@
 # from pipeline import Pipeline, pipeline_function, Variable
-from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.function import pipeline_function
+from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.variable import Variable
 
 

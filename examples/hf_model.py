@@ -1,7 +1,6 @@
 from pipeline import Pipeline, Variable
 from pipeline.model.hf_transformer import TransformersModelForCausalLM
 
-
 with Pipeline(pipeline_name="HF pipeline") as pipeline:
     input_str = Variable(variable_type=str, is_input=True)
 

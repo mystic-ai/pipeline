@@ -1,13 +1,7 @@
-import requests
-
-import urllib.parse
-
 import os
-
-import requests
 import urllib.parse
 
-from requests.api import head
+import requests
 
 from pipeline.util.logging import _print
 
@@ -47,7 +41,6 @@ def authenticate(token: str, url: str = PIPELINE_API_URL):
     PIPELINE_API_TOKEN = token
     global PIPELINE_API_URL
     PIPELINE_API_URL = url
-    # TODO: Change this url to an actual auth one, not status which just shows if the API is alive.
     status_url = urllib.parse.urljoin(url, "/v2/users/me")
 
     response = requests.get(

@@ -1,15 +1,8 @@
 from typing import Any
 
-
-from pipeline.util import (
-    generate_id,
-    python_object_to_hex,
-    python_object_to_name,
-    hex_to_python_object,
-)
-
-from pipeline.schemas.file import FileCreate
+from pipeline.objects.pipeline import Pipeline
 from pipeline.schemas.pipeline import PipelineVariableGet
+from pipeline.util import generate_id, hex_to_python_object
 
 
 class Variable:
@@ -32,7 +25,7 @@ class Variable:
         is_output: bool = False,
         name: str = None,
         remote_id: str = None,
-        local_id: str = None
+        local_id: str = None,
     ):
         self.remote_id = remote_id
         self.name = name
@@ -54,6 +47,3 @@ class Variable:
             name=schema.name,
             local_id=schema.local_id,
         )
-
-
-from pipeline.objects.pipeline import Pipeline

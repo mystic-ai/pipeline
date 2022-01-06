@@ -1,10 +1,8 @@
 import random
 import string
-from typing import Optional
+from typing import Any, Optional
 
 from dill import dumps, loads
-
-from typing import Any
 
 from pipeline.schemas.file import FileCreate
 
@@ -30,7 +28,7 @@ def python_object_to_name(obj: Any) -> Optional[str]:
 
 
 def python_object_to_file_create(obj: Any, name: str = None):
-    if name == None:
+    if name is None:
         name = generate_id(20)
 
     return FileCreate(name=name, file_bytes=python_object_to_hex)

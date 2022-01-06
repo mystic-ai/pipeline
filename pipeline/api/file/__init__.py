@@ -1,9 +1,8 @@
 import io
 
-from pipeline.util import python_object_to_hex
 from pipeline.api.call import post_file
-
 from pipeline.schemas.file import FileGet
+from pipeline.util import python_object_to_hex
 
 
 def upload_file(file_or_path, remote_path) -> FileGet:
