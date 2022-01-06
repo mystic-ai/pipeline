@@ -1,10 +1,10 @@
 from typing import List, Optional
 
-from pydantic import root_validator
-
+from pydantic import Field, root_validator
 
 from pipeline.schemas.base import BaseModel
-from pipeline.schemas.file import FileGet, FileCreate
+from pipeline.schemas.file import FileCreate, FileGet
+from pipeline.schemas.runnable import RunnableGet, RunnableType
 
 
 class FunctionBase(BaseModel):
@@ -12,14 +12,19 @@ class FunctionBase(BaseModel):
     name: str
 
 
-class FunctionGet(FunctionBase):
+class FunctionGet(RunnableGet):
     id: str
     hex_file: FileGet
-    # source_file_id: FileGet
+
     source_sample: str
+    type: RunnableType = Field(RunnableType.function, const=True)
 
     class Config:
         orm_mode = True
+
+
+class FunctionGetDetailed(FunctionGet):
+    ...
 
 
 class FunctionIO(BaseModel):
@@ -44,8 +49,8 @@ class FunctionIOCreate(BaseModel):
     def file_or_id_validation(cls, values):
         file, file_id = values.get("file"), values.get("file_id")
 
-        file_defined = file != None
-        file_id_defined = file_id != None
+        file_defined = file is not None
+        file_id_defined = file_id is not None
 
         if file_defined == file_id_defined:
             raise ValueError(
@@ -77,8 +82,8 @@ class FunctionCreate(BaseModel):
     def file_or_id_validation(cls, values):
         file, file_id = values.get("file"), values.get("file_id")
 
-        file_defined = file != None
-        file_id_defined = file_id != None
+        file_defined = file is not None
+        file_id_defined = file_id is not None
 
         if file_defined == file_id_defined:
             raise ValueError(

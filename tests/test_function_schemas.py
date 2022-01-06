@@ -1,13 +1,4 @@
-import inspect
-
-from hashlib import sha256
-from pipeline.schemas.file import FileGet
-from pipeline.schemas.function import FunctionGet
-
-from pipeline.util import python_object_to_hex
-
 from pipeline.objects import pipeline_function
-from pipeline.objects import Function
 
 
 def test_function_schema_create():
@@ -19,7 +10,7 @@ def test_function_schema_create():
         square.__function__, "__pipeline_function__"
     )
 
-    _function: Function = square.__function__.__pipeline_function__
+    # _function: Function = square.__function__.__pipeline_function__
 
     # schema = _function.to_create_schema()
 
@@ -43,7 +34,7 @@ def test_function_get_schema():
     def square(f_1: float) -> float:
         return f_1 ** 2
 
-    _function: Function = square.__function__.__pipeline_function__
+    # _function: Function = square.__function__.__pipeline_function__
     # schema = _function.to_create_schema()
 
     del square

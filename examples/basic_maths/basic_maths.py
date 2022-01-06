@@ -1,4 +1,4 @@
-from pipeline.objects import Pipeline, pipeline_function, Variable
+from pipeline.objects import Pipeline, Variable, pipeline_function
 
 
 @pipeline_function

@@ -1,7 +1,5 @@
 import ipaddress
 
-from pydantic import AnyHttpUrl
-
 from .base import BaseModel
 
 

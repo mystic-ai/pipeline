@@ -1,7 +1,6 @@
-from typing import List, Tuple, Any
+from typing import List
 
-
-from pipeline import Pipeline, pipeline_function, Variable
+from pipeline import Pipeline, Variable, pipeline_function
 from pipeline.model import pipeline_model
 
 

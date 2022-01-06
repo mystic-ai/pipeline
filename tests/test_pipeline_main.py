@@ -1,29 +1,27 @@
-from pipeline.objects import Pipeline
-from pipeline.objects import Variable
-from pipeline.objects import pipeline_function
+from pipeline.objects import Pipeline, Variable, pipeline_function
 
 
 # Check if the decorator correctly uses __init__ and __enter__
 def test_with_decorator():
-    with Pipeline("test") as my_pipeline:
-        assert Pipeline._current_pipeline != None
+    with Pipeline("test"):
+        assert Pipeline._current_pipeline is not None
 
 
 # Check naming
 def test_with_decorator_name():
-    with Pipeline("test") as my_pipeline:
+    with Pipeline("test"):
         assert Pipeline._current_pipeline.name == "test"
 
 
 # Test exit
 def test_with_exit():
-    with Pipeline("test") as my_pipeline:
-        var = Variable(is_input=True, is_output=True)
+    with Pipeline("test"):
+        Variable(is_input=True, is_output=True)
     assert Pipeline.get_pipeline("test").name == "test"
 
 
 # Test basic Pipeline
-def test_with_exit():
+def test_basic_pipeline():
     @pipeline_function
     def add(f_1: float, f_2: float) -> float:
         return f_1 + f_2
@@ -45,4 +43,4 @@ def test_with_exit():
 
     output = graph.run(2.0, 3.0)
     assert output == [25.0, 5.0]
-    assert Pipeline._current_pipeline == None
+    assert Pipeline._current_pipeline is None
