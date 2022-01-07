@@ -1,7 +1,11 @@
+from typing import Any, Union
+
+from pipeline.api import PipelineCloud
 from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.variable import Variable
+from pipeline.schemas.pipeline import PipelineGet
 
 
 class Pipeline:
@@ -10,9 +14,11 @@ class Pipeline:
     _current_pipeline: Graph
     _pipeline_context_active: bool = False
     _pipeline_context_name: str = None
+    _api: PipelineCloud = None
 
-    def __init__(self, new_pipeline_name):
+    def __init__(self, new_pipeline_name: str, api: PipelineCloud = None):
         self._pipeline_context_name = new_pipeline_name
+        self._api = api or PipelineCloud()
 
     def __enter__(self):
         Pipeline._pipeline_context_active = True
@@ -71,3 +77,17 @@ class Pipeline:
             Pipeline._current_pipeline.nodes.append(graph_node)
         else:
             raise Exception("Cant add a node when not defining a pipeline!")
+
+    @staticmethod
+    def run_local(graph_name: str, *inputs):
+        graph = Pipeline.get_pipeline(graph_name)
+        return graph.run(*inputs)
+
+    @staticmethod
+    def run(id: Union[str, PipelineGet], data: Any):
+        return Pipeline._api.run_pipeline(id, data)
+
+    @staticmethod
+    def upload(name: str) -> PipelineGet:
+        graph = Pipeline.get_pipeline(name)
+        return Pipeline._api.upload_pipeline(graph)
