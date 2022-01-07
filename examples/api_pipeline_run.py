@@ -1,11 +1,11 @@
 from dotenv import load_dotenv
 
-from pipeline import Pipeline, PipelineApi, Variable, pipeline_function
+from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
 
 load_dotenv("../hidden.env")
 
 
-api = PipelineApi()
+api = PipelineCloud()
 api.authenticate()
 
 

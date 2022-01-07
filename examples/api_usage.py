@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 
-from pipeline import Pipeline, PipelineApi, Variable, pipeline_function
+from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
 
 #####################################
 # set env vars
@@ -11,7 +11,7 @@ load_dotenv("hidden.env")
 #####################################
 # setup standalone api and auth
 #####################################
-api = PipelineApi()
+api = PipelineCloud()
 api.authenticate()
 
 

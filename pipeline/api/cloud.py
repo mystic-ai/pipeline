@@ -17,7 +17,7 @@ from pipeline.util import generate_id, python_object_to_hex, python_object_to_na
 from pipeline.util.logging import PIPELINE_STR
 
 
-class PipelineApi:
+class PipelineCloud:
     token: str
     url: str
 

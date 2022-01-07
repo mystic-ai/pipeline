@@ -1,11 +1,17 @@
 import os
 
-from pipeline.api.api import PipelineApi
+from pipeline.api.cloud import PipelineCloud
 
 # from pipeline import logging
 from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
 
-__all__ = ["Pipeline", "Variable", "pipeline_model", "pipeline_function", "PipelineApi"]
+__all__ = [
+    "Pipeline",
+    "Variable",
+    "pipeline_model",
+    "pipeline_function",
+    "PipelineCloud",
+]
 
 CACHE_DIR = os.getenv("PIPELINE_CACHE_DIR", "./cache")
 
