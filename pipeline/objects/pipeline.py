@@ -1,6 +1,6 @@
 from typing import Any, Union
 
-from pipeline.api.cloud import PipelineCloud
+from pipeline.api import PipelineCloud
 from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.graph_node import GraphNode
@@ -16,7 +16,7 @@ class Pipeline:
     _pipeline_context_name: str = None
     _api: PipelineCloud = None
 
-    def __init__(self, new_pipeline_name, api=None):
+    def __init__(self, new_pipeline_name: str, api: PipelineCloud = None):
         self._pipeline_context_name = new_pipeline_name
         self._api = api or PipelineCloud()
 

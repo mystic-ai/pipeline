@@ -1,9 +1,9 @@
 import os
 
 from pipeline.api.cloud import PipelineCloud
+from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
 
 # from pipeline import logging
-from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
 
 __all__ = [
     "Pipeline",

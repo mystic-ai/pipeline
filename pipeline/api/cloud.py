@@ -1,14 +1,15 @@
+from __future__ import annotations
+
 import io
 import json
 import os
 import urllib.parse
-from typing import Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 import requests
 from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
 
-from pipeline.objects import Function, Graph
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
@@ -16,12 +17,15 @@ from pipeline.schemas.run import RunCreate
 from pipeline.util import generate_id, python_object_to_hex, python_object_to_name
 from pipeline.util.logging import PIPELINE_STR
 
+if TYPE_CHECKING:
+    from pipeline.objects import Function, Graph
+
 
 class PipelineCloud:
-    token: str
-    url: str
+    token: Optional[str]
+    url: Optional[str]
 
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str = None) -> None:
         self.token = os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
 
