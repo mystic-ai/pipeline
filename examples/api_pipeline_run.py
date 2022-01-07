@@ -1,17 +1,9 @@
 import os
-from dotenv import load_dotenv
 
-from dotenv import load_dotenv
-
-load_dotenv("../hidden.env")
-
+from pipeline import Pipeline, Variable, pipeline_function
 from pipeline.api import authenticate
 from pipeline.api.pipeline import upload_pipeline
 from pipeline.api.run import run_pipeline
-from pipeline.objects import pipeline_function
-from pipeline.objects.pipeline import Pipeline
-from pipeline.objects.variable import Variable
-
 
 api_token = os.getenv("TOKEN")
 authenticate(api_token)

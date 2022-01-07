@@ -1,7 +1,9 @@
 import os
 
 # from pipeline import logging
+from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
 
+__all__ = ["Pipeline", "Variable", "pipeline_model", "pipeline_function"]
 
 CACHE_DIR = os.getenv("PIPELINE_CACHE_DIR", "./cache")
 

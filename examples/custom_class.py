@@ -1,7 +1,5 @@
 # from pipeline import Pipeline, pipeline_function, Variable
-from pipeline.objects.function import pipeline_function
-from pipeline.objects.pipeline import Pipeline
-from pipeline.objects.variable import Variable
+from pipeline import Pipeline, Variable, pipeline_function
 
 
 class MyClass(object):
