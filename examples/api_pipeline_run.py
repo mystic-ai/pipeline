@@ -16,7 +16,7 @@ def add_lol(a: str) -> str:
 
 with Pipeline("AddLol") as builder:
     str_1 = Variable(str, is_input=True)
-
+    builder.add_variable(str_1)
     res_1 = add_lol(str_1)
 
     builder.output(res_1)
