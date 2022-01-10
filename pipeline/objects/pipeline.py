@@ -36,6 +36,9 @@ class Pipeline:
 
     def output(self, *outputs: Variable) -> None:
         for _output in outputs:
+            if _output not in Pipeline._current_pipeline.variables:
+                # o = Variable(_output, is_output=True)
+                Pipeline.add_variable(_output)
             variable_index = Pipeline._current_pipeline.variables.index(_output)
             if variable_index != -1:
                 Pipeline._current_pipeline.variables[variable_index].is_output = True
@@ -63,6 +66,11 @@ class Pipeline:
                 Pipeline._current_pipeline.variables.append(variable)
         else:
             raise Exception("Cant add a variable when not defining a pipeline!")
+
+    @staticmethod
+    def add_variables(*variables: Variable) -> None:
+        for v in variables:
+            Pipeline.add_variable(v)
 
     @staticmethod
     def add_function(function: Function) -> None:

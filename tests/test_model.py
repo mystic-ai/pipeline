@@ -19,6 +19,8 @@ def test_with_exit():
 
     with Pipeline("test") as my_pipeline:
         in_1 = Variable(str, is_input=True)
+        my_pipeline.add_variable(in_1)
+
         my_model = CustomModel()
         str_1 = my_model.predict(in_1)
 
