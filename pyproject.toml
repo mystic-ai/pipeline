@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.0.13"
+version = "0.0.19"
 description = "Yay ml pipelines"
 authors = ["Paul Hetherington <paul@getneuro.ai>"]
 packages = [
@@ -23,6 +23,7 @@ setuptools = "^59.2.0"
 humps = "^0.2.2"
 pyhumps = "^3.0.2"
 requests-toolbelt = "^0.9.1"
+tqdm = "^4.62.3"
 
 [tool.poetry.dev-dependencies]
 setuptools = "^59.2.0"
