@@ -65,6 +65,11 @@ class Pipeline:
             raise Exception("Cant add a variable when not defining a pipeline!")
 
     @staticmethod
+    def add_variables(*variables: Variable) -> None:
+        for v in variables:
+            Pipeline.add_variable(v)
+
+    @staticmethod
     def add_function(function: Function) -> None:
         if Pipeline._pipeline_context_active:
             Pipeline._current_pipeline.functions.append(function)

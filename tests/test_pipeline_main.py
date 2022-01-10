@@ -16,7 +16,7 @@ def test_with_decorator_name():
 # Test exit
 def test_with_exit():
     with Pipeline("test"):
-        Variable(is_input=True, is_output=True)
+        Variable(str, is_input=True, is_output=True)
     assert Pipeline.get_pipeline("test").name == "test"
 
 
@@ -34,13 +34,13 @@ def test_basic_pipeline():
         in_1 = Variable(float, is_input=True)
         in_2 = Variable(float, is_input=True)
 
+        my_pipeline.add_variables(in_1, in_2)
+
         add_1 = add(in_1, in_2)
         sq_1 = square(add_1)
 
         my_pipeline.output(sq_1, add_1)
 
-    graph = Pipeline.get_pipeline("test")
-
-    output = graph.run(2.0, 3.0)
+    output = Pipeline.run_local("test", 2.0, 3.0)
     assert output == [25.0, 5.0]
     assert Pipeline._current_pipeline is None

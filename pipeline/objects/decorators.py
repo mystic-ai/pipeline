@@ -35,7 +35,7 @@ def pipeline_function(function):
                     )
 
             node_output = Variable(type_class=function.__annotations__["return"])
-            # Pipeline.add_variable(node_output)
+            Pipeline.add_variable(node_output)
             Pipeline.add_function(function.__pipeline_function__)
             new_node = GraphNode(
                 function=function.__pipeline_function__,

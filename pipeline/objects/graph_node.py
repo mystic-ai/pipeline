@@ -9,8 +9,8 @@ from pipeline.util import generate_id
 class GraphNode:
     local_id: str
     function: Function
-    inputs = []  #: List[Variable]
-    outputs = []  #: List[Variable]
+    inputs: List[Variable] = []
+    outputs: List[Variable] = []
 
     def __init__(self, function, inputs, outputs, *, local_id=None):
         self.function = function
