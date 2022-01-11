@@ -12,13 +12,14 @@ from tqdm import tqdm
 
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
+from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
 from pipeline.schemas.run import RunCreate
 from pipeline.util import generate_id, python_object_to_hex, python_object_to_name
 from pipeline.util.logging import PIPELINE_STR
 
 if TYPE_CHECKING:
-    from pipeline.objects import Function, Graph
+    from pipeline.objects import Function, Graph, Model
 
 
 class PipelineCloud:
@@ -142,6 +143,21 @@ class PipelineCloud:
 
         return FunctionGet.parse_obj(request_result)
 
+    def upload_model(self, model: Model) -> ModelGet:
+        file_schema = self.upload_python_object_to_file(model, "/lol")
+
+        model_create_schema = ModelCreate(
+            local_id=model.local_id,
+            name=model.name,
+            model_source=model.source,
+            hash=model.hash,
+            file_id=file_schema.id,
+        )
+
+        request_result = self._post("/v2/models/", model_create_schema.dict())
+
+        return ModelGet.parse_obj(request_result)
+
     def upload_pipeline(self, new_pipeline_graph: Graph) -> PipelineGet:
 
         new_name = new_pipeline_graph.name
@@ -150,6 +166,9 @@ class PipelineCloud:
             self.upload_function(_function)
             for _function in new_pipeline_graph.functions
         ]
+
+        print("Uploading models")
+        new_models = [self.upload_model(_model) for _model in new_pipeline_graph.models]
 
         new_variables: List[PipelineVariableGet] = []
         print("Uploading variables")
@@ -175,6 +194,7 @@ class PipelineCloud:
             name=new_name,
             variables=new_variables,
             functions=new_functions,
+            models=new_models,
             graph_nodes=new_graph_nodes,
             outputs=new_outputs,
         )

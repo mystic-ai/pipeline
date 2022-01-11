@@ -32,7 +32,7 @@ class ModelCreate(BaseModel):
     local_id: Optional[str]
 
     model_source: str
-
+    hash: str
     name: str
 
     file_id: Optional[str]
