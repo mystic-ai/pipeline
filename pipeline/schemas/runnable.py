@@ -10,6 +10,7 @@ from .project import ProjectGet
 class RunnableType(enum.Enum):
     function = "function"
     pipeline = "pipeline"
+    model = "model"
 
 
 class RunnableIOGet(BaseModel):
@@ -33,6 +34,7 @@ class RunnableGetDetailed(RunnableGet):
     last_runs = []
 
 
+# NOTE QUESTION: do we use these classes?
 class FunctionGet(RunnableGet):
     type: RunnableType = Field(RunnableType.function, const=True)
 
