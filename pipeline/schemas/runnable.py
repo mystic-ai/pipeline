@@ -33,6 +33,7 @@ class RunnableGetDetailed(RunnableGet):
     last_runs = []
 
 
+# NOTE QUESTION: do we use these classes?
 class FunctionGet(RunnableGet):
     type: RunnableType = Field(RunnableType.function, const=True)
 
