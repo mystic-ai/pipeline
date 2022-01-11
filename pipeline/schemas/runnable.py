@@ -10,7 +10,6 @@ from .project import ProjectGet
 class RunnableType(enum.Enum):
     function = "function"
     pipeline = "pipeline"
-    model = "model"
 
 
 class RunnableIOGet(BaseModel):
