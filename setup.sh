@@ -12,6 +12,7 @@ chmod +x .git/hooks/pre-push
 echo "${G}Pre-Push hooks set.${NC}"
 
 echo "${Y}Installing deps...${NC}"
+poetry shell
 poetry install
 echo "${G}Dependencies installed.${NC}"
 echo "${Y}Setting Pre-Commit hooks...${NC}"
