@@ -89,24 +89,19 @@ This project is made with poetry, [so firstly setup poetry on your machine](http
 
 Once that is done, please run
 
-    poetry install
+    sh setup.sh
 
-With this you should be set to work.
+With this you should be set to work. This sets up dependencies and pre-commit hooks and
+pre-push hooks.
 
 
-We have pre-commit hooks to run checks against developed code before commiting and pushing it to remote.
-
-To enable pre-commit hooks please run
-
-    pre-commit install
-
-and to allow autoupdate the hooks to their latest
-
-    pre-commit autoupdate
-
-You can manually run it with
+You can manually run pre commit hooks with
 
     pre-commit run --all-files
+
+To run tests manually please run
+
+    pytest
 
 # License
 
