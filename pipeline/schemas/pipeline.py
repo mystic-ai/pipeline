@@ -66,4 +66,3 @@ class PipelineCreate(BaseModel):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
-    # models: Optional[dict]
