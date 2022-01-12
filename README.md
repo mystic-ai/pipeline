@@ -2,6 +2,17 @@
 
 [_powered by neuro_](https://getneuro.ai)
 
+# Table of Contents
+
+- [About](#about)
+- [Usage](#usage)
+  * [Huggingface Transformers](#huggingface-transformers)
+- [Installation instructions](#installation-instructions)
+  * [Linux, Mac (intel)](#linux--mac--intel-)
+  * [Mac (arm/M1)](#mac--arm-m1-)
+- [Development](#development)
+- [License](#license)
+
 # About
 
 Pipeline is a python library that provides a simple way to construct computational graphs for AI/ML. The library is suitable for both development and production environments supporting inference and training/finetuning. This library is also a direct interface to [Pipeline.ai](https://pipeline.ai) which provides a compute engine to run pipelines at scale and on enterprise GPUs.
@@ -91,7 +102,7 @@ Once that is done, please run
 
     sh setup.sh
 
-With this you should be set to work. This sets up dependencies and pre-commit hooks and
+With this you should be good to go. This sets up dependencies, pre-commit hooks and
 pre-push hooks.
 
 
