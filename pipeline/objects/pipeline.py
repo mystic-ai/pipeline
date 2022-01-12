@@ -96,3 +96,8 @@ class Pipeline:
     def upload(name: str) -> PipelineGet:
         graph = Pipeline.get_pipeline(name)
         return Pipeline._api.upload_pipeline(graph)
+
+    @staticmethod
+    def api(api: PipelineCloud = None) -> PipelineCloud:
+        Pipeline._api = api or PipelineCloud()
+        return Pipeline._api
