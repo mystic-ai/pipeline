@@ -2,6 +2,17 @@
 
 [_powered by neuro_](https://getneuro.ai)
 
+# Table of Contents
+
+- [About](#about)
+- [Usage](#usage)
+  * [Huggingface Transformers](#huggingface-transformers)
+- [Installation instructions](#installation-instructions)
+  * [Linux, Mac (intel)](#linux--mac--intel-)
+  * [Mac (arm/M1)](#mac--arm-m1-)
+- [Development](#development)
+- [License](#license)
+
 # About
 
 Pipeline is a python library that provides a simple way to construct computational graphs for AI/ML. The library is suitable for both development and production environments supporting inference and training/finetuning. This library is also a direct interface to [Pipeline.ai](https://pipeline.ai) which provides a compute engine to run pipelines at scale and on enterprise GPUs.
@@ -89,24 +100,19 @@ This project is made with poetry, [so firstly setup poetry on your machine](http
 
 Once that is done, please run
 
-    poetry install
+    sh setup.sh
 
-With this you should be set to work.
+With this you should be good to go. This sets up dependencies, pre-commit hooks and
+pre-push hooks.
 
 
-We have pre-commit hooks to run checks against developed code before commiting and pushing it to remote.
-
-To enable pre-commit hooks please run
-
-    pre-commit install
-
-and to allow autoupdate the hooks to their latest
-
-    pre-commit autoupdate
-
-You can manually run it with
+You can manually run pre commit hooks with
 
     pre-commit run --all-files
+
+To run tests manually please run
+
+    pytest
 
 # License
 
