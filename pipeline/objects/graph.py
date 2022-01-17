@@ -1,5 +1,7 @@
 from typing import List
 
+from dill import dumps, loads
+
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.model import Model
@@ -190,3 +192,12 @@ class Graph:
         )
 
         return remade_graph
+
+    def save(self, save_path):
+        with open(save_path, "wb") as save_file:
+            save_file.write(dumps(self))
+
+    @classmethod
+    def load(cls, load_path):
+        with open(load_path, "rb") as load_file:
+            return loads(load_file.read())
