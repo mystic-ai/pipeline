@@ -30,6 +30,7 @@ class PipelineGPTNeo:
 with Pipeline("GPTNeo") as builder:
     in_1 = Variable(str, is_input=True)
     builder.add_variables(in_1)
+
     gpt_neo = PipelineGPTNeo()
 
     out_str = gpt_neo.predict(in_1)
