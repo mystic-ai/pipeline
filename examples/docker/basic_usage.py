@@ -3,15 +3,16 @@ from pipeline import Pipeline, Variable, pipeline_function
 
 
 @pipeline_function
-def add_numbers(input_dict: dict) -> float:
-    return input_dict["in_1"] + input_dict["in_2"]
+def add_numbers(in_1: float, in_2: float) -> float:
+    return in_1 + in_2
 
 
 with Pipeline("AddNumbers") as builder:
-    in_1 = Variable(dict, is_input=True)
-    builder.add_variables(in_1)
+    in_1 = Variable(float, is_input=True)
+    in_2 = Variable(float, is_input=True)
+    builder.add_variables(in_1, in_2)
 
-    sum = add_numbers(in_1)
+    sum = add_numbers(in_1, in_2)
 
     builder.output(sum)
 
