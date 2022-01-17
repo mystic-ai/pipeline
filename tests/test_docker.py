@@ -10,8 +10,8 @@ def test_dockerfiles():
         return in_1 + in_2
 
     with Pipeline("AddNumbers") as builder:
-        in_1 = Variable(dict, is_input=True)
-        in_2 = Variable(dict, is_input=True)
+        in_1 = Variable(float, is_input=True)
+        in_2 = Variable(float, is_input=True)
         builder.add_variables(in_1, in_2)
 
         sum = add_numbers(in_1, in_2)
@@ -19,7 +19,7 @@ def test_dockerfiles():
         builder.output(sum)
 
     graph = Pipeline.get_pipeline("AddNumbers")
-    output = graph.run(3, 4)
+    output = graph.run(3.0, 4.0)
     assert output[0] == 3 + 4
 
     docker.create_pipeline_api([graph], output_dir="./")
