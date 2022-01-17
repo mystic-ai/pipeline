@@ -7,7 +7,11 @@ from pipeline.objects import Graph
 
 
 def create_pipeline_api(
-    pipeline_graphs: List[Graph], *, output_dir="./", **environment_variables
+    pipeline_graphs: List[Graph],
+    *,
+    output_dir="./",
+    platform="linux/amd64",
+    **environment_variables,
 ):
     paths = []
 
@@ -16,14 +20,16 @@ def create_pipeline_api(
         pipeline_graph.save(graph_path)
         paths.append(graph_path)
 
-    create_dockerfile(paths, output_dir=output_dir)
+    create_dockerfile(paths, output_dir=output_dir, platform=platform)
     create_docker_compose(output_dir, **environment_variables)
 
 
-def create_dockerfile(pipeline_graph_paths: List[str], *, output_dir="./"):
+def create_dockerfile(
+    pipeline_graph_paths: List[str], *, output_dir="./", platform="linux/amd64"
+):
     with open(os.path.join(output_dir, "Dockerfile"), "w") as docker_file:
         docker_file.writelines(
-            ["FROM --platform=linux/amd64 mysticai/pipeline-docker:latest"]
+            ["FROM --platform=%s mysticai/pipeline-docker:latest" % platform]
         )
         docker_file.writelines(
             ["\nCOPY %s /app/pipelines/" % path for path in pipeline_graph_paths]
@@ -49,7 +55,7 @@ def create_docker_compose(path, **environment_vars):
             environment_vars[key] = presets_env_vars[key]
 
     docker_yml_dict = {
-        "version": "3.3",
+        "version": "3.9",
         "services": {
             "pipeline_api": {
                 "image": "mysticai/pipeline-docker:latest",
@@ -60,6 +66,7 @@ def create_docker_compose(path, **environment_vars):
                 "environment": {
                     **environment_vars,
                 },
+                "depends_on": ["pipeline_db"],
             },
             "pipeline_db": {
                 "image": "postgres",
