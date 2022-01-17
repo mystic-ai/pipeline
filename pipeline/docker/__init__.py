@@ -1,4 +1,3 @@
-from ntpath import join
 import os
 import yaml
 
@@ -77,5 +76,5 @@ def create_docker_compose(path, **environment_vars):
             },
         },
     }
-    with open(join(path, "docker-compose.yml"), "w") as docker_compose_file:
+    with open(os.path.join(path, "docker-compose.yml"), "w") as docker_compose_file:
         docker_compose_file.write(yaml.dump(docker_yml_dict))
