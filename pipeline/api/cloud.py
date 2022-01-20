@@ -139,7 +139,7 @@ class PipelineCloud:
             file_id=file_schema.id,
         )
 
-        request_result = self._post("/v2/functions/", function_create_schema.dict())
+        request_result = self._post("/v2/functions", function_create_schema.dict())
 
         return FunctionGet.parse_obj(request_result)
 
