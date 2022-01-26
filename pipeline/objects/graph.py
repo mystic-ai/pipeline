@@ -140,7 +140,7 @@ class Graph:
             if func.local_id == old_id:
                 func.local_id = new_id
                 return
-        raise Exception("Function with locla_id:%s not found" % old_id)
+        raise Exception("Function with local_id:%s not found" % old_id)
 
     @classmethod
     def from_schema(cls, schema: PipelineGet):
