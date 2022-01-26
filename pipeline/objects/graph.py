@@ -135,6 +135,13 @@ class Graph:
         return create_schema
     """
 
+    def _update_function_local_id(self, old_id: str, new_id: str) -> None:
+        for func in self.functions:
+            if func.local_id == old_id:
+                func.local_id = new_id
+                return
+        raise Exception("Function with locla_id:%s not found" % old_id)
+
     @classmethod
     def from_schema(cls, schema: PipelineGet):
         variables = [Variable.from_schema(_var) for _var in schema.variables]
