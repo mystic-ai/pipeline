@@ -1,7 +1,5 @@
 from pipeline import Pipeline, Variable
-from pipeline.objects.huggingface.TransformersModelForCausalLM import (
-    TransformersModelForCausalLM,
-)
+from pipeline.objects.huggingface import TransformersModelForCausalLM
 
 with Pipeline("HF pipeline") as builder:
     input_str = Variable(str, is_input=True)
