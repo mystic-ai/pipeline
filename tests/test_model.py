@@ -14,7 +14,7 @@ def test_with_exit():
             return input + " lol"
 
         @pipeline_function
-        def load(self):
+        def load(self, path=None):
             print("load")
 
     with Pipeline("test") as my_pipeline:
