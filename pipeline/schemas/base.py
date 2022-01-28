@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import datetime
 from typing import Optional
@@ -10,7 +11,7 @@ from pydantic.generics import GenericModel as PydanticGenericModel
 #: When set to True, model fields can be get/set by camelCase'd field names
 #: This is useful for JS interop., where camelCase is the convention
 #: (rather than Python's snake_case convention)
-CAMEL_CASE_ALIASES = False
+CAMEL_CASE_ALIASES = os.environ.get("CAMEL_CASE_ALIASES")
 
 
 def _generate_alias(s):
