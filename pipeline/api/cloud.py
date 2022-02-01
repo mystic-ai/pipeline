@@ -139,7 +139,7 @@ class PipelineCloud:
             file_id=file_schema.id,
         )
 
-        request_result = self._post("/v2/functions/", function_create_schema.dict())
+        request_result = self._post("/v2/functions", function_create_schema.dict())
 
         return FunctionGet.parse_obj(request_result)
 
@@ -166,6 +166,8 @@ class PipelineCloud:
             self.upload_function(_function)
             for _function in new_pipeline_graph.functions
         ]
+        for i, uploaded_function_schema in enumerate(new_functions):
+            new_pipeline_graph.functions[i].local_id = uploaded_function_schema.id
 
         print("Uploading models")
         new_models = [self.upload_model(_model) for _model in new_pipeline_graph.models]

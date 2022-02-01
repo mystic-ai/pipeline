@@ -3,7 +3,7 @@ from pipeline import Pipeline, Variable, pipeline_function
 
 @pipeline_function
 def square(a: float) -> float:
-    return a ** 2
+    return a**2
 
 
 @pipeline_function

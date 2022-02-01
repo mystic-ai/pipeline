@@ -60,7 +60,7 @@ class Graph:
 
         for model in self.models:
             if hasattr(model.model, "load"):
-                model.model.load(None)
+                model.model.load()
 
         running_variables = {}
         for i, input in enumerate(inputs):
@@ -136,6 +136,13 @@ class Graph:
 
         return create_schema
     """
+
+    def _update_function_local_id(self, old_id: str, new_id: str) -> None:
+        for func in self.functions:
+            if func.local_id == old_id:
+                func.local_id = new_id
+                return
+        raise Exception("Function with local_id:%s not found" % old_id)
 
     @classmethod
     def from_schema(cls, schema: PipelineGet):
