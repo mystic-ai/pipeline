@@ -1,5 +1,7 @@
 from typing import List
 
+from dill import dumps, loads
+
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.model import Model
@@ -58,7 +60,7 @@ class Graph:
 
         for model in self.models:
             if hasattr(model.model, "load"):
-                model.model.load(None)
+                model.model.load()
 
         running_variables = {}
         for i, input in enumerate(inputs):
@@ -135,6 +137,13 @@ class Graph:
         return create_schema
     """
 
+    def _update_function_local_id(self, old_id: str, new_id: str) -> None:
+        for func in self.functions:
+            if func.local_id == old_id:
+                func.local_id = new_id
+                return
+        raise Exception("Function with local_id:%s not found" % old_id)
+
     @classmethod
     def from_schema(cls, schema: PipelineGet):
         variables = [Variable.from_schema(_var) for _var in schema.variables]
@@ -190,3 +199,12 @@ class Graph:
         )
 
         return remade_graph
+
+    def save(self, save_path):
+        with open(save_path, "wb") as save_file:
+            save_file.write(dumps(self))
+
+    @classmethod
+    def load(cls, load_path):
+        with open(load_path, "rb") as load_file:
+            return loads(load_file.read())
