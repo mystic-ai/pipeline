@@ -78,6 +78,8 @@ class RunGet(BaseModel):
     data: DataGet
     blocking: Optional[bool] = False
     result: Optional[FileGet]
+    #: JSON-serialised runnable return value, if available
+    result_preview: Optional[str]
     error: Optional[RunError]
 
     class Config:
