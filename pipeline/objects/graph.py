@@ -59,9 +59,12 @@ class Graph:
             )
 
         for model in self.models:
+
             if hasattr(model.model, "load"):
                 print("Loading model (%s)" % model.local_id)
                 model.model.load()
+            else:
+                raise Exception("Model load not found")
 
         running_variables = {}
         for i, input in enumerate(inputs):
