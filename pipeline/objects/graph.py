@@ -99,7 +99,7 @@ class Graph:
             function_inputs = []
             for _input in node_inputs:
                 function_inputs.append(running_variables[_input.local_id])
-            print("Running#1")
+            print("Running#2")
 
             if node_function.function == None:
                 raise Exception(
