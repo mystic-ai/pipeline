@@ -76,6 +76,7 @@ class pipeline_model(object):
             return self.model_class(*args, **kwargs)
         else:
             created_model = self.model_class(*args, **kwargs)
+
             model_schema = Model(model=created_model)
             Pipeline._current_pipeline.models.append(model_schema)
             return created_model
