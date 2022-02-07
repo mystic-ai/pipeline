@@ -101,6 +101,12 @@ class Graph:
                 function_inputs.append(running_variables[_input.local_id])
             print("Running#2")
 
+            print("Dir of node_function:\n%s\n" % dir(node_function))
+            print("Dir of node_function.function:\n%s\n" % dir(node_function.function))
+            print(
+                "Dir of node_function.class_instance:\n%s\n"
+                % dir(node_function.class_instance)
+            )
             if node_function.function == None:
                 raise Exception(
                     "Node function is none (id:%s)" % node.function.local_id
