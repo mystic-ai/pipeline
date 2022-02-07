@@ -164,6 +164,9 @@ class Graph:
         print(models)
         # Rebind functions -> models
         for _func in functions:
+            print(_func)
+            print(_func.class_instance)
+            print(_func.class_instance.__pipeline_model__)
             if hasattr(_func.class_instance, "__pipeline_model__"):
                 model: Model = _func.class_instance.__pipeline_model__
                 is_bound = False
