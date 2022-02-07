@@ -102,6 +102,7 @@ class Graph:
             print("Running#2")
 
             print("Dir of node_function:\n%s\n" % dir(node_function))
+            print("node_function.function:\n%s\n" % (node_function.function))
             print("Dir of node_function.function:\n%s\n" % dir(node_function.function))
             print(
                 "Dir of node_function.class_instance:\n%s\n"
