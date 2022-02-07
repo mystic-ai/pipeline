@@ -168,10 +168,10 @@ class Graph:
             print(_func.class_instance)
             print(_func.class_instance.__pipeline_model__)
             if hasattr(_func.class_instance, "__pipeline_model__"):
-                model: Model = _func.class_instance.__pipeline_model__
+                model = _func.class_instance
                 is_bound = False
                 for _model in models:
-                    if _model.local_id == model.local_id:
+                    if type(_model.model) is type(model):
                         """
                         if as_name is None:
                             as_name = func.__name__
