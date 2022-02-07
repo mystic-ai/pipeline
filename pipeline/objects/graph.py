@@ -161,7 +161,7 @@ class Graph:
         variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
         models = [Model.from_schema(_model) for _model in schema.models]
-        print(models[0].local_id)
+        print(models[0].model.local_id)
         # Rebind functions -> models
         for _func in functions:
             print(_func)
