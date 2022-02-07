@@ -107,7 +107,7 @@ class Graph:
                 )
 
             if (
-                hasattr(node.function, "class_instance")
+                hasattr(node_function.function, "class_instance")
                 and node_function.class_instance != None
             ):
                 output = node_function.function(
