@@ -107,8 +107,8 @@ class Graph:
                 )
 
             if (
-                hasattr(node_function.function, "class_instance")
-                and node_function.class_instance != None
+                hasattr(node_function, "class_instance")
+                and node_function.class_instance is not None
             ):
                 output = node_function.function(
                     node_function.class_instance, *function_inputs
