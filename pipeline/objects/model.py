@@ -24,7 +24,8 @@ class Model:
         self.source = inspect.getsource(model.__class__)
         self.hash = sha256(self.source.encode()).hexdigest()
         self.local_id = generate_id(10) if local_id is None else local_id
-        setattr(model, "__local_id__", self.local_id)
+        setattr(self.model, "local_id", self.local_id)
+        print(dir(self.model))
 
     @classmethod
     def from_schema(cls, schema: ModelGet):

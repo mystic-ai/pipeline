@@ -171,7 +171,7 @@ class Graph:
                 model = _func.class_instance
                 is_bound = False
                 for _model in models:
-                    if type(_model.model) is type(model):
+                    if _model.local_id == model.local_id:
                         """
                         if as_name is None:
                             as_name = func.__name__
