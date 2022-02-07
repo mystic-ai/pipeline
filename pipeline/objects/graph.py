@@ -60,6 +60,7 @@ class Graph:
 
         for model in self.models:
             if hasattr(model.model, "load"):
+                print("Loading model (%s)" % model.local_id)
                 model.model.load()
 
         running_variables = {}
@@ -117,7 +118,9 @@ class Graph:
                 hasattr(node_function, "class_instance")
                 and node_function.class_instance is not None
             ):
-                output = node_function.function(*function_inputs)
+                output = node_function.function(
+                    node_function.class_instance, *function_inputs
+                )
             else:
                 output = node_function.function(*function_inputs)
 
@@ -162,6 +165,7 @@ class Graph:
         models = [Model.from_schema(_model) for _model in schema.models]
         print(models[0].model.local_id)
         # Rebind functions -> models
+        update_functions = []
         for _func in functions:
             print(_func)
             print(_func.class_instance)
@@ -183,6 +187,7 @@ class Graph:
                         )
                         setattr(_model.model, _func.function.__name__, bound_method)
                         is_bound = True
+                        _func.class_instance = model
                 if not is_bound:
                     raise Exception(
                         "Did not find a class to bind for model (local_id:%s)"
@@ -193,6 +198,8 @@ class Graph:
                     "Incorrect bound class:%s\ndir:%s"
                     % (_func.class_instance, dir(_func.class_instance))
                 )
+            update_functions.append(_func)
+        functions = update_functions
 
         outputs = []
         for _output in schema.outputs:
