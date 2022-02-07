@@ -161,6 +161,37 @@ class Graph:
         variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
         models = [Model.from_schema(_model) for _model in schema.models]
+
+        # Rebind functions -> models
+        for _func in functions:
+            if hasattr(_func.class_instance, "__pipeline_model__"):
+                model: Model = _func.class_instance.__pipeline_model__
+                is_bound = False
+                for _model in models:
+                    if _model.local_id == model.local_id:
+                        """
+                        if as_name is None:
+                            as_name = func.__name__
+                        bound_method = func.__get__(instance, instance.__class__)
+                        setattr(instance, as_name, bound_method)
+                        return bound_method
+                        """
+                        bound_method = _func.function.__get__(
+                            _model.model, _model.model.__class__
+                        )
+                        setattr(_model.model, _func.function.__name__, bound_method)
+                        is_bound = True
+                if not is_bound:
+                    raise Exception(
+                        "Did not find a class to bind for model (local_id:%s)"
+                        % model.local_id
+                    )
+            else:
+                raise Exception(
+                    "Incorrect bound class:%s\ndir:%s"
+                    % (_func.class_instance, dir(_func.class_instance))
+                )
+
         outputs = []
         for _output in schema.outputs:
             for _var in variables:
