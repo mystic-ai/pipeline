@@ -161,7 +161,7 @@ class Graph:
         variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
         models = [Model.from_schema(_model) for _model in schema.models]
-
+        print(models)
         # Rebind functions -> models
         for _func in functions:
             if hasattr(_func.class_instance, "__pipeline_model__"):
