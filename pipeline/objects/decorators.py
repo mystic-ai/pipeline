@@ -24,7 +24,6 @@ def pipeline_function(function):
                 elif hasattr(input_arg, "__pipeline_model__"):
                     if function.__pipeline_function__.class_instance is None:
                         function.__pipeline_function__.class_instance = input_arg
-
                 else:
                     raise Exception(
                         (

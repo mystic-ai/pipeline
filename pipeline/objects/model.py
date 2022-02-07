@@ -2,7 +2,9 @@ import inspect
 from hashlib import sha256
 from typing import Any
 
-from pipeline.util import generate_id
+from pipeline.util import generate_id, hex_to_python_object
+
+from pipeline.schemas.model import ModelGet
 
 
 class Model:
@@ -22,3 +24,11 @@ class Model:
         self.source = inspect.getsource(model.__class__)
         self.hash = sha256(self.source.encode()).hexdigest()
         self.local_id = generate_id(10) if local_id is None else local_id
+
+    @classmethod
+    def from_schema(cls, schema: ModelGet):
+        cls(
+            hex_to_python_object(schema.hex_file.data),
+            name=schema.name,
+            local_id=schema.id,
+        )

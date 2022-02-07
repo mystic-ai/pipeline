@@ -99,6 +99,11 @@ class Graph:
             function_inputs = []
             for _input in node_inputs:
                 function_inputs.append(running_variables[_input.local_id])
+            print("Running")
+            if node_function is None:
+                raise Exception(
+                    "Node function is none (id:%s)" % node.function.local_id
+                )
 
             if (
                 hasattr(node.function, "class_instance")
@@ -148,6 +153,7 @@ class Graph:
     def from_schema(cls, schema: PipelineGet):
         variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
+        models = [Model.from_schema(_model) for _model in schema.models]
         outputs = []
         for _output in schema.outputs:
             for _var in variables:
@@ -196,6 +202,7 @@ class Graph:
             functions=functions,
             outputs=outputs,
             nodes=nodes,
+            models=models,
         )
 
         return remade_graph
