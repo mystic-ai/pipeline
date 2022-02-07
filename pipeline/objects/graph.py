@@ -99,16 +99,16 @@ class Graph:
             function_inputs = []
             for _input in node_inputs:
                 function_inputs.append(running_variables[_input.local_id])
-            print("Running#")
+            print("Running#1")
 
-            if node_function.function is None:
+            if node_function.function == None:
                 raise Exception(
                     "Node function is none (id:%s)" % node.function.local_id
                 )
 
             if (
                 hasattr(node.function, "class_instance")
-                and node_function.class_instance is not None
+                and node_function.class_instance != None
             ):
                 output = node_function.function(
                     node_function.class_instance, *function_inputs
