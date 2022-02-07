@@ -116,9 +116,7 @@ class Graph:
                 hasattr(node_function, "class_instance")
                 and node_function.class_instance is not None
             ):
-                output = node_function.function.__pipeline_function__.function(
-                    node_function.class_instance, *function_inputs
-                )
+                output = node_function.function(*function_inputs)
             else:
                 output = node_function.function(*function_inputs)
 
