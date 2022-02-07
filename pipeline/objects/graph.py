@@ -59,7 +59,7 @@ class Graph:
             )
 
         for model in self.models:
-
+            print(model)
             if hasattr(model.model, "load"):
                 print("Loading model (%s)" % model.local_id)
                 model.model.load()
