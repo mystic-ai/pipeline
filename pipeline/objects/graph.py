@@ -59,8 +59,8 @@ class Graph:
             )
 
         for model in self.models:
-            if hasattr(model, "load"):
-                model.load()
+            if hasattr(model.model, "load"):
+                model.model.load()
 
         running_variables = {}
         for i, input in enumerate(inputs):

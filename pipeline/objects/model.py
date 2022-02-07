@@ -27,7 +27,7 @@ class Model:
 
     @classmethod
     def from_schema(cls, schema: ModelGet):
-        cls(
+        return cls(
             hex_to_python_object(schema.hex_file.data),
             name=schema.name,
             local_id=schema.id,
