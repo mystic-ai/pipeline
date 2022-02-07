@@ -161,7 +161,7 @@ class Graph:
         variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
         models = [Model.from_schema(_model) for _model in schema.models]
-        print(models)
+        print(models[0].local_id)
         # Rebind functions -> models
         for _func in functions:
             print(_func)
@@ -171,7 +171,7 @@ class Graph:
                 model = _func.class_instance
                 is_bound = False
                 for _model in models:
-                    if _model.local_id == model.local_id:
+                    if _model.model.local_id == model.local_id:
                         """
                         if as_name is None:
                             as_name = func.__name__
