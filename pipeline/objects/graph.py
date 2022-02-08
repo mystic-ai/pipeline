@@ -59,7 +59,8 @@ class Graph:
             )
 
         for model in self.models:
-            print(model.model)
+            # TODO check dir of model.model
+            print("Attempt @ load:%s,\n%s" % (model.model, dir(model.model)))
             if hasattr(model.model, "load"):
                 print("Loading model (%s)" % model.local_id)
                 model.model.load()
