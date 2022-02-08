@@ -29,6 +29,10 @@ class Model:
 
     @classmethod
     def from_schema(cls, schema: ModelGet):
+        pickled_data = hex_to_python_object(schema.hex_file.data)
+        if isinstance(pickled_data, Model):
+            pickled_data.local_id = schema.id
+            return pickled_data
         return cls(
             hex_to_python_object(schema.hex_file.data),
             name=schema.name,
