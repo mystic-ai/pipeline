@@ -54,16 +54,8 @@ class Function:
 
     @classmethod
     def from_schema(cls, schema: FunctionGet):
-        # TODO: Add loading from files instead
         assert isinstance(schema, FunctionGet)
         function: Function = hex_to_python_object(schema.hex_file.data)
         function.local_id = schema.id
-
-        # if hasattr(function.function, "__pipeline_function__") and hasattr(
-        #    function.function.__pipeline_function__, "class_instance"
-        # ):
-        #    function.class_instance = (
-        #        function.function.__pipeline_function__.class_instance
-        #    )
 
         return function
