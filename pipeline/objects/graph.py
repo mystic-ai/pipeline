@@ -116,6 +116,11 @@ class Graph:
                 "Dir of node_function.class_instance:\n%s\n"
                 % dir(node_function.class_instance)
             )
+            print("node_function.class_instance:\n%s" % node_function.class_instance)
+            print(
+                "node_function.class_instance.model_path:\n%s"
+                % node_function.class_instance.model_path
+            )
             if node_function.function == None:
                 raise Exception(
                     "Node function is none (id:%s)" % node.function.local_id
