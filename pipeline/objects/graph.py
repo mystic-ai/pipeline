@@ -130,6 +130,7 @@ class Graph:
                 hasattr(node_function, "class_instance")
                 and node_function.class_instance is not None
             ):
+                print("HAS CLASS YAY")
                 output = node_function.function(
                     node_function.class_instance, *function_inputs
                 )
@@ -175,7 +176,6 @@ class Graph:
         variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
         models = [Model.from_schema(_model) for _model in schema.models]
-        print(models[0].model.local_id)
         # Rebind functions -> models
         update_functions = []
         for _func in functions:
@@ -199,7 +199,7 @@ class Graph:
                         )
                         setattr(_model.model, _func.function.__name__, bound_method)
                         is_bound = True
-                        _func.class_instance = model
+                        _func.class_instance = _model.model
                 if not is_bound:
                     raise Exception(
                         "Did not find a class to bind for model (local_id:%s)"
