@@ -7,7 +7,6 @@ from pipeline.objects.variable import Variable
 
 def pipeline_function(function):
     def execute_func(*args, **kwargs):
-        print("Pipeline PCA:%s" % Pipeline._pipeline_context_active)
         if not Pipeline._pipeline_context_active:
             return function(*args, **kwargs)
         else:
@@ -68,7 +67,6 @@ class pipeline_model(object):
             self.model_class.__pipeline_model__ = True
             return self.__function_exe__
         else:
-            print(len(args) + len(kwargs))
             return self.__function_exe__(*args, **kwargs)
 
     def __function_exe__(self, *args, **kwargs):

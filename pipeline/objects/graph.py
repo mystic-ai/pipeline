@@ -60,10 +60,6 @@ class Graph:
 
         for model in self.models:
             # TODO check dir of model.model
-            print(
-                "Attempt @ load:%s,%s,%s\n%s"
-                % (model, model.model, model.model.model, dir(model.model))
-            )
             if hasattr(model.model, "load"):
                 print("Loading model (%s)" % model.local_id)
                 model.model.load()
@@ -107,20 +103,7 @@ class Graph:
             function_inputs = []
             for _input in node_inputs:
                 function_inputs.append(running_variables[_input.local_id])
-            print("Running#2")
 
-            print("Dir of node_function:\n%s\n" % dir(node_function))
-            print("node_function.function:\n%s\n" % (node_function.function))
-            print("Dir of node_function.function:\n%s\n" % dir(node_function.function))
-            print(
-                "Dir of node_function.class_instance:\n%s\n"
-                % dir(node_function.class_instance)
-            )
-            print("node_function.class_instance:\n%s" % node_function.class_instance)
-            print(
-                "node_function.class_instance.model_path:\n%s"
-                % node_function.class_instance.model_path
-            )
             if node_function.function == None:
                 raise Exception(
                     "Node function is none (id:%s)" % node.function.local_id
@@ -130,7 +113,6 @@ class Graph:
                 hasattr(node_function, "class_instance")
                 and node_function.class_instance is not None
             ):
-                print("HAS CLASS YAY")
                 output = node_function.function(
                     node_function.class_instance, *function_inputs
                 )
@@ -146,24 +128,6 @@ class Graph:
 
         return return_variables
 
-    """
-    def to_create_schema(self) -> PipelineCreate:
-        variables = [_var.to_create_schema() for _var in self.variables]
-        functions = [_func.to_create_schema() for _func in self.functions]
-
-        graph_nodes = [_node.to_create_schema() for _node in self.nodes]
-
-        create_schema = PipelineCreate(
-            name=self.name,
-            variables=variables,
-            functions=functions,
-            graph_nodes=graph_nodes,
-            outputs=[_var.local_id for _var in self.outputs],
-        )
-
-        return create_schema
-    """
-
     def _update_function_local_id(self, old_id: str, new_id: str) -> None:
         for func in self.functions:
             if func.local_id == old_id:
@@ -176,24 +140,15 @@ class Graph:
         variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
         models = [Model.from_schema(_model) for _model in schema.models]
+
         # Rebind functions -> models
         update_functions = []
         for _func in functions:
-            print(_func)
-            print(_func.class_instance)
-            print(_func.class_instance.__pipeline_model__)
             if hasattr(_func.class_instance, "__pipeline_model__"):
                 model = _func.class_instance
                 is_bound = False
                 for _model in models:
                     if _model.model.local_id == model.local_id:
-                        """
-                        if as_name is None:
-                            as_name = func.__name__
-                        bound_method = func.__get__(instance, instance.__class__)
-                        setattr(instance, as_name, bound_method)
-                        return bound_method
-                        """
                         bound_method = _func.function.__get__(
                             _model.model, _model.model.__class__
                         )
