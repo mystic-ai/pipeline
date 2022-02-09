@@ -44,6 +44,20 @@ class Graph:
         self.outputs = outputs if outputs is not None else []
         self.nodes = nodes if nodes is not None else []
         self.models = models if models is not None else []
+        # Flag set when all models have had their `load()` methods called
+        self._loaded = False
+
+    def _load(self):
+        if self._loaded:
+            return
+        for model in self.models:
+            # TODO check dir of model.model
+            if hasattr(model.model, "load"):
+                print("Loading model (%s)" % model.local_id)
+                model.model.load()
+            else:
+                raise Exception("Model load not found")
+        self._loaded = True
 
     def run(self, *inputs):
         input_variables: List[Variable] = [
@@ -58,13 +72,7 @@ class Graph:
                 % (len(input_variables), len(inputs))
             )
 
-        for model in self.models:
-            # TODO check dir of model.model
-            if hasattr(model.model, "load"):
-                print("Loading model (%s)" % model.local_id)
-                model.model.load()
-            else:
-                raise Exception("Model load not found")
+        self._load()
 
         running_variables = {}
         for i, input in enumerate(inputs):
