@@ -1,11 +1,7 @@
 import json
 
-from dotenv import load_dotenv
 
 from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
-
-load_dotenv("../hidden.env")
-
 
 api = PipelineCloud()
 api.authenticate()

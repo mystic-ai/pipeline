@@ -7,7 +7,6 @@ from pipeline.objects.variable import Variable
 
 def pipeline_function(function):
     def execute_func(*args, **kwargs):
-
         if not Pipeline._pipeline_context_active:
             return function(*args, **kwargs)
         else:
@@ -24,7 +23,6 @@ def pipeline_function(function):
                 elif hasattr(input_arg, "__pipeline_model__"):
                     if function.__pipeline_function__.class_instance is None:
                         function.__pipeline_function__.class_instance = input_arg
-
                 else:
                     raise Exception(
                         (
@@ -69,7 +67,6 @@ class pipeline_model(object):
             self.model_class.__pipeline_model__ = True
             return self.__function_exe__
         else:
-            print(len(args) + len(kwargs))
             return self.__function_exe__(*args, **kwargs)
 
     def __function_exe__(self, *args, **kwargs):
@@ -77,6 +74,7 @@ class pipeline_model(object):
             return self.model_class(*args, **kwargs)
         else:
             created_model = self.model_class(*args, **kwargs)
+
             model_schema = Model(model=created_model)
             Pipeline._current_pipeline.models.append(model_schema)
             return created_model

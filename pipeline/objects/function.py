@@ -54,9 +54,8 @@ class Function:
 
     @classmethod
     def from_schema(cls, schema: FunctionGet):
-        # TODO: Add loading from files instead
         assert isinstance(schema, FunctionGet)
         function: Function = hex_to_python_object(schema.hex_file.data)
         function.local_id = schema.id
-        # print(function.function(5.0))
+
         return function

@@ -44,6 +44,20 @@ class Graph:
         self.outputs = outputs if outputs is not None else []
         self.nodes = nodes if nodes is not None else []
         self.models = models if models is not None else []
+        # Flag set when all models have had their `load()` methods called
+        self._loaded = False
+
+    def _load(self):
+        if self._loaded:
+            return
+        for model in self.models:
+            # TODO check dir of model.model
+            if hasattr(model.model, "load"):
+                print("Loading model (%s)" % model.local_id)
+                model.model.load()
+            else:
+                raise Exception("Model load not found")
+        self._loaded = True
 
     def run(self, *inputs):
         input_variables: List[Variable] = [
@@ -58,9 +72,7 @@ class Graph:
                 % (len(input_variables), len(inputs))
             )
 
-        for model in self.models:
-            if hasattr(model.model, "load"):
-                model.model.load()
+        self._load()
 
         running_variables = {}
         for i, input in enumerate(inputs):
@@ -100,10 +112,12 @@ class Graph:
             for _input in node_inputs:
                 function_inputs.append(running_variables[_input.local_id])
 
-            if (
-                hasattr(node.function, "class_instance")
-                and node_function.class_instance is not None
-            ):
+            if node_function.function is None:
+                raise Exception(
+                    "Node function is none (id:%s)" % node.function.local_id
+                )
+
+            if getattr(node_function, "class_instance", None) is not None:
                 output = node_function.function(
                     node_function.class_instance, *function_inputs
                 )
@@ -119,24 +133,6 @@ class Graph:
 
         return return_variables
 
-    """
-    def to_create_schema(self) -> PipelineCreate:
-        variables = [_var.to_create_schema() for _var in self.variables]
-        functions = [_func.to_create_schema() for _func in self.functions]
-
-        graph_nodes = [_node.to_create_schema() for _node in self.nodes]
-
-        create_schema = PipelineCreate(
-            name=self.name,
-            variables=variables,
-            functions=functions,
-            graph_nodes=graph_nodes,
-            outputs=[_var.local_id for _var in self.outputs],
-        )
-
-        return create_schema
-    """
-
     def _update_function_local_id(self, old_id: str, new_id: str) -> None:
         for func in self.functions:
             if func.local_id == old_id:
@@ -148,6 +144,35 @@ class Graph:
     def from_schema(cls, schema: PipelineGet):
         variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
+        models = [Model.from_schema(_model) for _model in schema.models]
+
+        # Rebind functions -> models
+        update_functions = []
+        for _func in functions:
+            if hasattr(_func.class_instance, "__pipeline_model__"):
+                model = _func.class_instance
+                is_bound = False
+                for _model in models:
+                    if _model.model.local_id == model.local_id:
+                        bound_method = _func.function.__get__(
+                            _model.model, _model.model.__class__
+                        )
+                        setattr(_model.model, _func.function.__name__, bound_method)
+                        is_bound = True
+                        _func.class_instance = _model.model
+                if not is_bound:
+                    raise Exception(
+                        "Did not find a class to bind for model (local_id:%s)"
+                        % model.local_id
+                    )
+            else:
+                raise Exception(
+                    "Incorrect bound class:%s\ndir:%s"
+                    % (_func.class_instance, dir(_func.class_instance))
+                )
+            update_functions.append(_func)
+        functions = update_functions
+
         outputs = []
         for _output in schema.outputs:
             for _var in variables:
@@ -196,6 +221,7 @@ class Graph:
             functions=functions,
             outputs=outputs,
             nodes=nodes,
+            models=models,
         )
 
         return remade_graph

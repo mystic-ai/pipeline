@@ -154,7 +154,7 @@ class PipelineCloud:
             file_id=file_schema.id,
         )
 
-        request_result = self._post("/v2/models/", model_create_schema.dict())
+        request_result = self._post("/v2/models", model_create_schema.dict())
 
         return ModelGet.parse_obj(request_result)
 
