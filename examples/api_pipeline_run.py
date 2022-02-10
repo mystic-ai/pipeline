@@ -1,3 +1,6 @@
+import json
+
+
 from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
 
 api = PipelineCloud()
@@ -19,4 +22,10 @@ with Pipeline("AddLol") as builder:
 test_pipeline = Pipeline.get_pipeline("AddLol")
 upload_output = api.upload_pipeline(test_pipeline)
 
-print(api.run_pipeline(upload_output, "Hi I like to")["run_state"])
+run_result = api.run_pipeline(upload_output, "Hi I like to")
+print("Run state:", run_result["run_state"])
+try:
+    result_preview = json.loads(run_result["result_preview"])
+except (TypeError, json.JSONDecodeError):
+    result_preview = "unavailable"
+print("Run result:", result_preview)
