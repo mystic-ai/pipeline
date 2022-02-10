@@ -34,7 +34,7 @@ class Model:
             pickled_data.local_id = schema.id
             return pickled_data
         return cls(
-            hex_to_python_object(schema.hex_file.data),
+            pickled_data,
             name=schema.name,
             local_id=schema.id,
         )
