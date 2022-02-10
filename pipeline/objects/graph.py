@@ -117,10 +117,7 @@ class Graph:
                     "Node function is none (id:%s)" % node.function.local_id
                 )
 
-            if (
-                hasattr(node_function, "class_instance")
-                and node_function.class_instance is not None
-            ):
+            if getattr(node_function, "class_instance", None) is not None:
                 output = node_function.function(
                     node_function.class_instance, *function_inputs
                 )
