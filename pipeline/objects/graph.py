@@ -112,7 +112,7 @@ class Graph:
             for _input in node_inputs:
                 function_inputs.append(running_variables[_input.local_id])
 
-            if node_function.function == None:
+            if node_function.function is None:
                 raise Exception(
                     "Node function is none (id:%s)" % node.function.local_id
                 )
