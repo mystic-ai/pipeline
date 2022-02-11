@@ -12,7 +12,7 @@ def add_lol(a: str) -> MyClass:
     return MyClass(a + " lol")
 
 
-with Pipeline() as pipeline:
+with Pipeline("custom_class") as pipeline:
     my_class_var = Variable(type_class=str, is_input=True)
 
     output_class = add_lol(my_class_var)
@@ -21,4 +21,4 @@ with Pipeline() as pipeline:
     pipeline.output(output_class)
 
 
-print(pipeline.run("Hey")[0].var)
+print(Pipeline.run("custom_class", "Hey")[0].var)
