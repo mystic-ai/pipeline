@@ -165,7 +165,7 @@ class Graph:
                         "Did not find a class to bind for model (local_id:%s)"
                         % model.local_id
                     )
-            else:
+            elif _func.class_instance != None:
                 raise Exception(
                     "Incorrect bound class:%s\ndir:%s"
                     % (_func.class_instance, dir(_func.class_instance))
