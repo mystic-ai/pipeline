@@ -1,10 +1,9 @@
 import os
-import shutil
 
 from pipeline import Pipeline, Variable, docker, pipeline_function
 
 
-def test_dockerfiles():
+def test_dockerfiles(tmp_path):
     @pipeline_function
     def add_numbers(in_1: float, in_2: float) -> float:
         return in_1 + in_2
@@ -22,7 +21,7 @@ def test_dockerfiles():
     output = graph.run(3.0, 4.0)
     assert output[0] == 3 + 4
 
-    test_dir = "./docker_test"
+    test_dir = tmp_path / "docker_test"
     docker.create_pipeline_api([graph], output_dir=test_dir)
 
     # Check for the creation of docker files
@@ -31,8 +30,5 @@ def test_dockerfiles():
     )
     # Check for the serialization of the graph
     assert os.path.exists(f"{test_dir}/AddNumbers.graph")
-
-    if os.path.exists(test_dir):
-        shutil.rmtree(test_dir)
 
     # TODO validate that the docker files are correct
