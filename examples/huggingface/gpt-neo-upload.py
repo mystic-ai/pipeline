@@ -46,11 +46,11 @@ api.authenticate()
 
 with Pipeline("HF pipeline") as builder:
     input_str = Variable(str, is_input=True)
-    # model_kwargs = Variable(dict, is_input=True)
+    model_kwargs = Variable(dict, is_input=True)
 
     builder.add_variables(
         input_str,
-        # model_kwargs,
+        model_kwargs,
     )
 
     hf_model = TransformersModelForCausalLM(
@@ -60,7 +60,7 @@ with Pipeline("HF pipeline") as builder:
 
     output_str = hf_model.predict(
         input_str,
-        # model_kwargs,
+        model_kwargs,
     )
 
     builder.output(output_str)
@@ -71,9 +71,10 @@ output_pipeline = Pipeline.get_pipeline("HF pipeline")
 
 print("Now uploading GPTNeo pipeline")
 uploaded_pipeline = api.upload_pipeline(output_pipeline)
+print(uploaded_pipeline)
 print(
     api.run_pipeline(
         uploaded_pipeline,
-        "Hello my name is",
+        ["Hello my name is", {"max_length": 100}],
     )
 )
