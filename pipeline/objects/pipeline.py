@@ -84,12 +84,12 @@ class Pipeline:
             raise Exception("Cant add a node when not defining a pipeline!")
 
     @staticmethod
-    def run_local(graph_name: str, *inputs):
+    def run(graph_name: str, *inputs):
         graph = Pipeline.get_pipeline(graph_name)
         return graph.run(*inputs)
 
     @staticmethod
-    def run(id: Union[str, PipelineGet], data: Any):
+    def run_remote(id: Union[str, PipelineGet], data: Any):
         return Pipeline._api.run_pipeline(id, data)
 
     @staticmethod

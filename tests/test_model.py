@@ -26,7 +26,5 @@ def test_with_exit():
 
         my_pipeline.output(str_1)
 
-    graph = Pipeline.get_pipeline("test")
-
-    output = graph.run("hey")
+    output = Pipeline.run("test", "hey")
     assert output == ["hey lol"]

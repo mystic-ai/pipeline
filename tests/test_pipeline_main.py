@@ -28,7 +28,7 @@ def test_basic_pipeline():
 
     @pipeline_function
     def square(f_1: float) -> float:
-        return f_1**2
+        return f_1 ** 2
 
     with Pipeline("test") as my_pipeline:
         in_1 = Variable(float, is_input=True)
@@ -41,6 +41,6 @@ def test_basic_pipeline():
 
         my_pipeline.output(sq_1, add_1)
 
-    output = Pipeline.run_local("test", 2.0, 3.0)
+    output = Pipeline.run("test", 2.0, 3.0)
     assert output == [25.0, 5.0]
     assert Pipeline._current_pipeline is None
