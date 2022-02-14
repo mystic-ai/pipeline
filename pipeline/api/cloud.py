@@ -11,6 +11,7 @@ from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
 
 from pipeline.schemas.file import FileGet
+from pipeline.schemas.data import DataGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
@@ -56,6 +57,11 @@ class PipelineCloud:
                 return self._post_file("/v2/files/", file, remote_path)
         else:
             return self._post_file("/v2/files/", file_or_path, remote_path)
+
+    def upload_data(self, file_or_path, remote_path) -> DataGet:
+        uploaded_file = self.upload_file(file_or_path, remote_path)
+        uploaded_data = self._post("/v2/data/", uploaded_file.dict())
+        return DataGet.parse_obj(uploaded_data)
 
     def upload_python_object_to_file(self, obj, remote_path) -> FileGet:
         return self.upload_file(
@@ -218,9 +224,8 @@ class PipelineCloud:
             file_id = data_or_file_id
         else:
             temp_file = io.BytesIO(python_object_to_hex(data_or_file_id).encode())
-            uploaded_data = self.upload_file(temp_file, "/")
-            file_id = uploaded_data.id
-        print(file_id)
+            uploaded_data = self.upload_data(temp_file, "/")
+            data_id = uploaded_data.id
 
         pipeline_id = None
         if isinstance(pipeline_id_or_schema, str):
@@ -237,6 +242,8 @@ class PipelineCloud:
 
         # TODO: swap "data=data_or_file_id" for "file_id=file_id" later
         # when the generic object inference is added back.
-        run_create_schema = RunCreate(pipeline_id=pipeline_id, data=data_or_file_id)
-
+        if data_id is not None:
+            run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=data_id)
+        else:
+            run_create_schema = RunCreate(pipeline_id=pipeline_id, data=data_or_file_id)
         return self._post("/v2/runs", json.loads(run_create_schema.json()))

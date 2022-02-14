@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Any
 
 from pydantic import root_validator
 
@@ -35,7 +35,7 @@ class RunError(Enum):
 class RunCreate(BaseModel):
     pipeline_id: Optional[str]
     function_id: Optional[str]
-    data: Optional[str]
+    data: Optional[Any]
     data_id: Optional[str]
     blocking: Optional[bool] = False
 

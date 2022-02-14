@@ -128,11 +128,11 @@ api.authenticate()
 
 with Pipeline("GPT-J-6B") as builder:
     input_str = Variable(str, is_input=True)
-    # model_kwargs = Variable(dict, is_input=True)
+    model_kwargs = Variable(dict, is_input=True)
 
     builder.add_variables(
         input_str,
-        # model_kwargs,
+        model_kwargs,
     )
 
     hf_model = TransformersModelForCausalLM(
@@ -142,7 +142,7 @@ with Pipeline("GPT-J-6B") as builder:
 
     output_str = hf_model.predict(
         input_str,
-        # model_kwargs,
+        model_kwargs,
     )
 
     builder.output(output_str)
@@ -152,9 +152,4 @@ output_pipeline = Pipeline.get_pipeline("GPT-J-6B")
 print("Now uploading GPT-J-6B pipeline")
 uploaded_pipeline = api.upload_pipeline(output_pipeline)
 print(uploaded_pipeline)
-print(
-    api.run_pipeline(
-        uploaded_pipeline,
-        "Hello my name is",
-    )
-)
+print(api.run_pipeline(uploaded_pipeline, ["Hello my name is", {"max_length": 100}]))
