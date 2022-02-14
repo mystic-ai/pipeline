@@ -477,7 +477,7 @@ docker = ["PyYAML"]
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "1664774ba7ed6fd682d0dc0813ec0441f87b3d4162847038d480708feb419d20"
+content-hash = "ea446f0c29501804651096bcfa119c9f258c15cbf7d6ab0706a7fea14d1e5c75"
 
 [metadata.files]
 atomicwrites = [

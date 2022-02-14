@@ -1,7 +1,8 @@
 import os
-import yaml
-
+from pathlib import Path
 from typing import List
+
+import yaml
 
 from pipeline.objects import Graph
 
@@ -14,9 +15,10 @@ def create_pipeline_api(
     **environment_variables,
 ):
     paths = []
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     for pipeline_graph in pipeline_graphs:
-        graph_path = pipeline_graph.name + ".graph"
+        graph_path = os.path.join(output_dir, pipeline_graph.name + ".graph")
         pipeline_graph.save(graph_path)
         paths.append(graph_path)
 
@@ -27,6 +29,8 @@ def create_pipeline_api(
 def create_dockerfile(
     pipeline_graph_paths: List[str], *, output_dir="./", platform="linux/amd64"
 ):
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+
     with open(os.path.join(output_dir, "Dockerfile"), "w") as docker_file:
         docker_file.writelines(
             ["FROM --platform=%s mysticai/pipeline-docker:latest" % platform]
