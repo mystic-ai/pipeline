@@ -5,7 +5,6 @@ import json
 import os
 import urllib.parse
 from typing import TYPE_CHECKING, Any, List, Optional, Union
-from h11 import Data
 
 import requests
 from requests_toolbelt.multipart import encoder
