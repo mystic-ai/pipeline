@@ -60,7 +60,7 @@ class PipelineCloud:
 
     def upload_data(self, file_or_path, remote_path) -> DataGet:
         uploaded_file = self.upload_file(file_or_path, remote_path)
-        uploaded_data = self._post("/v2/data/", uploaded_file.dict())
+        uploaded_data = self._post("/v2/data", uploaded_file.dict())
         return DataGet.parse_obj(uploaded_data)
 
     def upload_python_object_to_file(self, obj, remote_path) -> FileGet:
