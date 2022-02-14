@@ -5,6 +5,7 @@ import json
 import os
 import urllib.parse
 from typing import TYPE_CHECKING, Any, List, Optional, Union
+from h11 import Data
 
 import requests
 from requests_toolbelt.multipart import encoder
@@ -216,16 +217,15 @@ class PipelineCloud:
     def run_pipeline(
         self,
         pipeline_id_or_schema: Union[str, PipelineGet],
-        data_or_file_id: Union[Any, str],
+        data_or_data_id: Union[Any, DataGet],
     ):
         # TODO: Add support for generic object inference. Only strs at the moment.
-        file_id = None
-        if isinstance(data_or_file_id, str):
-            file_id = data_or_file_id
-        else:
-            temp_file = io.BytesIO(python_object_to_hex(data_or_file_id).encode())
+        if not isinstance(data_or_data_id, DataGet):
+            temp_file = io.BytesIO(python_object_to_hex(data_or_data_id).encode())
             uploaded_data = self.upload_data(temp_file, "/")
             data_id = uploaded_data.id
+        else:
+            data_id = data_or_data_id
 
         pipeline_id = None
         if isinstance(pipeline_id_or_schema, str):
@@ -240,10 +240,5 @@ class PipelineCloud:
                 )
             )
 
-        # TODO: swap "data=data_or_file_id" for "file_id=file_id" later
-        # when the generic object inference is added back.
-        if data_id is not None:
-            run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=data_id)
-        else:
-            run_create_schema = RunCreate(pipeline_id=pipeline_id, data=data_or_file_id)
+        run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=data_id)
         return self._post("/v2/runs", json.loads(run_create_schema.json()))
