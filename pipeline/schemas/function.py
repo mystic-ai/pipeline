@@ -23,10 +23,6 @@ class FunctionGet(RunnableGet):
         orm_mode = True
 
 
-class FunctionGetDetailed(FunctionGet):
-    ...
-
-
 class FunctionIO(BaseModel):
     """Descriptive schema of a function's input/output.
 
@@ -34,10 +30,15 @@ class FunctionIO(BaseModel):
     """
 
     # If present, the name of the argument
-    name: Optional[str]
+    name: str
     # The name of the type, if available (some types cannot have their names
     # extracted)
-    type_name: Optional[str]
+    type_name: str
+
+
+class FunctionGetDetailed(FunctionGet):
+    inputs: List[FunctionIO]
+    output: List[FunctionIO]
 
 
 class FunctionIOCreate(BaseModel):
