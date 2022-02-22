@@ -30,10 +30,10 @@ class FunctionIO(BaseModel):
     """
 
     # If present, the name of the argument
-    name: Optional[str]
+    name: str
     # The name of the type, if available (some types cannot have their names
     # extracted)
-    type_name: Optional[str]
+    type_name: str
 
 
 class FunctionGetDetailed(FunctionGet):
