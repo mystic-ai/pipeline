@@ -94,7 +94,9 @@ class RunGetDetailed(RunGet):
     tags: List[TagGet] = []
     inputs: List[RunIOGet] = []
     outputs: List[RunIOGet] = []
-    token: TokenGet
+    #: The Token which was used to create this Run, if that Token has not been
+    #: deleted in the meantime
+    token: Optional[TokenGet]
 
 
 class RunUpdate(BaseModel):
