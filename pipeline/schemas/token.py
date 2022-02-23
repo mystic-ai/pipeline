@@ -40,6 +40,10 @@ class TokenPatch(Patchable):
     name: Optional[str]
     # Boolean specifying if token can be used
     is_enabled: Optional[bool]
+    # Token value (only sudo tokens can use this)
+    token: Optional[str]
+    # Datetime to expire the token
+    expire_at: Optional[datetime]
 
     @validator("is_enabled")
     def prevent_none(cls, v):
