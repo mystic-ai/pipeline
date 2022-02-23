@@ -89,7 +89,7 @@ class RunGet(BaseModel):
 class RunGetDetailed(RunGet):
     runnable: Union[FunctionGetDetailed, PipelineGetDetailed]
     n_resources: int
-    resource_type: str
+    resource_type: Optional[str]
     region: str
     tags: List[TagGet] = []
     inputs: List[RunIOGet] = []
