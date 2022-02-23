@@ -112,12 +112,18 @@ class UserOAuthLogin(BaseModel):
     email: str
     oauth_id: str
     oauth_provider: str
+    # If present we check if the newly created User has a pending invite to
+    # join an Organisation and auto-join them if so
+    organisation_member_invite_id: Optional[str]
 
 
 class UserCreate(UserBase):
     password: str
     username: Optional[str]
     account_type: Optional[str]
+    # If present we check if the newly created User has a pending invite to
+    # join an Organisation and auto-join them if so
+    organisation_member_invite_id: Optional[str]
 
     @validator("email")
     def validate_email(cls, value):
