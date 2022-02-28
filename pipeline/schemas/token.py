@@ -41,7 +41,7 @@ class TokenPatch(Patchable):
     # Boolean specifying if token can be used
     is_enabled: Optional[bool]
     # Token value (only sudo tokens can use this)
-    token: Optional[str]
+    value: Optional[str]
     # Datetime to expire the token
     expire_at: Optional[datetime]
 
