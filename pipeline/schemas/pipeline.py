@@ -12,6 +12,7 @@ from pipeline.schemas.runnable import RunnableGet, RunnableType
 class PipelineGraphNode(BaseModel):
     local_id: str
     function: str
+    name: Optional[str]
     inputs: List[str]
     outputs: List[str]
 
