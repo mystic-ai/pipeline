@@ -14,4 +14,4 @@ jobs:
         uses: readmeio/rdme@6.5.0
         
         with:
-          rdme: docs ./documentation --key={{ secrets.README_API_TOKEN }} --version=2.0
+          rdme: docs ./documentation --key={{ secrets.README_API_TOKEN }}
