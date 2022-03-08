@@ -1,6 +1,6 @@
 ---
-title: Getting started
-excerpt: A quick setup tutorial for the pipeline python library.
+title: Creating pipelines
+excerpt: An overview of the pipeline context manager and defining pipelines.
 category: 61e6de6d35c07f00106bc18d
 ---
 # Contents
