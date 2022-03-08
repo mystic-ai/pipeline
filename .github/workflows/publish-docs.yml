@@ -1,1 +1,16 @@
+name: Publish Pipeline-ai 📖 docs to readme.com
+on:
+  push:
+    branches: 
+      - paul/docs
 
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v2.4.0
+      - name: Sync docs
+        uses: readmeio/rdme@6.5.0
+        with:
+          rdme: docs ./documentation --key=${{ secrets.README_API_TOKEN }} --version=2.0
