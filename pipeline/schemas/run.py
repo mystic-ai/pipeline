@@ -29,7 +29,8 @@ class RunState(Enum):
 
 
 class RunError(Enum):
-    ...
+    MAX_RETRIES = "max_retries"
+    PIPELINE_FAULT = "pipeline_fault"
 
 
 class RunCreate(BaseModel):
