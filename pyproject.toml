@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.0.23-beta.8"
-description = "Yay ml pipelines"
-authors = ["Paul Hetherington <paul@getneuro.ai>"]
+version = "0.0.23"
+description = "Pipelines for machine learning workloads."
+authors = ["Paul Hetherington <ph@mystic.ai>", "Alex Pearwin <alex@mystic.ai>", "Maximiliano Schulkin <max@mystic.ai>"]
 packages = [
     {include="pipeline"}
 ]
