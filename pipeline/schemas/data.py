@@ -5,6 +5,7 @@ from typing import Optional
 from .base import BaseModel
 from .file import FileGet
 from .token import TokenGet
+from .project import ProjectGet
 
 
 class FileType(enum.Enum):
@@ -24,3 +25,4 @@ class DataGet(BaseModel):
     token_modified_by: Optional[TokenGet]
     url: Optional[str]
     preview: Optional[str]
+    project: Optional[ProjectGet]

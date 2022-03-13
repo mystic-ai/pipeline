@@ -1,3 +1,4 @@
+from lib2to3.pgen2.token import OP
 from typing import List, Optional
 
 from pydantic import Field, root_validator
@@ -78,6 +79,8 @@ class FunctionCreate(BaseModel):
 
     file_id: Optional[str]
     file: Optional[FileCreate]
+
+    project_id: Optional[str]
 
     @root_validator
     def file_or_id_validation(cls, values):

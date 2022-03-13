@@ -4,6 +4,7 @@ from pydantic import root_validator
 
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.file import FileCreate, FileGet
+from pipeline.schemas.project import ProjectGet
 
 
 class ModelBase(BaseModel):
@@ -16,6 +17,7 @@ class ModelGet(ModelBase):
     hex_file: FileGet
 
     source_sample: str
+    project: ProjectGet
 
     class Config:
         orm_mode = True
@@ -37,6 +39,8 @@ class ModelCreate(BaseModel):
 
     file_id: Optional[str]
     file: Optional[FileCreate]
+
+    project_id: Optional[str]
 
     @root_validator
     def file_or_id_validation(cls, values):

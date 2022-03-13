@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import Field, root_validator
 
 from pipeline.schemas.base import BaseModel
+from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
@@ -50,6 +51,7 @@ class PipelineGet(RunnableGet):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
+    project: ProjectGet
 
     class Config:
         orm_mode = True
@@ -66,3 +68,4 @@ class PipelineCreate(BaseModel):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
+    project_id: Optional[str]

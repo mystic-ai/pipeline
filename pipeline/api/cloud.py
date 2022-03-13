@@ -16,6 +16,7 @@ from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
 from pipeline.schemas.run import RunCreate
+from pipeline.schemas.project import ProjectGet, ProjectCreate
 from pipeline.util import generate_id, python_object_to_hex, python_object_to_name
 from pipeline.util.logging import PIPELINE_STR
 
@@ -26,12 +27,13 @@ if TYPE_CHECKING:
 class PipelineCloud:
     token: Optional[str]
     url: Optional[str]
+    active_project: Optional[ProjectGet]
 
     def __init__(self, url: str = None) -> None:
         self.token = os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
 
-    def authenticate(self, token: str = None):
+    def authenticate(self, token: str = None, project: str = None):
         """
         Authenticate with the pipeline.ai API
         """
@@ -51,6 +53,12 @@ class PipelineCloud:
             print("Succesfully authenticated with the Pipeline API (%s)" % self.url)
         self.token = _token
 
+        if self.token and project:
+            try:
+                self.active_project = self.create_project(project)
+            except:
+                self.set_active_project(project)
+
     def upload_file(self, file_or_path, remote_path) -> FileGet:
         if isinstance(file_or_path, str):
             with open(file_or_path, "rb") as file:
@@ -67,6 +75,16 @@ class PipelineCloud:
         return self.upload_file(
             io.BytesIO(python_object_to_hex(obj).encode()), remote_path
         )
+
+    def _get(self, endpoint):
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
 
     def _post(self, endpoint, json_data):
 
@@ -241,3 +259,13 @@ class PipelineCloud:
 
         run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=data_id)
         return self._post("/v2/runs", json.loads(run_create_schema.json()))
+
+    def set_active_project(self, project_name_or_id: str) -> ProjectGet:
+        response_json = self._get("/v2/projects/%s" % project_name_or_id)
+        self.active_project = ProjectGet.parse_obj(response_json)
+        return self.active_project
+
+    def create_project(self, project_name: str) -> ProjectGet:
+        create_schema = ProjectCreate(name=project_name)
+        response_json = self._post("/v2/projects", json.loads(create_schema.json()))
+        return ProjectGet.parse_obj(response_json)
