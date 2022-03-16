@@ -15,7 +15,7 @@ EMAIL_REGEX = re.compile(
 )
 # Simple password regex, requires a minimum of 8 characters, one uppercase letter,
 # one lowercase letter and a number.
-PASSWORD_REGEX = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$")
+PASSWORD_REGEX = re.compile(r"^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$")
 # Simple username regex, number of characters between 3-24, allowing only alphanumerics,
 # dashes and underscores.
 USERNAME_REGEX = re.compile(r"^[a-zA-Z0-9-_]{3,24}$")
