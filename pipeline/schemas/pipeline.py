@@ -1,4 +1,5 @@
 from typing import List, Optional
+import datetime
 
 from pydantic import Field, root_validator
 
@@ -12,6 +13,7 @@ from pipeline.schemas.runnable import RunnableGet, RunnableType
 class PipelineGraphNode(BaseModel):
     local_id: str
     function: str
+    name: str
     inputs: List[str]
     outputs: List[str]
 
@@ -43,6 +45,7 @@ class PipelineVariableGet(BaseModel):
 
 class PipelineGet(RunnableGet):
     id: str
+    created_at: datetime.datetime
     name: str
     type: RunnableType = Field(RunnableType.pipeline, const=True)
     variables: List[PipelineVariableGet]

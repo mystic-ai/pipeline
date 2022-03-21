@@ -1,3 +1,4 @@
+import datetime
 from typing import List, Optional
 
 from pydantic import Field, root_validator
@@ -15,7 +16,8 @@ class FunctionBase(BaseModel):
 class FunctionGet(RunnableGet):
     id: str
     hex_file: FileGet
-
+    uploaded_at: datetime.datetime
+    last_run_at: Optional[datetime.datetime]
     source_sample: str
     type: RunnableType = Field(RunnableType.function, const=True)
 
