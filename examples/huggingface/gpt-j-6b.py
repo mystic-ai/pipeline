@@ -1,72 +1,85 @@
-from pipeline import Pipeline, PipelineCloud, Variable
+import os
+from typing import Union, Any
 
+from pipeline import Pipeline, PipelineCloud, Variable
 from pipeline import pipeline_model, pipeline_function
 
 
 @pipeline_model
-class TransformersModelForCausalLM:
-    def __init__(
-        self,
-        model_path: str = "EleutherAI/gpt-neo-125M",
-        tokenizer_path: str = "EleutherAI/gpt-neo-125M",
-    ):
-        self.model_path = model_path
-        self.tokenizer_path = tokenizer_path
+class GPTJ6B_Model:
+    def __init__(self):
+        self.model_path = "EleutherAI/gpt-j-6B"
+        self.tokenizer_path = "EleutherAI/gpt-j-6B"
         self.model = None
         self.tokenizer = None
 
     @pipeline_function
-    def predict(self, input_data: str, model_kwargs: dict = {}, **kwargs) -> str:
+    def GPTJ6B_Predict(self, input_data: str, model_kwargs: dict = {}) -> str:
         import torch
+        import numpy as np
+        import io
+
+        if model_kwargs.get("hex_decode"):
+            bytesio = io.BytesIO(bytes.fromhex(input_data))
+            f = np.load(bytesio, allow_pickle=False)
+            a = f["0"]
+            a = str(a)
+            f.close()
+            input_data = a
 
         prompt = str(input_data)
         if len(prompt) < 1:
-            return {"error": "Prompt must be a non-empty string."}
+            raise ValueError("Prompt must be a non-empty string.")
         model, tokenizer = self.model, self.tokenizer
         index = 0
-        input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(
-            "cuda:{}".format(index)
-        )
+        input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(index)
         input_token_quantity = torch.numel(input_ids)
         if (
             (
-                "response_length" in kwargs
-                and kwargs["response_length"] + input_token_quantity > 2048
+                "response_length" in model_kwargs
+                and model_kwargs["response_length"] + input_token_quantity > 2048
             )
             or (
-                "max_length" in kwargs
-                and kwargs["max_length"] + input_token_quantity > 2048
+                "max_length" in model_kwargs
+                and model_kwargs["max_length"] + input_token_quantity > 2048
             )
             or (
-                "min_length" in kwargs
-                and kwargs["min_length"] + input_token_quantity > 2048
+                "min_length" in model_kwargs
+                and model_kwargs["min_length"] + input_token_quantity > 2048
             )
         ):
             return {
                 "error": "GPT-J inference is limited to 2048 tokens. Reduce the prompt length and/or the expected generation length."
             }
-        if "remove_input" not in kwargs:
-            kwargs["remove_input"] = False
-        if "penalty" in kwargs:
-            kwargs["repetition_penalty"] = kwargs["penalty"]
-        if "response_length" in kwargs:
-            kwargs["max_length"] = input_token_quantity + kwargs["response_length"]
-        if "response_length" in kwargs and "eos_token_id" not in kwargs:
-            kwargs["min_length"] = input_token_quantity + kwargs["response_length"]
-        if "do_sample" not in kwargs and "num_beams" not in kwargs:
-            kwargs["do_sample"] = True
+        if "remove_input" not in model_kwargs:
+            model_kwargs["remove_input"] = False
+        if "penalty" in model_kwargs:
+            model_kwargs["repetition_penalty"] = model_kwargs["penalty"]
+        if "response_length" in model_kwargs:
+            model_kwargs["min_length"] = (
+                input_token_quantity + model_kwargs["response_length"]
+            )
+            model_kwargs["max_length"] = (
+                input_token_quantity + model_kwargs["response_length"]
+            )
+        if "response_length" in model_kwargs and "eos_token_id" not in model_kwargs:
+            model_kwargs["min_length"] = (
+                input_token_quantity + model_kwargs["response_length"]
+            )
+        if "do_sample" not in model_kwargs and "num_beams" not in model_kwargs:
+            model_kwargs["do_sample"] = True
 
-        generation_kwargs = dict(**kwargs, input_ids=input_ids)
+        generation_kwargs = dict(**model_kwargs, input_ids=input_ids)
         with torch.no_grad():
             outputs = model.generate(
                 **generation_kwargs,
             )
 
         # TODO: Don't redefine output so that it can be cleaned on GPU (del technique)
-        if kwargs["remove_input"]:
+        if model_kwargs["remove_input"]:
             outputs = outputs[:, input_ids.shape[1] :]
 
-        if "num_return_sequences" in kwargs:
+        if "num_return_sequences" in model_kwargs:
             return {
                 "generated_text": tokenizer.batch_decode(
                     outputs, skip_special_tokens=True
@@ -124,9 +137,9 @@ class TransformersModelForCausalLM:
 
 
 api = PipelineCloud()
-api.authenticate()
+api.authenticate(os.environ["TOKEN"])
 
-with Pipeline("GPT-J-6B") as builder:
+with Pipeline("GPTJ6B_Pipeline") as builder:
     input_str = Variable(str, is_input=True)
     model_kwargs = Variable(dict, is_input=True)
 
@@ -135,21 +148,15 @@ with Pipeline("GPT-J-6B") as builder:
         model_kwargs,
     )
 
-    hf_model = TransformersModelForCausalLM(
-        model_path="EleutherAI/gpt-j-6B",
-        tokenizer_path="EleutherAI/gpt-j-6B",
-    )
+    model = GPTJ6B_Model()
 
-    output_str = hf_model.predict(
+    output_str = model.GPTJ6B_Predict(
         input_str,
         model_kwargs,
     )
 
     builder.output(output_str)
 
-output_pipeline = Pipeline.get_pipeline("GPT-J-6B")
-
-print("Now uploading GPT-J-6B pipeline")
+output_pipeline = Pipeline.get_pipeline("GPTJ6B_Pipeline")
 uploaded_pipeline = api.upload_pipeline(output_pipeline)
 print(uploaded_pipeline)
-print(api.run_pipeline(uploaded_pipeline, ["Hello my name is", {"max_length": 100}]))
