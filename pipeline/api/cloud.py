@@ -30,7 +30,13 @@ class PipelineCloud:
     def __init__(self, url: str = None, token: str = None) -> None:
         self.token = token or os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
-        self.authenticate()
+        if self.token is not None:
+            self.authenticate()
+        else:
+            print(
+                "No token set, please set one and invoque \
+                     PipelineCloud.authenticate() method"
+            )
 
     def authenticate(self, token: str = None):
         """
