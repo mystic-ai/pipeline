@@ -10,8 +10,8 @@ import requests
 from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
 
-from pipeline.schemas.file import FileGet
 from pipeline.schemas.data import DataGet
+from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
@@ -27,9 +27,10 @@ class PipelineCloud:
     token: Optional[str]
     url: Optional[str]
 
-    def __init__(self, url: str = None) -> None:
-        self.token = os.getenv("PIPELINE_API_TOKEN")
+    def __init__(self, url: str = None, token: str = None) -> None:
+        self.token = token or os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
+        self.authenticate()
 
     def authenticate(self, token: str = None):
         """
