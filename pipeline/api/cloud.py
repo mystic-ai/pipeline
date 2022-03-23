@@ -34,8 +34,8 @@ class PipelineCloud:
             self.authenticate()
         else:
             print(
-                "No token set, please set one and invoke \
-                     PipelineCloud.authenticate() method"
+                "No token set, please set one and invoke ",
+                "PipelineCloud.authenticate() method",
             )
 
     def authenticate(self, token: str = None):
