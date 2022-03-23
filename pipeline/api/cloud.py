@@ -34,7 +34,7 @@ class PipelineCloud:
             self.authenticate()
         else:
             print(
-                "No token set, please set one and invoke ",
+                "No token set, please set one and invoke",
                 "PipelineCloud.authenticate() method",
             )
 
