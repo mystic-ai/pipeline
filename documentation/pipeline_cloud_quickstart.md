@@ -1,6 +1,6 @@
 ---
-title: PipelineCloud quick start
-excerpt: A quick setup tutorial for the pipeline python library.
+title: Quick start
+excerpt: A quick start guide for PipelineCloud.
 category: 61e45a1d89450a00615c0d77
 ---
 
@@ -80,7 +80,24 @@ with Pipeline("MathsIsFun") as builder:
 
 maths_pipeline = Pipeline.get_pipeline("MathsIsFun")
 
+# Send to PipelineCloud and run
 uploaded_pipeline = api.upload_pipeline(maths_pipeline)
 result = api.run_pipeline(uploaded_pipeline, [5.0, 6.0])
+
 print(result)
 ```
+
+On the dashboard you will see several updates now. Breaking down the above code snippet we see the following things happening:
+
+1. Creation of a function (`multiply`)
+2. Creation of a pipeline (`MathsIsFun`)
+3. Uploading of steps 1+2 to PipelineCloud
+4. A run called on the `MathsIsFun` pipeline remotely
+
+We can break down the API interactions in the final lines of code into the following based on points 3-4 (NOTE: most of the following points happen behind the scenes in the PipelineLibrary):
+
+1. We upload a function
+2. We upload the pipeline computation graph, referencing 1. (the uploaded function)
+3. We upload the array `[5.0, 6.0]` as a data object
+4. We call a run on the pipeline referencing the data object from 3. as the input data
+5. We recieve the output of the run and print
