@@ -40,3 +40,5 @@ To create an API token you must navigate to **"/Settings/API tokens"** as demons
 "body": "You can set the timeout and other access properties (read/write) for the token. The default expiry date is 8 days from creation"
 }
 [/block]
+
+More
