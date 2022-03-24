@@ -13,4 +13,18 @@ category: 61e45a1d89450a00615c0d77
 
 # Create a token
 
-![](https://i.imgur.com/35kH5L2.gif =500x)
+[block:image]
+{
+"images": [
+{
+"image": [
+"https://files.readme.io/32ba422-token-create.gif",
+"token-create.gif",
+1636,
+994,
+"#e2e2e3"
+]
+}
+]
+}
+[/block]
