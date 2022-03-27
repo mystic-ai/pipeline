@@ -20,6 +20,8 @@ class FunctionGet(RunnableGet):
     source_sample: str
     type: RunnableType = Field(RunnableType.function, const=True)
 
+    project_id: str
+
     class Config:
         orm_mode = True
 
