@@ -13,6 +13,11 @@ class FileType(enum.Enum):
     image = "image"
 
 
+class DataCreate(BaseModel):
+    project_id: Optional[str]
+    file: FileGet
+
+
 class DataGet(BaseModel):
     id: str
     hex_file: FileGet
