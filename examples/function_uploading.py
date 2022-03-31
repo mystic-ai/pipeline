@@ -1,14 +1,10 @@
-import json
-
-
-from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
+from pipeline import PipelineCloud, pipeline_function
 
 api = PipelineCloud()
-api.authenticate()
 
 
 @pipeline_function
-def add_lol(a: str, b: float) -> str:
+def add_lol(a: str) -> str:
     return a + " lol"
 
 
