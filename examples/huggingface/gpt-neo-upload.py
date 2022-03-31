@@ -3,10 +3,13 @@
 )"""
 
 
-from pipeline import Pipeline, PipelineCloud, Variable
-
-from pipeline import pipeline_model, pipeline_function
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from pipeline import (
+    Pipeline,
+    PipelineCloud,
+    Variable,
+    pipeline_function,
+    pipeline_model,
+)
 
 
 @pipeline_model
@@ -31,7 +34,6 @@ class TransformersModelForCausalLM:
     @pipeline_function
     def load(self) -> None:
         from transformers import AutoModelForCausalLM, AutoTokenizer
-        import transformers
 
         if self.model is None:
             self.model = AutoModelForCausalLM.from_pretrained(self.model_path)

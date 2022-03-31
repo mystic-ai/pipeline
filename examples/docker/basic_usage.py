@@ -1,5 +1,4 @@
-from pipeline import docker
-from pipeline import Pipeline, Variable, pipeline_function
+from pipeline import Pipeline, Variable, docker, pipeline_function
 
 
 @pipeline_function
