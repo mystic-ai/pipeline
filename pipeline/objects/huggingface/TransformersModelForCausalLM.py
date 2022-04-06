@@ -8,30 +8,30 @@ class TransformersModelForCausalLM:
     def __init__(
         self,
         model_path: str,
-        model_kwargs: dict,
         tokenizer_path: str,
+        model_kwargs: dict = {},
     ):
         self.model_path = model_path
-        self.model_kwargs = model_kwargs
         self.tokenizer_path = tokenizer_path
+        self.model_kwargs = model_kwargs
         self.model = None
         self.tokenizer = None
 
     @pipeline_function
     def predict(
         self,
-        input: Union[str, List[str], List[int]],
+        inputs: Union[str, List[str], List[int]],
         inference_kwargs: dict,
     ) -> str:
         assert any(
-            [isinstance(input, str), isinstance(input, list)]
+            [isinstance(inputs, str), isinstance(inputs, list)]
         ), "Input should be a string, a list of strings, or a list of integers."
-        if isinstance(input, str):
-            input = [input]
-        input_ids = self.tokenizer.encode(input, return_tensors="pt")
-        gen_tokens = self.model.generate(input_ids, **inference_kwargs)
-        gen_text = self.tokenizer.batch_decode(gen_tokens)
-        return gen_text
+        if isinstance(inputs, str):
+            inputs = [inputs]
+        inputs_ids = self.tokenizer.encode(inputs, return_tensors="pt")
+        gen_tokens = self.model.generate(inputs_ids, **inference_kwargs)
+        output = self.tokenizer.batch_decode(gen_tokens)
+        return output
 
     @pipeline_function
     def load(self) -> None:
