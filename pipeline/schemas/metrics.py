@@ -12,6 +12,7 @@ class RunHardwareMetric(BaseModel):
 
 
 class ProjectHardwareMetric(BaseModel):
+    project_id: str
     project_name: str
     project_usage: List[RunHardwareMetric]
 
