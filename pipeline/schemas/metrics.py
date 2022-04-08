@@ -4,7 +4,27 @@ from pydantic import Field
 from typing import List
 
 
-class MetricsBucket(BaseModel):
+class RunHardwareMetric(BaseModel):
+    resource_type: str
+    total_percentage: float
+    run_count: int
+    average_runtime: int
+
+
+class ProjectHardwareMetric(BaseModel):
+    project_id: str
+    project_name: str
+    project_usage: List[RunHardwareMetric]
+
+
+class HardwareMetric(BaseModel):
+    start: datetime
+    end: datetime
+    projects: List[ProjectHardwareMetric]
+    account_usage: List[RunHardwareMetric]
+
+
+class RunMetricsBucket(BaseModel):
     """
     Type of metadata of a specific bucket.
 
@@ -39,9 +59,9 @@ class RunMetricsGet(BaseModel):
     start: datetime
     end: datetime
     bucket_count: int
-    metrics_buckets: List[MetricsBucket]
-    overall_bucket: MetricsBucket
-    preceding_bucket: MetricsBucket
+    metrics_buckets: List[RunMetricsBucket]
+    overall_bucket: RunMetricsBucket
+    preceding_bucket: RunMetricsBucket
 
 
 class MetricsQuery(BaseModel):
@@ -50,11 +70,21 @@ class MetricsQuery(BaseModel):
 
     start: start timestamp of the time range
     end: end timestamp of the time range
-    bucket_count: number of buckets to divide the time range into
     """
 
     start: datetime = Field(
         default_factory=lambda: datetime.utcnow() - timedelta(hours=24)
     )
     end: datetime = Field(default_factory=datetime.utcnow)
+
+
+class RunMetricsQuery(MetricsQuery):
+    """
+    Query parameters for run metrics requests.
+
+    start: start timestamp of the time range
+    end: end timestamp of the time range
+    bucket_count: number of buckets to divide the time range into
+    """
+
     bucket_count: int = 100
