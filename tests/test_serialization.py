@@ -1,5 +1,4 @@
 from pipeline.objects.graph import Graph
-
 from pipeline.schemas.pipeline import PipelineGet
 
 test_pipeline_dict = {
