@@ -1,5 +1,6 @@
-from pipeline import pipeline_model, pipeline_function
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+from pipeline import pipeline_function, pipeline_model
 
 
 @pipeline_model()

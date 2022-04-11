@@ -1,6 +1,6 @@
 import datetime
 from enum import Enum
-from typing import List, Optional, Union, Any
+from typing import Any, List, Optional, Union
 
 from pydantic import root_validator
 
