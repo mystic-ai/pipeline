@@ -99,7 +99,6 @@ python -m pip install -U pipeline-ai
 This project is made with poetry, [so firstly setup poetry on your machine](https://python-poetry.org/docs/#installation).
 
 Once that is done, please run
-    chmod +x setup.sh
     sh setup.sh
 
 With this you should be good to go. This sets up dependencies, pre-commit hooks and
