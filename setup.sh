@@ -9,7 +9,7 @@ NC='\033[0m'
 echo "${Y}Setting Pre-Push hooks...${NC}"
 cat > .git/hooks/pre-push <<- "EOF"
 #!/bin/bash
-pytest
+poetry run pytest
 EOF
 
 chmod +x .git/hooks/pre-push
