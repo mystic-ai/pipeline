@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
-from .base import BaseModel
-from pydantic import Field
 from typing import List
+
+from pydantic import Field
+
+from .base import BaseModel
 
 
 class RunHardwareMetric(BaseModel):
