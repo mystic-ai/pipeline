@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
 
 G='\033[0;32m'
 Y='\033[1;33m'
@@ -14,7 +16,7 @@ chmod +x .git/hooks/pre-push
 echo "${G}Pre-Push hooks set.${NC}"
 
 echo "${Y}Installing deps...${NC}"
-poetry run install
+poetry install
 echo "${G}Dependencies installed.${NC}"
 echo "${Y}Setting Pre-Commit hooks...${NC}"
 poetry run pre-commit install
