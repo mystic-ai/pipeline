@@ -234,7 +234,6 @@ class PipelineCloud:
             data_id = data_or_data_id
 
         pipeline_id = None
-        assert pipeline_id == None
         if isinstance(pipeline_id_or_schema, str):
             pipeline_id = pipeline_id_or_schema
         elif isinstance(pipeline_id_or_schema, PipelineGet):
