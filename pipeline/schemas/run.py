@@ -33,12 +33,18 @@ class RunError(Enum):
     PIPELINE_FAULT = "pipeline_fault"
 
 
+class ComputeType(Enum):
+    cpu = "cpu"
+    gpu = "gpu"
+
+
 class RunCreate(BaseModel):
     pipeline_id: Optional[str]
     function_id: Optional[str]
     data: Optional[Any]
     data_id: Optional[str]
     blocking: Optional[bool] = False
+    compute_type: ComputeType = ComputeType.gpu
 
     @root_validator
     def pipeline_data_val(cls, values):
