@@ -44,7 +44,6 @@ class TransformersModelForCausalLM:
 # load_dotenv("hidden.env")
 
 api = PipelineCloud()
-api.authenticate()
 
 with Pipeline("HF pipeline") as builder:
     input_str = Variable(str, is_input=True)
