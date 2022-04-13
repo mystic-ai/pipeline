@@ -3,7 +3,6 @@ import json
 from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
 
 api = PipelineCloud()
-api.authenticate()
 
 
 @pipeline_function
