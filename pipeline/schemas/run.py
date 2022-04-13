@@ -81,6 +81,7 @@ class RunGet(BaseModel):
     started_at: Optional[datetime.datetime]
     ended_at: Optional[datetime.datetime]
     run_state: RunState
+    resource_type: Optional[str]
     compute_time_ms: Optional[int]
     runnable: Union[FunctionGet, PipelineGet]
     data: DataGet
@@ -97,7 +98,6 @@ class RunGet(BaseModel):
 class RunGetDetailed(RunGet):
     runnable: Union[FunctionGetDetailed, PipelineGetDetailed]
     n_resources: int
-    resource_type: Optional[str]
     region: str
     tags: List[TagGet] = []
     inputs: List[RunIOGet] = []
