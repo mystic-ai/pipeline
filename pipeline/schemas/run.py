@@ -33,9 +33,10 @@ class RunError(Enum):
     PIPELINE_FAULT = "pipeline_fault"
 
 
-class ComputeType(Enum):
-    cpu = "cpu"
-    gpu = "gpu"
+# https://github.com/samuelcolvin/pydantic/issues/2278
+class ComputeType(str, Enum):
+    cpu: str = "cpu"
+    gpu: str = "gpu"
 
 
 class RunCreate(BaseModel):
