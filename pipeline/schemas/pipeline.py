@@ -41,9 +41,15 @@ class PipelineVariableGet(BaseModel):
         return values
 
 
-class PipelineGet(RunnableGet):
+class PipelineGetBrief(RunnableGet):
     id: str
     name: str
+    deployed: bool = False
+    tags: List[str] = []
+    description: str = ""
+
+
+class PipelineGet(PipelineGetBrief):
     type: RunnableType = Field(RunnableType.pipeline, const=True)
     variables: List[PipelineVariableGet]
     functions: List[FunctionGet]
