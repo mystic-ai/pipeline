@@ -14,13 +14,17 @@ class TokenGet(BaseModel):
     value: str
     #: Token value, used when authenticating with the API
     name: str
-    # Timestamp value of expiry
+    #: Timestamp value of creation
+    created_at: datetime
+    #: Timestamp value of last update
+    updated_at: datetime
+    #: Timestamp value of expiry
     expires_at: Optional[datetime]
-    # Timestamp value of last usage
+    #: Timestamp value of last usage
     last_used: Optional[datetime]
-    # If token is active (set by user and it's before its expiry date)
+    #: If token is active (set by user and it's before its expiry date)
     is_active: bool
-    # Arbitrarily set user flag for token validity
+    #: Arbitrarily set user flag for token validity
     is_enabled: bool
 
 
