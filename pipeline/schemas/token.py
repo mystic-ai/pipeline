@@ -31,10 +31,12 @@ class TokenGet(BaseModel):
 class TokenCreate(BaseModel):
     """Model for creating token"""
 
-    # Arbitrary name to be assigned to token
+    #: Arbitrary name to be assigned to token
     name: Optional[str]
-    # Role name which assigns permissions
+    #: Role name which assigns permissions
     type: str
+    #: Timestamp value of future expiry
+    expires_at: Optional[datetime]
 
 
 class TokenPatch(Patchable):
