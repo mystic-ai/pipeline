@@ -69,11 +69,3 @@ class PipelineCreate(BaseModel):
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
     project_id: Optional[str]
-
-
-class PipelineDeployCreate(BaseModel):
-    project_id: str
-
-
-class PipelineDeployGet(PipelineDeployCreate):
-    ...
