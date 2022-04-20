@@ -25,6 +25,11 @@ class ModelGetDetailed(ModelGet):
     ...
 
 
+class ModelGetOverview(ModelBase):
+    description: str = ""
+    pipeline_count: int = 0
+
+
 class ModelCreate(BaseModel):
     # The local ID is assigned when a new model is used as part of a new
     # pipeline; the server uses the local ID to associated a model to a
