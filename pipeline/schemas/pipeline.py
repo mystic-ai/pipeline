@@ -72,7 +72,6 @@ class PipelineCreate(BaseModel):
 
 
 class PipelineDeployCreate(BaseModel):
-    pipeline_id: str
     project_id: str
 
 
