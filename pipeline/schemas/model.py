@@ -25,8 +25,8 @@ class ModelGetDetailed(ModelGet):
 
 
 class ModelGetOverview(ModelBase):
-    description: str = ""
-    pipeline_count: int = 0
+    description: str
+    pipeline_count: int
 
 
 class ModelCreate(BaseModel):
