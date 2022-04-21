@@ -7,12 +7,11 @@ from pipeline.schemas.file import FileCreate, FileGet
 
 
 class ModelBase(BaseModel):
-    id: Optional[str]
+    id: str
     name: str
 
 
 class ModelGet(ModelBase):
-    id: str
     hex_file: FileGet
 
     source_sample: str
@@ -23,6 +22,11 @@ class ModelGet(ModelBase):
 
 class ModelGetDetailed(ModelGet):
     ...
+
+
+class ModelGetOverview(ModelBase):
+    description: str
+    pipeline_count: int
 
 
 class ModelCreate(BaseModel):
