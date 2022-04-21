@@ -7,7 +7,7 @@ from pipeline.schemas.file import FileCreate, FileGet
 
 
 class ModelBase(BaseModel):
-    id: Optional[str]
+    id: str
     name: str
 
 
