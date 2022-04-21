@@ -12,7 +12,6 @@ class ModelBase(BaseModel):
 
 
 class ModelGet(ModelBase):
-    id: str
     hex_file: FileGet
 
     source_sample: str
