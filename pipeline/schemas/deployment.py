@@ -13,5 +13,6 @@ class DeploymentCreate(BaseModel):
 
 
 class DeploymentGet(BaseModel):
+    id: str
     pipeline: PipelineGet
     project: ProjectGet
