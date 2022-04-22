@@ -6,9 +6,9 @@ from pipeline.schemas.base import BaseModel
 from pipeline.schemas.pipeline import PipelineGet
 
 
-class DeploymentGet(BaseModel):
+class DeploymentCreate(BaseModel):
     project_id: str
 
 
-class DeploymentGet(DeploymentGet):
+class DeploymentGet(DeploymentCreate):
     pipeline: PipelineGet
