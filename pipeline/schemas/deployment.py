@@ -17,5 +17,5 @@ class DeploymentGet(BaseModel):
     active: bool
 
 
-class DeploymentPut(BaseModel):
+class DeploymentPatch(BaseModel):
     active: Optional[bool]
