@@ -6,7 +6,6 @@ from pipeline.schemas.base import BaseModel
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
-from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.runnable import RunnableGet, RunnableType
 
 
