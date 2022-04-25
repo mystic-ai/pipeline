@@ -57,7 +57,6 @@ class PipelineGet(PipelineGetBrief, RunnableGet):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
-    project: ProjectGet
 
     class Config:
         orm_mode = True
