@@ -67,7 +67,7 @@ class PipelineGetDetailed(PipelineGet):
     dependencies: List[str] = ["torch", "transformers"]
     created_at: datetime
     updated_at: datetime
-    last_run: datetime
+    last_run: Optional[datetime]
     public: bool
 
 
