@@ -21,6 +21,7 @@ class UserGet(UserBase):
     oauth_provider: Optional[str]
     verified: Optional[bool]
     subscribed: Optional[bool]
+    onboarded: Optional[bool]
 
 
 class UserGetDetailed(UserGet):
@@ -37,6 +38,7 @@ class UserPatch(Patchable, AvatarHolder):
     company: Optional[str]
     job_title: Optional[str]
     subscribed: Optional[bool]
+    onboarded: Optional[bool]
 
 
 class UserUsernamePatch(Patchable):
