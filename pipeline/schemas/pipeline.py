@@ -65,7 +65,7 @@ class PipelineGet(PipelineGetBrief, RunnableGet):
 class PipelineGetDetailed(PipelineGet):
     created_at: datetime
     updated_at: datetime
-    last_run: int
+    last_run: datetime
     public: bool
 
 
