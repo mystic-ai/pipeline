@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import Field, root_validator
@@ -62,7 +63,12 @@ class PipelineGet(PipelineGetBrief, RunnableGet):
 
 
 class PipelineGetDetailed(PipelineGet):
-    ...
+    version: str = "1"
+    dependencies: List[str] = ["torch", "transformers"]
+    created_at: datetime
+    updated_at: datetime
+    last_run: Optional[datetime]
+    public: bool
 
 
 class PipelineCreate(BaseModel):
