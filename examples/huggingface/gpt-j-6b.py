@@ -131,7 +131,6 @@ class TransformersModelForCausalLM:
 
 
 api = PipelineCloud()
-api.authenticate()
 
 with Pipeline("GPT-J-6B") as builder:
     input_str = Variable(str, is_input=True)

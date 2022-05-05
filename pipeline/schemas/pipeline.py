@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import Field, root_validator
@@ -41,9 +42,15 @@ class PipelineVariableGet(BaseModel):
         return values
 
 
-class PipelineGet(RunnableGet):
+class PipelineGetBrief(BaseModel):
     id: str
     name: str
+    deployed: bool = False
+    tags: List[str] = []
+    description: str = ""
+
+
+class PipelineGet(PipelineGetBrief, RunnableGet):
     type: RunnableType = Field(RunnableType.pipeline, const=True)
     variables: List[PipelineVariableGet]
     functions: List[FunctionGet]
@@ -56,7 +63,12 @@ class PipelineGet(RunnableGet):
 
 
 class PipelineGetDetailed(PipelineGet):
-    ...
+    version: str = "1"
+    dependencies: List[str] = ["torch", "transformers"]
+    created_at: datetime
+    updated_at: datetime
+    last_run: Optional[datetime]
+    public: bool
 
 
 class PipelineCreate(BaseModel):
@@ -66,3 +78,4 @@ class PipelineCreate(BaseModel):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
+    project_id: Optional[str]

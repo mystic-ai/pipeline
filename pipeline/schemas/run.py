@@ -33,12 +33,20 @@ class RunError(Enum):
     PIPELINE_FAULT = "pipeline_fault"
 
 
+# https://github.com/samuelcolvin/pydantic/issues/2278
+class ComputeType(str, Enum):
+    cpu: str = "cpu"
+    gpu: str = "gpu"
+
+
 class RunCreate(BaseModel):
     pipeline_id: Optional[str]
     function_id: Optional[str]
     data: Optional[Any]
     data_id: Optional[str]
     blocking: Optional[bool] = False
+    # By default a Run will require GPU resources
+    compute_type: ComputeType = ComputeType.gpu
 
     @root_validator
     def pipeline_data_val(cls, values):
@@ -74,6 +82,7 @@ class RunGet(BaseModel):
     started_at: Optional[datetime.datetime]
     ended_at: Optional[datetime.datetime]
     run_state: RunState
+    resource_type: Optional[str]
     compute_time_ms: Optional[int]
     runnable: Union[FunctionGet, PipelineGet]
     data: DataGet
@@ -90,7 +99,6 @@ class RunGet(BaseModel):
 class RunGetDetailed(RunGet):
     runnable: Union[FunctionGetDetailed, PipelineGetDetailed]
     n_resources: int
-    resource_type: Optional[str]
     region: str
     tags: List[TagGet] = []
     inputs: List[RunIOGet] = []
