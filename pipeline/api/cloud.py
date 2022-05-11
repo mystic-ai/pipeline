@@ -4,7 +4,7 @@ import io
 import json
 import os
 import urllib.parse
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Set, Union
 
 import requests
 from requests_toolbelt.multipart import encoder
@@ -171,7 +171,13 @@ class PipelineCloud:
 
         return ModelGet.parse_obj(request_result)
 
-    def upload_pipeline(self, new_pipeline_graph: Graph) -> PipelineGet:
+    def upload_pipeline(
+        self,
+        new_pipeline_graph: Graph,
+        public: bool = False,
+        description: str = "",
+        tags: Set[str] = None,
+    ) -> PipelineGet:
 
         new_name = new_pipeline_graph.name
         print("Uploading functions")
@@ -212,6 +218,9 @@ class PipelineCloud:
             models=new_models,
             graph_nodes=new_graph_nodes,
             outputs=new_outputs,
+            public=public,
+            description=description,
+            tags=tags or set(),
         )
         print("Uploading pipeline graph")
         request_result = self._post(
