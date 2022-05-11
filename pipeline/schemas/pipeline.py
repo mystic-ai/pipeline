@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional, Set
+from typing import Dict, List, Optional, Set
 
 from pydantic import Field, root_validator
 
@@ -69,6 +69,8 @@ class PipelineGetDetailed(PipelineGet):
     updated_at: datetime
     last_run: Optional[datetime]
     public: bool
+    # Maps language, e.g. `curl` or `python`, to an example Run creation code snippet
+    run_examples: Dict[str, str] = {}
 
 
 class PipelineCreate(BaseModel):
