@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from pydantic import Field, root_validator
 
@@ -79,3 +79,6 @@ class PipelineCreate(BaseModel):
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
     project_id: Optional[str]
+    public: bool = False
+    description: str = ""
+    tags: Set[str] = set()
