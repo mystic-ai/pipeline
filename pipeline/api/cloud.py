@@ -232,16 +232,26 @@ class PipelineCloud:
     def run_pipeline(
         self,
         pipeline_id_or_schema: Union[str, PipelineGet],
-        data_or_data_id: Union[Any, DataGet],
+        data: Any = None,
+        data_id: Optional[str] = None,
+        repeat: Optional[int] = 1,
     ):
         # TODO: Add support for generic object inference. Only strs at the moment.
-        if not isinstance(data_or_data_id, DataGet):
-            temp_file = io.BytesIO(python_object_to_hex(data_or_data_id).encode())
+        if data is not None:
+            temp_file = io.BytesIO(python_object_to_hex(data).encode())
             uploaded_data = self.upload_data(temp_file, "/")
-            data_id = uploaded_data.id
+            _data_id = uploaded_data.id
+        elif data_id is not None:
+            _data_id = data_id
         else:
-            data_id = data_or_data_id
-
+            raise Exception(
+                (
+                    "Must either pass a data id, or raw data. "
+                    "Found %s in arg 2."
+                    "Found %s in data_id kwarg" % str(data),
+                    str(data_id),
+                )
+            )
         pipeline_id = None
         if isinstance(pipeline_id_or_schema, str):
             pipeline_id = pipeline_id_or_schema
@@ -255,5 +265,14 @@ class PipelineCloud:
                 )
             )
 
-        run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=data_id)
-        return self._post("/v2/runs", json.loads(run_create_schema.json()))
+        run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=_data_id)
+        all_runs = []
+        if repeat > 0:
+            for i in range(repeat):
+                run = self._post("/v2/runs", json.loads(run_create_schema.json()))
+                all_runs.append(run)
+        else:
+            raise Exception(
+                ("repeat parameter must be positive integer, got %s" % str(repeat))
+            )
+        return all_runs

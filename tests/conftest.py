@@ -6,6 +6,7 @@ from responses import matchers
 
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileGet
+from pipeline.schemas.run import RunState
 
 python_content = """
 from pipeline.objects import Pipeline, Variable, pipeline_function
@@ -19,7 +20,7 @@ def test_with_decorator():
 
 
 @pytest.fixture
-def api_response(url, token, bad_token, file_get_json):
+def api_response(url, token, bad_token, file_get_json, data_get_json, run_get_json):
     with responses.RequestsMock(assert_all_requests_are_fired=False) as rsps:
         rsps.add(
             responses.GET,
@@ -39,6 +40,20 @@ def api_response(url, token, bad_token, file_get_json):
             responses.POST,
             url + "/v2/files/",
             json=file_get_json,
+            status=201,
+            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
+        rsps.add(
+            responses.POST,
+            url + "/v2/data",
+            json=data_get_json,
+            status=201,
+            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
+        rsps.add(
+            responses.POST,
+            url + "/v2/runs",
+            json=run_get_json,
             status=201,
             match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
         )
@@ -86,3 +101,45 @@ def file_get():
 @pytest.fixture()
 def data_get(file_get):
     return DataGet(id="data_test", hex_file=file_get, created_at=datetime.now())
+
+
+@pytest.fixture()
+def data_get_json(file_get_json):
+    return {
+        "name": "test",
+        "id": "data_test",
+        "created_at": datetime.timestamp(datetime.now()),
+        "hex_file": file_get_json,
+    }
+
+
+@pytest.fixture
+def pipeline_id():
+    return "pipeline_test"
+
+
+@pytest.fixture()
+def pipeline_get_json(pipeline_id):
+    return {
+        "id": pipeline_id,
+        "name": "pipeline_test",
+        "variables": [],
+        "functions": [],
+        "models": [],
+        "graph_nodes": [],
+        "outputs": [],
+        "description": "My pipeline",
+        "tags": ["featured", "NLP"],
+        "public": False,
+    }
+
+
+@pytest.fixture()
+def run_get_json(data_get_json, pipeline_get_json, pipeline_id):
+    return {
+        "id": pipeline_id,
+        "created_at": datetime.timestamp(datetime.now()),
+        "run_state": RunState.COMPLETE.value,
+        "runnable": pipeline_get_json,
+        "data": data_get_json,
+    }
