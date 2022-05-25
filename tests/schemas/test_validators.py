@@ -17,9 +17,9 @@ VALID_PASSWORDS = [
 
 def test_invalid_password():
     for password in INVALID_PASSWORDS:
-        assert valid_password(password) == False
+        assert valid_password(password) is False
 
 
 def test_valid_password():
     for password in VALID_PASSWORDS:
-        assert valid_password(password) == True
+        assert valid_password(password) is True
