@@ -6,6 +6,15 @@ from pipeline.objects.variable import Variable
 
 
 def pipeline_function(function):
+    """
+    Annotate a function as accesible by the Pipeline Object.
+
+        Parameters:
+                function (Function): user defined function.
+        Returns:
+                None.
+    """
+
     def execute_func(*args, **kwargs):
         if not Pipeline._pipeline_context_active:
             return function(*args, **kwargs)
