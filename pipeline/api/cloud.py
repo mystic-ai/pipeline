@@ -287,7 +287,7 @@ class PipelineCloud:
     def run_pipeline(
         self,
         pipeline_id_or_schema: Union[str, PipelineGet],
-        raw_data: Optional[Any],
+        raw_data: Optional[Any] = None,
         data_id: Optional[str] = None,
     ):
         """
