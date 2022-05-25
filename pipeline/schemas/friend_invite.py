@@ -15,7 +15,7 @@ class FriendInviteStatus(Enum):
 
 class FriendInviteBase(BaseModel):
     #: The ID of the User who sent the invite
-    inviter_user_id: str
+    inviter_id: str
     #: The email the invite is to be sent to
     email: str
 
