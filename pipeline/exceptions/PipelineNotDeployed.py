@@ -1,4 +1,4 @@
-class NonChargeableProfile(Exception):
+class PipelineNotDeployed(Exception):
     def __init__(self, pipeline_id=None, message="Pipeline not deployed") -> None:
         self.pipeline_id = pipeline_id
         self.message = message

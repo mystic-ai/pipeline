@@ -34,6 +34,7 @@ class PipelineCloud:
     def __init__(self, url: str = None, token: str = None) -> None:
         self.token = token or os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
+        self.__valid_token__ = False
         if self.token is not None:
             self.authenticate()
 
@@ -45,7 +46,7 @@ class PipelineCloud:
         _token = token or self.token
         if _token is None:
             raise MissingActiveToken(
-                token="", message="Please pass a valid token or set it as an env var"
+                token="", message="Please pass a valid token or set it as an ENV var"
             )
         status_url = urllib.parse.urljoin(self.url, "/v2/users/me")
 
@@ -64,8 +65,21 @@ class PipelineCloud:
         if response.json():
             print("Succesfully authenticated with the Pipeline API (%s)" % self.url)
         self.token = _token
+        self.__valid_token__ = True
+
+    def raise_for_invalid_token(self):
+        if not self.__valid_token__:
+            raise MissingActiveToken(
+                token=self.token,
+                message=(
+                    "Please set a valid token as an ENV var "
+                    "and call authenticate(); "
+                    "or pass a valid token as a parameter authenticate(token)"
+                ),
+            )
 
     def upload_file(self, file_or_path, remote_path) -> FileGet:
+
         if isinstance(file_or_path, str):
             with open(file_or_path, "rb") as file:
                 return self._post_file("/v2/files/", file, remote_path)
@@ -83,7 +97,7 @@ class PipelineCloud:
         )
 
     def _post(self, endpoint, json_data):
-
+        self.raise_for_invalid_token()
         headers = {
             "Authorization": "Bearer %s" % self.token,
             "Content-type": "application/json",
@@ -101,6 +115,7 @@ class PipelineCloud:
         return response.json()
 
     def _post_file(self, endpoint, file, remote_path):
+        self.raise_for_invalid_token()
         if not hasattr(file, "name"):
             file.name = generate_id(20)
 
