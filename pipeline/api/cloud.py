@@ -41,6 +41,11 @@ class PipelineCloud:
     def authenticate(self, token: str = None):
         """
         Authenticate with the pipeline.ai API
+            Parameters:
+                token (str): API user token for authentication.
+                    Pass it as an arg or set it as an ENV var.
+            Returns:
+                None
         """
         print("Authenticating")
         _token = token or self.token
@@ -178,6 +183,20 @@ class PipelineCloud:
         description: str = "",
         tags: Set[str] = None,
     ) -> PipelineGet:
+        """
+        Upload a Pipeline to the Cloud.
+
+            Parameters:
+                    new_pipeline_graph (Graph): Graph repr. Pipeline to be uploaded.
+                        Obtained from Pipeline.get_pipeline(name:str)
+                    public (bool): If pipeline should be visible to public.
+                        Defaults to False.
+                    description (str): Description of the Pipeline.
+                    tags (Set[str]): Set of tags for the pipeline. Eg: {"BERT", "NLP"}
+
+            Returns:
+                    pipeline (PipelineGet): Object representing uploaded pipeline.
+        """
 
         new_name = new_pipeline_graph.name
         print("Uploading functions")
@@ -232,15 +251,32 @@ class PipelineCloud:
     def run_pipeline(
         self,
         pipeline_id_or_schema: Union[str, PipelineGet],
-        data_or_data_id: Union[Any, DataGet],
+        raw_data: Optional[Any],
+        data_id: Optional[str] = None,
     ):
+        """
+        Uploads Data and executes a Run of given pipeline over given data.
+
+            Parameters:
+                    pipeline_id_or_schema (Union[str, PipelineGet]):
+                        The id for the desired pipeline
+                        or the schema obtained from uploading it
+                    raw_data (Optional[Any]): Raw data for Pipeline execution. Optional.
+                    data_id (Optional[str]): Optional ID for already uploaded data.
+                        Either this or raw_data must be provided
+
+            Returns:
+                    run (Any): Run object containing metadata and outputs.
+        """
         # TODO: Add support for generic object inference. Only strs at the moment.
-        if not isinstance(data_or_data_id, DataGet):
-            temp_file = io.BytesIO(python_object_to_hex(data_or_data_id).encode())
+        if raw_data is not None:
+            temp_file = io.BytesIO(python_object_to_hex(raw_data).encode())
             uploaded_data = self.upload_data(temp_file, "/")
-            data_id = uploaded_data.id
+            _data_id = uploaded_data.id
+        elif data_id is not None:
+            _data_id = data_id
         else:
-            data_id = data_or_data_id
+            raise Exception("Must either pass a raw_data, or data_id.")
 
         pipeline_id = None
         if isinstance(pipeline_id_or_schema, str):
@@ -255,5 +291,5 @@ class PipelineCloud:
                 )
             )
 
-        run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=data_id)
+        run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=_data_id)
         return self._post("/v2/runs", json.loads(run_create_schema.json()))
