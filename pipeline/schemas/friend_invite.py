@@ -17,7 +17,7 @@ class FriendInviteBase(BaseModel):
     #: The ID of the User who sent the invite
     inviter_id: str
     #: The email the invite is to be sent to
-    email: str
+    invitee_email: str
 
 
 class FriendInviteCreate(FriendInviteBase):
