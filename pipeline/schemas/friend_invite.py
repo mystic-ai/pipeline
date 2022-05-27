@@ -25,11 +25,14 @@ class FriendInviteCreate(FriendInviteBase):
 
     pass
 
-
 class FriendInviteGet(FriendInviteBase):
     """View of an invitation for a friend to join"""
 
     #: The ID of this invite
     id: str
     #: The status of the invite
+    status: FriendInviteStatus
+
+class FriendInvitePatch(BaseModel):
+    """Patch the status of a friend invitation"""
     status: FriendInviteStatus
