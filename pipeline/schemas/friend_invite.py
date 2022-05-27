@@ -33,3 +33,9 @@ class FriendInviteGet(FriendInviteBase):
     id: str
     #: The status of the invite
     status: FriendInviteStatus
+
+
+class FriendInvitePatch(BaseModel):
+    """Patch the status of a friend invitation"""
+
+    status: FriendInviteStatus
