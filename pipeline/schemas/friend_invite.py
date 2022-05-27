@@ -25,6 +25,7 @@ class FriendInviteCreate(FriendInviteBase):
 
     pass
 
+
 class FriendInviteGet(FriendInviteBase):
     """View of an invitation for a friend to join"""
 
@@ -33,6 +34,8 @@ class FriendInviteGet(FriendInviteBase):
     #: The status of the invite
     status: FriendInviteStatus
 
+
 class FriendInvitePatch(BaseModel):
     """Patch the status of a friend invitation"""
+
     status: FriendInviteStatus
