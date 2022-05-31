@@ -1,4 +1,3 @@
-from lib2to3.pgen2.token import OP
 from typing import List, Optional
 
 from pydantic import Field, root_validator
@@ -20,7 +19,7 @@ class FunctionGet(RunnableGet):
     source_sample: str
     type: RunnableType = Field(RunnableType.function, const=True)
 
-    project_id: str
+    # project_id: str
 
     class Config:
         orm_mode = True

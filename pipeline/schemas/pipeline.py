@@ -7,7 +7,6 @@ from pipeline.schemas.base import BaseModel
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
-from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.runnable import RunnableGet, RunnableType
 
 
@@ -60,7 +59,7 @@ class PipelineGet(PipelineGetBrief, RunnableGet):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
-    project: ProjectGet
+    # project: ProjectGet # inherits from RunnableGet
 
     class Config:
         orm_mode = True

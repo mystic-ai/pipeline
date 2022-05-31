@@ -42,6 +42,18 @@ def api_response(url, token, bad_token, file_get_json):
             status=201,
             match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
         )
+        rsps.add(
+            responses.GET,
+            url + "/v2/projects/Default",
+            status=200,
+            json={
+                "avatar_colour": "#AA2216",
+                "id": "project_3b0253647cc844619ad5b5288af40e7d",
+                "name": "Default",
+                "avatar_image_url": None,
+            },
+            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
         yield rsps
 
 
