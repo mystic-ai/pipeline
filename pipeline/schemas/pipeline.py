@@ -1,12 +1,13 @@
-from typing import List, Optional
+from datetime import datetime
+from typing import Dict, List, Optional, Set
 
 from pydantic import Field, root_validator
 
 from pipeline.schemas.base import BaseModel
-from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
+from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.runnable import RunnableGet, RunnableType
 
 
@@ -42,9 +43,15 @@ class PipelineVariableGet(BaseModel):
         return values
 
 
-class PipelineGet(RunnableGet):
+class PipelineGetBrief(BaseModel):
     id: str
     name: str
+    deployed: bool = False
+    tags: List[str] = []
+    description: str = ""
+
+
+class PipelineGet(PipelineGetBrief, RunnableGet):
     type: RunnableType = Field(RunnableType.pipeline, const=True)
     variables: List[PipelineVariableGet]
     functions: List[FunctionGet]
@@ -58,7 +65,14 @@ class PipelineGet(RunnableGet):
 
 
 class PipelineGetDetailed(PipelineGet):
-    ...
+    version: str = "1"
+    dependencies: List[str] = ["torch", "transformers"]
+    created_at: datetime
+    updated_at: datetime
+    last_run: Optional[datetime]
+    public: bool
+    # Maps language, e.g. `curl` or `python`, to an example Run creation code snippet
+    run_examples: Dict[str, str] = {}
 
 
 class PipelineCreate(BaseModel):
@@ -69,3 +83,6 @@ class PipelineCreate(BaseModel):
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
     project_id: Optional[str]
+    public: bool = False
+    description: str = ""
+    tags: Set[str] = set()

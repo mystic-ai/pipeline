@@ -1,6 +1,10 @@
-from pipeline import Pipeline, PipelineCloud, Variable
-
-from pipeline import pipeline_model, pipeline_function
+from pipeline import (
+    Pipeline,
+    PipelineCloud,
+    Variable,
+    pipeline_function,
+    pipeline_model,
+)
 
 
 @pipeline_model
@@ -43,7 +47,10 @@ class TransformersModelForCausalLM:
             )
         ):
             return {
-                "error": "GPT-J inference is limited to 2048 tokens. Reduce the prompt length and/or the expected generation length."
+                "error": (
+                    "GPT-J inference is limited to 2048 tokens.",
+                    "Reduce the prompt length and/or the expected generation length.",
+                )
             }
         if "remove_input" not in kwargs:
             kwargs["remove_input"] = False
@@ -79,9 +86,9 @@ class TransformersModelForCausalLM:
 
     @pipeline_function
     def load(self) -> None:
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-        import transformers
         import torch
+        import transformers
+        from transformers import AutoModelForCausalLM, AutoTokenizer
 
         class no_init:
             def __init__(self, modules=None, use_hf_no_init=True):
@@ -124,7 +131,6 @@ class TransformersModelForCausalLM:
 
 
 api = PipelineCloud()
-api.authenticate()
 
 with Pipeline("GPT-J-6B") as builder:
     input_str = Variable(str, is_input=True)

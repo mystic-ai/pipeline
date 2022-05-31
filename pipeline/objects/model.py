@@ -2,9 +2,8 @@ import inspect
 from hashlib import sha256
 from typing import Any
 
-from pipeline.util import generate_id, hex_to_python_object
-
 from pipeline.schemas.model import ModelGet
+from pipeline.util import generate_id, hex_to_python_object
 
 
 class Model:

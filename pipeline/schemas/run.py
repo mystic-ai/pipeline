@@ -1,13 +1,13 @@
 import datetime
 from enum import Enum
-from typing import List, Optional, Union, Any
+from typing import Any, List, Optional, Union
 
 from pydantic import root_validator
 
 from pipeline.schemas.file import FileGet
-from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.function import FunctionGet, FunctionGetDetailed
 from pipeline.schemas.pipeline import PipelineGet, PipelineGetDetailed
+from pipeline.schemas.project import ProjectGet
 
 from .base import BaseModel
 from .data import DataGet
@@ -34,6 +34,12 @@ class RunError(Enum):
     PIPELINE_FAULT = "pipeline_fault"
 
 
+# https://github.com/samuelcolvin/pydantic/issues/2278
+class ComputeType(str, Enum):
+    cpu: str = "cpu"
+    gpu: str = "gpu"
+
+
 class RunCreate(BaseModel):
     pipeline_id: Optional[str]
     function_id: Optional[str]
@@ -41,6 +47,8 @@ class RunCreate(BaseModel):
     data_id: Optional[str]
     blocking: Optional[bool] = False
     project_id: Optional[str]
+    # By default a Run will require GPU resources
+    compute_type: ComputeType = ComputeType.gpu
 
     @root_validator
     def pipeline_data_val(cls, values):
@@ -76,13 +84,14 @@ class RunGet(BaseModel):
     started_at: Optional[datetime.datetime]
     ended_at: Optional[datetime.datetime]
     run_state: RunState
+    resource_type: Optional[str]
     compute_time_ms: Optional[int]
     runnable: Union[FunctionGet, PipelineGet]
     data: DataGet
     blocking: Optional[bool] = False
     result: Optional[FileGet]
     #: JSON-serialised runnable return value, if available
-    result_preview: Optional[str]
+    result_preview: Optional[Union[list, dict]]
     error: Optional[RunError]
 
     class Config:
@@ -92,7 +101,6 @@ class RunGet(BaseModel):
 class RunGetDetailed(RunGet):
     runnable: Union[FunctionGetDetailed, PipelineGetDetailed]
     n_resources: int
-    resource_type: Optional[str]
     region: str
     tags: List[TagGet] = []
     inputs: List[RunIOGet] = []

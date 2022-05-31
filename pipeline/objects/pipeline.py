@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any, Set, Union
 
 from pipeline.api import PipelineCloud
 from pipeline.objects.function import Function
@@ -50,6 +50,15 @@ class Pipeline:
 
     @staticmethod
     def get_pipeline(graph_name: str) -> Graph:
+        """
+        Get Graph representation of a pipeline.
+
+            Parameters:
+                    graph_name (str): name identifier of desired Pipeline
+
+            Returns:
+                    graph (Graph): Graph representation of Pipeline.
+        """
         if graph_name in Pipeline.defined_pipelines:
             return Pipeline.defined_pipelines[graph_name]
         else:
@@ -93,9 +102,24 @@ class Pipeline:
         return Pipeline._api.run_pipeline(id, data)
 
     @staticmethod
-    def upload(name: str) -> PipelineGet:
+    def upload(
+        name: str, public: bool = False, description: str = "", tags: Set[str] = None
+    ) -> PipelineGet:
+        """
+        Upload a Pipeline to the Cloud.
+
+            Parameters:
+                    name (str): name identifier of pipeline to be uploaded.
+                    public (bool): If pipeline should be visible to public.
+                        Defaults to False.
+                    description (str): Description of the Pipeline.
+                    tags (Set[str]): Set of tags for the pipeline. Eg: {"BERT", "NLP"}
+
+            Returns:
+                    pipeline (PipelineGet): Object representing uploaded pipeline.
+        """
         graph = Pipeline.get_pipeline(name)
-        return Pipeline._api.upload_pipeline(graph)
+        return Pipeline._api.upload_pipeline(graph, public, description, tags)
 
     @staticmethod
     def api(api: PipelineCloud = None) -> PipelineCloud:
