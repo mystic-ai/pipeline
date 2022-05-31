@@ -28,6 +28,8 @@ class PipelineVariableGet(BaseModel):
     is_input: bool
     is_output: bool
 
+    project_id: Optional[str]
+
     @root_validator
     def file_or_id_validation(cls, values):
         file, file_id = values.get("type_file"), values.get("type_file_id")

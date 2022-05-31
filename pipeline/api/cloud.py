@@ -80,6 +80,8 @@ class PipelineCloud:
             except Exception:
                 print(f"Set {project} as active project")
                 self.set_active_project(project)
+        else:
+            self.set_active_project("Default")
 
     def raise_for_invalid_token(self):
         if not self.__valid_token__:
@@ -207,6 +209,7 @@ class PipelineCloud:
                 inputs=inputs,
                 output=output,
                 file_id=file_schema.id,
+                project_id=self.active_project.id,
             )
         except AttributeError as e:
             raise InvalidSchema(schema="Function", message=str(e))
@@ -222,6 +225,7 @@ class PipelineCloud:
                 model_source=model.source,
                 hash=model.hash,
                 file_id=file_schema.id,
+                project_id=self.active_project.id,
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Model", message=str(e))
@@ -275,6 +279,7 @@ class PipelineCloud:
                 type_file=_var_type_file,
                 is_input=_var.is_input,
                 is_output=_var.is_output,
+                project_id=self.active_project.id,
             )
             new_variables.append(_var_schema)
 
@@ -293,6 +298,7 @@ class PipelineCloud:
                 public=public,
                 description=description,
                 tags=tags or set(),
+                project_id=self.active_project.id,
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Graph", message=str(e))
