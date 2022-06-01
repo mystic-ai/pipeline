@@ -1,5 +1,4 @@
-import json
-from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
+from pipeline import PipelineCloud
 
 api = PipelineCloud()
 api.authenticate(project="Test project")

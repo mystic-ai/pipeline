@@ -4,8 +4,8 @@ from typing import Optional
 
 from .base import BaseModel
 from .file import FileGet
-from .token import TokenGet
 from .project import ProjectGet
+from .token import TokenGet
 
 
 class FileType(enum.Enum):
