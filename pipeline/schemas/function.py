@@ -19,6 +19,8 @@ class FunctionGet(RunnableGet):
     source_sample: str
     type: RunnableType = Field(RunnableType.function, const=True)
 
+    # project_id: str
+
     class Config:
         orm_mode = True
 
@@ -78,6 +80,8 @@ class FunctionCreate(BaseModel):
 
     file_id: Optional[str]
     file: Optional[FileCreate]
+
+    project_id: Optional[str]
 
     @root_validator
     def file_or_id_validation(cls, values):

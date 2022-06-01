@@ -19,6 +19,7 @@ from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
+from pipeline.schemas.project import ProjectCreate, ProjectGet
 from pipeline.schemas.run import RunCreate
 from pipeline.util import generate_id, python_object_to_hex, python_object_to_name
 from pipeline.util.logging import PIPELINE_STR
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
 class PipelineCloud:
     token: Optional[str]
     url: Optional[str]
+    active_project: Optional[ProjectGet]
 
     def __init__(self, url: str = None, token: str = None) -> None:
         self.token = token or os.getenv("PIPELINE_API_TOKEN")
@@ -38,7 +40,7 @@ class PipelineCloud:
         if self.token is not None:
             self.authenticate()
 
-    def authenticate(self, token: str = None):
+    def authenticate(self, token: str = None, project: str = None):
         """
         Authenticate with the pipeline.ai API
             Parameters:
@@ -71,6 +73,15 @@ class PipelineCloud:
             print("Succesfully authenticated with the Pipeline API (%s)" % self.url)
         self.token = _token
         self.__valid_token__ = True
+        if project:
+            try:
+                self.active_project = self.create_project(project)
+                print(f"Set {project} as active project")
+            except Exception:
+                print(f"Set {project} as active project")
+                self.set_active_project(project)
+        else:
+            self.set_active_project("Default")
 
     def raise_for_invalid_token(self):
         if not self.__valid_token__:
@@ -100,6 +111,16 @@ class PipelineCloud:
         return self.upload_file(
             io.BytesIO(python_object_to_hex(obj).encode()), remote_path
         )
+
+    def _get(self, endpoint):
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response.json()
 
     def _post(self, endpoint, json_data):
         self.raise_for_invalid_token()
@@ -188,6 +209,7 @@ class PipelineCloud:
                 inputs=inputs,
                 output=output,
                 file_id=file_schema.id,
+                project_id=self.active_project.id,
             )
         except AttributeError as e:
             raise InvalidSchema(schema="Function", message=str(e))
@@ -203,6 +225,7 @@ class PipelineCloud:
                 model_source=model.source,
                 hash=model.hash,
                 file_id=file_schema.id,
+                project_id=self.active_project.id,
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Model", message=str(e))
@@ -256,6 +279,7 @@ class PipelineCloud:
                 type_file=_var_type_file,
                 is_input=_var.is_input,
                 is_output=_var.is_output,
+                project_id=self.active_project.id,
             )
             new_variables.append(_var_schema)
 
@@ -274,6 +298,7 @@ class PipelineCloud:
                 public=public,
                 description=description,
                 tags=tags or set(),
+                project_id=self.active_project.id,
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Graph", message=str(e))
@@ -330,3 +355,13 @@ class PipelineCloud:
 
         run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=_data_id)
         return self._post("/v2/runs", json.loads(run_create_schema.json()))
+
+    def set_active_project(self, project_name_or_id: str) -> ProjectGet:
+        response_json = self._get("/v2/projects/%s" % project_name_or_id)
+        self.active_project = ProjectGet.parse_obj(response_json)
+        return self.active_project
+
+    def create_project(self, project_name: str) -> ProjectGet:
+        create_schema = ProjectCreate(name=project_name)
+        response_json = self._post("/v2/projects", json.loads(create_schema.json()))
+        return ProjectGet.parse_obj(response_json)

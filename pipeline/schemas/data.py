@@ -4,12 +4,18 @@ from typing import Optional
 
 from .base import BaseModel
 from .file import FileGet
+from .project import ProjectGet
 from .token import TokenGet
 
 
 class FileType(enum.Enum):
     text = "text"
     image = "image"
+
+
+class DataCreate(BaseModel):
+    project_id: Optional[str]
+    file: FileGet
 
 
 class DataGet(BaseModel):
@@ -24,3 +30,4 @@ class DataGet(BaseModel):
     token_modified_by: Optional[TokenGet]
     url: Optional[str]
     preview: Optional[str]
+    project: Optional[ProjectGet]

@@ -66,6 +66,12 @@ test_pipeline_dict = {
         {
             "id": "model_10d70951463e474a9126ec6e857249cb",
             "name": "",
+            "project": {
+                "avatar_colour": "#AA2216",
+                "avatar_image_url": None,
+                "name": "Default",
+                "id": "project_3b0253647cc844619ad5b5288af40e7d",
+            },
             "hex_file": {
                 "name": "bfdVXaRkimcSfnDQpQGR",
                 "id": "file_6c42a41051fb42f68a3d43440cd0c2a4",

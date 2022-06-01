@@ -7,6 +7,7 @@ from pydantic import root_validator
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet, FunctionGetDetailed
 from pipeline.schemas.pipeline import PipelineGet, PipelineGetDetailed
+from pipeline.schemas.project import ProjectGet
 
 from .base import BaseModel
 from .data import DataGet
@@ -45,6 +46,7 @@ class RunCreate(BaseModel):
     data: Optional[Any]
     data_id: Optional[str]
     blocking: Optional[bool] = False
+    project_id: Optional[str]
     # By default a Run will require GPU resources
     compute_type: ComputeType = ComputeType.gpu
 
@@ -106,6 +108,7 @@ class RunGetDetailed(RunGet):
     #: The Token which was used to create this Run, if that Token has not been
     #: deleted in the meantime
     token: Optional[TokenGet]
+    project: ProjectGet
 
 
 class RunUpdate(BaseModel):
