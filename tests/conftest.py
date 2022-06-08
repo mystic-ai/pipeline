@@ -138,7 +138,9 @@ def pickled_graph(pipeline_graph):
                     "name": "jaahNwIiBykPFqgeXQJG",
                     "id": "file_ec28640d32b947308b34248c4bb87aeb",
                     "path": "object_dy8tcccflt315cmzgu3pivyw4w7h5l4im4wxefbexz4jxsdg5fdkqc80qpw2sxyx",
-                    "data": cloudpickle.dumps(pipeline_graph.variables[0].type_class).hex(),
+                    "data": cloudpickle.dumps(
+                        pipeline_graph.variables[0].type_class
+                    ).hex(),
                     "file_size": 100,
                 },
                 "type_file_id": None,
@@ -152,7 +154,9 @@ def pickled_graph(pipeline_graph):
                     "name": "nAJGkyZMSlvIJmGTlkMp",
                     "id": "file_79b7384d35e54692939561a4e7e28a2e",
                     "path": "object_yrk5vc6tuowny9ysglpzdhuqm73j2wb50xjgmv9nio4n6jvh0vjrzpnipcqzncdu",
-                    "data": cloudpickle.dumps(pipeline_graph.variables[0].type_class).hex(),
+                    "data": cloudpickle.dumps(
+                        pipeline_graph.variables[0].type_class
+                    ).hex(),
                     "file_size": 100,
                 },
                 "type_file_id": None,
