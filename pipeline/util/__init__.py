@@ -2,7 +2,7 @@ import random
 import string
 from typing import Any, Optional
 
-from dill import dumps, loads
+from cloudpickle import dumps, loads
 
 from pipeline.schemas.file import FileCreate
 
@@ -16,7 +16,8 @@ def python_object_to_hex(obj: Any) -> str:
 
 
 def hex_to_python_object(hex: str) -> Any:
-    return loads(bytes.fromhex(hex))
+    h = bytes.fromhex(hex)
+    return loads(h)
 
 
 def python_object_to_name(obj: Any) -> Optional[str]:

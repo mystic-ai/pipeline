@@ -16,10 +16,8 @@ classifiers = [
   'Programming Language :: Python :: 3',
 ]
 
-
 [tool.poetry.dependencies]
 python = ">=3.7,<4.0"
-dill = "^0.3.4"
 pydantic = "^1.8.2"
 requests = "^2.26.0"
 setuptools = "^59.2.0"
@@ -27,6 +25,7 @@ pyhumps = "^3.0.2"
 requests-toolbelt = "^0.9.1"
 tqdm = "^4.62.3"
 PyYAML = { version = "^6.0", optional = true }
+cloudpickle = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
 setuptools = "^59.2.0"

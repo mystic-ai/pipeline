@@ -1,6 +1,6 @@
 from typing import List
 
-from dill import dumps, loads
+from cloudpickle import dumps, loads
 
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
