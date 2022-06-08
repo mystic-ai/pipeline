@@ -117,6 +117,9 @@ class UserOAuthLogin(BaseModel):
     # If present we check if the newly created User has a pending invite to
     # join an Organisation and auto-join them if so
     organisation_member_invite_id: Optional[str]
+    # If present we check if the newly created User has a created friend invite
+    # and update status of invite accordingly
+    friend_invite_id: Optional[str]
 
 
 class UserCreate(UserBase):
@@ -126,6 +129,9 @@ class UserCreate(UserBase):
     # If present we check if the newly created User has a pending invite to
     # join an Organisation and auto-join them if so
     organisation_member_invite_id: Optional[str]
+    # If present we check if the newly created User has a created friend invite
+    # and update status of invite accordingly
+    friend_invite_id: Optional[str]
 
     @validator("email")
     def validate_email(cls, value):
