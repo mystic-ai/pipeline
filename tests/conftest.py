@@ -2,7 +2,6 @@
 from datetime import datetime
 
 import cloudpickle
-import dill
 import pytest
 import responses
 from responses import matchers
@@ -139,7 +138,7 @@ def pickled_graph(pipeline_graph):
                     "name": "jaahNwIiBykPFqgeXQJG",
                     "id": "file_ec28640d32b947308b34248c4bb87aeb",
                     "path": "object_dy8tcccflt315cmzgu3pivyw4w7h5l4im4wxefbexz4jxsdg5fdkqc80qpw2sxyx",
-                    "data": "80049527000000000000008c0a64696c6c2e5f64696c6c948c0a5f6c6f61645f747970659493948c0373747294859452942e",
+                    "data": cloudpickle.dumps(pipeline_graph.variables[0].type_class).hex(),
                     "file_size": 100,
                 },
                 "type_file_id": None,
@@ -153,7 +152,7 @@ def pickled_graph(pipeline_graph):
                     "name": "nAJGkyZMSlvIJmGTlkMp",
                     "id": "file_79b7384d35e54692939561a4e7e28a2e",
                     "path": "object_yrk5vc6tuowny9ysglpzdhuqm73j2wb50xjgmv9nio4n6jvh0vjrzpnipcqzncdu",
-                    "data": "80049527000000000000008c0a64696c6c2e5f64696c6c948c0a5f6c6f61645f747970659493948c0373747294859452942e",
+                    "data": cloudpickle.dumps(pipeline_graph.variables[0].type_class).hex(),
                     "file_size": 100,
                 },
                 "type_file_id": None,
@@ -176,7 +175,7 @@ def pickled_graph(pipeline_graph):
                     "name": "LZpywTMKOoFwqOKNMEqB",
                     "id": "file_9ec0d8d609f54e8daaa9fb4d1f2291f5",
                     "path": "object_y1u1tgfvxb2t8jojo4owted8i09nijaae9ndnsmtn0ci4pjnnc3s3c61lxo7ld3v",
-                    "data": dill.dumps(pipeline_graph.functions[0]).hex(),
+                    "data": cloudpickle.dumps(pipeline_graph.functions[0]).hex(),
                     "file_size": 6618,
                 },
                 "source_sample": '    @pipeline_function\n    def predict(self, input_data: str, model_kwargs: dict = {}) -> str:\n        input_ids = self.tokenizer(input_data, return_tensors="pt").input_ids\n        gen_tokens = self.m',
