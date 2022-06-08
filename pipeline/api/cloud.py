@@ -287,8 +287,7 @@ class PipelineCloud:
     def run_pipeline(
         self,
         pipeline_id_or_schema: Union[str, PipelineGet],
-        raw_data: Optional[Any] = None,
-        data_id: Optional[str] = None,
+        raw_data_or_schema: Union[Any, DataGet],
     ):
         """
         Uploads Data and executes a Run of given pipeline over given data.
@@ -297,22 +296,22 @@ class PipelineCloud:
                     pipeline_id_or_schema (Union[str, PipelineGet]):
                         The id for the desired pipeline
                         or the schema obtained from uploading it
-                    raw_data (Optional[Any]): Raw data for Pipeline execution. Optional.
-                    data_id (Optional[str]): Optional ID for already uploaded data.
-                        Either this or raw_data must be provided
+                    raw_data_or_schema (Union[Any, DataGet]):
+                        Raw data for Pipeline execution
+                        or schema for already uploaded data.
 
             Returns:
                     run (Any): Run object containing metadata and outputs.
         """
         # TODO: Add support for generic object inference. Only strs at the moment.
-        if raw_data is not None:
-            temp_file = io.BytesIO(python_object_to_hex(raw_data).encode())
+        if not isinstance(raw_data_or_schema, DataGet):
+            temp_file = io.BytesIO(python_object_to_hex(raw_data_or_schema).encode())
             uploaded_data = self.upload_data(temp_file, "/")
             _data_id = uploaded_data.id
-        elif data_id is not None:
-            _data_id = data_id
+        elif isinstance(raw_data_or_schema, DataGet):
+            _data_id = raw_data_or_schema.id
         else:
-            raise Exception("Must either pass a raw_data, or data_id.")
+            raise Exception("Must either pass a raw data, or DataGet schema.")
 
         pipeline_id = None
         if isinstance(pipeline_id_or_schema, str):
