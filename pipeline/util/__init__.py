@@ -3,7 +3,7 @@ import string
 from typing import Any, Optional
 
 from cloudpickle import dumps, loads
-
+import dill
 from pipeline.schemas.file import FileCreate
 
 
@@ -16,8 +16,13 @@ def python_object_to_hex(obj: Any) -> str:
 
 
 def hex_to_python_object(hex: str) -> Any:
-    h = bytes.fromhex(hex).replace(b"\r\n", b"\n")
-    return loads(h)
+    h = bytes.fromhex(hex)
+    # incompatibility issues with deserialising dill serialised objects with cloudpickle
+    try:
+        obj = loads(h)
+    except:
+        obj = dill.loads(h)
+    return obj
 
 
 def python_object_to_name(obj: Any) -> Optional[str]:
