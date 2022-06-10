@@ -16,7 +16,7 @@ def python_object_to_hex(obj: Any) -> str:
 
 
 def hex_to_python_object(hex: str) -> Any:
-    h = bytes.fromhex(hex)
+    h = bytes.fromhex(hex).replace(b"\r\n", b"\n")
     return loads(h)
 
 
