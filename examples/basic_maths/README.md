@@ -61,8 +61,9 @@ def multiply(a: float, b: float) -> float:
 
 
 with Pipeline("MathsIsFun") as pipeline:
-    flt_1 = Variable(variable_type=float, is_input=True)
-    flt_2 = Variable(variable_type=float, is_input=True)
+    flt_1 = Variable(type_class=float, is_input=True)
+    flt_2 = Variable(type_class=float, is_input=True)
+    pipeline.add_variables(flt_1,flt_2)
 
     sq_1 = square(flt_1)
     res_1 = multiply(flt_2, sq_1)
