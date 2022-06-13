@@ -13,9 +13,9 @@ class MilestonesRegisterGet(BaseModel):
     modelhub_viewed: bool
 
 
-
 class MilestonesRegisterPatch(BaseModel):
     """Patch a users' milestones register"""
+
     # `pipeline_deployed` & `run_executed` update managed internally
 
     modelhub_viewed: Optional[bool]
