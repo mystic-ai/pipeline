@@ -373,9 +373,6 @@ class PipelineCloud:
             Parameters:
                     id (str):
                         The id for the desired function
-                    populate_data (bool):
-                        Flag to set if Data fild within the function
-                        should be populated with the associated data.
 
             Returns:
                     function (Any): De-Serialized function.
