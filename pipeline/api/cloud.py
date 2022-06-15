@@ -366,7 +366,7 @@ class PipelineCloud:
         except ValidationError as e:
             raise InvalidSchema(schema=schema.__name__, message=str(e))
 
-    def download_function(self, id: str, populate_data: bool = False) -> Function:
+    def download_function(self, id: str) -> Function:
         """
         Downloads Function object from Pipeline Cloud.
 
@@ -380,11 +380,10 @@ class PipelineCloud:
             Returns:
                     function (Any): De-Serialized function.
         """
-        # f"/v2/functions/{id}", params=dict(return_data=populate_data)
         endpoint = f"/v2/functions/{id}"
         f_get_schema: FunctionGet = self._download_schema(
             schema=FunctionGet,
             endpoint=endpoint,
-            params=dict(return_data=populate_data),
+            params=dict(return_data=True),
         )
         return hex_to_python_object(f_get_schema.hex_file.data)
