@@ -54,8 +54,11 @@ class Function:
 
     @classmethod
     def from_schema(cls, schema: FunctionGet):
-        assert isinstance(schema, FunctionGet)
-        function: Function = hex_to_python_object(schema.hex_file.data)
-        function.local_id = schema.id
-
-        return function
+        unpickled_data = hex_to_python_object(schema.hex_file.data)
+        if isinstance(unpickled_data, Function):
+            unpickled_data.local_id = schema.id
+            return unpickled_data
+        return cls(
+            unpickled_data,
+            remote_id=schema.id,
+        )
