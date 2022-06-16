@@ -21,7 +21,12 @@ from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
 from pipeline.schemas.run import RunCreate
-from pipeline.util import generate_id, python_object_to_hex, python_object_to_name
+from pipeline.util import (
+    generate_id,
+    hex_to_python_object,
+    python_object_to_hex,
+    python_object_to_name,
+)
 from pipeline.util.logging import PIPELINE_STR
 
 if TYPE_CHECKING:
@@ -404,3 +409,22 @@ class PipelineCloud:
         from pipeline.objects import Model
 
         return Model.from_schema(m_get_schema)
+
+    def download_data(self, id: str) -> Any:
+        """
+        Downloads Data object from Pipeline Cloud.
+
+            Parameters:
+                    id (str):
+                        The id for the desired data
+
+            Returns:
+                    object (Any): De-Serialized data object.
+        """
+        endpoint = f"/v2/data/{id}"
+        d_get_schema: DataGet = self._download_schema(
+            schema=DataGet,
+            endpoint=endpoint,
+            params=dict(return_data=True),
+        )
+        return hex_to_python_object(d_get_schema.hex_file.data)

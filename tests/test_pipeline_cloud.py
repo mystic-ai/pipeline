@@ -45,3 +45,10 @@ def test_cloud_download_model(url, token, model_get, model_file_get):
     m = api.download_model(model_get.id)
     model_class = type(hex_to_python_object(model_file_get.data))
     assert isinstance(m.model, model_class)
+
+
+@pytest.mark.usefixtures("api_response")
+def test_cloud_download_data(url, token, data_get, file_get):
+    api = PipelineCloud(url, token)
+    d = api.download_data(data_get.id)
+    assert d() == hex_to_python_object(file_get.data)()

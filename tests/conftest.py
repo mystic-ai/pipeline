@@ -29,10 +29,17 @@ def test_with_decorator():
 
 @pytest.fixture
 def api_response(
-    url, token, bad_token, file_get_json, function_get_json, model_get_json
+    url,
+    token,
+    bad_token,
+    file_get_json,
+    function_get_json,
+    model_get_json,
+    data_get_json,
 ):
     function_get_id = function_get_json["id"]
     model_get_id = model_get_json["id"]
+    data_get_id = data_get_json["id"]
     with responses.RequestsMock(assert_all_requests_are_fired=False) as rsps:
         rsps.add(
             responses.GET,
@@ -66,6 +73,13 @@ def api_response(
             responses.GET,
             url + f"/v2/models/{model_get_id}",
             json=model_get_json,
+            status=200,
+            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
+        rsps.add(
+            responses.GET,
+            url + f"/v2/data/{data_get_id}",
+            json=data_get_json,
             status=200,
             match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
         )
@@ -171,6 +185,15 @@ def function_get_json(function_get, file_get_json, project_get_json):
 @pytest.fixture()
 def data_get(file_get):
     return DataGet(id="data_test", hex_file=file_get, created_at=datetime.now())
+
+
+@pytest.fixture()
+def data_get_json(data_get, file_get_json):
+    return {
+        "id": data_get.id,
+        "hex_file": file_get_json,
+        "created_at": str(data_get.created_at),
+    }
 
 
 @pytest.fixture()
