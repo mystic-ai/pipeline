@@ -5,7 +5,7 @@ import json
 import os
 import urllib.parse
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, List, Optional, Set, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
 import requests
 from pydantic import ValidationError
@@ -14,13 +14,19 @@ from tqdm import tqdm
 
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
+from pipeline.schemas.base import BaseModel
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
 from pipeline.schemas.run import RunCreate
-from pipeline.util import generate_id, python_object_to_hex, python_object_to_name
+from pipeline.util import (
+    generate_id,
+    hex_to_python_object,
+    python_object_to_hex,
+    python_object_to_name,
+)
 from pipeline.util.logging import PIPELINE_STR
 
 if TYPE_CHECKING:
@@ -100,6 +106,16 @@ class PipelineCloud:
         return self.upload_file(
             io.BytesIO(python_object_to_hex(obj).encode()), remote_path
         )
+
+    def _get(self, endpoint: str, params: Dict[str, Any] = None):
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        return response.json()
 
     def _post(self, endpoint, json_data):
         self.raise_for_invalid_token()
@@ -329,3 +345,42 @@ class PipelineCloud:
 
         run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=_data_id)
         return self._post("/v2/runs", json.loads(run_create_schema.json()))
+
+    def _download_schema(
+        self, schema: Type[BaseModel], endpoint: str, params: Optional[Dict[str, Any]]
+    ) -> Type[BaseModel]:
+        """
+        Request json data to a given endpoint and parse it into given schema
+
+            Parameters:
+                schema (Type[BaseModel]): Which schema is expected to be returned
+                endpoint (str): endpoint to which the request must be sent
+                params (Optional[Dict[str, Any]]): optional request params
+
+            Returns:
+                schema (Type[BaseModel]): The populated schema passed in
+        """
+        response = self._get(endpoint=endpoint, params=params)
+        try:
+            return schema(**response)
+        except ValidationError as e:
+            raise InvalidSchema(schema=schema.__name__, message=str(e))
+
+    def download_function(self, id: str) -> Function:
+        """
+        Downloads Function object from Pipeline Cloud.
+
+            Parameters:
+                    id (str):
+                        The id for the desired function
+
+            Returns:
+                    function (Any): De-Serialized function.
+        """
+        endpoint = f"/v2/functions/{id}"
+        f_get_schema: FunctionGet = self._download_schema(
+            schema=FunctionGet,
+            endpoint=endpoint,
+            params=dict(return_data=True),
+        )
+        return hex_to_python_object(f_get_schema.hex_file.data)

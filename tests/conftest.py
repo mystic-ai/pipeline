@@ -10,6 +10,10 @@ from responses import matchers
 from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileGet
+from pipeline.schemas.function import FunctionGet
+from pipeline.schemas.project import ProjectGet
+from pipeline.schemas.runnable import RunnableType
+from pipeline.util import python_object_to_hex
 
 python_content = """
 from pipeline.objects import Pipeline, Variable, pipeline_function
@@ -23,7 +27,8 @@ def test_with_decorator():
 
 
 @pytest.fixture
-def api_response(url, token, bad_token, file_get_json):
+def api_response(url, token, bad_token, file_get_json, function_get_json):
+    function_get_id = function_get_json["id"]
     with responses.RequestsMock(assert_all_requests_are_fired=False) as rsps:
         rsps.add(
             responses.GET,
@@ -44,6 +49,13 @@ def api_response(url, token, bad_token, file_get_json):
             url + "/v2/files/",
             json=file_get_json,
             status=201,
+            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
+        rsps.add(
+            responses.GET,
+            url + f"/v2/functions/{function_get_id}",
+            json=function_get_json,
+            status=200,
             match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
         )
         yield rsps
@@ -75,15 +87,65 @@ def file_get_json():
         "name": "test",
         "id": "file_test",
         "path": "test/path/to/file",
-        "data": "data",
+        "data": python_object_to_hex("data"),
         "file_size": 8,
     }
 
 
 @pytest.fixture()
+def project_get_json():
+    return {
+        "avatar_colour": "#AA2216",
+        "avatar_image_url": None,
+        "name": "test_name",
+        "id": "test_project_id",
+    }
+
+
+@pytest.fixture()
+def function_get_json(file_get_json, project_get_json):
+    return {
+        "id": "test_function_id",
+        "type": "function",
+        "name": "test_name",
+        "project": project_get_json,
+        "hex_file": file_get_json,
+        "source_sample": "test_source",
+        "inputs": [],
+        "output": [],
+    }
+
+
+@pytest.fixture()
+def project_get():
+    return ProjectGet(
+        name="test_name",
+        id="test_project_id",
+        avatar_colour="#AA2216",
+        avatar_image_url=None,
+    )
+
+
+@pytest.fixture()
+def function_get(file_get, project_get):
+    return FunctionGet(
+        name="test_name",
+        id="test_function_id",
+        type=RunnableType.function,
+        project=project_get,
+        hex_file=file_get,
+        source_sample="test_source",
+    )
+
+
+@pytest.fixture()
 def file_get():
     return FileGet(
-        name="test", id="file_test", path="test/path/to/file", data="data", file_size=8
+        name="test",
+        id="file_test",
+        path="test/path/to/file",
+        data="data",
+        file_size=8,
     )
 
 
