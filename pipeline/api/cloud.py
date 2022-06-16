@@ -21,12 +21,7 @@ from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
 from pipeline.schemas.run import RunCreate
-from pipeline.util import (
-    generate_id,
-    hex_to_python_object,
-    python_object_to_hex,
-    python_object_to_name,
-)
+from pipeline.util import generate_id, python_object_to_hex, python_object_to_name
 from pipeline.util.logging import PIPELINE_STR
 
 if TYPE_CHECKING:
@@ -375,7 +370,7 @@ class PipelineCloud:
                         The id for the desired function
 
             Returns:
-                    function (Any): De-Serialized function.
+                    function (Function): De-Serialized function.
         """
         endpoint = f"/v2/functions/{id}"
         f_get_schema: FunctionGet = self._download_schema(
@@ -383,4 +378,29 @@ class PipelineCloud:
             endpoint=endpoint,
             params=dict(return_data=True),
         )
-        return hex_to_python_object(f_get_schema.hex_file.data)
+        # FIXME we have a circular import issue that needs reviewing
+        from pipeline.objects import Function
+
+        return Function.from_schema(f_get_schema)
+
+    def download_model(self, id: str) -> Model:
+        """
+        Downloads Model object from Pipeline Cloud.
+
+            Parameters:
+                    id (str):
+                        The id for the desired model
+
+            Returns:
+                    model (Model): De-Serialized model.
+        """
+        endpoint = f"/v2/models/{id}"
+        m_get_schema: ModelGet = self._download_schema(
+            schema=ModelGet,
+            endpoint=endpoint,
+            params=dict(return_data=True),
+        )
+        # FIXME we have a circular import issue that needs reviewing
+        from pipeline.objects import Model
+
+        return Model.from_schema(m_get_schema)

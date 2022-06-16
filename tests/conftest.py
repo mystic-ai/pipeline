@@ -11,6 +11,7 @@ from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_mod
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
+from pipeline.schemas.model import ModelGet
 from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.runnable import RunnableType
 from pipeline.util import python_object_to_hex
@@ -27,8 +28,11 @@ def test_with_decorator():
 
 
 @pytest.fixture
-def api_response(url, token, bad_token, file_get_json, function_get_json):
+def api_response(
+    url, token, bad_token, file_get_json, function_get_json, model_get_json
+):
     function_get_id = function_get_json["id"]
+    model_get_id = model_get_json["id"]
     with responses.RequestsMock(assert_all_requests_are_fired=False) as rsps:
         rsps.add(
             responses.GET,
@@ -58,6 +62,13 @@ def api_response(url, token, bad_token, file_get_json, function_get_json):
             status=200,
             match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
         )
+        rsps.add(
+            responses.GET,
+            url + f"/v2/models/{model_get_id}",
+            json=model_get_json,
+            status=200,
+            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
         yield rsps
 
 
@@ -82,37 +93,32 @@ def tmp_file():
 
 
 @pytest.fixture()
-def file_get_json():
-    return {
-        "name": "test",
-        "id": "file_test",
-        "path": "test/path/to/file",
-        "data": python_object_to_hex("data"),
-        "file_size": 8,
-    }
+def serialized_function():
+    def test() -> str:
+        return "I'm a test!"
+
+    return python_object_to_hex(test)
 
 
 @pytest.fixture()
-def project_get_json():
-    return {
-        "avatar_colour": "#AA2216",
-        "avatar_image_url": None,
-        "name": "test_name",
-        "id": "test_project_id",
-    }
+def file_get(serialized_function):
+    return FileGet(
+        name="test",
+        id="function_file_test",
+        path="test/path/to/file",
+        data=serialized_function,
+        file_size=8,
+    )
 
 
 @pytest.fixture()
-def function_get_json(file_get_json, project_get_json):
+def file_get_json(file_get):
     return {
-        "id": "test_function_id",
-        "type": "function",
-        "name": "test_name",
-        "project": project_get_json,
-        "hex_file": file_get_json,
-        "source_sample": "test_source",
-        "inputs": [],
-        "output": [],
+        "name": file_get.name,
+        "id": file_get.id,
+        "path": file_get.path,
+        "data": file_get.data,
+        "file_size": file_get.file_size,
     }
 
 
@@ -124,6 +130,16 @@ def project_get():
         avatar_colour="#AA2216",
         avatar_image_url=None,
     )
+
+
+@pytest.fixture()
+def project_get_json(project_get):
+    return {
+        "avatar_colour": project_get.avatar_colour,
+        "avatar_image_url": project_get.avatar_image_url,
+        "name": project_get.name,
+        "id": project_get.id,
+    }
 
 
 @pytest.fixture()
@@ -139,14 +155,17 @@ def function_get(file_get, project_get):
 
 
 @pytest.fixture()
-def file_get():
-    return FileGet(
-        name="test",
-        id="file_test",
-        path="test/path/to/file",
-        data="data",
-        file_size=8,
-    )
+def function_get_json(function_get, file_get_json, project_get_json):
+    return {
+        "id": function_get.id,
+        "type": function_get.type.value,
+        "name": function_get.name,
+        "project": project_get_json,
+        "hex_file": file_get_json,
+        "source_sample": function_get.source_sample,
+        "inputs": [],
+        "output": [],
+    }
 
 
 @pytest.fixture()
@@ -267,4 +286,51 @@ def pickled_graph(pipeline_graph):
             }
         ],
         "outputs": ["aDhXvxVeKl"],
+    }
+
+
+@pytest.fixture()
+def serialized_model(pipeline_graph):
+    return python_object_to_hex(pipeline_graph.models[0].model)
+
+
+@pytest.fixture()
+def model_file_get(serialized_model):
+    return FileGet(
+        name="test",
+        id="model_file_test",
+        path="test/path/to/file",
+        data=serialized_model,
+        file_size=8,
+    )
+
+
+@pytest.fixture()
+def model_file_get_json(model_file_get):
+    return {
+        "name": model_file_get.name,
+        "id": model_file_get.id,
+        "path": model_file_get.path,
+        "data": model_file_get.data,
+        "file_size": model_file_get.file_size,
+    }
+
+
+@pytest.fixture()
+def model_get(model_file_get):
+    return ModelGet(
+        name="test_name",
+        id="test_model_id",
+        hex_file=model_file_get,
+        source_sample="test_source",
+    )
+
+
+@pytest.fixture()
+def model_get_json(model_get, model_file_get_json):
+    return {
+        "name": model_get.name,
+        "id": model_get.id,
+        "hex_file": model_file_get_json,
+        "source_sample": model_get.source_sample,
     }
