@@ -362,7 +362,7 @@ class PipelineCloud:
         """
         response = self._get(endpoint=endpoint, params=params)
         try:
-            return schema(**dict(response))
+            return schema(**response)
         except ValidationError as e:
             raise InvalidSchema(schema=schema.__name__, message=str(e))
 

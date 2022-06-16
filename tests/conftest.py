@@ -13,6 +13,7 @@ from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.runnable import RunnableType
+from pipeline.util import python_object_to_hex
 
 python_content = """
 from pipeline.objects import Pipeline, Variable, pipeline_function
@@ -86,7 +87,7 @@ def file_get_json():
         "name": "test",
         "id": "file_test",
         "path": "test/path/to/file",
-        "data": cloudpickle.dumps("data").hex(),
+        "data": python_object_to_hex("data"),
         "file_size": 8,
     }
 
