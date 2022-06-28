@@ -428,3 +428,25 @@ class PipelineCloud:
             params=dict(return_data=True),
         )
         return hex_to_python_object(d_get_schema.hex_file.data)
+
+    def download_pipeline(self, id: str) -> Graph:
+        """
+        Downloads Graph object from Pipeline Cloud.
+
+            Parameters:
+                    id (str):
+                        The id for the desired pipeline
+
+            Returns:
+                    graph (Graph): De-Serialized pipeline.
+        """
+        endpoint = f"/v2/pipelines/{id}"
+        p_get_schema: PipelineGet = self._download_schema(
+            schema=PipelineGet,
+            endpoint=endpoint,
+            params=dict(return_data=True),
+        )
+        # FIXME we have a circular import issue that needs reviewing
+        from pipeline.objects import Graph
+
+        return Graph.from_schema(p_get_schema)
