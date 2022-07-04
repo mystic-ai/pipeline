@@ -130,6 +130,7 @@ class TransformersModelForCausalLM:
                 self.tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_path)
 
 
+# NOTE: requires PIPELINE_API_TOKEN environment variable to be set
 api = PipelineCloud()
 
 with Pipeline("GPT-J-6B") as builder:

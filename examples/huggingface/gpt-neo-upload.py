@@ -41,8 +41,7 @@ class TransformersModelForCausalLM:
             self.tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_path)
 
 
-# load_dotenv("hidden.env")
-
+# NOTE: requires PIPELINE_API_TOKEN environment variable to be set
 api = PipelineCloud()
 
 with Pipeline("HF pipeline") as builder:
@@ -67,8 +66,6 @@ with Pipeline("HF pipeline") as builder:
     builder.output(output_str)
 
 output_pipeline = Pipeline.get_pipeline("HF pipeline")
-
-# print(output_pipeline.run("Hello there"))
 
 print("Now uploading GPTNeo pipeline")
 uploaded_pipeline = api.upload_pipeline(output_pipeline)

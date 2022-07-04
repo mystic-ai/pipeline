@@ -5,13 +5,14 @@ The source code for this example is found in `basic_maths.py` and at the end of 
 
 ## Imports
 
-```
+```python
 from pipeline import Pipeline, pipeline_function, Variable
 ```
 
 `Pipeline` - The main class used to later define our compute pipeline.
 
-`pipeline_function` - A decorator used to mark our pipeline functions. If this is not used on a function then the function will not be correctly processed with the Pipeline API.
+`pipeline_function` - A decorator used to mark our pipeline functions. If this is not used
+on a function then the function will not be correctly processed with the Pipeline API.
 
 `Variable` - Used to define input variables for our pipeline.
 
@@ -19,7 +20,7 @@ from pipeline import Pipeline, pipeline_function, Variable
 
 The following functions are used later in our pipeline:
 
-```
+```python
 @pipeline_function
 def square(a: float) -> float:
     return a ** 2
@@ -35,13 +36,16 @@ def multiply(a: float, b: float) -> float:
     return a * b
 ```
 
-As described in Imports, the `pipeline_decorator` ensures that the wrapped function correctly parses input/output data when defining our pipeline later. This decorator observes the _typing_ syntax used for each individual variable in the function, including the output.
+As described in Imports, the `pipeline_decorator` ensures that the wrapped function
+correctly parses input/output data when defining our pipeline later. This decorator
+observes the _typing_ syntax used for each individual variable in the function,
+including the output.
 
 ## Pipeline definition
 
 ## Source
 
-```
+```python
 from pipeline import Pipeline, pipeline_function, Variable
 
 
@@ -75,5 +79,4 @@ with Pipeline("MathsIsFun") as pipeline:
 
 output_pipeline = Pipeline.get_pipeline("MathsIsFun")
 print(output_pipeline.run(5.0, 6.0))
-
 ```
