@@ -1,7 +1,7 @@
 from pipeline import Pipeline, Variable, pipeline_function
 
 
-class MyClass(object):
+class MyClass:
     def __init__(self, var):
         self.var = var
 
@@ -16,7 +16,6 @@ with Pipeline("custom_class") as pipeline:
     pipeline.add_variable(my_class_var)
 
     output_class = add_lol(my_class_var)
-    print(output_class)
 
     pipeline.output(output_class)
 
