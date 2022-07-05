@@ -1,6 +1,5 @@
 from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
 
-
 #####################################
 # setup API client
 #####################################
