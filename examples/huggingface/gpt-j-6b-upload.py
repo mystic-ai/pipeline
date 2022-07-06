@@ -130,7 +130,9 @@ class TransformersModelForCausalLM:
                 self.tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_path)
 
 
-api = PipelineCloud()
+# Replace this token with your own, or alternatively set the PIPELINE_API_TOKEN
+# environment variable
+api = PipelineCloud(token="pipeline_token_value")
 
 with Pipeline("GPT-J-6B") as builder:
     input_str = Variable(str, is_input=True)
@@ -157,5 +159,13 @@ output_pipeline = Pipeline.get_pipeline("GPT-J-6B")
 
 print("Now uploading GPT-J-6B pipeline")
 uploaded_pipeline = api.upload_pipeline(output_pipeline)
-print(uploaded_pipeline)
-print(api.run_pipeline(uploaded_pipeline, ["Hello my name is", {"max_length": 100}]))
+
+run_result = api.run_pipeline(
+    uploaded_pipeline, ["Hello my name is", {"max_length": 100}]
+)
+
+try:
+    result_preview = run_result["result_preview"]
+except KeyError:
+    result_preview = "unavailable"
+print("Run result:", result_preview)

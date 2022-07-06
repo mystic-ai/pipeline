@@ -1,18 +1,12 @@
-from dotenv import load_dotenv
-
 from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
 
 #####################################
-# set env vars
+# setup API client
 #####################################
-load_dotenv("hidden.env")
-
-
-#####################################
-# setup standalone api and auth
-#####################################
+# Either pass in token directly (replace this token with your own)
+api = PipelineCloud(token="pipeline_token_value")
+# Or alternatively set the PIPELINE_API_TOKEN and init PipelineCloud with no arguments
 api = PipelineCloud()
-api.authenticate()
 
 
 #####################################
@@ -26,23 +20,33 @@ def multiply(a: float, b: float) -> float:
 #####################################
 # use ctx manager to configure pipeline
 #####################################
-with Pipeline("MathsTest") as builder:
-    flt_1 = Variable(variable_type=float, is_input=True)
-    flt_2 = Variable(variable_type=float, is_input=True)
+with Pipeline("MathsTest") as pipeline:
+    flt_1 = Variable(type_class=float, is_input=True)
+    flt_2 = Variable(type_class=float, is_input=True)
+    pipeline.add_variables(flt_1, flt_2)
 
     res_1 = multiply(flt_1, flt_2)
 
-    builder.output(res_1)
+    pipeline.output(res_1)
 
 
 #####################################
-# Upload Pipeline with built in API
+# Upload Pipeline
 #####################################
-remote_schema = Pipeline.upload("MathsTest")
+output_pipeline = Pipeline.get_pipeline("MathsTest")
+uploaded_pipeline = api.upload_pipeline(output_pipeline)
 
 
 #####################################
-# Upload Pipeline with standalone API
+# Run Pipeline
 #####################################
-test_pipeline = Pipeline.get_pipeline("MathsTest")
-upload_output = api.upload_pipeline(test_pipeline)
+run_result = api.run_pipeline(uploaded_pipeline, [5.0, 6.0])
+
+#####################################
+# Get result
+#####################################
+try:
+    result_preview = run_result["result_preview"]
+except KeyError:
+    result_preview = "unavailable"
+print("Run result:", result_preview)
