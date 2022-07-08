@@ -31,6 +31,7 @@ class RunState(Enum):
 class RunError(Enum):
     MAX_RETRIES = "max_retries"
     PIPELINE_FAULT = "pipeline_fault"
+    UNSATISFIABLE = "unsatisfiable"
 
 
 # https://github.com/samuelcolvin/pydantic/issues/2278
