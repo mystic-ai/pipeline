@@ -36,6 +36,7 @@ UNKNOWN_ERROR_MESSAGE = (
     "There was an internal error. If this persists please contact support@mystic.ai"
 )
 
+
 class PipelineCloud:
     token: Optional[str]
     url: Optional[str]
@@ -136,9 +137,13 @@ class PipelineCloud:
         else:
             try:
                 response.raise_for_status()
-            except:
+            except requests.exceptions.HTTPError:
                 content = json.loads(response.content.decode("utf-8"))
-                detail = content["detail"] if "detail" in content.keys() else UNKNOWN_ERROR_MESSAGE
+                detail = (
+                    content["detail"]
+                    if "detail" in content.keys()
+                    else UNKNOWN_ERROR_MESSAGE
+                )
                 raise Exception(f"Error {response.status_code}: {str(detail)}")
 
         return response.json()
@@ -352,7 +357,7 @@ class PipelineCloud:
             )
 
         run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=_data_id)
-        # TODO Create a GET request that checks the pipeline is deployed and 
+        # TODO Create a GET request that checks the pipeline is deployed and
         # handle this separately if not. Currently is handled crudely in a
         # generic Exception in _post()
         return self._post("/v2/runs", json.loads(run_create_schema.json()))
