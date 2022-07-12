@@ -32,6 +32,9 @@ from pipeline.util.logging import PIPELINE_STR
 if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
 
+UNKNOWN_ERROR_MESSAGE = (
+    "There was an internal error. If this persists please contact support@mystic.ai"
+)
 
 class PipelineCloud:
     token: Optional[str]
@@ -131,7 +134,14 @@ class PipelineCloud:
             schema = json_data
             raise InvalidSchema(schema=schema)
         else:
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except:
+                # TODO Create a GET request that checks that a pipeline is deployed
+                # before running it.
+                content = json.loads(response.content.decode("utf-8"))
+                detail = content["detail"] if "detail" in content.keys() else UNKNOWN_ERROR_MESSAGE
+                raise Exception(f"Error {response.status_code}: {str(detail)}")
 
         return response.json()
 
