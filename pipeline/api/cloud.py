@@ -93,6 +93,19 @@ class PipelineCloud:
                 ),
             )
 
+    @staticmethod
+    def _get_raise_for_status(response: requests.Response) -> None:
+        # A handler for errors that might be sent with messages from Top.
+        if not response.ok:
+            content = response.json()
+            if "detail" in content.keys() and isinstance(content["detail"], Dict):
+                detail = content["detail"]
+                message = detail.pop("message", "Unidentified Error")
+                detail = detail or ""
+                raise Exception(f"Error {response.status_code}: {message} {detail}")
+            else:
+                response.raise_for_status()
+
     def upload_file(self, file_or_path, remote_path) -> FileGet:
 
         if isinstance(file_or_path, str):
@@ -135,16 +148,7 @@ class PipelineCloud:
             schema = json_data
             raise InvalidSchema(schema=schema)
         else:
-            try:
-                response.raise_for_status()
-            except requests.exceptions.HTTPError:
-                content = json.loads(response.content.decode("utf-8"))
-                detail = (
-                    content["detail"]
-                    if "detail" in content.keys()
-                    else UNKNOWN_ERROR_MESSAGE
-                )
-                raise Exception(f"Error {response.status_code}: {str(detail)}")
+            self._get_raise_for_status(response)
 
         return response.json()
 
