@@ -107,7 +107,7 @@ class PipelineCloud:
                 detail = ""
             detail = detail or ""
             # If a message was delivered we want to show that. Otherwise it's a
-            # standard HTTP error and should be handled my raise_for_status()
+            # standard HTTP error and should be handled by raise_for_status()
             if message is not None:
                 raise Exception(f"Error {response.status_code}: {message} {detail}")
             else:
