@@ -96,7 +96,7 @@ class PipelineCloud:
             content = response.json()
             # Every exception has content of {detail, status_code[, headers]}
             # TODO Some exceptions in Top send detail as a string and not a dict.
-            # These exceptions are now handled like normal HTTP excpetions.
+            # These exceptions are now handled like normal HTTP exceptions.
             # Need to rewrite these to all have the same format.
             detail = content.pop("detail", "")
             message = None
