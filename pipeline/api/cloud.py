@@ -32,10 +32,6 @@ from pipeline.util.logging import PIPELINE_STR
 if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
 
-UNKNOWN_ERROR_MESSAGE = (
-    "There was an internal error. If this persists please contact support@mystic.ai"
-)
-
 
 class PipelineCloud:
     token: Optional[str]
