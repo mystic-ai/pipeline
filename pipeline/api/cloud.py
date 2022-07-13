@@ -89,6 +89,30 @@ class PipelineCloud:
                 ),
             )
 
+    @staticmethod
+    def _get_raise_for_status(response: requests.Response) -> None:
+        # A handler for errors that might be sent with messages from Top.
+        if not response.ok:
+            content = response.json()
+            # Every exception has content of {detail, status_code[, headers]}
+            # TODO Some exceptions in Top send detail as a string and not a dict.
+            # These exceptions are now handled like normal HTTP exceptions.
+            # Need to rewrite these to all have the same format.
+            detail = content.pop("detail", "")
+            message = None
+            # In most cases detail is not a string but a dict.
+            if isinstance(detail, dict):
+                message = detail.pop("message", None)
+            elif not isinstance(detail, str):
+                detail = ""
+            detail = detail or ""
+            # If a message was delivered we want to show that. Otherwise it's a
+            # standard HTTP error and should be handled by raise_for_status()
+            if message is not None:
+                raise Exception(f"Error {response.status_code}: {message} {detail}")
+            else:
+                response.raise_for_status()
+
     def upload_file(self, file_or_path, remote_path) -> FileGet:
 
         if isinstance(file_or_path, str):
@@ -131,7 +155,7 @@ class PipelineCloud:
             schema = json_data
             raise InvalidSchema(schema=schema)
         else:
-            response.raise_for_status()
+            self._get_raise_for_status(response)
 
         return response.json()
 
