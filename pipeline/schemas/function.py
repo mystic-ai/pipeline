@@ -3,7 +3,7 @@ from typing import List, Optional
 from pydantic import Field, root_validator
 
 from pipeline.schemas.base import BaseModel
-from pipeline.schemas.compute_requirements import ComputeRequirements
+from pipeline.schemas.compute_requirements import ComputeRequirements, ComputeType
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.runnable import RunnableGet, RunnableType
 
@@ -82,6 +82,8 @@ class FunctionCreate(BaseModel):
     file_id: Optional[str]
     file: Optional[FileCreate]
 
+    # By default a Pipeline will require GPU resources
+    compute_type: ComputeType = ComputeType.gpu
     compute_requirements: Optional[ComputeRequirements]
 
     @root_validator

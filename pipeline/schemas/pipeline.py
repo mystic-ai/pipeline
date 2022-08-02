@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Set
 from pydantic import Field, root_validator
 
 from pipeline.schemas.base import BaseModel
-from pipeline.schemas.compute_requirements import ComputeRequirements
+from pipeline.schemas.compute_requirements import ComputeRequirements, ComputeType
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
@@ -58,6 +58,8 @@ class PipelineGet(PipelineGetBrief, RunnableGet):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
+    # By default a Pipeline will require GPU resources
+    compute_type: ComputeType = ComputeType.gpu
     compute_requirements: Optional[ComputeRequirements]
 
     class Config:

@@ -4,7 +4,7 @@ from typing import Any, List, Optional, Union
 
 from pydantic import root_validator
 
-from pipeline.schemas.compute_requirements import ComputeRequirements
+from pipeline.schemas.compute_requirements import ComputeRequirements, ComputeType
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet, FunctionGetDetailed
 from pipeline.schemas.pipeline import PipelineGet, PipelineGetDetailed
@@ -33,12 +33,6 @@ class RunError(Enum):
     MAX_RETRIES = "max_retries"
     PIPELINE_FAULT = "pipeline_fault"
     UNSATISFIABLE = "unsatisfiable"
-
-
-# https://github.com/samuelcolvin/pydantic/issues/2278
-class ComputeType(str, Enum):
-    cpu: str = "cpu"
-    gpu: str = "gpu"
 
 
 class RunCreate(BaseModel):
