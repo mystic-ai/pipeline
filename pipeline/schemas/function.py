@@ -82,7 +82,7 @@ class FunctionCreate(BaseModel):
     file_id: Optional[str]
     file: Optional[FileCreate]
 
-    # By default a Pipeline will require GPU resources
+    # By default a Function will require GPU resources
     compute_type: ComputeType = ComputeType.gpu
     compute_requirements: Optional[ComputeRequirements]
 
