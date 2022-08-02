@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Union
 
 from pydantic import root_validator
 
+from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet, FunctionGetDetailed
 from pipeline.schemas.pipeline import PipelineGet, PipelineGetDetailed
@@ -48,6 +49,7 @@ class RunCreate(BaseModel):
     blocking: Optional[bool] = False
     # By default a Run will require GPU resources
     compute_type: ComputeType = ComputeType.gpu
+    compute_requirements: Optional[ComputeRequirements]
 
     @root_validator
     def pipeline_data_val(cls, values):
@@ -92,6 +94,7 @@ class RunGet(BaseModel):
     #: JSON-serialised runnable return value, if available
     result_preview: Optional[Union[list, dict]]
     error: Optional[RunError]
+    compute_requirements: Optional[ComputeRequirements]
 
     class Config:
         allow_population_by_field_name = True

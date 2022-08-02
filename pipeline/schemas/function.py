@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import Field, root_validator
 
 from pipeline.schemas.base import BaseModel
+from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.runnable import RunnableGet, RunnableType
 
@@ -18,6 +19,8 @@ class FunctionGet(RunnableGet):
 
     source_sample: str
     type: RunnableType = Field(RunnableType.function, const=True)
+
+    compute_requirements: Optional[ComputeRequirements]
 
     class Config:
         orm_mode = True
@@ -78,6 +81,8 @@ class FunctionCreate(BaseModel):
 
     file_id: Optional[str]
     file: Optional[FileCreate]
+
+    compute_requirements: Optional[ComputeRequirements]
 
     @root_validator
     def file_or_id_validation(cls, values):
