@@ -20,8 +20,6 @@ class FunctionGet(RunnableGet):
     source_sample: str
     type: RunnableType = Field(RunnableType.function, const=True)
 
-    compute_requirements: Optional[ComputeRequirements]
-
     class Config:
         orm_mode = True
 

@@ -58,7 +58,6 @@ class PipelineGet(PipelineGetBrief, RunnableGet):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
-    compute_requirements: Optional[ComputeRequirements]
 
     class Config:
         orm_mode = True

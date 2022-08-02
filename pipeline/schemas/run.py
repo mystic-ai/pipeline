@@ -88,7 +88,6 @@ class RunGet(BaseModel):
     #: JSON-serialised runnable return value, if available
     result_preview: Optional[Union[list, dict]]
     error: Optional[RunError]
-    compute_requirements: Optional[ComputeRequirements]
 
     class Config:
         allow_population_by_field_name = True
