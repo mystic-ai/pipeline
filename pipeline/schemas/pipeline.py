@@ -58,8 +58,6 @@ class PipelineGet(PipelineGetBrief, RunnableGet):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
-    # By default a Pipeline will require GPU resources
-    compute_type: ComputeType = ComputeType.gpu
     compute_requirements: Optional[ComputeRequirements]
 
     class Config:
@@ -88,4 +86,6 @@ class PipelineCreate(BaseModel):
     public: bool = False
     description: str = ""
     tags: Set[str] = set()
+    # By default a Pipeline will require GPU resources
+    compute_type: ComputeType = ComputeType.gpu
     compute_requirements: Optional[ComputeRequirements]
