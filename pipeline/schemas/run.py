@@ -41,8 +41,7 @@ class RunCreate(BaseModel):
     data: Optional[Any]
     data_id: Optional[str]
     blocking: Optional[bool] = False
-    # By default a Run will require GPU resources
-    compute_type: ComputeType = ComputeType.gpu
+    compute_type: Optional[ComputeType]
     compute_requirements: Optional[ComputeRequirements]
 
     @root_validator
