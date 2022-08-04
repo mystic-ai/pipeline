@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Union
 
 from pydantic import root_validator
 
+from pipeline.schemas.compute_requirements import ComputeRequirements, ComputeType
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet, FunctionGetDetailed
 from pipeline.schemas.pipeline import PipelineGet, PipelineGetDetailed
@@ -34,20 +35,14 @@ class RunError(Enum):
     UNSATISFIABLE = "unsatisfiable"
 
 
-# https://github.com/samuelcolvin/pydantic/issues/2278
-class ComputeType(str, Enum):
-    cpu: str = "cpu"
-    gpu: str = "gpu"
-
-
 class RunCreate(BaseModel):
     pipeline_id: Optional[str]
     function_id: Optional[str]
     data: Optional[Any]
     data_id: Optional[str]
     blocking: Optional[bool] = False
-    # By default a Run will require GPU resources
-    compute_type: ComputeType = ComputeType.gpu
+    compute_type: Optional[ComputeType]
+    compute_requirements: Optional[ComputeRequirements]
 
     @root_validator
     def pipeline_data_val(cls, values):
