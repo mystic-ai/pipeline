@@ -357,3 +357,30 @@ def model_get_json(model_get, model_file_get_json):
         "hex_file": model_file_get_json,
         "source_sample": model_get.source_sample,
     }
+
+
+@pytest.fixture()
+def pipeline_graph_with_compute_requirements():
+    @pipeline_model()
+    class CustomModel:
+        def __init__(self, model_path="", tokenizer_path=""):
+            self.model_path = model_path
+            self.tokenizer_path = tokenizer_path
+
+        @pipeline_function
+        def predict(self, input: str, **kwargs: dict) -> str:
+            return input + " lol"
+
+        @pipeline_function
+        def load(self) -> None:
+            print("load")
+
+    with Pipeline("test", compute_type="gpu", min_gpu_vram_mb=4000) as my_pipeline:
+        in_1 = Variable(str, is_input=True)
+        my_pipeline.add_variable(in_1)
+
+        my_model = CustomModel()
+        str_1 = my_model.predict(in_1)
+
+        my_pipeline.output(str_1)
+    return Pipeline.get_pipeline("test")

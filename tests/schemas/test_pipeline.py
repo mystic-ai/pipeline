@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from pipeline.schemas.compute_requirements import ComputeRequirements
@@ -77,3 +79,30 @@ def test_compute_type_is_gpu_validator(test):
         )
         assert schema.compute_type == test["expected"]["compute_type"]
         assert schema.compute_requirements == test["expected"]["compute_requirements"]
+
+
+def test_pipeline_create_to_json():
+    schema = PipelineCreate(
+        name="pipe",
+        variables=[],
+        functions=[],
+        models=[],
+        graph_nodes=[],
+        outputs=[],
+        compute_type="gpu",
+        compute_requirements=ComputeRequirements(min_gpu_vram_mb=4000),
+    )
+    assert json.loads(schema.json()) == dict(
+        name="pipe",
+        description="",
+        project_id=None,
+        public=False,
+        tags=[],
+        variables=[],
+        functions=[],
+        models=[],
+        graph_nodes=[],
+        outputs=[],
+        compute_type="gpu",
+        compute_requirements=dict(min_gpu_vram_mb=4000),
+    )

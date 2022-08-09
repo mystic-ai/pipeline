@@ -48,27 +48,7 @@ def test_basic_pipeline():
     assert Pipeline._current_pipeline is None
 
 
-def test_pipeline_with_compute_requirements():
-    @pipeline_function
-    def add(f_1: float, f_2: float) -> float:
-        return f_1 + f_2
-
-    @pipeline_function
-    def square(f_1: float) -> float:
-        return f_1**2
-
-    with Pipeline("test", compute_type="gpu", min_gpu_vram_mb=4000) as my_pipeline:
-        in_1 = Variable(float, is_input=True)
-        in_2 = Variable(float, is_input=True)
-
-        my_pipeline.add_variables(in_1, in_2)
-
-        add_1 = add(in_1, in_2)
-        sq_1 = square(add_1)
-
-        my_pipeline.output(sq_1, add_1)
-
-    output_pipeline = Pipeline.get_pipeline("test")
-
-    assert output_pipeline.compute_type == "gpu"
-    assert output_pipeline.min_gpu_vram_mb == 4000
+def test_pipeline_with_compute_requirements(pipeline_graph_with_compute_requirements):
+    pipeline_graph = pipeline_graph_with_compute_requirements
+    assert pipeline_graph.compute_type == "gpu"
+    assert pipeline_graph.min_gpu_vram_mb == 4000
