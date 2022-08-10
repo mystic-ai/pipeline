@@ -6,6 +6,7 @@ from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.model import Model
 from pipeline.objects.variable import Variable
+from pipeline.objects.file import PipelineFile
 from pipeline.schemas.pipeline import PipelineGet
 from pipeline.util import generate_id
 
@@ -24,6 +25,7 @@ class Graph:
     nodes: List[GraphNode]
 
     models: List[Model]
+
     # TODO: Add generic objects (e.g. Model) to be included in the graph
 
     def __init__(
@@ -72,9 +74,15 @@ class Graph:
                 % (len(input_variables), len(inputs))
             )
 
-        self._load()
+        # self._load()
 
         running_variables = {}
+
+        # Add all PipelineFile's to the running variables
+        for var in self.variables:
+            if isinstance(var, PipelineFile):
+                running_variables[var.local_id] = var
+
         for i, input in enumerate(inputs):
             if not isinstance(input, input_variables[i].type_class):
                 raise Exception(

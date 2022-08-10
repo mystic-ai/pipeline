@@ -4,6 +4,7 @@ from pipeline.objects.graph import Graph
 from pipeline.objects.model import Model
 from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.variable import Variable
+from pipeline.objects.file import PipelineFile
 
 __all__ = [
     "Pipeline",
@@ -13,4 +14,5 @@ __all__ = [
     "Variable",
     "pipeline_function",
     "pipeline_model",
+    "PipelineFile",
 ]
