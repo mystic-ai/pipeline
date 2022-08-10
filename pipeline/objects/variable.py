@@ -36,13 +36,16 @@ class Variable:
 
     @classmethod
     def from_schema(cls, schema: PipelineVariableGet):
-        return cls(
-            hex_to_python_object(schema.type_file.data),
-            is_input=schema.is_input,
-            is_output=schema.is_output,
-            name=schema.name,
-            local_id=schema.local_id,
-        )
+        if schema.pipeline_file_variable is not None:
+            return PipelineFile.from_schema()
+        else:
+            return cls(
+                hex_to_python_object(schema.type_file.data),
+                is_input=schema.is_input,
+                is_output=schema.is_output,
+                name=schema.name,
+                local_id=schema.local_id,
+            )
 
 
 class PipelineFile(Variable):
@@ -55,6 +58,7 @@ class PipelineFile(Variable):
         path: str = None,
         name: str = None,
         remote_id: str = None,
+        local_id: str = None,
     ) -> None:
         super().__init__(
             type_class=self,
@@ -62,5 +66,14 @@ class PipelineFile(Variable):
             is_output=False,
             name=name,
             remote_id=remote_id,
+            local_id=local_id,
         )
         self.path = path
+
+    @classmethod
+    def from_schema(cls, schema: PipelineVariableGet):
+        return cls(
+            path=schema.pipeline_file_variable.path,
+            name=schema.name,
+            local_id=schema.local_id,
+        )
