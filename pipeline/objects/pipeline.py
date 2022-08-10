@@ -4,8 +4,7 @@ from pipeline.api import PipelineCloud
 from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.graph_node import GraphNode
-from pipeline.objects.variable import Variable
-from pipeline.objects.file import PipelineFile
+from pipeline.objects.variable import Variable, PipelineFile
 from pipeline.schemas.pipeline import PipelineGet
 
 

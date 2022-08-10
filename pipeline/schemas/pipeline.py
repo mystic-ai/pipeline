@@ -18,6 +18,10 @@ class PipelineGraphNode(BaseModel):
     outputs: List[str]
 
 
+class PipelineFileVariableGetSchema(BaseModel):
+    path: str
+
+
 class PipelineVariableGet(BaseModel):
     local_id: str
     name: Optional[str]
@@ -27,6 +31,8 @@ class PipelineVariableGet(BaseModel):
 
     is_input: bool
     is_output: bool
+
+    pipeline_file_variable: Optional[PipelineFileVariableGetSchema]
 
     @root_validator
     def file_or_id_validation(cls, values):
