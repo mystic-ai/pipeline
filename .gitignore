@@ -135,3 +135,5 @@ examples/examples
 local/
 pipeline-bak/
 *.env
+
+•.DS_Store
