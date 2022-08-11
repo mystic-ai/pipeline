@@ -19,7 +19,12 @@ from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
-from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
+from pipeline.schemas.pipeline import (
+    PipelineCreate,
+    PipelineGet,
+    PipelineVariableGet,
+    PipelineFileVariableGet,
+)
 from pipeline.schemas.run import RunCreate
 from pipeline.util import (
     generate_id,
@@ -30,7 +35,7 @@ from pipeline.util import (
 from pipeline.util.logging import PIPELINE_STR
 
 if TYPE_CHECKING:
-    from pipeline.objects import Function, Graph, Model
+    from pipeline.objects import Function, Graph, Model, PipelineFile
 
 
 class PipelineCloud:
@@ -159,7 +164,7 @@ class PipelineCloud:
 
         return response.json()
 
-    def _post_file(self, endpoint, file, remote_path):
+    def _post_file(self, endpoint, file, remote_path) -> FileGet:
         self.raise_for_invalid_token()
         if not hasattr(file, "name"):
             file.name = generate_id(20)
@@ -290,13 +295,27 @@ class PipelineCloud:
             _var_type_file = self.upload_file(
                 io.BytesIO(python_object_to_hex(_var.type_class).encode()), "/"
             )
+
+            pipeline_file_schema: PipelineFileVariableGet = None
+
+            if isinstance(_var, PipelineFile):
+                _var_file = self.upload_file(
+                    io.BytesIO(python_object_to_hex(_var.type_class).encode()), "/"
+                )
+
+                pipeline_file_schema = PipelineFileVariableGet(
+                    path=_var.path, file=_var_file
+                )
+
             _var_schema = PipelineVariableGet(
                 local_id=_var.local_id,
                 name=_var.name,
                 type_file=_var_type_file,
                 is_input=_var.is_input,
                 is_output=_var.is_output,
+                pipeline_file_variable=pipeline_file_schema,
             )
+
             new_variables.append(_var_schema)
 
         new_graph_nodes = [

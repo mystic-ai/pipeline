@@ -18,8 +18,9 @@ class PipelineGraphNode(BaseModel):
     outputs: List[str]
 
 
-class PipelineFileVariableGetSchema(BaseModel):
+class PipelineFileVariableGet(BaseModel):
     path: str
+    file: FileGet
 
 
 class PipelineVariableGet(BaseModel):
@@ -32,7 +33,7 @@ class PipelineVariableGet(BaseModel):
     is_input: bool
     is_output: bool
 
-    pipeline_file_variable: Optional[PipelineFileVariableGetSchema]
+    pipeline_file_variable: Optional[PipelineFileVariableGet]
 
     @root_validator
     def file_or_id_validation(cls, values):
