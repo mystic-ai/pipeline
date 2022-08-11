@@ -1,3 +1,5 @@
+from functools import wraps, partial
+
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.model import Model
@@ -5,16 +7,11 @@ from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.variable import Variable
 
 
-def pipeline_function(function):
-    """
-    Annotate a function as accesible by the Pipeline Object.
+def pipeline_function(function=None, *, run_once=False):
+    if function is None:
+        return partial(pipeline_function, run_once=run_once)
 
-        Parameters:
-                function (Function): user defined function.
-        Returns:
-                None.
-    """
-
+    @wraps(function)
     def execute_func(*args, **kwargs):
         if not Pipeline._pipeline_context_active:
             return function(*args, **kwargs)
@@ -54,6 +51,8 @@ def pipeline_function(function):
             return node_output
 
     execute_func.__function__ = function
+    function.__run_once__ = run_once
+    function.__has_run__ = False
     function.__pipeline_function__ = Function(function)
     return execute_func
 

@@ -28,12 +28,11 @@ class MyModel:
 
         return self.my_model(x)
 
-    @pipeline_function
+    @pipeline_function(run_once=True)
     def load(self, model_file: PipelineFile) -> None:
         print("Loading model...")
         self.my_model.load_state_dict(torch.load(model_file.path))
         self.my_model.eval()
-        # self.my_model = torch.load(model_file.path)
         print("Model loaded!")
 
 
@@ -56,4 +55,6 @@ with Pipeline("ML pipeline") as pipeline:
     pipeline.output(output)
 
 output_pipeline = Pipeline.get_pipeline("ML pipeline")
+
 print(output_pipeline.run([2.0, 3.4, 6.0]))
+print(output_pipeline.run([-6.8, 2.1, 1.01]))

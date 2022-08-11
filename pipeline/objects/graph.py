@@ -99,6 +99,19 @@ class Graph:
             node_outputs: List[Variable] = []
             node_function: Function = None
 
+            for function in self.functions:
+                if function.local_id == node.function.local_id:
+                    node_function = function
+                    break
+
+            if (
+                hasattr(node_function.function, "__run_once__")
+                and node_function.function.__run_once__
+                and hasattr(node_function.function, "__has_run__")
+                and node_function.function.__has_run__
+            ):
+                continue
+
             for _node_input in node.inputs:
                 for variable in self.variables:
                     if variable.local_id == _node_input.local_id:
@@ -109,11 +122,6 @@ class Graph:
                     if variable.local_id == _node_output.local_id:
                         node_outputs.append(variable)
                         break
-
-            for function in self.functions:
-                if function.local_id == node.function.local_id:
-                    node_function = function
-                    break
 
             function_inputs = []
             for _input in node_inputs:
@@ -132,6 +140,12 @@ class Graph:
                 output = node_function.function(*function_inputs)
 
             running_variables[node_outputs[0].local_id] = output
+
+            if (
+                hasattr(node_function.function, "__has_run__")
+                and not node_function.function.__has_run__
+            ):
+                node_function.function.__has_run__ = True
 
         return_variables = []
 
