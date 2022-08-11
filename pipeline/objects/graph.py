@@ -45,7 +45,7 @@ class Graph:
         self.outputs = outputs if outputs is not None else []
         self.nodes = nodes if nodes is not None else []
         self.models = models if models is not None else []
-        # Flag set when all models have had their `load()` methods called
+        # Flag set when all functions with the on_startup field have run
         self._has_run_startup = False
 
     def _startup(self):
