@@ -1,4 +1,4 @@
-from functools import wraps, partial
+from functools import partial, wraps
 
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
@@ -57,6 +57,7 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
 
     function.__on_startup__ = on_startup
     function.__pipeline_function__ = Function(function)
+
     return execute_func
 
 

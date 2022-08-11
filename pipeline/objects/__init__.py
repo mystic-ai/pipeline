@@ -3,7 +3,7 @@ from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.model import Model
 from pipeline.objects.pipeline import Pipeline
-from pipeline.objects.variable import Variable, PipelineFile
+from pipeline.objects.variable import PipelineFile, Variable
 
 __all__ = [
     "Pipeline",

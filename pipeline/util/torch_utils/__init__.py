@@ -1,5 +1,5 @@
-import torch
 import numpy as np
+import torch
 
 from pipeline.objects import pipeline_function
 

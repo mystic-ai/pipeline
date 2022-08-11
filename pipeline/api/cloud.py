@@ -21,9 +21,9 @@ from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import (
     PipelineCreate,
+    PipelineFileVariableGet,
     PipelineGet,
     PipelineVariableGet,
-    PipelineFileVariableGet,
 )
 from pipeline.schemas.run import RunCreate
 from pipeline.util import (

@@ -5,7 +5,7 @@ from cloudpickle import dumps, loads
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.model import Model
-from pipeline.objects.variable import Variable, PipelineFile
+from pipeline.objects.variable import PipelineFile, Variable
 from pipeline.schemas.pipeline import PipelineGet
 from pipeline.util import generate_id
 

@@ -1,10 +1,10 @@
 from pipeline.api.cloud import PipelineCloud
 from pipeline.objects import (
     Pipeline,
+    PipelineFile,
     Variable,
     pipeline_function,
     pipeline_model,
-    PipelineFile,
 )
 
 __all__ = [
