@@ -28,7 +28,7 @@ class MyModel:
 
         return self.my_model(x)
 
-    @pipeline_function(run_once=True)
+    @pipeline_function(run_once=True, on_startup=True)
     def load(self, model_file: PipelineFile) -> None:
         print("Loading model...")
         self.my_model.load_state_dict(torch.load(model_file.path))

@@ -7,9 +7,9 @@ from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.variable import Variable
 
 
-def pipeline_function(function=None, *, run_once=False):
+def pipeline_function(function=None, *, run_once=False, on_startup=False):
     if function is None:
-        return partial(pipeline_function, run_once=run_once)
+        return partial(pipeline_function, run_once=run_once, on_startup=on_startup)
 
     @wraps(function)
     def execute_func(*args, **kwargs):
@@ -51,8 +51,11 @@ def pipeline_function(function=None, *, run_once=False):
             return node_output
 
     execute_func.__function__ = function
+
     function.__run_once__ = run_once
     function.__has_run__ = False
+
+    function.__on_startup__ = on_startup
     function.__pipeline_function__ = Function(function)
     return execute_func
 
