@@ -6,4 +6,3 @@ def test_user_create_optional_username():
         email="email@company.com", password="ExamplePass123", username=None
     )
     UserCreate(**none_username_payload)
-    assert True
