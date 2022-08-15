@@ -153,7 +153,7 @@ class UserCreate(UserBase):
 
     @validator("username")
     def validate_username(cls, value):
-        if not valid_username(value):
+        if value is not None and not valid_username(value):
             raise ValueError(
                 (
                     "must contain between 3-24 characters, "
