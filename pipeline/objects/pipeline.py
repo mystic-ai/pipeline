@@ -15,15 +15,29 @@ class Pipeline:
     _pipeline_context_active: bool = False
     _pipeline_context_name: str = None
     _api: PipelineCloud = None
+    _compute_type: str = "gpu"
+    _min_gpu_vram_mb: int = None
 
-    def __init__(self, new_pipeline_name: str, api: PipelineCloud = None):
+    def __init__(
+        self,
+        new_pipeline_name: str,
+        api: PipelineCloud = None,
+        compute_type: str = "gpu",
+        min_gpu_vram_mb: int = None,
+    ):
         self._pipeline_context_name = new_pipeline_name
         self._api = api or PipelineCloud()
+        self._compute_type = compute_type
+        self._min_gpu_vram_mb = min_gpu_vram_mb
 
     def __enter__(self):
         Pipeline._pipeline_context_active = True
 
-        Pipeline._current_pipeline = Graph(name=self._pipeline_context_name)
+        Pipeline._current_pipeline = Graph(
+            name=self._pipeline_context_name,
+            compute_type=self._compute_type,
+            min_gpu_vram_mb=self._min_gpu_vram_mb,
+        )
 
         return self
 

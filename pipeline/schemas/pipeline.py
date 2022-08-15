@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Set
 
-from pydantic import Field, root_validator
+from pydantic import Field, root_validator, validator
 
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements, ComputeType
@@ -95,3 +95,15 @@ class PipelineCreate(BaseModel):
     # By default a Pipeline will require GPU resources
     compute_type: ComputeType = ComputeType.gpu
     compute_requirements: Optional[ComputeRequirements]
+
+    @validator("compute_requirements")
+    def compute_type_is_gpu(cls, v, values):
+        """If compute_type is not 'gpu' we don't expect any additional compute
+        requirements to be specified.
+        """
+        if values["compute_type"] != ComputeType.gpu:
+            if v and v.min_gpu_vram_mb:
+                raise ValueError(
+                    "min_gpu_vram_mb should only be specified for gpu workloads"
+                )
+        return v

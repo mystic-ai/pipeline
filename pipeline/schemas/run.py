@@ -2,7 +2,7 @@ import datetime
 from enum import Enum
 from typing import Any, List, Optional, Union
 
-from pydantic import root_validator
+from pydantic import root_validator, validator
 
 from pipeline.schemas.compute_requirements import ComputeRequirements, ComputeType
 from pipeline.schemas.file import FileGet
@@ -87,9 +87,19 @@ class RunGet(BaseModel):
     #: JSON-serialised runnable return value, if available
     result_preview: Optional[Union[list, dict]]
     error: Optional[RunError]
+    compute_requirements: Optional[ComputeRequirements] = None
 
     class Config:
         allow_population_by_field_name = True
+
+    @validator("compute_requirements", pre=True)
+    def compute_requirements_default_if_empty(cls, v):
+        """Return None if no compute_requirements rather than an empty
+        ComputeRequirements object
+        """
+        if not v:
+            return None
+        return v
 
 
 class RunGetDetailed(RunGet):

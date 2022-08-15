@@ -27,6 +27,9 @@ class Graph:
 
     # TODO: Add generic objects (e.g. Model) to be included in the graph
 
+    compute_type: str
+    min_gpu_vram_mb: int
+
     def __init__(
         self,
         *,
@@ -36,6 +39,8 @@ class Graph:
         outputs: List[Variable] = None,
         nodes: List[GraphNode] = None,
         models: List[Model] = None,
+        compute_type: str = "gpu",
+        min_gpu_vram_mb: int = None,
     ):
         self.name = name
         self.local_id = generate_id(10)
@@ -47,6 +52,9 @@ class Graph:
         self.models = models if models is not None else []
         # Flag set when all functions with the on_startup field have run
         self._has_run_startup = False
+        self.compute_type = compute_type
+        self.min_gpu_vram_mb = min_gpu_vram_mb
+        # Flag set when all models have had their `load()` methods called
 
     def _startup(self):
         if self._has_run_startup:

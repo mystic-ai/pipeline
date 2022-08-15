@@ -15,6 +15,7 @@ from tqdm import tqdm
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.schemas.base import BaseModel
+from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
@@ -322,6 +323,13 @@ class PipelineCloud:
             _node.to_create_schema() for _node in new_pipeline_graph.nodes
         ]
         new_outputs = [_output.local_id for _output in new_pipeline_graph.outputs]
+
+        compute_requirements = None
+        if new_pipeline_graph.min_gpu_vram_mb:
+            compute_requirements = ComputeRequirements(
+                min_gpu_vram_mb=new_pipeline_graph.min_gpu_vram_mb
+            )
+
         try:
             pipeline_create_schema = PipelineCreate(
                 name=new_name,
@@ -333,6 +341,8 @@ class PipelineCloud:
                 public=public,
                 description=description,
                 tags=tags or set(),
+                compute_type=new_pipeline_graph.compute_type,
+                compute_requirements=compute_requirements,
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Graph", message=str(e))
@@ -347,6 +357,8 @@ class PipelineCloud:
         self,
         pipeline_id_or_schema: Union[str, PipelineGet],
         raw_data_or_schema: Union[Any, DataGet],
+        compute_type: Optional[str] = None,
+        min_gpu_vram_mb: Optional[int] = None,
     ):
         """
         Uploads Data and executes a Run of given pipeline over given data.
@@ -358,6 +370,14 @@ class PipelineCloud:
                     raw_data_or_schema (Union[Any, DataGet]):
                         Raw data for Pipeline execution
                         or schema for already uploaded data.
+                    compute_type (Optional[str]):
+                        Compute type requirement for this run (e.g. "cpu" or "gpu"). If
+                        not defined, it will fallback to that specified by the Pipeline
+                        itself (typically this is "gpu")
+                    min_gpu_vram_mb (Optional[int]):
+                        Minimum amount of GPU VRAM required. If not defined, it will
+                        fallback to that specified by the Pipeline (if applicable). This
+                        should only be specified for GPU workloads.
 
             Returns:
                     run (Any): Run object containing metadata and outputs.
@@ -386,7 +406,16 @@ class PipelineCloud:
                 ),
             )
 
-        run_create_schema = RunCreate(pipeline_id=pipeline_id, data_id=_data_id)
+        compute_requirements = None
+        if min_gpu_vram_mb:
+            compute_requirements = ComputeRequirements(min_gpu_vram_mb=min_gpu_vram_mb)
+
+        run_create_schema = RunCreate(
+            pipeline_id=pipeline_id,
+            data_id=_data_id,
+            compute_type=compute_type,
+            compute_requirements=compute_requirements,
+        )
         return self._post("/v2/runs", json.loads(run_create_schema.json()))
 
     def _download_schema(
