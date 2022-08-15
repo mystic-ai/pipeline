@@ -22,6 +22,7 @@ class UserGet(UserBase):
     verified: Optional[bool]
     subscribed: Optional[bool]
     onboarded: Optional[bool]
+    preferences: Optional[dict]
 
 
 class UserGetDetailed(UserGet):
