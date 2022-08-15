@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import io
-import json
 import os
+import json
+import hashlib
 import urllib.parse
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
@@ -237,6 +238,13 @@ class PipelineCloud:
             )
         except AttributeError as e:
             raise InvalidSchema(schema="Function", message=str(e))
+        except ValidationError as e:
+            print(
+                "Validation error when creating FunctionCreate schema for function %s."
+                % function.name
+            )
+            raise e
+
         response = self._post("/v2/functions", function_create_schema.dict())
         return FunctionGet.parse_obj(response)
 
@@ -292,6 +300,9 @@ class PipelineCloud:
 
         new_variables: List[PipelineVariableGet] = []
         print("Uploading variables")
+
+        from pipeline.objects import PipelineFile
+
         for _var in new_pipeline_graph.variables:
             _var_type_file = self.upload_file(
                 io.BytesIO(python_object_to_hex(_var.type_class).encode()), "/"
@@ -300,12 +311,14 @@ class PipelineCloud:
             pipeline_file_schema: PipelineFileVariableGet = None
 
             if isinstance(_var, PipelineFile):
+                
                 _var_file = self.upload_file(
-                    io.BytesIO(python_object_to_hex(_var.type_class).encode()), "/"
+                    _var.path, "/"
                 )
+                _var_file_hash = self._hash_file()
 
                 pipeline_file_schema = PipelineFileVariableGet(
-                    path=_var.path, file=_var_file
+                    path=_var.path, file=_var_file, hash=_var_file_hash
                 )
 
             _var_schema = PipelineVariableGet(
@@ -522,3 +535,14 @@ class PipelineCloud:
         from pipeline.objects import Graph
 
         return Graph.from_schema(p_get_schema)
+
+    def _hash_file(self, file_path: str, block_size=2**20) -> str:
+        md5 = hashlib.md5()
+        with open(file_path, "rb") as f:
+            while True:
+                data = f.read(block_size)
+                if not data:
+                    break
+                md5.update(data)
+        return md5.hexdigest()
+    

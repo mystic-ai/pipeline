@@ -4,10 +4,20 @@
 #   It is generaliseable to use a PipelineFile in an arbitary way.
 #
 ##########
+import sys
+import getopt
 
 import torch
 
-from pipeline import Pipeline, PipelineFile, Variable, pipeline_function, pipeline_model
+
+from pipeline import (
+    Pipeline,
+    PipelineFile,
+    Variable,
+    pipeline_function,
+    pipeline_model,
+    PipelineCloud,
+)
 from pipeline.util.torch_utils import tensor_to_list
 
 
@@ -29,11 +39,15 @@ class MyModel:
         return self.my_model(x)
 
     @pipeline_function(run_once=True, on_startup=True)
-    def load(self, model_file: PipelineFile) -> None:
-        print("Loading model...")
-        self.my_model.load_state_dict(torch.load(model_file.path))
-        self.my_model.eval()
-        print("Model loaded!")
+    def load(self, model_file: PipelineFile) -> bool:
+        try:
+            print("Loading model...")
+            self.my_model.load_state_dict(torch.load(model_file.path))
+            self.my_model.eval()
+            print("Model loaded!")
+        except:
+            return False
+        return True
 
 
 with Pipeline("ML pipeline") as pipeline:
@@ -56,5 +70,29 @@ with Pipeline("ML pipeline") as pipeline:
 
 output_pipeline = Pipeline.get_pipeline("ML pipeline")
 
-print(output_pipeline.run([2.0, 3.4, 6.0]))
-print(output_pipeline.run([-6.8, 2.1, 1.01]))
+if __name__ == "__main__":
+    argv = sys.argv[1:]
+
+    mode = "run"
+    try:
+        opts, args = getopt.getopt(argv, "hru", ["run", "upload"])
+    except:
+        ...
+
+    for opt, arg in opts:
+        if opt == "-h":
+            print("python model_with_file.py <arg>")
+            print("Args:")
+            print("-r, --run")
+            print("-u, --upload")
+        elif opt in ["-r", "--run"]:
+            mode = "run"
+        elif opt in ["-u", "--upload"]:
+            mode = "upload"
+
+    if mode == "run":
+        print(output_pipeline.run([2.0, 3.4, 6.0]))
+        print(output_pipeline.run([-6.8, 2.1, 1.01]))
+    else:
+        pc = PipelineCloud()
+        uploaded_pipeline = pc.upload_pipeline(output_pipeline)

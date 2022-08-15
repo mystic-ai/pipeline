@@ -20,6 +20,7 @@ class PipelineGraphNode(BaseModel):
 
 class PipelineFileVariableGet(BaseModel):
     path: str
+    hash: str
     file: FileGet
 
 
