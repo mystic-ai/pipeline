@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import io
-import os
-import json
 import hashlib
+import io
+import json
+import os
 import urllib.parse
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
@@ -128,7 +128,9 @@ class PipelineCloud:
             with open(file_or_path, "rb") as file:
                 buffer = file.read()
             hex_buffer = buffer.hex()
-            return self._post_file("/v2/files/", io.BytesIO(hex_buffer.encode()), remote_path)
+            return self._post_file(
+                "/v2/files/", io.BytesIO(hex_buffer.encode()), remote_path
+            )
         else:
             return self._post_file("/v2/files/", file_or_path, remote_path)
 
@@ -315,12 +317,10 @@ class PipelineCloud:
             pipeline_file_schema: PipelineFileVariableGet = None
 
             if isinstance(_var, PipelineFile):
-                
+
                 _var_file_hash = self._hash_file(_var.path)
-                
-                _var_file = self.upload_file(
-                    _var.path, "/"
-                )
+
+                _var_file = self.upload_file(_var.path, "/")
 
                 pipeline_file_schema = PipelineFileVariableGet(
                     path=_var.path, file=_var_file, hash=_var_file_hash
@@ -550,4 +550,3 @@ class PipelineCloud:
                     break
                 md5.update(data)
         return md5.hexdigest()
-    
