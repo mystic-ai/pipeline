@@ -123,8 +123,12 @@ class PipelineCloud:
     def upload_file(self, file_or_path, remote_path) -> FileGet:
 
         if isinstance(file_or_path, str):
+            # TODO: Change this to wrap the file object reader to convert to hex everytime anything is read instead of reading it all at once.
+
             with open(file_or_path, "rb") as file:
-                return self._post_file("/v2/files/", file, remote_path)
+                buffer = file.read()
+            hex_buffer = buffer.hex()
+            return self._post_file("/v2/files/", io.BytesIO(hex_buffer.encode()), remote_path)
         else:
             return self._post_file("/v2/files/", file_or_path, remote_path)
 
@@ -312,10 +316,11 @@ class PipelineCloud:
 
             if isinstance(_var, PipelineFile):
                 
+                _var_file_hash = self._hash_file(_var.path)
+                
                 _var_file = self.upload_file(
                     _var.path, "/"
                 )
-                _var_file_hash = self._hash_file()
 
                 pipeline_file_schema = PipelineFileVariableGet(
                     path=_var.path, file=_var_file, hash=_var_file_hash

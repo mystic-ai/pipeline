@@ -37,7 +37,7 @@ class Variable:
     @classmethod
     def from_schema(cls, schema: PipelineVariableGet):
         if schema.pipeline_file_variable is not None:
-            return PipelineFile.from_schema()
+            return PipelineFile.from_schema(schema)
         else:
             return cls(
                 hex_to_python_object(schema.type_file.data),
