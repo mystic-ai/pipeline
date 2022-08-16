@@ -37,7 +37,7 @@ from pipeline.util import (
 from pipeline.util.logging import PIPELINE_STR
 
 if TYPE_CHECKING:
-    from pipeline.objects import Function, Graph, Model, PipelineFile
+    from pipeline.objects import Function, Graph, Model
 
 
 class PipelineCloud:
@@ -123,7 +123,8 @@ class PipelineCloud:
     def upload_file(self, file_or_path, remote_path) -> FileGet:
 
         if isinstance(file_or_path, str):
-            # TODO: Change this to wrap the file object reader to convert to hex everytime anything is read instead of reading it all at once.
+            # TODO: Change this to wrap the file object reader to convert to hex everytime 
+            # anything is read instead of reading it all at once.
 
             with open(file_or_path, "rb") as file:
                 buffer = file.read()
