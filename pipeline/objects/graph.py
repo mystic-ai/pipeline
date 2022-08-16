@@ -216,7 +216,7 @@ class Graph:
 
     @classmethod
     def from_schema(cls, schema: PipelineGet):
-        variables = [Variable.from_schema(_var for _var in schema.variables)]
+        variables = [Variable.from_schema(_var) for _var in schema.variables]
         functions = [Function.from_schema(_func) for _func in schema.functions]
         models = [Model.from_schema(_model) for _model in schema.models]
 
