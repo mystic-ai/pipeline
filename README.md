@@ -24,9 +24,8 @@ The syntax used for defining AI/ML pipelines shares some similarities in syntax 
 ## Huggingface Transformers
 
 ```
-from pipeline import Pipeline, Variable, pipeline_function, for_loop
+from pipeline import Pipeline, Variable, for_loop, pipeline_function
 from pipeline.model.transformer_models import TransformersModel
-
 
 with Pipeline(pipeline_name="GPTNeo") as pipeline:
     input_str = Variable(variable_type=str, is_input=True)
