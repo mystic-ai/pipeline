@@ -123,8 +123,8 @@ class PipelineCloud:
     def upload_file(self, file_or_path, remote_path) -> FileGet:
 
         if isinstance(file_or_path, str):
-            # TODO: Change this to wrap the file object reader to convert to hex everytime 
-            # anything is read instead of reading it all at once.
+            # TODO: Change this to wrap the file object reader to convert to hex
+            # everytime anything is read instead of reading it all at once.
 
             with open(file_or_path, "rb") as file:
                 buffer = file.read()
