@@ -42,7 +42,6 @@ class MyMatrixModel:
             self.matrix = np.load(matrix_file.path)
             # print(self.matrix)
             print("Loaded matrix!")
-            # raise(Exception(self.matrix))
         except:
             return False
         return True
