@@ -54,7 +54,6 @@ class Graph:
         self._has_run_startup = False
         self.compute_type = compute_type
         self.min_gpu_vram_mb = min_gpu_vram_mb
-        # Flag set when all models have had their `load()` methods called
 
     def _startup(self):
         if self._has_run_startup:
