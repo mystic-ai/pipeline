@@ -98,7 +98,7 @@ class Graph:
 
             if node_function.function is None:
                 raise Exception(
-                    "Node function is none (id:%s)" % node.function.local_id
+                    "Node function is None (id:%s)" % node.function.local_id
                 )
 
             if getattr(node_function, "class_instance", None) is not None:
