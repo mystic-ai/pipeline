@@ -77,12 +77,8 @@ class Graph:
                     break
             if (
                 getattr(node_function.function, "__run_once__", False)
-                and hasattr(node_function.function, "__has_run__")
-                and node_function.function.__has_run__
-            ) or (
-                hasattr(node_function.function, "__on_startup__")
-                and not node_function.function.__on_startup__
-            ):
+                and getattr(node_function.function, "__has_run__", False)
+            ) or getattr(node_function.function, "__has_run__", False):
                 continue
 
             for _node_input in node.inputs:
@@ -105,10 +101,7 @@ class Graph:
             else:
                 node_function.function(*function_inputs)
 
-            if (
-                hasattr(node_function.function, "__has_run__")
-                and not node_function.function.__has_run__
-            ):
+            if getattr(node_function.function, "__has_run__", False):
                 node_function.function.__has_run__ = True
 
         self._has_run_startup = True
