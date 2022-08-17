@@ -1,4 +1,5 @@
 from pipeline.objects import Pipeline, Variable, pipeline_function
+from ..pipeline.objects.decorators import pipeline_model
 
 
 # Check if the decorator correctly uses __init__ and __enter__
@@ -52,3 +53,32 @@ def test_pipeline_with_compute_requirements(pipeline_graph_with_compute_requirem
     pipeline_graph = pipeline_graph_with_compute_requirements
     assert pipeline_graph.compute_type == "gpu"
     assert pipeline_graph.min_gpu_vram_mb == 4000
+
+
+def test_run_once():
+    @pipeline_model
+    class simple_model:
+        def __init__(self):
+            self.test_number = 0
+
+        @pipeline_function(run_once=True)
+        def run_once_func(self) -> int:
+            self.test_number += 1
+            return self.test_number
+
+        @pipeline_function
+        def get_number(self) -> int:
+            return self.test_number
+
+    with Pipeline("test") as builder:
+        # in_1 = Variable(int, is_input=True)
+        # builder.add_variable(in_1)
+        my_simple_model = simple_model()
+        my_simple_model.run_once_func()
+        my_simple_model.run_once_func()
+        output = my_simple_model.get_number()
+        builder.output(output)
+
+    output_pipeline = Pipeline.get_pipeline("test")
+    output_number = output_pipeline.run()
+    assert output_number == 1
