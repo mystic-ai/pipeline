@@ -17,7 +17,6 @@ from pipeline import (
     pipeline_function,
     pipeline_model,
 )
-from pipeline.util.torch_utils import tensor_to_list
 
 
 @pipeline_model

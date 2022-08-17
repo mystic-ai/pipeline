@@ -77,8 +77,8 @@ class Graph:
                     break
             if (
                 getattr(node_function.function, "__run_once__", False)
-                and getattr(node_function.function, "__has_run__", False)
-            ) or getattr(node_function.function, "__has_run__", False):
+                and not getattr(node_function.function, "__has_run__", False)
+            ) or not getattr(node_function.function, "__on_startup__", False):
                 continue
 
             for _node_input in node.inputs:
