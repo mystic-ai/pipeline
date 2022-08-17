@@ -40,7 +40,6 @@ class MyMatrixModel:
         try:
             print("Loading matrix...")
             self.matrix = np.load(matrix_file.path)
-            # print(self.matrix)
             print("Loaded matrix!")
         except:
             return False
