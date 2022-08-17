@@ -81,4 +81,4 @@ def test_run_once():
 
     output_pipeline = Pipeline.get_pipeline("test")
     output_number = output_pipeline.run()
-    assert output_number == 1
+    assert output_number == [1]
