@@ -70,12 +70,39 @@ def test_run_once():
             return self.test_number
 
     with Pipeline("test") as builder:
-        # in_1 = Variable(int, is_input=True)
-        # builder.add_variable(in_1)
         my_simple_model = simple_model()
         my_simple_model.run_once_func()
         my_simple_model.run_once_func()
         output = my_simple_model.get_number()
+        builder.output(output)
+
+    output_pipeline = Pipeline.get_pipeline("test")
+    output_number = output_pipeline.run()
+    assert output_number == [1]
+
+
+def test_run_startup():
+    @pipeline_model
+    class simple_model:
+        def __init__(self):
+            self.test_number = 0
+
+        @pipeline_function(on_startup=True)
+        def run_startup_func(self) -> int:
+            self.test_number += 1
+            return self.test_number
+
+        @pipeline_function
+        def get_number(self) -> int:
+            return self.test_number
+
+    with Pipeline("test") as builder:
+        my_simple_model = simple_model()
+        output = my_simple_model.get_number()
+        # The run_startup_func is called after the get_number in the pipeline,
+        # but as a startup func it will actually be called before.
+
+        my_simple_model.run_startup_func()
         builder.output(output)
 
     output_pipeline = Pipeline.get_pipeline("test")
