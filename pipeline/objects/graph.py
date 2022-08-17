@@ -148,11 +148,8 @@ class Graph:
                     node_function = function
                     break
 
-            if (
-                hasattr(node_function.function, "__run_once__")
-                and node_function.function.__run_once__
-                and hasattr(node_function.function, "__has_run__")
-                and node_function.function.__has_run__
+            if getattr(node_function.function, "__run_once__", False) and getattr(
+                node_function.function, "__has_run__", False
             ):
                 continue
 
