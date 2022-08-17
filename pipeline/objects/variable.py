@@ -61,7 +61,7 @@ class PipelineFile(Variable):
         local_id: str = None,
     ) -> None:
         super().__init__(
-            type_class=self,
+            type_class=self.__class__,
             is_input=False,
             is_output=False,
             name=name,
