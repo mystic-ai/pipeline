@@ -245,12 +245,6 @@ class PipelineCloud:
             )
         except AttributeError as e:
             raise InvalidSchema(schema="Function", message=str(e))
-        except ValidationError as e:
-            print(
-                "Validation error when creating FunctionCreate schema for function %s."
-                % function.name
-            )
-            raise e
 
         response = self._post("/v2/functions", function_create_schema.dict())
         return FunctionGet.parse_obj(response)
