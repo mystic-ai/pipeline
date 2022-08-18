@@ -182,10 +182,7 @@ class Graph:
 
             running_variables[node_outputs[0].local_id] = output
 
-            if (
-                hasattr(node_function.function, "__has_run__")
-                and not node_function.function.__has_run__
-            ):
+            if not getattr(node_function.function, "__has_run__", False):
                 node_function.function.__has_run__ = True
 
         return_variables = []
