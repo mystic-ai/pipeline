@@ -4,6 +4,7 @@ from pipeline.objects.graph import Graph
 from pipeline.objects.model import Model
 from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.variable import PipelineFile, Variable
+from pipeline.objects.wrappers import onnx_model
 
 __all__ = [
     "Pipeline",
@@ -14,4 +15,5 @@ __all__ = [
     "pipeline_function",
     "pipeline_model",
     "PipelineFile",
+    "onnx_model"
 ]
