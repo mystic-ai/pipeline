@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import os
@@ -20,7 +21,12 @@ from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
-from pipeline.schemas.pipeline import PipelineCreate, PipelineGet, PipelineVariableGet
+from pipeline.schemas.pipeline import (
+    PipelineCreate,
+    PipelineFileVariableGet,
+    PipelineGet,
+    PipelineVariableGet,
+)
 from pipeline.schemas.run import RunCreate
 from pipeline.util import (
     generate_id,
@@ -117,8 +123,15 @@ class PipelineCloud:
     def upload_file(self, file_or_path, remote_path) -> FileGet:
 
         if isinstance(file_or_path, str):
+            # TODO: Change this to wrap the file object reader to convert to hex
+            # everytime anything is read instead of reading it all at once.
+
             with open(file_or_path, "rb") as file:
-                return self._post_file("/v2/files/", file, remote_path)
+                buffer = file.read()
+            hex_buffer = buffer.hex()
+            return self._post_file(
+                "/v2/files/", io.BytesIO(hex_buffer.encode()), remote_path
+            )
         else:
             return self._post_file("/v2/files/", file_or_path, remote_path)
 
@@ -160,7 +173,7 @@ class PipelineCloud:
 
         return response.json()
 
-    def _post_file(self, endpoint, file, remote_path):
+    def _post_file(self, endpoint, file, remote_path) -> FileGet:
         self.raise_for_invalid_token()
         if not hasattr(file, "name"):
             file.name = generate_id(20)
@@ -232,6 +245,7 @@ class PipelineCloud:
             )
         except AttributeError as e:
             raise InvalidSchema(schema="Function", message=str(e))
+
         response = self._post("/v2/functions", function_create_schema.dict())
         return FunctionGet.parse_obj(response)
 
@@ -287,17 +301,35 @@ class PipelineCloud:
 
         new_variables: List[PipelineVariableGet] = []
         print("Uploading variables")
+
+        from pipeline.objects import PipelineFile
+
         for _var in new_pipeline_graph.variables:
             _var_type_file = self.upload_file(
                 io.BytesIO(python_object_to_hex(_var.type_class).encode()), "/"
             )
+
+            pipeline_file_schema: PipelineFileVariableGet = None
+
+            if isinstance(_var, PipelineFile):
+
+                _var_file_hash = self._hash_file(_var.path)
+
+                _var_file = self.upload_file(_var.path, "/")
+
+                pipeline_file_schema = PipelineFileVariableGet(
+                    path=_var.path, file=_var_file, hash=_var_file_hash
+                )
+
             _var_schema = PipelineVariableGet(
                 local_id=_var.local_id,
                 name=_var.name,
                 type_file=_var_type_file,
                 is_input=_var.is_input,
                 is_output=_var.is_output,
+                pipeline_file_variable=pipeline_file_schema,
             )
+
             new_variables.append(_var_schema)
 
         new_graph_nodes = [
@@ -503,3 +535,13 @@ class PipelineCloud:
         from pipeline.objects import Graph
 
         return Graph.from_schema(p_get_schema)
+
+    def _hash_file(self, file_path: str, block_size=2**20) -> str:
+        md5 = hashlib.md5()
+        with open(file_path, "rb") as f:
+            while True:
+                data = f.read(block_size)
+                if not data:
+                    break
+                md5.update(data)
+        return md5.hexdigest()

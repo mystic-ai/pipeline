@@ -5,7 +5,7 @@ from cloudpickle import dumps, loads
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.model import Model
-from pipeline.objects.variable import Variable
+from pipeline.objects.variable import PipelineFile, Variable
 from pipeline.schemas.pipeline import PipelineGet
 from pipeline.util import generate_id
 
@@ -24,6 +24,7 @@ class Graph:
     nodes: List[GraphNode]
 
     models: List[Model]
+
     # TODO: Add generic objects (e.g. Model) to be included in the graph
 
     compute_type: str
@@ -49,29 +50,66 @@ class Graph:
         self.outputs = outputs if outputs is not None else []
         self.nodes = nodes if nodes is not None else []
         self.models = models if models is not None else []
+        # Flag set when all functions with the on_startup field have run
+        self._has_run_startup = False
         self.compute_type = compute_type
         self.min_gpu_vram_mb = min_gpu_vram_mb
-        # Flag set when all models have had their `load()` methods called
-        self._loaded = False
 
-    def _load(self):
-        if self._loaded:
+    def _startup(self):
+        if self._has_run_startup:
             return
-        for model in self.models:
-            # TODO check dir of model.model
-            if hasattr(model.model, "load"):
-                print("Loading model (%s)" % model.local_id)
-                model.model.load()
+
+        startup_variables = {}
+
+        for var in self.variables:
+            # At the moment only the PipelineFile variable can be used on startup
+            if isinstance(var, PipelineFile):
+                startup_variables[var.local_id] = var
+
+        for node in self.nodes:
+
+            node_inputs: List[Variable] = []
+            node_function: Function = None
+
+            for function in self.functions:
+                if function.local_id == node.function.local_id:
+                    node_function = function
+                    break
+            if (
+                getattr(node_function.function, "__run_once__", False)
+                and not getattr(node_function.function, "__has_run__", False)
+            ) or not getattr(node_function.function, "__on_startup__", False):
+                continue
+
+            for _node_input in node.inputs:
+                for variable in self.variables:
+                    if variable.local_id == _node_input.local_id:
+                        node_inputs.append(variable)
+                        break
+
+            function_inputs = []
+            for _input in node_inputs:
+                function_inputs.append(startup_variables[_input.local_id])
+
+            if node_function.function is None:
+                raise Exception(
+                    "Node function is None (id:%s)" % node.function.local_id
+                )
+
+            if getattr(node_function, "class_instance", None) is not None:
+                node_function.function(node_function.class_instance, *function_inputs)
             else:
-                raise Exception("Model load not found")
-        self._loaded = True
+                node_function.function(*function_inputs)
+
+            if getattr(node_function.function, "__has_run__", False):
+                node_function.function.__has_run__ = True
+
+        self._has_run_startup = True
 
     def run(self, *inputs):
         input_variables: List[Variable] = [
             var for var in self.variables if var.is_input
         ]
-
-        # TODO: Add generic object loading
 
         if len(inputs) != len(input_variables):
             raise Exception(
@@ -79,9 +117,15 @@ class Graph:
                 % (len(input_variables), len(inputs))
             )
 
-        self._load()
+        self._startup()
 
         running_variables = {}
+
+        # Add all PipelineFile's to the running variables
+        for var in self.variables:
+            if isinstance(var, PipelineFile):
+                running_variables[var.local_id] = var
+
         for i, input in enumerate(inputs):
             if not isinstance(input, input_variables[i].type_class):
                 raise Exception(
@@ -99,6 +143,16 @@ class Graph:
             node_outputs: List[Variable] = []
             node_function: Function = None
 
+            for function in self.functions:
+                if function.local_id == node.function.local_id:
+                    node_function = function
+                    break
+
+            if getattr(node_function.function, "__run_once__", False) and getattr(
+                node_function.function, "__has_run__", False
+            ):
+                continue
+
             for _node_input in node.inputs:
                 for variable in self.variables:
                     if variable.local_id == _node_input.local_id:
@@ -109,11 +163,6 @@ class Graph:
                     if variable.local_id == _node_output.local_id:
                         node_outputs.append(variable)
                         break
-
-            for function in self.functions:
-                if function.local_id == node.function.local_id:
-                    node_function = function
-                    break
 
             function_inputs = []
             for _input in node_inputs:
@@ -132,6 +181,9 @@ class Graph:
                 output = node_function.function(*function_inputs)
 
             running_variables[node_outputs[0].local_id] = output
+
+            if not getattr(node_function.function, "__has_run__", False):
+                node_function.function.__has_run__ = True
 
         return_variables = []
 

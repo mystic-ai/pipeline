@@ -3,7 +3,7 @@ from typing import List
 from pipeline import Pipeline, Variable, pipeline_function, pipeline_model
 
 
-@pipeline_model(file_or_dir="/lol", compress_tar=False)
+@pipeline_model
 class MyModel:
     model = None
 

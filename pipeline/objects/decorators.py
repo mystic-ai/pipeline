@@ -1,3 +1,5 @@
+from functools import partial, wraps
+
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.model import Model
@@ -5,16 +7,26 @@ from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.variable import Variable
 
 
-def pipeline_function(function):
-    """
-    Annotate a function as accesible by the Pipeline Object.
+def pipeline_function(function=None, *, run_once=False, on_startup=False):
+    """_summary_
 
-        Parameters:
-                function (Function): user defined function.
-        Returns:
-                None.
-    """
+    Args:
+        function (callable, optional): _description_. This is the function to be
+            wrapped, you do not pass this in manually it's automatically handled.
 
+        run_once (bool, optional): _description_. Defaults to False. Setting to True
+            will ensure that the decorated funciton is only called once
+            in a pipeline run
+
+        on_startup (bool, optional): _description_. Defaults to False. Setting to True
+            will cause the wrapped function to be executed at the start of a pipeline
+            run, regardless of when it's placed when defining the pipeline.
+
+    """
+    if function is None:
+        return partial(pipeline_function, run_once=run_once, on_startup=on_startup)
+
+    @wraps(function)
     def execute_func(*args, **kwargs):
         if not Pipeline._pipeline_context_active:
             return function(*args, **kwargs)
@@ -54,7 +66,13 @@ def pipeline_function(function):
             return node_output
 
     execute_func.__function__ = function
+
+    function.__run_once__ = run_once
+    function.__has_run__ = False
+
+    function.__on_startup__ = on_startup
     function.__pipeline_function__ = Function(function)
+
     return execute_func
 
 
