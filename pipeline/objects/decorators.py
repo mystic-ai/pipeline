@@ -8,6 +8,21 @@ from pipeline.objects.variable import Variable
 
 
 def pipeline_function(function=None, *, run_once=False, on_startup=False):
+    """_summary_
+
+    Args:
+        function (callable, optional): _description_. This is the function to be
+            wrapped, you do not pass this in manually it's automatically handled.
+
+        run_once (bool, optional): _description_. Defaults to False. Setting to True
+            will ensure that the decorated funciton is only called once
+            in a pipeline run
+
+        on_startup (bool, optional): _description_. Defaults to False. Setting to True
+            will cause the wrapped function to be executed at the start of a pipeline
+            run, regardless of when it's placed when defining the pipeline.
+
+    """
     if function is None:
         return partial(pipeline_function, run_once=run_once, on_startup=on_startup)
 
