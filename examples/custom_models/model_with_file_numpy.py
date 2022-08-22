@@ -45,7 +45,7 @@ class MyMatrixModel:
         return True
 
 
-np.save("example_matrix.npy", np.random.rand(4, 7))
+np.save("example_matrix.npy", np.random.rand(3, 7))
 
 with Pipeline("Matrix pipeline") as pipeline:
     input_list = Variable(type_class=list, is_input=True)
