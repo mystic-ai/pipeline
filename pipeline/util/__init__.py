@@ -2,7 +2,8 @@ import random
 import string
 from typing import Any, Optional
 
-from cloudpickle import dumps, loads
+from cloudpickle import dumps
+from dill import loads
 
 from pipeline.schemas.file import FileCreate
 
