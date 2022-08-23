@@ -4,19 +4,13 @@
 #   It is generaliseable to use a PipelineFile in an arbitary way.
 #
 ##########
-import getopt
-import sys
-from xml.parsers.expat import model
+
 import dill
-import cloudpickle
 
 from pipeline import (
     Pipeline,
-    PipelineCloud,
-    PipelineFile,
     Variable,
     pipeline_function,
-    pipeline_model,
 )
 from pipeline.objects.decorators import PipelineBase
 
@@ -48,10 +42,7 @@ with Pipeline("Matrix pipeline") as pipeline:
     pipeline.output(output)
 
 output_pipeline = Pipeline.get_pipeline("Matrix pipeline")
-# dill.detect.trace(True)
-# dill.dumps(output_pipeline)
 serialised = dill.dumps(output_pipeline)
 serialised = dill.loads(serialised)
 print(serialised.__dict__)
 print(output_pipeline.__dict__)
-breakpoint()

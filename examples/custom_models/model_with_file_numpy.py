@@ -6,7 +6,6 @@
 ##########
 import getopt
 import sys
-import dill
 
 import numpy as np
 
