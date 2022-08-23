@@ -21,8 +21,6 @@ def test_model_serialization(pickled_graph):
         reformed_graph.nodes[0].function.class_instance
         == reformed_graph.models[0].model
     )
-
-    # TODO Add actual run check
     assert reformed_graph.run("add lol")[0] == "add lol lol"
 
 
