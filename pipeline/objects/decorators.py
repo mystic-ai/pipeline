@@ -29,8 +29,10 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
     @wraps(function)
     def execute_func(*args, **kwargs):
         if not Pipeline._pipeline_context_active:
+            print("wrapping out of context")
             return function(*args, **kwargs)
         else:
+            print("wrapping in context")
             function_ios = function.__annotations__
             if "return" not in function_ios:
                 raise Exception(
@@ -39,9 +41,10 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
 
             processed_args: Variable = []
             for input_arg in args:
+                print(f"Input arg {input_arg} has type {type(input_arg)}")
                 if isinstance(input_arg, Variable):
                     processed_args.append(input_arg)
-                elif hasattr(input_arg, "__pipeline_model__"):
+                elif input_arg.__pipeline_model__:
                     if function.__pipeline_function__.class_instance is None:
                         function.__pipeline_function__.class_instance = input_arg
                 else:
@@ -105,3 +108,17 @@ class pipeline_model(object):
             model_schema = Model(model=created_model)
             Pipeline._current_pipeline.models.append(model_schema)
             return created_model
+
+
+class PipelineBase(object):
+    def __init__(
+        self, file_or_dir: str = None, compress_tar=False
+    ):
+        self.__pipeline_model__ = True
+        self.compress_tar = compress_tar
+        self.file_or_dir = file_or_dir
+        self.model_class = self.__class__
+
+        if Pipeline._current_pipeline:
+            model_schema = Model(model=self)
+            Pipeline._current_pipeline.models.append(model_schema)
