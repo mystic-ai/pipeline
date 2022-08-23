@@ -6,6 +6,7 @@
 ##########
 import getopt
 import sys
+import dill
 
 import numpy as np
 
@@ -15,17 +16,12 @@ from pipeline import (
     PipelineFile,
     Variable,
     pipeline_function,
-    pipeline_model,
+    PipelineBase
 )
 
 
-@pipeline_model
-class MyMatrixModel:
-
+class MyMatrixModel(PipelineBase):
     matrix: np.ndarray = None
-
-    def __init__(self):
-        ...
 
     @pipeline_function
     def predict(self, x: list[float]) -> list[float]:
@@ -45,7 +41,7 @@ class MyMatrixModel:
         return True
 
 
-np.save("example_matrix.npy", np.random.rand(4, 7))
+np.save("example_matrix.npy", np.random.rand(3, 7))
 
 with Pipeline("Matrix pipeline") as pipeline:
     input_list = Variable(type_class=list, is_input=True)

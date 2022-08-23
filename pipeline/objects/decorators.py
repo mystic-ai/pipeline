@@ -29,10 +29,8 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
     @wraps(function)
     def execute_func(*args, **kwargs):
         if not Pipeline._pipeline_context_active:
-            print("wrapping out of context")
             return function(*args, **kwargs)
         else:
-            print("wrapping in context")
             function_ios = function.__annotations__
             if "return" not in function_ios:
                 raise Exception(
@@ -41,7 +39,6 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
 
             processed_args: Variable = []
             for input_arg in args:
-                print(f"Input arg {input_arg} has type {type(input_arg)}")
                 if isinstance(input_arg, Variable):
                     processed_args.append(input_arg)
                 elif input_arg.__pipeline_model__:

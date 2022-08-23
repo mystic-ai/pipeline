@@ -6,6 +6,7 @@
 ##########
 import getopt
 import sys
+from pipeline.objects.decorators import PipelineBase
 
 import torch
 
@@ -15,17 +16,16 @@ from pipeline import (
     PipelineFile,
     Variable,
     pipeline_function,
-    pipeline_model,
 )
 from pipeline.util.torch_utils import tensor_to_list
 
 
-@pipeline_model
-class MyModel:
+class MyModel(PipelineBase):
 
     model: torch.nn.Module = None
 
-    def __init__(self):
+    def __init__(self, file_or_dir: str = None, compress_tar=False):
+        super().__init__(file_or_dir, compress_tar)
         self.my_model = torch.nn.Sequential(
             torch.nn.Linear(3, 5), torch.nn.Linear(5, 2)
         )
