@@ -1,11 +1,13 @@
-from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline.objects import Pipeline, Variable, pipeline_function, PipelineBase
+from pipeline.objects.decorators import PipelineBase
 
 
 # Test basic Pipeline
 def test_with_exit():
-    @pipeline_model()
-    class CustomModel:
-        def __init__(self, model_path="", tokenizer_path=""):
+    class CustomModel(PipelineBase):
+        def __init__(self, model_path="", tokenizer_path="", file_or_dir: str = None, compress_tar=False):
+            super().__init__(file_or_dir, compress_tar)
+            
             self.model_path = model_path
             self.tokenizer_path = tokenizer_path
 
