@@ -7,7 +7,7 @@ import pytest
 import responses
 from responses import matchers
 
-from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline.objects import Pipeline, Variable, pipeline_function, PipelineBase
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
@@ -197,10 +197,10 @@ def data_get_json(data_get, file_get_json):
 
 
 @pytest.fixture()
-def pipeline_graph():
-    @pipeline_model()
-    class CustomModel:
-        def __init__(self, model_path="", tokenizer_path=""):
+def lol_model():
+    class CustomModel(PipelineBase):
+        def __init__(self, model_path="", tokenizer_path="", file_or_dir: str = None, compress_tar=False):
+            super().__init__(file_or_dir, compress_tar)
             self.model_path = model_path
             self.tokenizer_path = tokenizer_path
 
@@ -212,11 +212,52 @@ def pipeline_graph():
         def load(self) -> None:
             print("load")
 
+    return CustomModel
+
+
+@pytest.fixture()
+def run_once_model():
+    class simple_model(PipelineBase):
+        def __init__(self, file_or_dir: str = None, compress_tar=False):
+            super().__init__(file_or_dir, compress_tar)
+            self.test_number = 0
+
+        @pipeline_function(run_once=True)
+        def run_once_func(self) -> int:
+            self.test_number += 1
+            return self.test_number
+
+        @pipeline_function
+        def get_number(self) -> int:
+            return self.test_number
+    return simple_model
+
+
+@pytest.fixture()
+def on_startup_model():
+    class simple_model(PipelineBase):
+        def __init__(self, file_or_dir: str = None, compress_tar=False):
+            super().__init__(file_or_dir, compress_tar)
+            self.test_number = 0
+
+        @pipeline_function(on_startup=True)
+        def run_startup_func(self) -> int:
+            self.test_number += 1
+            return self.test_number
+
+        @pipeline_function
+        def get_number(self) -> int:
+            return self.test_number
+    return simple_model
+
+
+@pytest.fixture()
+def pipeline_graph(lol_model):
     with Pipeline("test") as my_pipeline:
         in_1 = Variable(str, is_input=True)
         my_pipeline.add_variable(in_1)
 
-        my_model = CustomModel()
+        my_model = lol_model()
         str_1 = my_model.predict(in_1)
 
         my_pipeline.output(str_1)
@@ -360,21 +401,8 @@ def model_get_json(model_get, model_file_get_json):
 
 
 @pytest.fixture()
-def pipeline_graph_with_compute_requirements():
-    @pipeline_model()
-    class CustomModel:
-        def __init__(self, model_path="", tokenizer_path=""):
-            self.model_path = model_path
-            self.tokenizer_path = tokenizer_path
-
-        @pipeline_function
-        def predict(self, input: str, **kwargs: dict) -> str:
-            return input + " lol"
-
-        @pipeline_function
-        def load(self) -> None:
-            print("load")
-
+def pipeline_graph_with_compute_requirements(lol_model):
+    CustomModel = lol_model
     with Pipeline("test", compute_type="gpu", min_gpu_vram_mb=4000) as my_pipeline:
         in_1 = Variable(str, is_input=True)
         my_pipeline.add_variable(in_1)

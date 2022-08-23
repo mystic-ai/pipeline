@@ -1,4 +1,9 @@
+from pickle import PicklingError
+
+import pytest
+
 from pipeline.objects.graph import Graph
+from pipeline.util import python_object_to_hex, hex_to_python_object
 from pipeline.schemas.pipeline import PipelineGet
 
 
@@ -19,3 +24,14 @@ def test_model_serialization(pickled_graph):
 
     # TODO Add actual run check
     assert reformed_graph.run("add lol")[0] == "add lol lol"
+
+
+def test_graph_serialisation(pipeline_graph):
+    try:
+        deserialized = hex_to_python_object(python_object_to_hex(pipeline_graph))
+        assert deserialized.__class__ == pipeline_graph.__class__
+        assert deserialized.run("add lol")[0] == "add lol lol"
+    except (PicklingError, AssertionError) as e:
+        pytest.fail(f"Pipeline Graph does not serialize: {e}")
+    except Exception as e:
+        pytest.fail(f"Unexpected error: {e}")

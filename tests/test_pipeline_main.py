@@ -1,4 +1,4 @@
-from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline.objects import Pipeline, Variable, pipeline_function
 
 
 # Check if the decorator correctly uses __init__ and __enter__
@@ -54,23 +54,9 @@ def test_pipeline_with_compute_requirements(pipeline_graph_with_compute_requirem
     assert pipeline_graph.min_gpu_vram_mb == 4000
 
 
-def test_run_once():
-    @pipeline_model
-    class simple_model:
-        def __init__(self):
-            self.test_number = 0
-
-        @pipeline_function(run_once=True)
-        def run_once_func(self) -> int:
-            self.test_number += 1
-            return self.test_number
-
-        @pipeline_function
-        def get_number(self) -> int:
-            return self.test_number
-
+def test_run_once(run_once_model):
     with Pipeline("test") as builder:
-        my_simple_model = simple_model()
+        my_simple_model = run_once_model()
         my_simple_model.run_once_func()
         my_simple_model.run_once_func()
         output = my_simple_model.get_number()
@@ -81,23 +67,9 @@ def test_run_once():
     assert output_number == [1]
 
 
-def test_run_startup():
-    @pipeline_model
-    class simple_model:
-        def __init__(self):
-            self.test_number = 0
-
-        @pipeline_function(on_startup=True)
-        def run_startup_func(self) -> int:
-            self.test_number += 1
-            return self.test_number
-
-        @pipeline_function
-        def get_number(self) -> int:
-            return self.test_number
-
+def test_run_startup(on_startup_model):
     with Pipeline("test") as builder:
-        my_simple_model = simple_model()
+        my_simple_model = on_startup_model()
         output = my_simple_model.get_number()
         # The run_startup_func is called after the get_number in the pipeline,
         # but as a startup func it will actually be called before.
