@@ -10,7 +10,7 @@ def onnx_to_pipeline(path: str):
                 path (str): local path to onnx model file
 
         Returns:
-                pipeline (PipelineGet): Object representing uploaded pipeline.
+                pipeline (Graph): Executable Pipeline Graph object
     """
 
     @pipeline_model
