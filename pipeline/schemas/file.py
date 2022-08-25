@@ -1,5 +1,7 @@
 from typing import Optional
 
+from datetime import datetime
+
 from .base import BaseModel
 
 
@@ -19,3 +21,14 @@ class FileGet(FileBase):
 class FileCreate(FileBase):
     name: Optional[str]
     file_bytes: Optional[str]
+
+
+class FileDirectUploadCreate(FileBase):
+    file_hash: Optional[str]
+    file_size: int
+
+
+class FileDirectUploadGet(BaseModel):
+    upload_url: str
+    url_expiry_time: datetime
+    file_id: str
