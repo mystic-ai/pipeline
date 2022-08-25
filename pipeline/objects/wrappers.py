@@ -3,7 +3,7 @@ from pipeline.objects.pipeline import Pipeline
 from pipeline.objects.variable import PipelineFile, Variable
 
 
-def onnx_model(path: str):
+def onnx_to_pipeline(path: str):
     """
     Create a pipeline from an onnx model file
         Parameters:

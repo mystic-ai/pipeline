@@ -1,11 +1,11 @@
 import torch
 
-from pipeline import PipelineCloud, onnx_model
+from pipeline import PipelineCloud, onnx_to_pipeline
 from pipeline.util.torch_utils import tensor_to_list
 
-onnx_pipeline = onnx_model("./example.onnx")
+onnx_pipeline = onnx_to_pipeline("./example.onnx")
 
-api = PipelineCloud(token="neuro_sk_aLGaopgrjCuomO6PV2BKFVNFIuR2sAM5")
+api = PipelineCloud(token="YOUR_API_KEY")
 uploaded_pipeline = api.upload_pipeline(onnx_pipeline)
 print(f"Uploaded pipeline: {uploaded_pipeline.id}")
 
