@@ -7,6 +7,6 @@ onnx_pipeline = onnx_to_pipeline("./example.onnx")
 
 # run locally
 input = tensor_to_list(torch.rand(1, 28, 28, device="cpu"))
-result = onnx_pipeline.run(["output"], {"input": input})[0]
+result = onnx_pipeline.run(["output"], {"input": input})
 
 print(result)
