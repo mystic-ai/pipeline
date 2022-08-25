@@ -15,5 +15,5 @@ __all__ = [
     "pipeline_function",
     "pipeline_model",
     "PipelineFile",
-    "onnx_model"
+    "onnx_model",
 ]

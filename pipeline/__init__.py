@@ -3,9 +3,9 @@ from pipeline.objects import (
     Pipeline,
     PipelineFile,
     Variable,
+    onnx_model,
     pipeline_function,
     pipeline_model,
-    onnx_model,
 )
 
 __all__ = [
@@ -15,5 +15,5 @@ __all__ = [
     "pipeline_function",
     "PipelineCloud",
     "PipelineFile",
-    "onnx_model"
+    "onnx_model",
 ]
