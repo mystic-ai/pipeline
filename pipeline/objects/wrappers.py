@@ -1,6 +1,5 @@
 from pipeline.objects.decorators import pipeline_function, pipeline_model
-from pipeline.objects.pipeline import Pipeline
-from pipeline.objects.variable import PipelineFile, Variable
+from pipeline.objects import Pipeline, PipelineFile, Variable, Graph
 
 
 def onnx_to_pipeline(path: str) -> Graph:
