@@ -159,10 +159,12 @@ class PipelineCloud:
         - Then we upload the file directly using the given URL
         """
 
+        # TODO - check we always want to generate a new ID
+        file_name = generate_id(20)
         file_hash = self._hash_file(pipeline_file.path)
         file_size = os.path.getsize(pipeline_file.path)
         direct_upload_schema = FileDirectUploadCreate(
-            file_hash=file_hash, file_size=file_size
+            name=file_name, file_hash=file_hash, file_size=file_size
         )
         response = self._post("/v2/files/presigned-url", direct_upload_schema.dict())
         direct_upload_get = FileDirectUploadGet.parse_obj(response)
