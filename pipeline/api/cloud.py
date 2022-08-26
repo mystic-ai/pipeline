@@ -168,6 +168,16 @@ class PipelineCloud:
         )
         response = self._post("/v2/files/presigned-url", direct_upload_schema.dict())
         direct_upload_get = FileDirectUploadGet.parse_obj(response)
+
+        # upload file
+        # TODO - optimise for large files
+        with open(pipeline_file.path, "rb") as f:
+            files = {"file": (direct_upload_get.file_id, f)}
+            http_response = requests.post(
+                direct_upload_get.upload_url,
+                data=direct_upload_get.upload_fields,
+                files=files,
+            )
         # # file = self.upload_file(pipeline_file.path, "/")
         # return PipelineFileVariableGet(
         #     path=pipeline_file.path, file=file, hash=file_hash
