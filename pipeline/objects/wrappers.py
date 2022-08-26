@@ -64,4 +64,4 @@ def onnx_to_pipeline(path: str, name: str = "ONNX model") -> Graph:
 
         pipeline.output(output)
 
-    return Pipeline.get_pipeline("model")
+    return Pipeline.get_pipeline(name)
