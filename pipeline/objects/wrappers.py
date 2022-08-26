@@ -8,11 +8,12 @@ from pipeline.objects import (
 )
 
 
-def onnx_to_pipeline(path: str) -> Graph:
+def onnx_to_pipeline(path: str, name: str = "ONNX model") -> Graph:
     """
     Create a pipeline from an onnx model file
         Parameters:
                 path (str): local path to onnx model file
+                name (str): Desired name to be given to this pipeline
 
         Returns:
                 pipeline (Graph): Executable Pipeline Graph object
@@ -42,7 +43,7 @@ def onnx_to_pipeline(path: str) -> Graph:
             )
             return True
 
-    with Pipeline("model") as pipeline:
+    with Pipeline(name) as pipeline:
         onnx_file = PipelineFile(path=path)
         onnx_output = Variable(list, is_input=True)
         onnx_input = Variable(dict, is_input=True)
@@ -63,4 +64,4 @@ def onnx_to_pipeline(path: str) -> Graph:
 
         pipeline.output(output)
 
-    return Pipeline.get_pipeline("model")
+    return Pipeline.get_pipeline(name)
