@@ -18,7 +18,12 @@ from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
-from pipeline.schemas.file import FileCreate, FileGet
+from pipeline.schemas.file import (
+    FileCreate,
+    FileGet,
+    FileDirectUploadCreate,
+    FileDirectUploadGet,
+)
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import (
@@ -144,6 +149,27 @@ class PipelineCloud:
         return self.upload_file(
             io.BytesIO(python_object_to_hex(obj).encode()), remote_path
         )
+
+    def upload_pipeline_file(self, pipeline_file) -> PipelineFileVariableGet:
+        """Upload PipelineFile given by pipeline_file.
+
+        Since PipelineFiles can be very large, we implement this slightly
+        differently to regular file uploads:
+        - We first get a presigned URL for the image upload
+        - Then we upload the file directly using the given URL
+        """
+
+        file_hash = self._hash_file(pipeline_file.path)
+        file_size = os.path.getsize(pipeline_file.path)
+        direct_upload_schema = FileDirectUploadCreate(
+            file_hash=file_hash, file_size=file_size
+        )
+        response = self._post("/v2/files/presigned-url", direct_upload_schema.dict())
+        direct_upload_get = FileDirectUploadGet.parse_obj(response)
+        # # file = self.upload_file(pipeline_file.path, "/")
+        # return PipelineFileVariableGet(
+        #     path=pipeline_file.path, file=file, hash=file_hash
+        # )
 
     def _get(self, endpoint: str, params: Dict[str, Any] = None):
         headers = {
@@ -309,17 +335,9 @@ class PipelineCloud:
                 io.BytesIO(python_object_to_hex(_var.type_class).encode()), "/"
             )
 
-            pipeline_file_schema: PipelineFileVariableGet = None
-
+            pipeline_file_schema = None
             if isinstance(_var, PipelineFile):
-
-                _var_file_hash = self._hash_file(_var.path)
-
-                _var_file = self.upload_file(_var.path, "/")
-
-                pipeline_file_schema = PipelineFileVariableGet(
-                    path=_var.path, file=_var_file, hash=_var_file_hash
-                )
+                pipeline_file_schema = self.upload_pipeline_file(_var)
 
             _var_schema = PipelineVariableGet(
                 local_id=_var.local_id,
