@@ -20,9 +20,12 @@ from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import (
     FileCreate,
+    FileDirectUploadFinaliseCreate,
+    FileDirectUploadInitCreate,
+    FileDirectUploadInitGet,
+    FileDirectUploadPartCreate,
+    FileDirectUploadPartGet,
     FileGet,
-    FileDirectUploadCreate,
-    FileDirectUploadGet,
 )
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
@@ -43,6 +46,8 @@ from pipeline.util.logging import PIPELINE_STR
 
 if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
+
+FILE_CHUNK_SIZE = 1 * (1024**3)  # 1 GiB
 
 
 class PipelineCloud:
@@ -163,25 +168,53 @@ class PipelineCloud:
         file_name = generate_id(20)
         file_hash = self._hash_file(pipeline_file.path)
         file_size = os.path.getsize(pipeline_file.path)
-        direct_upload_schema = FileDirectUploadCreate(
-            name=file_name, file_hash=file_hash, file_size=file_size
-        )
-        response = self._post("/v2/files/presigned-url", direct_upload_schema.dict())
-        direct_upload_get = FileDirectUploadGet.parse_obj(response)
 
-        # upload file
-        # TODO - optimise for large files
+        # initialise upload
+        # TODO - rename things
+        direct_upload_schema = FileDirectUploadInitCreate(
+            name=file_name, file_size=file_size
+        )
+        response = self._post(
+            "/v2/files/initiate-multipart-upload", direct_upload_schema.dict()
+        )
+        direct_upload_get = FileDirectUploadInitGet.parse_obj(response)
+        upload_id = direct_upload_get.upload_id
+        file_id = direct_upload_get.file_id
+
+        # read file in chunks and get presigned url for each part then upload
+        parts = []
         with open(pipeline_file.path, "rb") as f:
-            files = {"file": (direct_upload_get.file_id, f)}
-            http_response = requests.post(
-                direct_upload_get.upload_url,
-                data=direct_upload_get.upload_fields,
-                files=files,
-            )
-        # # file = self.upload_file(pipeline_file.path, "/")
-        # return PipelineFileVariableGet(
-        #     path=pipeline_file.path, file=file, hash=file_hash
-        # )
+            while True:
+                file_data = f.read(FILE_CHUNK_SIZE)
+                if not file_data:
+                    break
+                # get presigned URL
+                part_num = len(parts) + 1
+                # TODO - remove
+                print(f"ROSSLOG upload num {part_num}...")
+                part_upload_schema = FileDirectUploadPartCreate(
+                    upload_id=upload_id, file_id=file_id, part_num=part_num
+                )
+                response = self._post(
+                    "/v2/files/presigned-url", part_upload_schema.dict()
+                )
+                part_upload_get = FileDirectUploadPartGet.parse_obj(response)
+                # upload file chunk
+                response = requests.put(part_upload_get.upload_url, data=file_data)
+                etag = response.headers["ETag"]
+                parts.append({"ETag": etag, "PartNumber": part_num})
+
+        # finalise upload
+        finalise_upload_schema = FileDirectUploadFinaliseCreate(
+            upload_id=upload_id, file_id=file_id, multipart_metadata=parts
+        )
+        response = self._post(
+            "/v2/files/finalise-multipart-upload", finalise_upload_schema.dict()
+        )
+        file = FileGet.parse_obj(response)
+        return PipelineFileVariableGet(
+            path=pipeline_file.path, file=file, hash=file_hash
+        )
 
     def _get(self, endpoint: str, params: Dict[str, Any] = None):
         headers = {
