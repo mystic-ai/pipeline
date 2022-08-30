@@ -30,6 +30,7 @@ class FileDirectUploadCreate(FileBase):
 
 class FileDirectUploadGet(BaseModel):
     upload_id: str
+    path: str
     # upload_fields: dict
     # url_expiry_time: datetime
     # file_id: str
