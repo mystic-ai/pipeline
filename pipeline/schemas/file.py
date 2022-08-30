@@ -1,6 +1,4 @@
-from typing import Optional
-
-from datetime import datetime
+from typing import List, Optional
 
 from .base import BaseModel
 
@@ -46,4 +44,4 @@ class FileDirectUploadPartGet(BaseModel):
 class FileDirectUploadFinaliseCreate(BaseModel):
     upload_id: str
     file_id: str
-    multipart_metadata: dict
+    multipart_metadata: List[dict]
