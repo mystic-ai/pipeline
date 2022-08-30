@@ -188,6 +188,8 @@ class PipelineCloud:
                 file_data = f.read(FILE_CHUNK_SIZE)
                 if not file_data:
                     break
+                # convert data to hex
+                file_data = file_data.hex().encode()
                 # get presigned URL
                 part_num = len(parts) + 1
                 # TODO - remove
