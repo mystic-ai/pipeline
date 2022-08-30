@@ -40,4 +40,4 @@ class FileDirectUploadPartCreate(BaseModel):
 
 class FileDirectUploadPartGet(BaseModel):
     upload_url: str
-    url_expiry_time: datetime
+    # url_expiry_time: datetime
