@@ -41,3 +41,9 @@ class FileDirectUploadPartCreate(BaseModel):
 class FileDirectUploadPartGet(BaseModel):
     upload_url: str
     # url_expiry_time: datetime
+
+
+class FileDirectUploadFinaliseCreate(BaseModel):
+    upload_id: str
+    file_id: str
+    multipart_metadata: dict
