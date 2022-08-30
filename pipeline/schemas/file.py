@@ -23,13 +23,21 @@ class FileCreate(FileBase):
     file_bytes: Optional[str]
 
 
-class FileDirectUploadCreate(FileBase):
-    file_hash: Optional[str]
+class FileDirectUploadInitCreate(FileBase):
     file_size: int
 
 
-class FileDirectUploadGet(BaseModel):
+class FileDirectUploadInitGet(BaseModel):
     upload_id: str
     file_id: str
-    # upload_fields: dict
-    # url_expiry_time: datetime
+
+
+class FileDirectUploadPartCreate(BaseModel):
+    upload_id: str
+    file_id: str
+    part_num: int
+
+
+class FileDirectUploadPartGet(BaseModel):
+    upload_url: str
+    url_expiry_time: datetime
