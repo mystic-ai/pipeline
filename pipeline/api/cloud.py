@@ -42,12 +42,12 @@ from pipeline.util import (
     python_object_to_hex,
     python_object_to_name,
 )
-from pipeline.util.logging import PIPELINE_STR
+from pipeline.util.logging import PIPELINE_STR, PIPELINE_FILE_STR
 
 if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
 
-FILE_CHUNK_SIZE = 1 * (1024**3)  # 1 GiB
+FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
 
 
 class PipelineCloud:
@@ -183,17 +183,25 @@ class PipelineCloud:
 
         # read file in chunks and get presigned url for each part then upload
         parts = []
+        progress = tqdm(
+            desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
+            unit="B",
+            unit_scale=True,
+            total=file_size,
+            unit_divisor=1024,
+        )
         with open(pipeline_file.path, "rb") as f:
             while True:
                 file_data = f.read(FILE_CHUNK_SIZE)
                 if not file_data:
+                    progress.close()
                     break
+
+                progress.update(len(file_data))
                 # convert data to hex
                 file_data = file_data.hex().encode()
                 # get presigned URL
                 part_num = len(parts) + 1
-                # TODO - remove
-                print(f"ROSSLOG upload num {part_num}...")
                 part_upload_schema = FileDirectUploadPartCreate(
                     upload_id=upload_id, file_id=file_id, part_num=part_num
                 )
