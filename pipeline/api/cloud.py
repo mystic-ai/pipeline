@@ -155,21 +155,8 @@ class PipelineCloud:
             io.BytesIO(python_object_to_hex(obj).encode()), remote_path
         )
 
-    def upload_pipeline_file(self, pipeline_file) -> PipelineFileVariableGet:
-        """Upload PipelineFile given by pipeline_file.
-
-        Since PipelineFiles can be very large, we implement this slightly
-        differently to regular file uploads:
-        - We first get a presigned URL for the image upload
-        - Then we upload the file directly using the given URL
-        """
-
-        # TODO - check we always want to generate a new ID
+    def _initialise_direct_file_upload(self, file_size: int):
         file_name = generate_id(20)
-        file_hash = self._hash_file(pipeline_file.path)
-        file_size = os.path.getsize(pipeline_file.path)
-
-        # initialise upload
         # TODO - rename things
         direct_upload_schema = FileDirectUploadInitCreate(
             name=file_name, file_size=file_size
@@ -180,6 +167,50 @@ class PipelineCloud:
         direct_upload_get = FileDirectUploadInitGet.parse_obj(response)
         upload_id = direct_upload_get.upload_id
         file_id = direct_upload_get.file_id
+        return (upload_id, file_id)
+
+    def _direct_upload_file_chunk(
+        self, data: bytes, upload_id: str, file_id: str, part_num: int
+    ) -> dict:
+        # convert data to hex
+        data = data.hex().encode()
+        # get presigned URL
+        part_upload_schema = FileDirectUploadPartCreate(
+            upload_id=upload_id, file_id=file_id, part_num=part_num
+        )
+        response = self._post("/v2/files/presigned-url", part_upload_schema.dict())
+        part_upload_get = FileDirectUploadPartGet.parse_obj(response)
+        # upload file chunk
+        response = requests.put(part_upload_get.upload_url, data=data)
+        etag = response.headers["ETag"]
+        return {"ETag": etag, "PartNumber": part_num}
+
+    def _finalise_direct_file_upload(
+        self, upload_id: str, file_id: str, multipart_metadata: List[dict]
+    ) -> FileGet:
+        finalise_upload_schema = FileDirectUploadFinaliseCreate(
+            upload_id=upload_id, file_id=file_id, multipart_metadata=multipart_metadata
+        )
+        response = self._post(
+            "/v2/files/finalise-multipart-upload", finalise_upload_schema.dict()
+        )
+        return FileGet.parse_obj(response)
+
+    def upload_pipeline_file(self, pipeline_file) -> PipelineFileVariableGet:
+        """Upload PipelineFile given by pipeline_file.
+
+        Since PipelineFiles can be very large, we implement this slightly
+        differently to regular file uploads:
+        - We first get a presigned URL for the image upload
+        - Then we upload the file directly using the given URL
+        """
+
+        # TODO - check we always want to generate a new ID
+        file_hash = self._hash_file(pipeline_file.path)
+        file_size = os.path.getsize(pipeline_file.path)
+
+        # initialise upload
+        upload_id, file_id = self._initialise_direct_file_upload(file_size=file_size)
 
         # read file in chunks and get presigned url for each part then upload
         parts = []
@@ -198,30 +229,20 @@ class PipelineCloud:
                     break
 
                 progress.update(len(file_data))
-                # convert data to hex
-                file_data = file_data.hex().encode()
-                # get presigned URL
                 part_num = len(parts) + 1
-                part_upload_schema = FileDirectUploadPartCreate(
-                    upload_id=upload_id, file_id=file_id, part_num=part_num
+
+                upload_metadata = self._direct_upload_file_chunk(
+                    data=file_data,
+                    upload_id=upload_id,
+                    file_id=file_id,
+                    part_num=part_num,
                 )
-                response = self._post(
-                    "/v2/files/presigned-url", part_upload_schema.dict()
-                )
-                part_upload_get = FileDirectUploadPartGet.parse_obj(response)
-                # upload file chunk
-                response = requests.put(part_upload_get.upload_url, data=file_data)
-                etag = response.headers["ETag"]
-                parts.append({"ETag": etag, "PartNumber": part_num})
+                parts.append(upload_metadata)
 
         # finalise upload
-        finalise_upload_schema = FileDirectUploadFinaliseCreate(
+        file = self._finalise_direct_file_upload(
             upload_id=upload_id, file_id=file_id, multipart_metadata=parts
         )
-        response = self._post(
-            "/v2/files/finalise-multipart-upload", finalise_upload_schema.dict()
-        )
-        file = FileGet.parse_obj(response)
         return PipelineFileVariableGet(
             path=pipeline_file.path, file=file, hash=file_hash
         )
