@@ -6,7 +6,7 @@ import json
 import os
 import urllib.parse
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Type, Union
 
 import requests
 from pydantic import ValidationError
@@ -42,7 +42,7 @@ from pipeline.util import (
     python_object_to_hex,
     python_object_to_name,
 )
-from pipeline.util.logging import PIPELINE_STR, PIPELINE_FILE_STR
+from pipeline.util.logging import PIPELINE_FILE_STR, PIPELINE_STR
 
 if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
@@ -155,9 +155,9 @@ class PipelineCloud:
             io.BytesIO(python_object_to_hex(obj).encode()), remote_path
         )
 
-    def _initialise_direct_file_upload(self, file_size: int):
+    def _initialise_direct_file_upload(self, file_size: int) -> Tuple[str, str]:
+        """Initialise a direct multi-part file upload"""
         file_name = generate_id(20)
-        # TODO - rename things
         direct_upload_schema = FileDirectUploadInitCreate(
             name=file_name, file_size=file_size
         )
@@ -165,13 +165,16 @@ class PipelineCloud:
             "/v2/files/initiate-multipart-upload", direct_upload_schema.dict()
         )
         direct_upload_get = FileDirectUploadInitGet.parse_obj(response)
-        upload_id = direct_upload_get.upload_id
-        file_id = direct_upload_get.file_id
-        return (upload_id, file_id)
+        return (direct_upload_get.upload_id, direct_upload_get.file_id)
 
     def _direct_upload_file_chunk(
         self, data: bytes, upload_id: str, file_id: str, part_num: int
     ) -> dict:
+        """Upload a single chunk of a multi-part file upload.
+
+        Returns the metadata associated with this upload (this is needed to pass into
+        the finalisation step).
+        """
         # convert data to hex
         data = data.hex().encode()
         # get presigned URL
@@ -188,6 +191,7 @@ class PipelineCloud:
     def _finalise_direct_file_upload(
         self, upload_id: str, file_id: str, multipart_metadata: List[dict]
     ) -> FileGet:
+        """Finalise the direct multi-part file upload"""
         finalise_upload_schema = FileDirectUploadFinaliseCreate(
             upload_id=upload_id, file_id=file_id, multipart_metadata=multipart_metadata
         )
@@ -201,18 +205,18 @@ class PipelineCloud:
 
         Since PipelineFiles can be very large, we implement this slightly
         differently to regular file uploads:
-        - We first get a presigned URL for the image upload
-        - Then we upload the file directly using the given URL
+        - We need to split the file into chunks based on FILE_CHUNK_SIZE
+        - We first initialise the multi-part upload with the server
+        - We then upload the file in chunks (requesting a presigned upload URL for each
+            chunk beforehand)
+        - Lastly, we finalise the multi-part upload with the server
         """
 
-        # TODO - check we always want to generate a new ID
         file_hash = self._hash_file(pipeline_file.path)
         file_size = os.path.getsize(pipeline_file.path)
 
-        # initialise upload
         upload_id, file_id = self._initialise_direct_file_upload(file_size=file_size)
 
-        # read file in chunks and get presigned url for each part then upload
         parts = []
         progress = tqdm(
             desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
@@ -239,7 +243,6 @@ class PipelineCloud:
                 )
                 parts.append(upload_metadata)
 
-        # finalise upload
         file = self._finalise_direct_file_upload(
             upload_id=upload_id, file_id=file_id, multipart_metadata=parts
         )
