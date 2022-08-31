@@ -232,7 +232,6 @@ class PipelineCloud:
                     progress.close()
                     break
 
-                progress.update(len(file_data))
                 part_num = len(parts) + 1
 
                 upload_metadata = self._direct_upload_file_chunk(
@@ -242,6 +241,7 @@ class PipelineCloud:
                     part_num=part_num,
                 )
                 parts.append(upload_metadata)
+                progress.update(len(file_data))
 
         file = self._finalise_direct_file_upload(
             upload_id=upload_id, file_id=file_id, multipart_metadata=parts
