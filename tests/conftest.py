@@ -7,9 +7,22 @@ import pytest
 import responses
 from responses import matchers
 
-from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline.objects import (
+    Pipeline,
+    PipelineFile,
+    Variable,
+    pipeline_function,
+    pipeline_model,
+)
 from pipeline.schemas.data import DataGet
-from pipeline.schemas.file import FileGet
+from pipeline.schemas.file import (
+    FileDirectUploadFinaliseCreate,
+    FileDirectUploadInitCreate,
+    FileDirectUploadInitGet,
+    FileDirectUploadPartCreate,
+    FileDirectUploadPartGet,
+    FileGet,
+)
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
 from pipeline.schemas.project import ProjectGet
@@ -36,6 +49,10 @@ def api_response(
     function_get_json,
     model_get_json,
     data_get_json,
+    file_direct_upload_init_get_json,
+    file_direct_upload_part_get_json,
+    presigned_url,
+    finalise_direct_file_upload_get_json,
 ):
     function_get_id = function_get_json["id"]
     model_get_id = model_get_json["id"]
@@ -82,6 +99,49 @@ def api_response(
             json=data_get_json,
             status=200,
             match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
+        rsps.add(
+            responses.POST,
+            url + "/v2/files/initiate-multipart-upload",
+            json=file_direct_upload_init_get_json,
+            status=200,
+            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
+        rsps.add(
+            responses.POST,
+            url + "/v2/files/presigned-url",
+            json=file_direct_upload_part_get_json,
+            status=200,
+            match=[
+                matchers.header_matcher({"Authorization": "Bearer " + token}),
+                matchers.json_params_matcher(
+                    {
+                        "file_id": "dummy_file_id",
+                        "upload_id": "dummy_upload_id",
+                        "part_num": 1,
+                    }
+                ),
+            ],
+        )
+        # upload file directly using presigned url
+        rsps.add(
+            responses.PUT, presigned_url, status=200, headers={"Etag": "dummy_etag"}
+        )
+        rsps.add(
+            responses.POST,
+            url + "/v2/files/finalise-multipart-upload",
+            json=finalise_direct_file_upload_get_json,
+            status=200,
+            match=[
+                matchers.header_matcher({"Authorization": "Bearer " + token}),
+                matchers.json_params_matcher(
+                    {
+                        "file_id": "dummy_file_id",
+                        "upload_id": "dummy_upload_id",
+                        "multipart_metadata": [{"ETag": "dummy_etag", "PartNumber": 1}],
+                    }
+                ),
+            ],
         )
         yield rsps
 
@@ -194,6 +254,34 @@ def data_get_json(data_get, file_get_json):
         "hex_file": file_get_json,
         "created_at": str(data_get.created_at),
     }
+
+
+@pytest.fixture()
+def file_direct_upload_init_get_json():
+    return FileDirectUploadInitGet(
+        upload_id="dummy_upload_id", file_id="dummy_file_id"
+    ).dict()
+
+
+@pytest.fixture()
+def presigned_url():
+    return "https://upload-file-here.com"
+
+
+@pytest.fixture()
+def file_direct_upload_part_get_json(presigned_url):
+    return FileDirectUploadPartGet(upload_url=presigned_url).dict()
+
+
+@pytest.fixture()
+def finalise_direct_file_upload_get_json():
+    return FileGet(
+        name="test",
+        id="dummy_file_id",
+        path="test/path/to/file",
+        data="dummy_data",
+        file_size=10,
+    ).dict()
 
 
 @pytest.fixture()
@@ -384,3 +472,15 @@ def pipeline_graph_with_compute_requirements():
 
         my_pipeline.output(str_1)
     return Pipeline.get_pipeline("test")
+
+
+@pytest.fixture()
+def file(tmp_path):
+    path = tmp_path / "hello.txt"
+    path.write_text("hello")
+    return path
+
+
+@pytest.fixture()
+def pipeline_file(file):
+    return PipelineFile(path=str(file), name="hello")
