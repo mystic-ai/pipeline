@@ -6,7 +6,7 @@ import json
 import os
 import urllib.parse
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
 import requests
 from pydantic import ValidationError
@@ -18,15 +18,7 @@ from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
-from pipeline.schemas.file import (
-    FileCreate,
-    FileDirectUploadFinaliseCreate,
-    FileDirectUploadInitCreate,
-    FileDirectUploadInitGet,
-    FileDirectUploadPartCreate,
-    FileDirectUploadPartGet,
-    FileGet,
-)
+from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import (
@@ -34,6 +26,14 @@ from pipeline.schemas.pipeline import (
     PipelineFileVariableGet,
     PipelineGet,
     PipelineVariableGet,
+)
+from pipeline.schemas.pipeline_file import (
+    PipelineFileDirectUploadFinaliseCreate,
+    PipelineFileDirectUploadInitCreate,
+    PipelineFileDirectUploadInitGet,
+    PipelineFileDirectUploadPartCreate,
+    PipelineFileDirectUploadPartGet,
+    PipelineFileGet,
 )
 from pipeline.schemas.run import RunCreate
 from pipeline.util import (
@@ -155,50 +155,51 @@ class PipelineCloud:
             io.BytesIO(python_object_to_hex(obj).encode()), remote_path
         )
 
-    def _initialise_direct_file_upload(self, file_size: int) -> Tuple[str, str]:
-        """Initialise a direct multi-part file upload"""
-        file_name = generate_id(20)
-        direct_upload_schema = FileDirectUploadInitCreate(
-            name=file_name, file_size=file_size
-        )
+    def _initialise_direct_pipeline_file_upload(self, file_size: int) -> str:
+        """Initialise a direct multi-part pipeline file upload"""
+        direct_upload_schema = PipelineFileDirectUploadInitCreate(file_size=file_size)
         response = self._post(
-            "/v2/files/initiate-multipart-upload", direct_upload_schema.dict()
+            "/v2/pipeline-files/initiate-multipart-upload", direct_upload_schema.dict()
         )
-        direct_upload_get = FileDirectUploadInitGet.parse_obj(response)
-        return (direct_upload_get.upload_id, direct_upload_get.file_id)
+        direct_upload_get = PipelineFileDirectUploadInitGet.parse_obj(response)
+        return direct_upload_get.pipeline_file_id
 
-    def _direct_upload_file_chunk(
-        self, data: bytes, upload_id: str, file_id: str, part_num: int
+    def _direct_upload_pipeline_file_chunk(
+        self, data: bytes, pipeline_file_id: str, part_num: int
     ) -> dict:
-        """Upload a single chunk of a multi-part file upload.
+        """Upload a single chunk of a multi-part pipeline file upload.
 
         Returns the metadata associated with this upload (this is needed to pass into
         the finalisation step).
         """
+        # get presigned URL
+        part_upload_schema = PipelineFileDirectUploadPartCreate(
+            pipeline_file_id=pipeline_file_id, part_num=part_num
+        )
+        response = self._post(
+            "/v2/pipeline-files/presigned-url", part_upload_schema.dict()
+        )
+        part_upload_get = PipelineFileDirectUploadPartGet.parse_obj(response)
+        # upload file chunk
         # convert data to hex
         data = data.hex().encode()
-        # get presigned URL
-        part_upload_schema = FileDirectUploadPartCreate(
-            upload_id=upload_id, file_id=file_id, part_num=part_num
-        )
-        response = self._post("/v2/files/presigned-url", part_upload_schema.dict())
-        part_upload_get = FileDirectUploadPartGet.parse_obj(response)
-        # upload file chunk
         response = requests.put(part_upload_get.upload_url, data=data)
         etag = response.headers["ETag"]
         return {"ETag": etag, "PartNumber": part_num}
 
-    def _finalise_direct_file_upload(
-        self, upload_id: str, file_id: str, multipart_metadata: List[dict]
-    ) -> FileGet:
-        """Finalise the direct multi-part file upload"""
-        finalise_upload_schema = FileDirectUploadFinaliseCreate(
-            upload_id=upload_id, file_id=file_id, multipart_metadata=multipart_metadata
+    def _finalise_direct_pipeline_file_upload(
+        self, pipeline_file_id: str, multipart_metadata: List[dict]
+    ) -> PipelineFileGet:
+        """Finalise the direct multi-part pipeline file upload"""
+        finalise_upload_schema = PipelineFileDirectUploadFinaliseCreate(
+            pipeline_file_id=pipeline_file_id,
+            multipart_metadata=multipart_metadata,
         )
         response = self._post(
-            "/v2/files/finalise-multipart-upload", finalise_upload_schema.dict()
+            "/v2/pipeline-files/finalise-multipart-upload",
+            finalise_upload_schema.dict(),
         )
-        return FileGet.parse_obj(response)
+        return PipelineFileGet.parse_obj(response)
 
     def upload_pipeline_file(self, pipeline_file) -> PipelineFileVariableGet:
         """Upload PipelineFile given by pipeline_file.
@@ -215,7 +216,9 @@ class PipelineCloud:
         file_hash = self._hash_file(pipeline_file.path)
         file_size = os.path.getsize(pipeline_file.path)
 
-        upload_id, file_id = self._initialise_direct_file_upload(file_size=file_size)
+        pipeline_file_id = self._initialise_direct_pipeline_file_upload(
+            file_size=file_size
+        )
 
         parts = []
         progress = tqdm(
@@ -234,20 +237,19 @@ class PipelineCloud:
 
                 part_num = len(parts) + 1
 
-                upload_metadata = self._direct_upload_file_chunk(
+                upload_metadata = self._direct_upload_pipeline_file_chunk(
                     data=file_data,
-                    upload_id=upload_id,
-                    file_id=file_id,
+                    pipeline_file_id=pipeline_file_id,
                     part_num=part_num,
                 )
                 parts.append(upload_metadata)
                 progress.update(len(file_data))
 
-        file = self._finalise_direct_file_upload(
-            upload_id=upload_id, file_id=file_id, multipart_metadata=parts
+        pipeline_file_get = self._finalise_direct_pipeline_file_upload(
+            pipeline_file_id=pipeline_file_id, multipart_metadata=parts
         )
         return PipelineFileVariableGet(
-            path=pipeline_file.path, file=file, hash=file_hash
+            path=pipeline_file.path, file=pipeline_file_get.hex_file, hash=file_hash
         )
 
     def _get(self, endpoint: str, params: Dict[str, Any] = None):

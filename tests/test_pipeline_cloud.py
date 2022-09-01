@@ -56,9 +56,12 @@ def test_cloud_download_data(url, token, data_get, file_get):
 
 @pytest.mark.usefixtures("api_response")
 def test_cloud_upload_pipeline_file(
-    url, token, pipeline_file, file, finalise_direct_file_upload_get_json
+    url, token, pipeline_file, file, finalise_direct_pipeline_file_upload_get_json
 ):
     api = PipelineCloud(url, token)
     pipeline_file_var_get = api.upload_pipeline_file(pipeline_file)
     assert pipeline_file_var_get.path == str(file)
-    assert pipeline_file_var_get.file.dict() == finalise_direct_file_upload_get_json
+    assert (
+        pipeline_file_var_get.file.dict()
+        == finalise_direct_pipeline_file_upload_get_json["hex_file"]
+    )

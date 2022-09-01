@@ -15,16 +15,14 @@ from pipeline.objects import (
     pipeline_model,
 )
 from pipeline.schemas.data import DataGet
-from pipeline.schemas.file import (
-    FileDirectUploadFinaliseCreate,
-    FileDirectUploadInitCreate,
-    FileDirectUploadInitGet,
-    FileDirectUploadPartCreate,
-    FileDirectUploadPartGet,
-    FileGet,
-)
+from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
+from pipeline.schemas.pipeline_file import (
+    PipelineFileDirectUploadInitGet,
+    PipelineFileDirectUploadPartGet,
+    PipelineFileGet,
+)
 from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.runnable import RunnableType
 from pipeline.util import python_object_to_hex
@@ -49,10 +47,10 @@ def api_response(
     function_get_json,
     model_get_json,
     data_get_json,
-    file_direct_upload_init_get_json,
-    file_direct_upload_part_get_json,
+    pipeline_file_direct_upload_init_get_json,
+    pipeline_file_direct_upload_part_get_json,
     presigned_url,
-    finalise_direct_file_upload_get_json,
+    finalise_direct_pipeline_file_upload_get_json,
 ):
     function_get_id = function_get_json["id"]
     model_get_id = model_get_json["id"]
@@ -102,22 +100,21 @@ def api_response(
         )
         rsps.add(
             responses.POST,
-            url + "/v2/files/initiate-multipart-upload",
-            json=file_direct_upload_init_get_json,
+            url + "/v2/pipeline-files/initiate-multipart-upload",
+            json=pipeline_file_direct_upload_init_get_json,
             status=200,
             match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
         )
         rsps.add(
             responses.POST,
-            url + "/v2/files/presigned-url",
-            json=file_direct_upload_part_get_json,
+            url + "/v2/pipeline-files/presigned-url",
+            json=pipeline_file_direct_upload_part_get_json,
             status=200,
             match=[
                 matchers.header_matcher({"Authorization": "Bearer " + token}),
                 matchers.json_params_matcher(
                     {
-                        "file_id": "dummy_file_id",
-                        "upload_id": "dummy_upload_id",
+                        "pipeline_file_id": "pipeline_file_id",
                         "part_num": 1,
                     }
                 ),
@@ -129,15 +126,14 @@ def api_response(
         )
         rsps.add(
             responses.POST,
-            url + "/v2/files/finalise-multipart-upload",
-            json=finalise_direct_file_upload_get_json,
+            url + "/v2/pipeline-files/finalise-multipart-upload",
+            json=finalise_direct_pipeline_file_upload_get_json,
             status=200,
             match=[
                 matchers.header_matcher({"Authorization": "Bearer " + token}),
                 matchers.json_params_matcher(
                     {
-                        "file_id": "dummy_file_id",
-                        "upload_id": "dummy_upload_id",
+                        "pipeline_file_id": "pipeline_file_id",
                         "multipart_metadata": [{"ETag": "dummy_etag", "PartNumber": 1}],
                     }
                 ),
@@ -257,10 +253,8 @@ def data_get_json(data_get, file_get_json):
 
 
 @pytest.fixture()
-def file_direct_upload_init_get_json():
-    return FileDirectUploadInitGet(
-        upload_id="dummy_upload_id", file_id="dummy_file_id"
-    ).dict()
+def pipeline_file_direct_upload_init_get_json():
+    return PipelineFileDirectUploadInitGet(pipeline_file_id="pipeline_file_id").dict()
 
 
 @pytest.fixture()
@@ -269,18 +263,22 @@ def presigned_url():
 
 
 @pytest.fixture()
-def file_direct_upload_part_get_json(presigned_url):
-    return FileDirectUploadPartGet(upload_url=presigned_url).dict()
+def pipeline_file_direct_upload_part_get_json(presigned_url):
+    return PipelineFileDirectUploadPartGet(upload_url=presigned_url).dict()
 
 
 @pytest.fixture()
-def finalise_direct_file_upload_get_json():
-    return FileGet(
-        name="test",
-        id="dummy_file_id",
-        path="test/path/to/file",
-        data="dummy_data",
-        file_size=10,
+def finalise_direct_pipeline_file_upload_get_json():
+    return PipelineFileGet(
+        id="pipeline_file_id",
+        name="pipeline_file_id",
+        hex_file=FileGet(
+            name="pipeline_file_id",
+            id="dummy_file_id",
+            path="pipeline_file_id",
+            data="dummy_data",
+            file_size=10,
+        ),
     ).dict()
 
 
