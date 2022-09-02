@@ -28,13 +28,13 @@ from pipeline.schemas.pipeline import (
     PipelineVariableGet,
 )
 from pipeline.schemas.pipeline_file import (
+    MultipartUploadMetadata,
     PipelineFileDirectUploadFinaliseCreate,
     PipelineFileDirectUploadInitCreate,
     PipelineFileDirectUploadInitGet,
     PipelineFileDirectUploadPartCreate,
     PipelineFileDirectUploadPartGet,
     PipelineFileGet,
-    MultipartUploadMetadata,
 )
 from pipeline.schemas.run import RunCreate
 from pipeline.util import (
