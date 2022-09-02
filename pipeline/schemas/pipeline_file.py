@@ -23,10 +23,20 @@ class PipelineFileDirectUploadPartGet(BaseModel):
     upload_url: str
 
 
+class MultipartUploadMetadata(BaseModel):
+    """Schema for multi-part uploads direct to storage server.
+
+    (We don't have any control over this schema)
+    """
+
+    ETag: str
+    PartNumber: int
+
+
 class PipelineFileDirectUploadFinaliseCreate(BaseModel):
     pipeline_file_id: str
     # The metadata obtained from each part of the file upload
-    multipart_metadata: List[dict]
+    multipart_metadata: List[MultipartUploadMetadata]
 
 
 class PipelineFileGet(BaseModel):

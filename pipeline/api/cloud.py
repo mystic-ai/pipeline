@@ -34,6 +34,7 @@ from pipeline.schemas.pipeline_file import (
     PipelineFileDirectUploadPartCreate,
     PipelineFileDirectUploadPartGet,
     PipelineFileGet,
+    MultipartUploadMetadata,
 )
 from pipeline.schemas.run import RunCreate
 from pipeline.util import (
@@ -166,7 +167,7 @@ class PipelineCloud:
 
     def _direct_upload_pipeline_file_chunk(
         self, data: bytes, pipeline_file_id: str, part_num: int
-    ) -> dict:
+    ) -> MultipartUploadMetadata:
         """Upload a single chunk of a multi-part pipeline file upload.
 
         Returns the metadata associated with this upload (this is needed to pass into
@@ -185,10 +186,10 @@ class PipelineCloud:
         data = data.hex().encode()
         response = requests.put(part_upload_get.upload_url, data=data)
         etag = response.headers["ETag"]
-        return {"ETag": etag, "PartNumber": part_num}
+        return MultipartUploadMetadata(ETag=etag, PartNumber=part_num)
 
     def _finalise_direct_pipeline_file_upload(
-        self, pipeline_file_id: str, multipart_metadata: List[dict]
+        self, pipeline_file_id: str, multipart_metadata: List[MultipartUploadMetadata]
     ) -> PipelineFileGet:
         """Finalise the direct multi-part pipeline file upload"""
         finalise_upload_schema = PipelineFileDirectUploadFinaliseCreate(
