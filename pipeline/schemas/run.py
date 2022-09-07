@@ -72,21 +72,24 @@ class RunIOGet(RunnableIOGet):
     data_url: str
 
 
-class RunGet(BaseModel):
+class RunGetBrief(BaseModel):
     id: str
+    compute_time_ms: Optional[int]
+    result_preview: Optional[Union[list, dict]]
+    result: Optional[FileGet]
+    error: Optional[RunError]
+
+
+class RunGet(RunGetBrief):
     created_at: datetime.datetime
     started_at: Optional[datetime.datetime]
     ended_at: Optional[datetime.datetime]
     run_state: RunState
     resource_type: Optional[str]
-    compute_time_ms: Optional[int]
     runnable: Union[FunctionGet, PipelineGet]
     data: DataGet
     blocking: Optional[bool] = False
-    result: Optional[FileGet]
     #: JSON-serialised runnable return value, if available
-    result_preview: Optional[Union[list, dict]]
-    error: Optional[RunError]
     compute_requirements: Optional[ComputeRequirements] = None
 
     class Config:
