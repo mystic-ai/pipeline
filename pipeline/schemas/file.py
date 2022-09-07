@@ -12,7 +12,7 @@ class FileGet(FileBase):
     path: str
     #: The data as hex-encoded bytes, if the data size is less than 20 kB
     data: Optional[str]
-    #: The data size in kilobytes (kB)
+    #: The data size in bytes
     file_size: int
 
 
