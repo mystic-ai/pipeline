@@ -66,6 +66,15 @@ class RunMetricsGet(BaseModel):
     preceding_bucket: RunMetricsBucket
 
 
+class PipelineMetricsGet(RunMetricsGet):
+    """Run metrics supplemented with pipeline meta data. Used in particular
+    for list/paginated metrics views where it is important to track which pipeline
+    is which"""
+
+    pipeline_id: str
+    pipeline_name: str
+
+
 class MetricsQuery(BaseModel):
     """
     Query parameters for generic metrics requests.
