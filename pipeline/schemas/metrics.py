@@ -68,8 +68,8 @@ class RunMetricsGet(BaseModel):
 
 class PipelineMetricsGet(RunMetricsGet):
     """Run metrics supplemented with pipeline meta data. Used in particular
-    for list/paginated metrics views where it is important to track which pipeline
-    is which"""
+    for list/paginated metrics views where it is important for the client to know which 
+    pipeline is which"""
 
     pipeline_id: str
     pipeline_name: str
