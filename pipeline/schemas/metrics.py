@@ -102,8 +102,9 @@ class RunMetricsQuery(MetricsQuery):
 
 
 class PipelineComputeGet(BaseModel):
-    """Pipeline compute metrics for retrieving the number of completed runs 
+    """Pipeline compute metrics for retrieving the number of completed runs
     and total compute time of all the runs on a pipeline"""
+
     pipeline_id: str
     pipeline_name: str
     completed_run_count: int
