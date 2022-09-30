@@ -105,7 +105,17 @@ class PipelineComputeGet(BaseModel):
     """Pipeline compute metrics for retrieving the number of completed runs
     and total compute time of all the runs on a pipeline"""
 
+    start: datetime
+    end: datetime
     pipeline_id: str
     pipeline_name: str
     completed_run_count: int
+    total_compute_ms: int
+
+
+class TotalComputeGet(BaseModel):
+    """Total compute time of all a users' runs"""
+
+    start: datetime
+    end: datetime
     total_compute_ms: int
