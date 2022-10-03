@@ -1,3 +1,5 @@
+import uuid
+
 import inspect
 from hashlib import sha256
 from typing import Any
@@ -23,7 +25,8 @@ class Model:
         try:
             self.source = inspect.getsource(model.__class__)
         except:
-            self.source = "-"
+            self.source = str(uuid.uuid4())
+
         self.hash = sha256(self.source.encode()).hexdigest()
         self.local_id = generate_id(10) if local_id is None else local_id
         if not hasattr(self.model, "local_id"):

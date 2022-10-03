@@ -1,3 +1,5 @@
+import uuid
+
 import inspect
 from hashlib import sha256
 from typing import Any, Callable, Dict, Optional
@@ -29,7 +31,10 @@ class Function:
         self.class_instance = class_instance
         self.function = function
 
-        self.source = inspect.getsource(function)
+        try:
+            self.source = inspect.getsource(function)
+        except:
+            self.source = str(uuid.uuid4())
         self.hash = sha256(self.source.encode()).hexdigest()
 
         # TODO: Add verification that all inputs to function have a typing annotation,
