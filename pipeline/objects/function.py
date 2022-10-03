@@ -32,7 +32,7 @@ class Function:
 
         try:
             self.source = inspect.getsource(function)
-        except OSError as e:
+        except OSError:
             self.source = str(uuid.uuid4())
         self.hash = sha256(self.source.encode()).hexdigest()
 

@@ -23,7 +23,7 @@ class Model:
         self.model = model
         try:
             self.source = inspect.getsource(model.__class__)
-        except OSError as e:
+        except OSError:
             self.source = str(uuid.uuid4())
 
         self.hash = sha256(self.source.encode()).hexdigest()
