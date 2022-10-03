@@ -24,7 +24,7 @@ class Model:
         self.model = model
         try:
             self.source = inspect.getsource(model.__class__)
-        except:
+        except OSError as e:
             self.source = str(uuid.uuid4())
 
         self.hash = sha256(self.source.encode()).hexdigest()
