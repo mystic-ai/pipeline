@@ -20,7 +20,10 @@ class Model:
 
         self.name = name
         self.model = model
-        self.source = inspect.getsource(model.__class__)
+        try:
+            self.source = inspect.getsource(model.__class__)
+        except:
+            self.source = "-"
         self.hash = sha256(self.source.encode()).hexdigest()
         self.local_id = generate_id(10) if local_id is None else local_id
         if not hasattr(self.model, "local_id"):
