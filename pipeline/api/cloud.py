@@ -614,6 +614,25 @@ class PipelineCloud:
         )
         return hex_to_python_object(d_get_schema.hex_file.data)
 
+    def download_result(self, id: str) -> Graph:
+        """
+        Downloads Result object from Pipeline Cloud.
+
+            Parameters:
+                    id (str):
+                        The id for the desired result ('file_{}')
+
+            Returns:
+                    object (Any): De-Serialized data object.
+        """
+        endpoint = f"/v2/files/{id}"
+        f_get_schema: FileGet = self._download_schema(
+            schema=FileGet,
+            endpoint=endpoint,
+            params=dict(return_data=True),
+        )
+        return hex_to_python_object(f_get_schema.data)
+
     def download_pipeline(self, id: str) -> Graph:
         """
         Downloads Graph object from Pipeline Cloud.
