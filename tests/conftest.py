@@ -276,14 +276,14 @@ def data_get(file_get):
 
 
 @pytest.fixture()
-def run_get(function_get, data_get, file_get):
+def run_get(function_get, data_get, result_file_get):
     return RunGet(
         id="run_test",
         created_at=datetime.now(),
         run_state=RunState.COMPLETE,
         runnable=function_get,
         data=data_get,
-        result=file_get,
+        result=result_file_get,
     )
 
 
