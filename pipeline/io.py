@@ -1,8 +1,9 @@
 import base64
+from pickle import NONE
 from typing import Union
 
 class File():
-    def __init__(self, path: str) -> None:
+    def __init__(self, path: str = None) -> None:
         self.path = path
         self._key = "ext_file" # Used to append the extension to the file string and extract it during pipeline execution
         pass
