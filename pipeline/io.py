@@ -30,8 +30,8 @@ class File():
             cleaned_string: File as string without the extension
             file_ext: Extension from file
         '''
-        cleaned_string = file_as_str_with_extension[:file_as_str_with_extension.find(self.key)]
-        file_ext = file_as_str_with_extension[file_as_str_with_extension.find(self.key)+len(self.key):file_as_str_with_extension.rfind(self.key)]
+        cleaned_string = file_as_str_with_extension[:file_as_str_with_extension.find(self._key)]
+        file_ext = file_as_str_with_extension[file_as_str_with_extension.find(self._key)+len(self._key):file_as_str_with_extension.rfind(self._key)]
         return cleaned_string, file_ext
 
     def file_str_to_b64(self, file_as_str_with_extension: str) -> Union[bytes, list]:
