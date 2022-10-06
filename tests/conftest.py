@@ -57,7 +57,6 @@ def api_response(
     function_get_id = function_get_json["id"]
     model_get_id = model_get_json["id"]
     data_get_id = data_get_json["id"]
-    file_get_id = file_get_json["id"]
     result_file_get_id = result_file_get_json["id"]
     with responses.RequestsMock(assert_all_requests_are_fired=False) as rsps:
         rsps.add(
@@ -206,9 +205,9 @@ def file_get_json(file_get):
 @pytest.fixture()
 def result_file_get():
     return FileGet(
-        name="test",
-        id="function_file_test",
-        path="test/path/to/file",
+        name="test_result_file",
+        id="result_file_test",
+        path="test/path/to/result_file",
         data=python_object_to_hex(dict(test="hello")),
         file_size=8,
     )
