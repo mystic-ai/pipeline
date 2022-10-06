@@ -21,7 +21,6 @@ from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
-from pipeline.schemas.run import RunGet
 from pipeline.schemas.pipeline import (
     PipelineCreate,
     PipelineFileVariableGet,
@@ -37,7 +36,7 @@ from pipeline.schemas.pipeline_file import (
     PipelineFileDirectUploadPartGet,
     PipelineFileGet,
 )
-from pipeline.schemas.run import RunCreate
+from pipeline.schemas.run import RunCreate, RunGet
 from pipeline.util import (
     generate_id,
     hex_to_python_object,

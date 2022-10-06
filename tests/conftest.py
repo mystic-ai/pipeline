@@ -17,7 +17,6 @@ from pipeline.objects import (
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
-from pipeline.schemas.run import RunGet, RunState
 from pipeline.schemas.model import ModelGet
 from pipeline.schemas.pipeline_file import (
     PipelineFileDirectUploadInitGet,
@@ -25,6 +24,7 @@ from pipeline.schemas.pipeline_file import (
     PipelineFileGet,
 )
 from pipeline.schemas.project import ProjectGet
+from pipeline.schemas.run import RunGet, RunState
 from pipeline.schemas.runnable import RunnableType
 from pipeline.util import python_object_to_hex
 
