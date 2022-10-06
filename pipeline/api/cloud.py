@@ -21,6 +21,7 @@ from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
+from pipeline.schemas.run import RunGet
 from pipeline.schemas.pipeline import (
     PipelineCreate,
     PipelineFileVariableGet,
@@ -614,22 +615,34 @@ class PipelineCloud:
         )
         return hex_to_python_object(d_get_schema.hex_file.data)
 
-    def download_result(self, id: str) -> Graph:
+    def download_result(self, result_id_or_schema: Union[str, RunGet]) -> Any:
         """
         Downloads Result object from Pipeline Cloud.
-
             Parameters:
-                    id (str):
-                        The id for the desired result ('file_{}')
+                    result_id_or_schema (Union[str, RunGet]):
+                    The id for the desired run result
+                    or the schema obtained from the run
 
             Returns:
-                    object (Any): De-Serialized data object.
+                    object (Any): De-Serialized run result file object.
         """
-        endpoint = f"/v2/files/{id}"
+        result_id = None
+        if isinstance(result_id_or_schema, str):
+            result_id = result_id_or_schema
+        else:
+            try:
+                result_id = RunGet.parse_obj(result_id_or_schema).result.id
+            except:
+                raise InvalidSchema(
+                    schema=result_id_or_schema,
+                    message=(
+                        "Must either pass a result id, or a run get schema. "
+                        "Not object of type %s in arg 1." % str(result_id_or_schema)
+                    ),
+                )
+        endpoint = f"/v2/files/{result_id}"
         f_get_schema: FileGet = self._download_schema(
-            schema=FileGet,
-            endpoint=endpoint,
-            params=dict(return_data=True),
+            schema=FileGet, endpoint=endpoint, params=dict(return_data=True)
         )
         return hex_to_python_object(f_get_schema.data)
 
