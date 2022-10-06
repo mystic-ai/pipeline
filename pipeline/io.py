@@ -33,8 +33,8 @@ class File():
         file_ext = file_as_str_with_extension[file_as_str_with_extension.find(self.key)+len(self.key):file_as_str_with_extension.rfind(self.key)]
         return cleaned_string, file_ext
 
-    def file_str_to_b64(self) -> Union[bytes, list]:
-        cleaned_str, file_ext = self._remove_ext_from_string()
+    def file_str_to_b64(self, file_as_str_with_extension: str) -> Union[bytes, list]:
+        cleaned_str, file_ext = self._remove_ext_from_string(file_as_str_with_extension)
         file_as_b64 = base64.decodebytes(cleaned_str.encode())
         return file_as_b64, file_ext
     
