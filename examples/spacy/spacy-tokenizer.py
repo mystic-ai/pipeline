@@ -1,3 +1,4 @@
+from pipeline import PipelineCloud
 from pipeline.objects import (
     Graph,
     Pipeline,
@@ -5,7 +6,7 @@ from pipeline.objects import (
     pipeline_function,
     pipeline_model,
 )
-from pipeline import PipelineCloud
+
 
 def spacy_to_pipeline(language_package: str, name: str = "spacy pipeline") -> Graph:
     """
@@ -30,8 +31,9 @@ def spacy_to_pipeline(language_package: str, name: str = "spacy pipeline") -> Gr
 
         @pipeline_function(run_once=True, on_startup=True)
         def load(self) -> bool:
-            import spacy
             import subprocess
+            import spacy
+
             subprocess.run(["python", "-m", "spacy", "download", language_package])
             self.nlp = spacy.load(language_package)
             return True
@@ -57,15 +59,23 @@ def spacy_to_pipeline(language_package: str, name: str = "spacy pipeline") -> Gr
 
 spacy_pipeline = spacy_to_pipeline("en_core_web_sm")
 
-api = PipelineCloud(token="YOUR TOKEN HERE")
+api = PipelineCloud(token="YOUR_TOKEN_HERE")
 uploaded_pipeline = api.upload_pipeline(spacy_pipeline)
 print(f"Uploaded pipeline: {uploaded_pipeline.id}")
 
 print("Run uploaded pipeline")
 
-run_result = api.run_pipeline(uploaded_pipeline, ['Apple is looking at buying U.K. startup for $1 billion'])
+run_result = api.run_pipeline(
+    uploaded_pipeline, ["Apple is looking at buying U.K. startup for $1 billion"]
+)
 try:
     result_preview = run_result["result_preview"]
 except KeyError:
     result_preview = "unavailable"
 print("Run result:", result_preview)
+breakpoint()
+
+
+# doc = nlp("Apple is looking at buying U.K. startup for $1 billion")
+# for token in doc:
+#     print(token.text, token.pos_, token.dep_)
