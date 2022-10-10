@@ -215,13 +215,7 @@ def result_file_get():
 
 @pytest.fixture()
 def result_file_get_json(result_file_get):
-    return {
-        "name": result_file_get.name,
-        "id": result_file_get.id,
-        "path": result_file_get.path,
-        "data": result_file_get.data,
-        "file_size": result_file_get.file_size,
-    }
+    return result_file_get.dict()
 
 
 @pytest.fixture()
