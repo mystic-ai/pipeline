@@ -394,6 +394,8 @@ class PipelineCloud:
             Returns:
                     pipeline (PipelineGet): Object representing uploaded pipeline.
         """
+        if new_pipeline_graph._has_run_startup:
+            raise Exception("Cannot upload a pipeline that has already been run.")
 
         new_name = new_pipeline_graph.name
         print("Uploading functions")
