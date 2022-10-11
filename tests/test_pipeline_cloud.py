@@ -48,6 +48,22 @@ def test_cloud_download_model(url, token, model_get, model_file_get):
 
 
 @pytest.mark.usefixtures("api_response")
+def test_cloud_download_result_via_run_get_result_id(
+    url, token, run_get, result_file_get
+):
+    api = PipelineCloud(url, token)
+    result = api.download_result(run_get.result.id)
+    assert result == hex_to_python_object(result_file_get.data)
+
+
+@pytest.mark.usefixtures("api_response")
+def test_cloud_download_result_via_run_get(url, token, run_get, result_file_get):
+    api = PipelineCloud(url, token)
+    result = api.download_result(run_get)
+    assert result == hex_to_python_object(result_file_get.data)
+
+
+@pytest.mark.usefixtures("api_response")
 def test_cloud_download_data(url, token, data_get, file_get):
     api = PipelineCloud(url, token)
     d = api.download_data(data_get.id)
