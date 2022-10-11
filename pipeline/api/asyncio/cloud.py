@@ -37,7 +37,7 @@ FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
 
 class PipelineCloud(_SyncPipelineCloud):
     def _raise_not_implemeneted(self):
-        raise NotImplemented("This function is not implemented")
+        raise NotImplementedError("This function is not implemented")
 
     def authenticate(self, token: str = None):
         self._raise_not_implemeneted()
