@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  playgrounds-discord-bot:
+    container_name: discord-bot
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    env_file:
+      - secrets.env
+
