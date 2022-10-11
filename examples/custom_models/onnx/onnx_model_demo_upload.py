@@ -13,7 +13,7 @@ print("Run uploaded pipeline")
 input = tensor_to_list(torch.rand(1, 28, 28, device="cpu"))
 run_result = api.run_pipeline(uploaded_pipeline, [["output"], {"input": input}])
 try:
-    result_preview = run_result["result_preview"]
+    result_preview = run_result.result_preview
 except KeyError:
     result_preview = "unavailable"
 print("Run result:", result_preview)

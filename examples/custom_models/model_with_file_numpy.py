@@ -93,5 +93,4 @@ if __name__ == "__main__":
         pc = PipelineCloud(token="YOUR API TOKEN")
         uploaded_pipeline = pc.upload_pipeline(output_pipeline)
         output = pc.run_pipeline(uploaded_pipeline, [[2.0, 3.4, 6.0]])
-        print(output["run_state"])
-        print(output["result_preview"])
+        print(output.result_preview)
