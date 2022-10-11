@@ -46,7 +46,7 @@ run_result = api.run_pipeline(uploaded_pipeline, [5.0, 6.0])
 # Get result
 #####################################
 try:
-    result_preview = run_result["result_preview"]
+    result_preview = run_result.result_preview
 except KeyError:
     result_preview = "unavailable"
 print("Run result:", result_preview)
