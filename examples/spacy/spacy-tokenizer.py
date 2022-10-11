@@ -29,7 +29,7 @@ def spacy_to_pipeline(language_package: str, name: str = "spacy pipeline") -> Gr
             doc = self.nlp(input)
             # (optional) your spacy code here or you can return entire spacy object
             # to manipulate on a client that has spacy installed.
-            res=[]
+            res = []
             for token in doc:
                 res.append([token.text, token.pos_, token.dep_])
             return res
@@ -37,6 +37,7 @@ def spacy_to_pipeline(language_package: str, name: str = "spacy pipeline") -> Gr
         @pipeline_function(run_once=True, on_startup=True)
         def load(self) -> bool:
             import spacy
+
             spacy.cli.download(language_package)
             self.nlp = spacy.load(language_package)
             return True
