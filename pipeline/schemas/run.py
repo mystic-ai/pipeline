@@ -29,10 +29,19 @@ class RunState(Enum):
     FAILED = "failed"
 
 
-class RunError(Enum):
+class RunErrorType(Enum):
+    """The type of error that occurred (if any)"""
+
     MAX_RETRIES = "max_retries"
     PIPELINE_FAULT = "pipeline_fault"
     UNSATISFIABLE = "unsatisfiable"
+
+
+class RunErrorInfo(BaseModel):
+    """More info about the error if it was a pipeline_fault"""
+
+    exception: str
+    traceback: str
 
 
 class RunCreate(BaseModel):
@@ -86,7 +95,8 @@ class RunGet(BaseModel):
     result: Optional[FileGet]
     #: JSON-serialised runnable return value, if available
     result_preview: Optional[Union[list, dict]]
-    error: Optional[RunError]
+    error: Optional[RunErrorType]
+    error_info: Optional[RunErrorInfo]
     compute_requirements: Optional[ComputeRequirements] = None
 
     class Config:
