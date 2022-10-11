@@ -24,13 +24,6 @@ if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
 
 from pipeline.api import PipelineCloud as _SyncPipelineCloud
-from pipeline.exceptions.InvalidSchema import InvalidSchema
-from pipeline.schemas.compute_requirements import ComputeRequirements
-from pipeline.schemas.data import DataGet
-from pipeline.schemas.file import FileCreate, FileGet
-from pipeline.schemas.pipeline import PipelineGet
-from pipeline.schemas.run import RunCreate, RunGet
-from pipeline.util import generate_id, python_object_to_hex
 
 FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
 
@@ -51,11 +44,6 @@ class PipelineCloud(_SyncPipelineCloud):
     def _direct_upload_pipeline_file_chunk(
         self, data: bytes, pipeline_file_id: str, part_num: int
     ) -> MultipartUploadMetadata:
-        self._raise_not_implemeneted()
-
-    def _finalise_direct_pipeline_file_upload(
-        self, pipeline_file_id: str, multipart_metadata: List[MultipartUploadMetadata]
-    ) -> PipelineFileGet:
         self._raise_not_implemeneted()
 
     def _finalise_direct_pipeline_file_upload(
