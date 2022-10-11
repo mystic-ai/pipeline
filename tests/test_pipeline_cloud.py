@@ -15,7 +15,7 @@ def test_cloud_init(url, token):
 @pytest.mark.usefixtures("api_response")
 def test_cloud_init_failure(url, bad_token):
     with pytest.raises(MissingActiveToken):
-        PipelineCloud(url, bad_token)
+        PipelineCloud(url=url, token=bad_token)
 
 
 @pytest.mark.usefixtures("api_response")
