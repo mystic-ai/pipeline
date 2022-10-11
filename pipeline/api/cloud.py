@@ -233,18 +233,20 @@ class PipelineCloud:
         )
 
         parts = []
-        progress = tqdm(
-            desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
-            unit="B",
-            unit_scale=True,
-            total=file_size,
-            unit_divisor=1024,
-        )
+        if self.verbose:
+            progress = tqdm(
+                desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
+                unit="B",
+                unit_scale=True,
+                total=file_size,
+                unit_divisor=1024,
+            )
         with open(pipeline_file.path, "rb") as f:
             while True:
                 file_data = f.read(FILE_CHUNK_SIZE)
                 if not file_data:
-                    progress.close()
+                    if self.verbose:
+                        progress.close()
                     break
 
                 part_num = len(parts) + 1
@@ -255,7 +257,8 @@ class PipelineCloud:
                     part_num=part_num,
                 )
                 parts.append(upload_metadata)
-                progress.update(len(file_data))
+                if self.verbose:
+                    progress.update(len(file_data))
 
         pipeline_file_get = self._finalise_direct_pipeline_file_upload(
             pipeline_file_id=pipeline_file_id, multipart_metadata=parts
@@ -309,22 +312,24 @@ class PipelineCloud:
             }
         )
         encoder_len = e.len
-        bar = tqdm(
-            desc=f"{PIPELINE_STR} Uploading",
-            unit="B",
-            unit_scale=True,
-            total=encoder_len,
-            unit_divisor=1024,
-        )
+        if self.verbose:
+            bar = tqdm(
+                desc=f"{PIPELINE_STR} Uploading",
+                unit="B",
+                unit_scale=True,
+                total=encoder_len,
+                unit_divisor=1024,
+            )
+        if self.verbose:
 
-        def progress_callback(monitor):
-            bar.n = monitor.bytes_read
-            bar.refresh()
-            if monitor.bytes_read == encoder_len:
-                bar.close()
+            def progress_callback(monitor):
+                bar.n = monitor.bytes_read
+                bar.refresh()
+                if monitor.bytes_read == encoder_len:
+                    bar.close()
 
         encoded_stream_data = encoder.MultipartEncoderMonitor(
-            e, callback=progress_callback
+            e, callback=progress_callback if self.verbose else None
         )
 
         headers = {
