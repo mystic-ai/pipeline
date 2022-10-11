@@ -633,7 +633,7 @@ class PipelineCloud:
         else:
             try:
                 result_id = RunGet.parse_obj(result_id_or_schema).result.id
-            except:
+            except ValidationError:
                 raise InvalidSchema(
                     schema=result_id_or_schema,
                     message=(
