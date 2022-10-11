@@ -1,23 +1,19 @@
-from __future__ import annotations
-
 import io
 import json
 import os
-import httpx
 import urllib.parse
 from http import HTTPStatus
 from typing import Any, Optional, Union
 
+import httpx
 
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
+from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.pipeline import PipelineGet
-from pipeline.schemas.file import FileGet, FileCreate
-
 from pipeline.schemas.run import RunCreate
-from pipeline.util import python_object_to_hex, generate_id
-
+from pipeline.util import generate_id, python_object_to_hex
 
 FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
 
