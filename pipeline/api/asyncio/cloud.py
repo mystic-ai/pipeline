@@ -10,7 +10,6 @@ from typing import Any, Optional, Union
 
 
 from pipeline.exceptions.InvalidSchema import InvalidSchema
-from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.pipeline import PipelineGet
