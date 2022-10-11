@@ -36,7 +36,7 @@ from pipeline.schemas.pipeline_file import (
     PipelineFileDirectUploadPartGet,
     PipelineFileGet,
 )
-from pipeline.schemas.run import RunCreate
+from pipeline.schemas.run import RunCreate, RunGet
 from pipeline.util import (
     generate_id,
     hex_to_python_object,
@@ -615,6 +615,37 @@ class PipelineCloud:
             params=dict(return_data=True),
         )
         return hex_to_python_object(d_get_schema.hex_file.data)
+
+    def download_result(self, result_id_or_schema: Union[str, RunGet]) -> Any:
+        """
+        Downloads Result object from Pipeline Cloud.
+            Parameters:
+                    result_id_or_schema (Union[str, RunGet]):
+                    The id for the desired run result
+                    or the schema obtained from the run
+
+            Returns:
+                    object (Any): De-Serialized run result file object.
+        """
+        result_id = None
+        if isinstance(result_id_or_schema, str):
+            result_id = result_id_or_schema
+        else:
+            try:
+                result_id = RunGet.parse_obj(result_id_or_schema).result.id
+            except ValidationError:
+                raise InvalidSchema(
+                    schema=result_id_or_schema,
+                    message=(
+                        "Must either pass a result id, or a run get schema. "
+                        "Not object of type %s in arg 1." % str(result_id_or_schema)
+                    ),
+                )
+        endpoint = f"/v2/files/{result_id}"
+        f_get_schema: FileGet = self._download_schema(
+            schema=FileGet, endpoint=endpoint, params=dict(return_data=True)
+        )
+        return hex_to_python_object(f_get_schema.data)
 
     def download_pipeline(self, id: str) -> Graph:
         """
