@@ -12,7 +12,7 @@ from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileCreate, FileGet
 from pipeline.schemas.pipeline import PipelineGet
-from pipeline.schemas.run import RunCreate
+from pipeline.schemas.run import RunCreate, RunGet
 from pipeline.util import generate_id, python_object_to_hex
 
 FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
@@ -178,4 +178,5 @@ class PipelineCloud:
             compute_type=compute_type,
             compute_requirements=compute_requirements,
         )
-        return await self._post("/v2/runs", json.loads(run_create_schema.json()))
+        run_json: dict = self._post("/v2/runs", json.loads(run_create_schema.json()))
+        return await RunGet.parse_obj(run_json)
