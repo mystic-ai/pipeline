@@ -1,12 +1,29 @@
+from __future__ import annotations
+
 import io
 import json
-import os
 import urllib.parse
 from http import HTTPStatus
-from typing import Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
 import httpx
 
+from pipeline.exceptions.InvalidSchema import InvalidSchema
+from pipeline.schemas.base import BaseModel
+from pipeline.schemas.compute_requirements import ComputeRequirements
+from pipeline.schemas.data import DataGet
+from pipeline.schemas.file import FileCreate, FileGet
+from pipeline.schemas.function import FunctionGet
+from pipeline.schemas.model import ModelGet
+from pipeline.schemas.pipeline import PipelineFileVariableGet, PipelineGet
+from pipeline.schemas.pipeline_file import MultipartUploadMetadata, PipelineFileGet
+from pipeline.schemas.run import RunCreate, RunGet
+from pipeline.util import generate_id, python_object_to_hex
+
+if TYPE_CHECKING:
+    from pipeline.objects import Function, Graph, Model
+
+from pipeline.api import PipelineCloud as _SyncPipelineCloud
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
@@ -18,16 +35,74 @@ from pipeline.util import generate_id, python_object_to_hex
 FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
 
 
-class PipelineCloud:
-    token: Optional[str]
-    url: Optional[str]
+class PipelineCloud(_SyncPipelineCloud):
+    def _raise_not_implemeneted(self):
+        raise NotImplemented("This function is not implemented")
 
-    def __init__(
-        self, *, url: str = None, token: str = None, timeout: float = 30.0
-    ) -> None:
-        self.token = token or os.getenv("PIPELINE_API_TOKEN")
-        self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
-        self.timeout = timeout
+    def authenticate(self, token: str = None):
+        self._raise_not_implemeneted()
+
+    def upload_python_object_to_file(self, obj, remote_path) -> FileGet:
+        self._raise_not_implemeneted()
+
+    def _initialise_direct_pipeline_file_upload(self, file_size: int) -> str:
+        self._raise_not_implemeneted()
+
+    def _direct_upload_pipeline_file_chunk(
+        self, data: bytes, pipeline_file_id: str, part_num: int
+    ) -> MultipartUploadMetadata:
+        self._raise_not_implemeneted()
+
+    def _finalise_direct_pipeline_file_upload(
+        self, pipeline_file_id: str, multipart_metadata: List[MultipartUploadMetadata]
+    ) -> PipelineFileGet:
+        self._raise_not_implemeneted()
+
+    def _finalise_direct_pipeline_file_upload(
+        self, pipeline_file_id: str, multipart_metadata: List[MultipartUploadMetadata]
+    ) -> PipelineFileGet:
+        self._raise_not_implemeneted()
+
+    def upload_pipeline_file(self, pipeline_file) -> PipelineFileVariableGet:
+        self._raise_not_implemeneted()
+
+    def _get(self, endpoint: str, params: Dict[str, Any] = None):
+        self._raise_not_implemeneted()
+
+    def upload_function(self, function: Function) -> FunctionGet:
+        self._raise_not_implemeneted()
+
+    def upload_model(self, model: Model) -> ModelGet:
+        self._raise_not_implemeneted()
+
+    def upload_pipeline(
+        self,
+        new_pipeline_graph: Graph,
+        public: bool = False,
+        description: str = "",
+        tags: Set[str] = None,
+    ) -> PipelineGet:
+        self._raise_not_implemeneted()
+
+    def _download_schema(
+        self, schema: Type[BaseModel], endpoint: str, params: Optional[Dict[str, Any]]
+    ) -> Type[BaseModel]:
+        self._raise_not_implemeneted()
+
+    def download_function(self, id: str) -> Function:
+        self._raise_not_implemeneted()
+
+    def download_model(self, id: str) -> Model:
+        self._raise_not_implemeneted()
+
+    def download_data(self, id: str) -> Any:
+        self._raise_not_implemeneted()
+
+    def download_result(self, result_id_or_schema: Union[str, RunGet]) -> Any:
+        self._raise_not_implemeneted()
+
+    def download_pipeline(self, id: str) -> Graph:
+        self._raise_not_implemeneted()
 
     @staticmethod
     def _get_raise_for_status(response: httpx.Response) -> None:

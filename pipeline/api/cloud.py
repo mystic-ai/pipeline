@@ -55,9 +55,18 @@ class PipelineCloud:
     token: Optional[str]
     url: Optional[str]
 
-    def __init__(self, url: str = None, token: str = None) -> None:
+    def __init__(
+        self,
+        *,
+        url: str = None,
+        token: str = None,
+        timeout=60.0,
+        verbose=True,
+    ) -> None:
         self.token = token or os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
+        self.timeout = timeout
+        self.verbose = verbose
         self.__valid_token__ = False
         if self.token is not None:
             self.authenticate()
@@ -71,7 +80,9 @@ class PipelineCloud:
             Returns:
                 None
         """
-        print("Authenticating")
+        if self.verbose:
+            print("Authenticating")
+
         _token = token or self.token
         if _token is None:
             raise MissingActiveToken(
@@ -91,7 +102,7 @@ class PipelineCloud:
         else:
             response.raise_for_status()
 
-        if response.json():
+        if response.json() and self.verbose:
             print("Succesfully authenticated with the Pipeline API (%s)" % self.url)
         self.token = _token
         self.__valid_token__ = True
@@ -398,19 +409,21 @@ class PipelineCloud:
             raise Exception("Cannot upload a pipeline that has already been run.")
 
         new_name = new_pipeline_graph.name
-        print("Uploading functions")
+        if self.verbose:
+            print("Uploading functions")
         new_functions = [
             self.upload_function(_function)
             for _function in new_pipeline_graph.functions
         ]
         for i, uploaded_function_schema in enumerate(new_functions):
             new_pipeline_graph.functions[i].local_id = uploaded_function_schema.id
-
-        print("Uploading models")
+        if self.verbose:
+            print("Uploading models")
         new_models = [self.upload_model(_model) for _model in new_pipeline_graph.models]
 
         new_variables: List[PipelineVariableGet] = []
-        print("Uploading variables")
+        if self.verbose:
+            print("Uploading variables")
 
         from pipeline.objects import PipelineFile
 
@@ -462,7 +475,8 @@ class PipelineCloud:
         except ValidationError as e:
             raise InvalidSchema(schema="Graph", message=str(e))
 
-        print("Uploading pipeline graph")
+        if self.verbose:
+            print("Uploading pipeline graph")
         response = self._post(
             "/v2/pipelines", json.loads(pipeline_create_schema.json())
         )
