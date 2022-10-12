@@ -17,10 +17,7 @@ class model:
         doc = self.nlp(input)
         # (optional) your spacy code here or you can return entire spacy object
         # to manipulate on a client that has spacy installed.
-        res = []
-        for token in doc:
-            res.append([token.text, token.pos_, token.dep_])
-        return res
+        return [[token.text, token.pos_, token.dep_] for token in doc]
 
     @pipeline_function(run_once=True, on_startup=True)
     def load(self) -> bool:
