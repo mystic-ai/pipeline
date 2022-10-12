@@ -1,6 +1,5 @@
-from pipeline import PipelineCloud
-from pipeline.objects import (
-    Graph,
+from pipeline import (
+    PipelineCloud,
     Pipeline,
     Variable,
     pipeline_function,
@@ -8,60 +7,47 @@ from pipeline.objects import (
 )
 
 
-def spacy_to_pipeline(language_package: str, name: str = "spacy pipeline") -> Graph:
-    """
-    Create a pipeline with spacy
-        Parameters:
-                language_package (str): spacy language package
-                name (str): Desired name to be given to this pipeline
+@pipeline_model
+class model:
+    def __init__(self):
+        self.nlp = None
 
-        Returns:
-                pipeline (Graph): Executable Pipeline Graph object
-    """
+    @pipeline_function
+    def predict(self, input: str) -> list:
+        doc = self.nlp(input)
+        # (optional) your spacy code here or you can return entire spacy object
+        # to manipulate on a client that has spacy installed.
+        res = []
+        for token in doc:
+            res.append([token.text, token.pos_, token.dep_])
+        return res
 
-    @pipeline_model
-    class model:
-        def __init__(self):
-            self.nlp = None
+    @pipeline_function(run_once=True, on_startup=True)
+    def load(self) -> bool:
+        import spacy
 
-        @pipeline_function
-        def predict(self, input: str) -> list:
-            doc = self.nlp(input)
-            # (optional) your spacy code here or you can return entire spacy object
-            # to manipulate on a client that has spacy installed.
-            res = []
-            for token in doc:
-                res.append([token.text, token.pos_, token.dep_])
-            return res
-
-        @pipeline_function(run_once=True, on_startup=True)
-        def load(self) -> bool:
-            import spacy
-
-            spacy.cli.download(language_package)
-            self.nlp = spacy.load(language_package)
-            return True
-
-    with Pipeline(name) as pipeline:
-        input = Variable(str, is_input=True)
-
-        pipeline.add_variables(
-            input,
-        )
-
-        model = model()
-        model.load()
-
-        output = model.predict(
-            input,
-        )
-
-        pipeline.output(output)
-
-    return Pipeline.get_pipeline(name)
+        spacy.cli.download("en_core_web_sm")
+        self.nlp = spacy.load("en_core_web_sm")
+        return True
 
 
-spacy_pipeline = spacy_to_pipeline("en_core_web_sm")
+with Pipeline("spacy_pipeline") as pipeline:
+    input = Variable(str, is_input=True)
+
+    pipeline.add_variables(
+        input,
+    )
+
+    model = model()
+    model.load()
+
+    output = model.predict(
+        input,
+    )
+
+    pipeline.output(output)
+
+spacy_pipeline = Pipeline.get_pipeline("spacy_pipeline")
 
 api = PipelineCloud(token="YOUR_TOKEN_HERE")
 
