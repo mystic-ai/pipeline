@@ -1,6 +1,6 @@
 from pipeline import (
-    PipelineCloud,
     Pipeline,
+    PipelineCloud,
     Variable,
     pipeline_function,
     pipeline_model,
