@@ -1,6 +1,7 @@
 [tool.poetry]
 name = "pipeline-ai"
 version = "1.0.0"
+
 description = "Pipelines for machine learning workloads."
 authors = [
   "Paul Hetherington <ph@mystic.ai>",
