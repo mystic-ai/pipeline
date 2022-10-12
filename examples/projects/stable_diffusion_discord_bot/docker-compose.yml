@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  sd-discord-bot:
+    container_name: sd-discord-bot
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    env_file:
+      - secrets.env
+      
