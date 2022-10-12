@@ -62,6 +62,7 @@ class PipelineCloud:
         token: str = None,
         timeout=60.0,
         verbose=True,
+        auth_check=True,
     ) -> None:
         self.token = token or os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")

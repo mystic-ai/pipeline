@@ -32,9 +32,6 @@ class PipelineCloud(_SyncPipelineCloud):
     def _raise_not_implemeneted(self):
         raise NotImplementedError("This function is not implemented")
 
-    def authenticate(self, token: str = None):
-        self._raise_not_implemeneted()
-
     def upload_python_object_to_file(self, obj, remote_path) -> FileGet:
         self._raise_not_implemeneted()
 
