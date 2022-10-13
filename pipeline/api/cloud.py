@@ -8,6 +8,7 @@ import urllib.parse
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
+import httpx
 import requests
 from pydantic import ValidationError
 from requests_toolbelt.multipart import encoder
@@ -121,9 +122,14 @@ class PipelineCloud:
             )
 
     @staticmethod
-    def _get_raise_for_status(response: requests.Response) -> None:
+    def _get_raise_for_status(
+        response: Union[requests.Response, httpx.Response]
+    ) -> None:
         # A handler for errors that might be sent with messages from Top.
-        if not response.ok:
+        if (isinstance(response, requests.Response) and not response.ok) or (
+            isinstance(response, httpx.Response)
+            and not response.status_code == httpx.codes.OK
+        ):
             content = response.json()
             # Every exception has content of {detail, status_code[, headers]}
             # TODO Some exceptions in Top send detail as a string and not a dict.
