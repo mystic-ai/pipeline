@@ -8,6 +8,7 @@ import urllib.parse
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
+import httpx
 import requests
 from pydantic import ValidationError
 from requests_toolbelt.multipart import encoder
@@ -55,9 +56,18 @@ class PipelineCloud:
     token: Optional[str]
     url: Optional[str]
 
-    def __init__(self, url: str = None, token: str = None) -> None:
+    def __init__(
+        self,
+        *,
+        url: str = None,
+        token: str = None,
+        timeout=60.0,
+        verbose=True,
+    ) -> None:
         self.token = token or os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
+        self.timeout = timeout
+        self.verbose = verbose
         self.__valid_token__ = False
         if self.token is not None:
             self.authenticate()
@@ -71,7 +81,9 @@ class PipelineCloud:
             Returns:
                 None
         """
-        print("Authenticating")
+        if self.verbose:
+            print("Authenticating")
+
         _token = token or self.token
         if _token is None:
             raise MissingActiveToken(
@@ -80,7 +92,9 @@ class PipelineCloud:
         status_url = urllib.parse.urljoin(self.url, "/v2/users/me")
 
         response = requests.get(
-            status_url, headers={"Authorization": "Bearer %s" % _token}
+            status_url,
+            headers={"Authorization": "Bearer %s" % _token},
+            timeout=self.timeout,
         )
 
         if (
@@ -91,7 +105,7 @@ class PipelineCloud:
         else:
             response.raise_for_status()
 
-        if response.json():
+        if response.json() and self.verbose:
             print("Succesfully authenticated with the Pipeline API (%s)" % self.url)
         self.token = _token
         self.__valid_token__ = True
@@ -108,9 +122,14 @@ class PipelineCloud:
             )
 
     @staticmethod
-    def _get_raise_for_status(response: requests.Response) -> None:
+    def _get_raise_for_status(
+        response: Union[requests.Response, httpx.Response]
+    ) -> None:
         # A handler for errors that might be sent with messages from Top.
-        if not response.ok:
+        if (isinstance(response, requests.Response) and not response.ok) or (
+            isinstance(response, httpx.Response)
+            and not response.status_code == httpx.codes.OK
+        ):
             content = response.json()
             # Every exception has content of {detail, status_code[, headers]}
             # TODO Some exceptions in Top send detail as a string and not a dict.
@@ -184,7 +203,9 @@ class PipelineCloud:
         # upload file chunk
         # convert data to hex
         data = data.hex().encode()
-        response = requests.put(part_upload_get.upload_url, data=data)
+        response = requests.put(
+            part_upload_get.upload_url, data=data, timeout=self.timeout
+        )
         etag = response.headers["ETag"]
         return MultipartUploadMetadata(ETag=etag, PartNumber=part_num)
 
@@ -222,18 +243,20 @@ class PipelineCloud:
         )
 
         parts = []
-        progress = tqdm(
-            desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
-            unit="B",
-            unit_scale=True,
-            total=file_size,
-            unit_divisor=1024,
-        )
+        if self.verbose:
+            progress = tqdm(
+                desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
+                unit="B",
+                unit_scale=True,
+                total=file_size,
+                unit_divisor=1024,
+            )
         with open(pipeline_file.path, "rb") as f:
             while True:
                 file_data = f.read(FILE_CHUNK_SIZE)
                 if not file_data:
-                    progress.close()
+                    if self.verbose:
+                        progress.close()
                     break
 
                 part_num = len(parts) + 1
@@ -244,7 +267,8 @@ class PipelineCloud:
                     part_num=part_num,
                 )
                 parts.append(upload_metadata)
-                progress.update(len(file_data))
+                if self.verbose:
+                    progress.update(len(file_data))
 
         pipeline_file_get = self._finalise_direct_pipeline_file_upload(
             pipeline_file_id=pipeline_file_id, multipart_metadata=parts
@@ -259,7 +283,9 @@ class PipelineCloud:
         }
 
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(
+            url, headers=headers, params=params, timeout=self.timeout
+        )
         response.raise_for_status()
         return response.json()
 
@@ -271,7 +297,9 @@ class PipelineCloud:
         }
 
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.post(url, headers=headers, json=json_data)
+        response = requests.post(
+            url, headers=headers, json=json_data, timeout=self.timeout
+        )
 
         if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
             schema = json_data
@@ -298,22 +326,24 @@ class PipelineCloud:
             }
         )
         encoder_len = e.len
-        bar = tqdm(
-            desc=f"{PIPELINE_STR} Uploading",
-            unit="B",
-            unit_scale=True,
-            total=encoder_len,
-            unit_divisor=1024,
-        )
+        if self.verbose:
+            bar = tqdm(
+                desc=f"{PIPELINE_STR} Uploading",
+                unit="B",
+                unit_scale=True,
+                total=encoder_len,
+                unit_divisor=1024,
+            )
+        if self.verbose:
 
-        def progress_callback(monitor):
-            bar.n = monitor.bytes_read
-            bar.refresh()
-            if monitor.bytes_read == encoder_len:
-                bar.close()
+            def progress_callback(monitor):
+                bar.n = monitor.bytes_read
+                bar.refresh()
+                if monitor.bytes_read == encoder_len:
+                    bar.close()
 
         encoded_stream_data = encoder.MultipartEncoderMonitor(
-            e, callback=progress_callback
+            e, callback=progress_callback if self.verbose else None
         )
 
         headers = {
@@ -321,7 +351,9 @@ class PipelineCloud:
             "Content-type": encoded_stream_data.content_type,
         }
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.post(url, headers=headers, data=encoded_stream_data)
+        response = requests.post(
+            url, headers=headers, data=encoded_stream_data, timeout=self.timeout
+        )
         if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
             schema = FileCreate.__name__
             raise InvalidSchema(schema=schema)
@@ -398,19 +430,21 @@ class PipelineCloud:
             raise Exception("Cannot upload a pipeline that has already been run.")
 
         new_name = new_pipeline_graph.name
-        print("Uploading functions")
+        if self.verbose:
+            print("Uploading functions")
         new_functions = [
             self.upload_function(_function)
             for _function in new_pipeline_graph.functions
         ]
         for i, uploaded_function_schema in enumerate(new_functions):
             new_pipeline_graph.functions[i].local_id = uploaded_function_schema.id
-
-        print("Uploading models")
+        if self.verbose:
+            print("Uploading models")
         new_models = [self.upload_model(_model) for _model in new_pipeline_graph.models]
 
         new_variables: List[PipelineVariableGet] = []
-        print("Uploading variables")
+        if self.verbose:
+            print("Uploading variables")
 
         from pipeline.objects import PipelineFile
 
@@ -462,7 +496,8 @@ class PipelineCloud:
         except ValidationError as e:
             raise InvalidSchema(schema="Graph", message=str(e))
 
-        print("Uploading pipeline graph")
+        if self.verbose:
+            print("Uploading pipeline graph")
         response = self._post(
             "/v2/pipelines", json.loads(pipeline_create_schema.json())
         )
@@ -531,7 +566,8 @@ class PipelineCloud:
             compute_type=compute_type,
             compute_requirements=compute_requirements,
         )
-        return self._post("/v2/runs", json.loads(run_create_schema.json()))
+        run_json: dict = self._post("/v2/runs", json.loads(run_create_schema.json()))
+        return RunGet.parse_obj(run_json)
 
     def _download_schema(
         self, schema: Type[BaseModel], endpoint: str, params: Optional[Dict[str, Any]]
