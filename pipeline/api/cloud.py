@@ -62,7 +62,6 @@ class PipelineCloud:
         token: str = None,
         timeout=60.0,
         verbose=True,
-        auth_check=True,
     ) -> None:
         self.token = token or os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
@@ -92,7 +91,9 @@ class PipelineCloud:
         status_url = urllib.parse.urljoin(self.url, "/v2/users/me")
 
         response = requests.get(
-            status_url, headers={"Authorization": "Bearer %s" % _token}
+            status_url,
+            headers={"Authorization": "Bearer %s" % _token},
+            timeout=self.timeout,
         )
 
         if (
@@ -196,7 +197,9 @@ class PipelineCloud:
         # upload file chunk
         # convert data to hex
         data = data.hex().encode()
-        response = requests.put(part_upload_get.upload_url, data=data)
+        response = requests.put(
+            part_upload_get.upload_url, data=data, timeout=self.timeout
+        )
         etag = response.headers["ETag"]
         return MultipartUploadMetadata(ETag=etag, PartNumber=part_num)
 
@@ -274,7 +277,9 @@ class PipelineCloud:
         }
 
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.get(url, headers=headers, params=params)
+        response = requests.get(
+            url, headers=headers, params=params, timeout=self.timeout
+        )
         response.raise_for_status()
         return response.json()
 
@@ -286,7 +291,9 @@ class PipelineCloud:
         }
 
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.post(url, headers=headers, json=json_data)
+        response = requests.post(
+            url, headers=headers, json=json_data, timeout=self.timeout
+        )
 
         if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
             schema = json_data
@@ -338,7 +345,9 @@ class PipelineCloud:
             "Content-type": encoded_stream_data.content_type,
         }
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.post(url, headers=headers, data=encoded_stream_data)
+        response = requests.post(
+            url, headers=headers, data=encoded_stream_data, timeout=self.timeout
+        )
         if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
             schema = FileCreate.__name__
             raise InvalidSchema(schema=schema)
