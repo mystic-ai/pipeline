@@ -15,7 +15,7 @@ pipeline_api = PipelineCloud(token=pipeline_token)
 
 
 async def handle_generation(image_prompt: str) -> io.BytesIO:
-    response = pipeline_api.run_pipeline(
+    response = await pipeline_api.run_pipeline(
         "pipeline_67d9d8ec36d54c148c70df1f404b0369",
         [[image_prompt], {"width": 512, "height": 512, "num_inference_steps": 50}],
     )
