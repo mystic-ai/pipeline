@@ -28,8 +28,8 @@ async def handle_generation(image_prompt: str) -> io.BytesIO:
     return buffer
 
 
-# For our '/paint' command we only want to take in a single text prompt, 
-# this is included in the 'options' field below and the name of the option 
+# For our '/paint' command we only want to take in a single text prompt,
+# this is included in the 'options' field below and the name of the option
 # is what's used as a key word argument to our function.
 @bot.command(
     name="paint",
@@ -44,7 +44,7 @@ async def handle_generation(image_prompt: str) -> io.BytesIO:
     ],
 )
 async def paint(ctx: interactions.CommandContext, prompt: str) -> None:
-    # You have to send back a response quickly otherwise 
+    # You have to send back a response quickly otherwise
     # Discord thinks that the bot has died.
     sent_response = await ctx.send("Generating image...")
 
@@ -59,11 +59,11 @@ async def paint(ctx: interactions.CommandContext, prompt: str) -> None:
                 )
             ],
             content=prompt
-            # You can add another argument 'ephemeral=True' to only show the 
+            # You can add another argument 'ephemeral=True' to only show the
             # result to the user that sent the request.
         )
     except:
-        # If the image generation (or anything else) fails 
+        # If the image generation (or anything else) fails
         # for any reason it's best to let the user know
         await sent_response.edit(
             content="Generation failed, please try again!",
