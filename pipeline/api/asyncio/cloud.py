@@ -217,4 +217,4 @@ class PipelineCloud(_SyncPipelineCloud):
         run_json: dict = await self._post(
             "/v2/runs", json.loads(run_create_schema.json())
         )
-        return await RunGet.parse_obj(run_json)
+        return RunGet.parse_obj(run_json)
