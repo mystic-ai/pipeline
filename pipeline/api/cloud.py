@@ -13,6 +13,7 @@ import requests
 from pydantic import ValidationError
 from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
+from tqdm.utils import CallbackIOWrapper
 
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
@@ -185,7 +186,10 @@ class PipelineCloud:
         return direct_upload_get.pipeline_file_id
 
     def _direct_upload_pipeline_file_chunk(
-        self, data: bytes, pipeline_file_id: str, part_num: int
+        self,
+        data: Union[io.BytesIO, CallbackIOWrapper],
+        pipeline_file_id: str,
+        part_num: int,
     ) -> MultipartUploadMetadata:
         """Upload a single chunk of a multi-part pipeline file upload.
 
@@ -201,8 +205,6 @@ class PipelineCloud:
         )
         part_upload_get = PipelineFileDirectUploadPartGet.parse_obj(response)
         # upload file chunk
-        # convert data to hex
-        data = data.hex().encode()
         response = requests.put(
             part_upload_get.upload_url, data=data, timeout=self.timeout
         )
@@ -248,7 +250,7 @@ class PipelineCloud:
                 desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
                 unit="B",
                 unit_scale=True,
-                total=file_size,
+                total=file_size * 2,  # since we hex encode the data
                 unit_divisor=1024,
             )
         with open(pipeline_file.path, "rb") as f:
@@ -261,14 +263,18 @@ class PipelineCloud:
 
                 part_num = len(parts) + 1
 
+                # convert data to hex
+                data = io.BytesIO(file_data.hex().encode())
+                # If verbose then wrap our data object in a tqdm callback
+                if self.verbose:
+                    data = CallbackIOWrapper(progress.update, data, "read")
+
                 upload_metadata = self._direct_upload_pipeline_file_chunk(
-                    data=file_data,
+                    data=data,
                     pipeline_file_id=pipeline_file_id,
                     part_num=part_num,
                 )
                 parts.append(upload_metadata)
-                if self.verbose:
-                    progress.update(len(file_data))
 
         pipeline_file_get = self._finalise_direct_pipeline_file_upload(
             pipeline_file_id=pipeline_file_id, multipart_metadata=parts
