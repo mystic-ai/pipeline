@@ -82,8 +82,13 @@ class PipelineMetricsGetSummary(BaseModel):
 
     pipeline_id: str
     pipeline_name: str
+    #: total number of runs executed on the pipeline
     run_count: int
+    #: total number of failed runs executed on the pipeline
     failed_run_count: int
+    #: total number of succeeded runs executed on the pipeline
+    succeeded_run_count: int
+    #: total run compute time (typically of completed runs)
     total_compute_ms: int
 
 
