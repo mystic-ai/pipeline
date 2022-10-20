@@ -75,6 +75,23 @@ class PipelineMetricsGet(RunMetricsGet):
     pipeline_name: str
 
 
+class PipelineMetricsGetSummary(BaseModel):
+    """Pipeline run summary metrics supplemented with pipeline meta data.
+    Pipeline meta data is useful for list/paginated metrics views so the client
+    can keep track of which pipeline is which"""
+
+    pipeline_id: str
+    pipeline_name: str
+    #: total number of runs executed on the pipeline
+    run_count: int
+    #: total number of failed runs executed on the pipeline
+    failed_run_count: int
+    #: total number of succeeded runs executed on the pipeline
+    succeeded_run_count: int
+    #: total run compute time (typically of completed runs)
+    total_compute_ms: int
+
+
 class MetricsQuery(BaseModel):
     """
     Query parameters for generic metrics requests.
