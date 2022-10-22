@@ -1,0 +1,133 @@
+## The following requirements were added by pip freeze:
+aiohttp==3.8.3
+aiosignal==1.2.0
+anyio==3.6.1
+appdirs==1.4.4
+async-timeout==4.0.2
+attrs==22.1.0
+backports.entry-points-selectable==1.1.1
+beautifulsoup4==4.11.1
+black==22.8.0
+boto3==1.24.84
+botocore==1.27.84
+brotlipy @ file:///Users/runner/miniforge3/conda-bld/brotlipy_1636012319596/work
+bs4==0.0.1
+bson==0.5.10
+CacheControl==0.12.10
+cachy==0.3.0
+certifi==2022.9.24
+cffi @ file:///Users/runner/miniforge3/conda-bld/cffi_1636046173594/work
+charset-normalizer==2.1.1
+cleo==0.8.1
+click==8.1.3
+clikit==0.6.2
+cloudpickle==2.2.0
+colorama==0.4.5
+coloredlogs==15.0.1
+conda==4.13.0
+conda-package-handling @ file:///Users/runner/miniforge3/conda-bld/conda-package-handling_1636022092101/work
+crashtest==0.3.1
+cryptography @ file:///Users/runner/miniforge3/conda-bld/cryptography_1637648810489/work
+cssselect==1.1.0
+dataclasses @ file:///home/conda/feedstock_root/build_artifacts/dataclasses_1628958434797/work
+dearpygui==1.5.1
+diffusers==0.2.4
+dill==0.3.5.1
+discord==2.0.0
+discord-py-interactions==4.3.1
+discord.py==2.0.1
+distlib==0.3.3
+einops==0.4.1
+fake-useragent==0.1.11
+filelock @ file:///home/conda/feedstock_root/build_artifacts/filelock_1637070794272/work
+flatbuffers==2.0
+frozenlist==1.3.1
+h11==0.12.0
+html5lib==1.1
+httpcore==0.15.0
+httpx==0.23.0
+huggingface-hub==0.9.0
+humanfriendly==10.0
+idna==3.4
+importlib-metadata @ file:///Users/runner/miniforge3/conda-bld/importlib-metadata_1636431822059/work
+iniconfig==1.1.1
+jmespath==1.0.1
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1633637554808/work
+keyring==21.8.0
+lockfile==0.12.2
+lxml==4.8.0
+mpmath==1.2.1
+msgpack==1.0.3
+multidict==6.0.2
+mypy-extensions @ file:///Users/runner/miniforge3/conda-bld/mypy_extensions_1635839807425/work
+numpy @ file:///Users/runner/miniforge3/conda-bld/numpy_1636145451503/work
+onnx @ file:///Users/runner/miniforge3/conda-bld/onnx_1655539419575/work
+onnxruntime==1.12.1
+packaging==20.9
+parse==1.19.0
+pastel==0.2.1
+pathspec==0.10.1
+pexpect==4.8.0
+Pillow @ file:///Users/runner/miniforge3/conda-bld/pillow_1649818253938/work
+pipeline-ai==0.1.1
+pkginfo==1.8.1
+platformdirs==2.5.2
+pluggy==1.0.0
+poetry==1.1.14
+poetry-core==1.0.7
+protobuf==3.20.1
+ptyprocess==0.7.0
+py==1.11.0
+pycosat @ file:///Users/runner/miniforge3/conda-bld/pycosat_1636020570107/work
+pycparser @ file:///home/conda/feedstock_root/build_artifacts/pycparser_1636257122734/work
+pydantic==1.10.2
+pyee==8.2.2
+pyhumps==3.7.3
+pylev==1.4.0
+pynput==1.7.6
+pyobjc-core==8.4.1
+pyobjc-framework-ApplicationServices==8.4.1
+pyobjc-framework-Cocoa==8.4.1
+pyobjc-framework-Quartz==8.4.1
+pyOpenSSL @ file:///home/conda/feedstock_root/build_artifacts/pyopenssl_1633192417276/work
+pyparsing @ file:///home/conda/feedstock_root/build_artifacts/pyparsing_1636757021002/work
+pyppeteer==1.0.2
+pyquery==1.4.3
+PySocks @ file:///Users/runner/miniforge3/conda-bld/pysocks_1635862736740/work
+pytest==7.1.2
+python-dateutil==2.8.2
+PyYAML @ file:///Users/runner/miniforge3/conda-bld/pyyaml_1636140145796/work
+regex @ file:///Users/runner/miniforge3/conda-bld/regex_1636504423170/work
+requests==2.28.1
+requests-html==0.10.0
+requests-toolbelt==0.9.1
+responses==0.21.0
+rfc3986==1.5.0
+ruamel-yaml-conda @ file:///Users/runner/miniforge3/conda-bld/ruamel_yaml_1636009262461/work
+s3transfer==0.6.0
+sacremoses @ file:///home/conda/feedstock_root/build_artifacts/sacremoses_1636276757411/work
+semantic-version==2.10.0
+setuptools-rust==1.5.1
+shellingham==1.4.0
+six==1.16.0
+sniffio==1.3.0
+soupsieve==2.3.2.post1
+sympy==1.10.1
+tensorflow-metal==0.5.0
+tokenizers==0.12.1.dev0
+tomli==2.0.1
+tomlkit==0.7.2
+torch @ file:///Users/runner/miniforge3/conda-bld/pytorch-recipe_1651023559589/work
+torchvision==0.12.0
+tqdm==4.64.1
+transformers @ git+https://github.com/huggingface/transformers@6faf283288ce3390281ad8c1d37ccb13f2d03990
+typed-ast @ file:///Users/runner/miniforge3/conda-bld/typed-ast_1638670799932/work
+typing_extensions==4.3.0
+urllib3==1.26.12
+virtualenv==20.10.0
+w3lib==1.22.0
+watchgod==0.8.2
+webencodings==0.5.1
+websockets==10.3
+yarl==1.8.1
+zipp @ file:///home/conda/feedstock_root/build_artifacts/zipp_1633302054558/work
