@@ -6,6 +6,8 @@ custom_env = Environment(
     dependencies=[Dependency(dependency_string="numpy==1.23.4")],
 )
 
+custom_env.initialize()
+
 
 @pipeline_function
 def add_numbers(a: float, b: float) -> float:

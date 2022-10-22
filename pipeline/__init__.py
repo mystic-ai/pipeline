@@ -9,6 +9,7 @@ from pipeline.objects import (
 )
 
 __all__ = [
+    "PIPELINE_CACHE",
     "Pipeline",
     "Variable",
     "pipeline_model",

@@ -1,6 +1,9 @@
 import os
+import venv
 
 import tomli
+
+from pipeline import config
 
 """
 TODO:
@@ -19,11 +22,44 @@ class Dependency:
 
 
 class Environment:
+
+    initialized: bool = False
+
     def __init__(
         self, environment_name: str = None, dependencies: list[Dependency] = None
     ):
         self.environment_name = environment_name
         self.dependencies = dependencies
+
+    def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> str:
+        """_summary_
+
+        Args:
+            overwrite (bool, optional): If set to true then then if a venv exists
+            with the same name, it will be erased and replaced with this new one.
+            Defaults to False.
+
+            upgrade_deps (bool, optional): If true then the base venv variables
+            will be upgraded to the latest on pypi. This will not effect the
+            defined env packages set in self.dependencies.
+            Defaults to True
+
+        Returns:
+            None: Nothing is returned.
+        """
+        env_path = os.path.join(config.PIPELINE_CACHE, self.environment_name)
+        if os.path.exists(env_path) and not overwrite:
+            self.initialized = True
+            return
+
+        venv.create(
+            env_dir=os.path.join(config.PIPELINE_CACHE, self.environment_name),
+            clear=True,
+            with_pip=True,
+            upgrade_deps=upgrade_deps,
+        )
+
+        self.initialized = True
 
     @classmethod
     def from_requirements(cls, requirements_path: str, environment_name: str = None):
