@@ -1,5 +1,6 @@
 import os
 import venv
+from typing import List
 
 import tomli
 
@@ -26,7 +27,7 @@ class Environment:
     initialized: bool = False
 
     def __init__(
-        self, environment_name: str = None, dependencies: list[Dependency] = None
+        self, environment_name: str = None, dependencies: List[Dependency] = None
     ):
         self.environment_name = environment_name
         self.dependencies = dependencies
