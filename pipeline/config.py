@@ -1,7 +1,6 @@
 import os
 import sys
 
-
 PIPELINE_CACHE = os.getenv(
     "PIPELINE_CACHE",
     os.path.join(os.getenv("APPDATA"), "/pipeline/environments")
