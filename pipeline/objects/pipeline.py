@@ -1,11 +1,16 @@
+import os
+import sys
 from typing import Any, Set, Union
 
 from pipeline.api import PipelineCloud
+from pipeline.objects.environment import Environment
 from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.variable import Variable
 from pipeline.schemas.pipeline import PipelineGet
+
+SUPPORTED_CUSTOM_ENVIRNMENT_PLATFORMS = ["linux", "linux2", "darwin"]
 
 
 class Pipeline:
@@ -18,17 +23,37 @@ class Pipeline:
     _compute_type: str = "gpu"
     _min_gpu_vram_mb: int = None
 
+    _environment_cache: str = None
+    _platform: str = None
+
     def __init__(
         self,
         new_pipeline_name: str,
         api: PipelineCloud = None,
         compute_type: str = "gpu",
         min_gpu_vram_mb: int = None,
+        *,
+        environment: Environment = None,
     ):
         self._pipeline_context_name = new_pipeline_name
         self._api = api or PipelineCloud()
         self._compute_type = compute_type
         self._min_gpu_vram_mb = min_gpu_vram_mb
+        self.environment = environment
+
+        self._platform = sys.platform
+
+        if self.environment is not None:
+            if self._platform not in SUPPORTED_CUSTOM_ENVIRNMENT_PLATFORMS:
+                raise NotImplementedError(
+                    f"The current platform/operating system ({self._platform}) \
+                    is not supported yet for running or creating custom environments."
+                )
+            self._environment_cache = os.getenv(
+                "PIPELINE_ENVIRONMENT_CACHE", "~/.cache/pipeline/environments"
+            )
+            if not os.path.exists(self._environment_cache):
+                os.makedirs(self._environment_cache)
 
     def __enter__(self):
         Pipeline._pipeline_context_active = True
@@ -77,6 +102,13 @@ class Pipeline:
             return Pipeline.defined_pipelines[graph_name]
         else:
             raise Exception("No Pipeline graph found with name '%s'" % graph_name)
+
+    @staticmethod
+    def get_latest_pipeline() -> Graph:
+        if len(Pipeline.defined_pipelines) == 0:
+            raise Exception("No Pipelines created yet")
+
+        return Pipeline.defined_pipelines[list(Pipeline.defined_pipelines.keys())[-1]]
 
     @staticmethod
     def add_variable(variable: Variable) -> None:
