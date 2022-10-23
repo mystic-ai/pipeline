@@ -36,6 +36,8 @@ class Environment:
         self.dependencies = dependencies
 
     def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> str:
+        # TODO add arg for remaking on dependency change
+
         """_summary_
 
         Args:
@@ -57,8 +59,8 @@ class Environment:
             if not overwrite:
                 self.initialized = True
                 _print(
-                    "Using existing environment, any new dependencies wont be used. "
-                    "Use 'overwrite=True' to overwrite.",
+                    "Using existing environment, any new dependencies won't"
+                    " be installed. Use 'overwrite=True' to overwrite.",
                     "WARNING",
                 )
                 return
@@ -69,7 +71,10 @@ class Environment:
                 )
                 shutil.rmtree(self.env_path)
 
-        self.add_dependency(Dependency("pipeline-ai"))
+        # TODO change this to main
+        self.add_dependency(
+            Dependency("git+https://github.com/mystic-ai/pipeline@paul/envs")
+        )
 
         venv.create(
             env_dir=self.env_path,
@@ -86,7 +91,8 @@ class Environment:
 
         env_python_path = os.path.join(self.env_path, "bin/python")
         status_code = subprocess.call(
-            [env_python_path, "-m", "pip", "install", "-r", requirements_path]
+            [env_python_path, "-m", "pip", "install", "-r", requirements_path],
+            stdout=subprocess.PIPE,
         )
         print(status_code)
 
@@ -160,9 +166,24 @@ class EnvironmentSession:
 
         env_python_path = os.path.join(self.environment.env_path, "bin/python")
 
-        self._proc = subprocess.Popen([env_python_path, "-m", "pipeline"])
+        self._proc = subprocess.Popen(
+            [env_python_path, "-m", "pipeline", "worker"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
         return self
 
     def __exit__(self, type, value, traceback):
-        self._proc.kill()
+        # self._proc.kill()
+        ...
+
+    def _send(self, data: bytes) -> tuple[bytes, bytes]:
+        return self._proc.communicate(data)
+
+    def _send_message(self, message: str) -> str:
+        response_bytes, err = self._send(message.encode())
+        return response_bytes.decode()
+
+    def alive(self):
+        return self._send_message("alive_check") == "true"
