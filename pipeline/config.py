@@ -1,11 +1,12 @@
 import os
 import sys
+from pathlib import Path
 
 PIPELINE_CACHE = os.getenv(
     "PIPELINE_CACHE",
     os.path.join(os.getenv("APPDATA"), "/pipeline/environments")
     if (sys.platform == "win32" or sys.platform == "cygwin")
-    else "~/.cache/pipeline/environments",
+    else os.path.join(str(Path.home()), ".cache/pipeline/environments"),
 )
 
 
