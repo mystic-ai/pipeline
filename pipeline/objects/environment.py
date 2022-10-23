@@ -2,11 +2,13 @@ import os
 import shutil
 import subprocess
 import venv
-from typing import List
+from typing import Any, List
 
+import cloudpickle
 import tomli
 
 from pipeline import config
+from pipeline.objects.graph import Graph
 from pipeline.util.logging import _print
 
 """
@@ -72,10 +74,8 @@ class Environment:
                 shutil.rmtree(self.env_path)
 
         # TODO change this to main
-        self.add_dependency(
-            # Dependency("git+https://github.com/mystic-ai/pipeline@paul/envs")
-            Dependency("/Users/paul/mystic/pipeline-stack/pipeline")
-        )
+        self.add_dependency(Dependency("/Users/paul/mystic/pipeline-stack/pipeline"))
+        self.add_dependency(Dependency("dill"))
 
         venv.create(
             env_dir=self.env_path,
@@ -169,22 +169,36 @@ class EnvironmentSession:
         self._proc = subprocess.Popen(
             [env_python_path, "-m", "pipeline", "worker"],
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            # stdin=subprocess.PIPE,
+            # stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
         )
 
+        output = self._proc.stdout.readline().decode().strip()
+        if output != "worker-started":
+            raise Exception("Worker couldn't start")
+        _print("Session started")
         return self
 
     def __exit__(self, type, value, traceback):
         self._proc.kill()
 
-    def _send(self, data: bytes) -> tuple[bytes, bytes]:
-        # self._proc.stdin.write
-        return self._proc.communicate(data, timeout=1)
+    def _send_command(self, command: str, data: str) -> str:
+        self._proc.stdin.write(f"{command}\n".encode())
+        self._proc.stdin.write(f"{data}\n".encode())
+        self._proc.stdin.flush()
+        output = None
+        while not output:
+            output = self._proc.stdout.readline().decode().strip()
+        return output
 
-    def _send_message(self, message: str) -> str:
-        response_bytes, err = self._send(message.encode())
-        return response_bytes.decode()
+    def add_pipeline(self, pipeline: Graph) -> None:
+        pickled_pipeline = cloudpickle.dumps(pipeline)
+        response = self._send_command("add-pipeline", pickled_pipeline.hex())
 
-    def alive(self):
-        return self._send_message("alive_check\n") == "true"
+        if response != "done":
+            raise Exception(f"Couldn't add pipeline, error:'{response}'")
+
+    def run_pipeline(self, pipeline: Graph, data: list) -> Any:
+        pickled_run = cloudpickle.dumps(dict(pipeline_id=pipeline.local_id, data=data))
+        response = self._send_command("run-pipeline", pickled_run.hex())
+        return response

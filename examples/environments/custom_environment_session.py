@@ -1,5 +1,3 @@
-import time
-
 from pipeline import Pipeline, Variable, pipeline_function
 from pipeline.objects.environment import Dependency, Environment, EnvironmentSession
 
@@ -28,25 +26,6 @@ with Pipeline("custom-env-pipeline", environment=custom_env) as builder:
 my_pipeline = Pipeline.get_latest_pipeline()
 
 
-# import subprocess
-
-# with subprocess.Popen(
-#     [
-#         "python",
-#         "-c",
-#         "import time\ntime.sleep(3)\nprint(555)\ntime.sleep(10)\nprint(123,flush=True)",
-#     ],
-#     stdout=subprocess.PIPE,
-#     stderr=subprocess.PIPE,
-# ) as proc:
-#     print(proc.stdout.readline())
-# exit()
-
-
 with EnvironmentSession(environment=custom_env) as session:
-    time.sleep(2)
-    for i in range(5):
-        print(f"Attempt: {i}")
-        # print(f"Alive={session._proc.communicate(timeout=1)}")
-        print(f"out={session._proc.stdout.read()}")
-        time.sleep(1)
+    session.add_pipeline(my_pipeline)
+    print(session.run_pipeline(my_pipeline, [1.0, 1.0]))
