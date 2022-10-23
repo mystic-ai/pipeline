@@ -73,8 +73,8 @@ class Environment:
 
         # TODO change this to main
         self.add_dependency(
-            Dependency("git+https://github.com/mystic-ai/pipeline@paul/envs")
-            # Dependency("/Users/paul/mystic/pipeline-stack/pipeline")
+            # Dependency("git+https://github.com/mystic-ai/pipeline@paul/envs")
+            Dependency("/Users/paul/mystic/pipeline-stack/pipeline")
         )
 
         venv.create(
@@ -91,12 +91,11 @@ class Environment:
                 req_file.write(f"{_dep.dependency_string}\n")
 
         env_python_path = os.path.join(self.env_path, "bin/python")
-        status_code = subprocess.call(
+        subprocess.call(
             [env_python_path, "-m", "pip", "install", "-r", requirements_path],
             stdout=subprocess.PIPE,
         )
-        print(status_code)
-
+        _print(f"New environment '{self.environment_name}' has been created")
         self.initialized = True
 
     def add_dependency(self, dependency: Dependency) -> None:
@@ -171,21 +170,21 @@ class EnvironmentSession:
             [env_python_path, "-m", "pipeline", "worker"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            stdin=subprocess.PIPE,
+            # stdin=subprocess.PIPE,
         )
 
         return self
 
     def __exit__(self, type, value, traceback):
-        # self._proc.kill()
-        ...
+        self._proc.kill()
 
     def _send(self, data: bytes) -> tuple[bytes, bytes]:
-        return self._proc.communicate(data)
+        # self._proc.stdin.write
+        return self._proc.communicate(data, timeout=1)
 
     def _send_message(self, message: str) -> str:
         response_bytes, err = self._send(message.encode())
         return response_bytes.decode()
 
     def alive(self):
-        return self._send_message("alive_check") == "true"
+        return self._send_message("alive_check\n") == "true"
