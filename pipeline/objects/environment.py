@@ -1,10 +1,13 @@
 import os
+import shutil
+import subprocess
 import venv
 from typing import List
 
 import tomli
 
 from pipeline import config
+from pipeline.util.logging import _print
 
 """
 TODO:
@@ -48,19 +51,54 @@ class Environment:
         Returns:
             None: Nothing is returned.
         """
-        env_path = os.path.join(config.PIPELINE_CACHE, self.environment_name)
-        if os.path.exists(env_path) and not overwrite:
-            self.initialized = True
-            return
+        self.env_path = os.path.join(config.PIPELINE_CACHE, self.environment_name)
+
+        if os.path.exists(self.env_path):
+            if not overwrite:
+                self.initialized = True
+                _print(
+                    "Using existing environment, any new dependencies wont be used. "
+                    "Use 'overwrite=True' to overwrite.",
+                    "WARNING",
+                )
+                return
+            else:
+                _print(
+                    f"Deleting existing '{self.environment_name}' env",
+                    "WARNING",
+                )
+                shutil.rmtree(self.env_path)
+
+        self.add_dependency(Dependency("pipeline-ai"))
 
         venv.create(
-            env_dir=os.path.join(config.PIPELINE_CACHE, self.environment_name),
+            env_dir=self.env_path,
             clear=True,
             with_pip=True,
             upgrade_deps=upgrade_deps,
         )
 
+        # Create requirements.txt for env
+        requirements_path = os.path.join(self.env_path, "requirements.txt")
+        with open(requirements_path, "w") as req_file:
+            for _dep in self.dependencies:
+                req_file.write(f"{_dep.dependency_string}\n")
+
+        env_python_path = os.path.join(self.env_path, "bin/python")
+        status_code = subprocess.call(
+            [env_python_path, "-m", "pip", "install", "-r", requirements_path]
+        )
+        print(status_code)
+
         self.initialized = True
+
+    def add_dependency(self, dependency: Dependency) -> None:
+        if self.initialized:
+            raise Exception(
+                "Cannot add dependency after the environment has \
+                been initialized."
+            )
+        self.dependencies.append(dependency)
 
     @classmethod
     def from_requirements(cls, requirements_path: str, environment_name: str = None):
@@ -107,3 +145,24 @@ class Environment:
 
         requirements_list = []
         return cls(environment_name=environment_name, dependencies=requirements_list)
+
+
+class EnvironmentSession:
+    def __init__(self, environment: Environment) -> None:
+        self.environment = environment
+
+    def __enter__(self):
+        if not self.environment.initialized:
+            raise Exception(
+                "Must initialise environment before using it. \
+                Run 'your_environment_variable.initialize()'"
+            )
+
+        env_python_path = os.path.join(self.environment.env_path, "bin/python")
+
+        self._proc = subprocess.Popen([env_python_path, "-m", "pipeline"])
+
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._proc.kill()
