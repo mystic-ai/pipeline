@@ -74,6 +74,7 @@ class Environment:
         # TODO change this to main
         self.add_dependency(
             Dependency("git+https://github.com/mystic-ai/pipeline@paul/envs")
+            # Dependency("/Users/paul/mystic/pipeline-stack/pipeline")
         )
 
         venv.create(
@@ -170,6 +171,7 @@ class EnvironmentSession:
             [env_python_path, "-m", "pipeline", "worker"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            stdin=subprocess.PIPE,
         )
 
         return self
