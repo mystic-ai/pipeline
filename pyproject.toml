@@ -62,3 +62,6 @@ profile = "black"
 
 [tool.poetry.extras]
 docker = ["PyYAML"]
+
+[tool.poetry.scripts]
+pipeline = "pipeline.console:main"
