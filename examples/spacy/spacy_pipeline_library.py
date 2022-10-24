@@ -57,7 +57,7 @@ run_result = api.run_pipeline(
     uploaded_pipeline, ["Apple is looking at buying U.K. startup for $1 billion"]
 )
 try:
-    result_preview = run_result["result_preview"]
+    result_preview = run_result.result_preview
     print("Run result:", result_preview)
 except KeyError:
     print(api.download_result(run_result))

@@ -6,6 +6,7 @@ from pipeline.objects import (
     pipeline_function,
     pipeline_model,
 )
+import typing as t
 
 
 def onnx_to_pipeline(path: str, name: str = "ONNX model") -> Graph:
@@ -65,3 +66,57 @@ def onnx_to_pipeline(path: str, name: str = "ONNX model") -> Graph:
         pipeline.output(output)
 
     return Pipeline.get_pipeline(name)
+
+
+def spacy_to_pipeline(spacy_model: str, func: t.Optional[t.Callable] = None, name: str = "Spacy pipeline") -> Graph:
+    """
+    Create a pipeline using Spacy
+        Parameters:
+                spacy_model (str): tokenizer model name (trained Spacy "pipeline")
+                func (Optional[Callable]): function to be called on spacy output
+                name (str): Name to be given to this pipeline
+
+        Returns:
+                pipeline (Graph): Executable Pipeline Graph object
+    """
+    @pipeline_model
+    class model:
+        def __init__(self):
+            self.nlp = None
+            self.func = func
+        @pipeline_function
+        def predict(self, input: str) -> list:
+            doc = self.nlp(input)
+           
+            if self.func:
+                return self.func(doc)
+            return doc
+
+        @pipeline_function(run_once=True, on_startup=True)
+        def load(self) -> bool:
+            import spacy
+
+            spacy.cli.download(spacy_model)
+            self.nlp = spacy.load(spacy_model)
+            return True
+
+
+    with Pipeline(name) as pipeline:
+        input = Variable(str, is_input=True)
+
+        pipeline.add_variables(
+            input,
+        )
+
+        model = model()
+        model.load()
+
+        output = model.predict(
+            input,
+        )
+
+        pipeline.output(output)
+
+    spacy_pipeline = Pipeline.get_pipeline(name)
+
+    return spacy_pipeline

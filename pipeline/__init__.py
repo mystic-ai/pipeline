@@ -4,6 +4,7 @@ from pipeline.objects import (
     PipelineFile,
     Variable,
     onnx_to_pipeline,
+    spacy_to_pipeline,
     pipeline_function,
     pipeline_model,
 )
@@ -16,4 +17,5 @@ __all__ = [
     "PipelineCloud",
     "PipelineFile",
     "onnx_to_pipeline",
+    "spacy_to_pipeline",
 ]
