@@ -169,7 +169,7 @@ class EnvironmentSession:
         self._proc = subprocess.Popen(
             [env_python_path, "-m", "pipeline", "worker"],
             stdout=subprocess.PIPE,
-            # stderr=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             stdin=subprocess.PIPE,
         )
 
