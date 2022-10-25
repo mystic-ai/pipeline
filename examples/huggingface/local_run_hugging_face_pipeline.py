@@ -12,6 +12,7 @@ Example pipline from Hugging Face pipeline abstraction
 
 pipeline_name = "hf_roberta_text_classifier"
 
+
 @pipeline_model
 class model:
     def __init__(self):
@@ -20,13 +21,15 @@ class model:
     @pipeline_function(run_once=True, on_startup=True)
     def load(self) -> bool:
         from transformers import pipeline
+
         self.pipe = pipeline(model="roberta-large-mnli")
         return True
 
     @pipeline_function
     def predict(self, input: list) -> list:
         return self.pipe(input)
-        
+
+
 with Pipeline(pipeline_name) as pipeline:
     input = Variable(list, is_input=True)
 
