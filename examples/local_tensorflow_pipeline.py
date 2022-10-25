@@ -1,5 +1,6 @@
 from pipeline import Pipeline, Variable, pipeline_function, pipeline_model
 
+
 @pipeline_model
 class model:
     def __init__(self):
@@ -17,7 +18,7 @@ class model:
         return self.embed(input)
 
 
-with Pipeline('tensorflow_universal_sentence_encoder') as pipeline:
+with Pipeline("tensorflow_universal_sentence_encoder") as pipeline:
     input = Variable(list, is_input=True)
 
     pipeline.add_variables(
@@ -33,7 +34,7 @@ with Pipeline('tensorflow_universal_sentence_encoder') as pipeline:
 
     pipeline.output(output)
 
-hf_pipeline = Pipeline.get_pipeline('tensorflow_universal_sentence_encoder')
+hf_pipeline = Pipeline.get_pipeline("tensorflow_universal_sentence_encoder")
 
 # example run
 
