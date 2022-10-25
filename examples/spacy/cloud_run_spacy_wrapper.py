@@ -1,7 +1,4 @@
-from pipeline import (
-    PipelineCloud,
-    spacy_to_pipeline
-)
+from pipeline import PipelineCloud, spacy_to_pipeline
 
 api = PipelineCloud(token="pipeline_sk_3NvY0z6XD0i7CIKDZNBhgfn3EwT3_1GH")
 

@@ -1,10 +1,6 @@
-from pipeline import (
-    Pipeline,
-    Variable,
-    pipeline_function,
-    pipeline_model,
-)
 import typing as t
+
+from pipeline import Pipeline, Variable, pipeline_function, pipeline_model
 
 """
 Example pipline from Hugging Face pipeline abstraction

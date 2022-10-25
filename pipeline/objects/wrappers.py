@@ -1,3 +1,5 @@
+import typing as t
+
 from pipeline.objects import (
     Graph,
     Pipeline,
@@ -6,7 +8,6 @@ from pipeline.objects import (
     pipeline_function,
     pipeline_model,
 )
-import typing as t
 
 
 def onnx_to_pipeline(path: str, name: str = "ONNX model") -> Graph:

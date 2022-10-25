@@ -4,9 +4,9 @@ from pipeline.objects import (
     PipelineFile,
     Variable,
     onnx_to_pipeline,
-    spacy_to_pipeline,
     pipeline_function,
     pipeline_model,
+    spacy_to_pipeline,
 )
 
 __all__ = [

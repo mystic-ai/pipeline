@@ -1,5 +1,6 @@
 from pipeline import spacy_to_pipeline
 
+
 # using func arg in spacy_to_pipeline
 def func(doc):
     return [[token.text, token.lemma_, token.pos_] for token in doc]
