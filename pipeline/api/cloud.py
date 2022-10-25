@@ -4,10 +4,10 @@ import hashlib
 import io
 import json
 import os
+import sys
 import urllib.parse
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
-import sys
 
 import httpx
 import requests
