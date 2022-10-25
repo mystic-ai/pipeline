@@ -7,6 +7,7 @@ import os
 import urllib.parse
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
+import sys
 
 import httpx
 import requests
@@ -434,6 +435,12 @@ class PipelineCloud:
         """
         if new_pipeline_graph._has_run_startup:
             raise Exception("Cannot upload a pipeline that has already been run.")
+        if sys.version_info.major != 3 or (
+            sys.version_info.major == 3 and sys.version_info.minor != 9
+        ):
+            print(
+                "WARNING: pipeline-ai is still in development and the upload_pipeline function has only been tested in Python 3.9. We strongly recommend you use Python 3.9 as pipelines uploaded in other Python versions are known to be broken. We are working on adding support for 3.10 and 3.8; join us on Discord https://discord.com/invite/7REbAX5v3N if you'd like to help us!"
+            )
 
         new_name = new_pipeline_graph.name
         if self.verbose:
