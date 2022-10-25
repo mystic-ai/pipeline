@@ -69,7 +69,9 @@ def onnx_to_pipeline(path: str, name: str = "ONNX model") -> Graph:
     return Pipeline.get_pipeline(name)
 
 
-def spacy_to_pipeline(spacy_model: str, func: t.Optional[t.Callable] = None, name: str = "Spacy pipeline") -> Graph:
+def spacy_to_pipeline(
+    spacy_model: str, func: t.Optional[t.Callable] = None, name: str = "Spacy pipeline"
+) -> Graph:
     """
     Create a pipeline using Spacy
         Parameters:
@@ -80,15 +82,17 @@ def spacy_to_pipeline(spacy_model: str, func: t.Optional[t.Callable] = None, nam
         Returns:
                 pipeline (Graph): Executable Pipeline Graph object
     """
+
     @pipeline_model
     class model:
         def __init__(self):
             self.nlp = None
             self.func = func
+
         @pipeline_function
         def predict(self, input: str) -> list:
             doc = self.nlp(input)
-           
+
             if self.func:
                 return self.func(doc)
             return doc
@@ -100,7 +104,6 @@ def spacy_to_pipeline(spacy_model: str, func: t.Optional[t.Callable] = None, nam
             spacy.cli.download(spacy_model)
             self.nlp = spacy.load(spacy_model)
             return True
-
 
     with Pipeline(name) as pipeline:
         input = Variable(str, is_input=True)

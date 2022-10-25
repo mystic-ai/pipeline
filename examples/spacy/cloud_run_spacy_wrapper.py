@@ -6,6 +6,7 @@ api = PipelineCloud(token="pipeline_sk_3NvY0z6XD0i7CIKDZNBhgfn3EwT3_1GH")
 def func(doc):
     return [[token.text, token.lemma_, token.pos_] for token in doc]
 
+
 spacy_pipeline = spacy_to_pipeline("en_core_web_sm", func=func, name="spacy get all")
 
 

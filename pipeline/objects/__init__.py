@@ -16,5 +16,5 @@ __all__ = [
     "pipeline_model",
     "PipelineFile",
     "onnx_to_pipeline",
-    "spacy_to_pipeline"
+    "spacy_to_pipeline",
 ]
