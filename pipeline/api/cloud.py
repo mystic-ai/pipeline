@@ -435,9 +435,8 @@ class PipelineCloud:
         """
         if new_pipeline_graph._has_run_startup:
             raise Exception("Cannot upload a pipeline that has already been run.")
-        if sys.version_info.major != 3 or (
-            sys.version_info.major == 3 and sys.version_info.minor != 9
-        ):
+        # Pipeline Cloud currently supports Python 3.9.x only
+        if (sys.version_info.major, sys.version_info.minor) != (3, 9):
             print(
                 "WARNING: pipeline-ai is still in development and the"
                 " upload_pipeline function has only been tested in Python 3.9. "
