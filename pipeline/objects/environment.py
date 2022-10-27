@@ -2,10 +2,11 @@ import os
 import shutil
 import subprocess
 import venv
-from typing import Any, List
+from typing import Any, List, Union
 
 import cloudpickle
 import tomli
+from pip._internal.commands.freeze import freeze
 
 from pipeline import config
 from pipeline.objects.graph import Graph
@@ -22,18 +23,11 @@ TODO:
 """
 
 
-class Dependency:
-    def __init__(self, dependency_string) -> None:
-        self.dependency_string = dependency_string
-
-
 class Environment:
 
     initialized: bool = False
 
-    def __init__(
-        self, environment_name: str = None, dependencies: List[Dependency] = None
-    ):
+    def __init__(self, environment_name: str = None, dependencies: List[str] = None):
         self.environment_name = environment_name
         self.dependencies = dependencies
 
@@ -74,8 +68,8 @@ class Environment:
                 shutil.rmtree(self.env_path)
 
         # TODO change this to main
-        self.add_dependency(Dependency("/Users/paul/mystic/pipeline-stack/pipeline"))
-        self.add_dependency(Dependency("dill"))
+        self.add_dependency("/Users/paul/mystic/pipeline-stack/pipeline")
+        self.add_dependency("dill")
 
         venv.create(
             env_dir=self.env_path,
@@ -88,7 +82,7 @@ class Environment:
         requirements_path = os.path.join(self.env_path, "requirements.txt")
         with open(requirements_path, "w") as req_file:
             for _dep in self.dependencies:
-                req_file.write(f"{_dep.dependency_string}\n")
+                req_file.write(f"{_dep}\n")
 
         env_python_path = os.path.join(self.env_path, "bin/python")
         subprocess.call(
@@ -98,13 +92,24 @@ class Environment:
         _print(f"New environment '{self.environment_name}' has been created")
         self.initialized = True
 
-    def add_dependency(self, dependency: Dependency) -> None:
+    def add_dependency(self, dependency: str) -> None:
         if self.initialized:
             raise Exception(
                 "Cannot add dependency after the environment has \
                 been initialized."
             )
         self.dependencies.append(dependency)
+
+    def add_dependencies(self, *dependencies: List[Union[List[str], str]]):
+        for _target in dependencies:
+            if isinstance(_target, list) and len(dependencies) == 1:
+                ...
+            elif isinstance(_target, str):
+                ...
+            else:
+                raise Exception(
+                    "Can either add a list of dependencies or an array of dependencies"
+                )
 
     @classmethod
     def from_requirements(cls, requirements_path: str, environment_name: str = None):
@@ -117,9 +122,7 @@ class Environment:
             requirements_str_list = req_file.readlines()
 
         requirements_list = [
-            Dependency(_req.trim())
-            for _req in requirements_str_list
-            if not _req.startswith("#")
+            _req.trim() for _req in requirements_str_list if not _req.startswith("#")
         ]
         return cls(environment_name=environment_name, dependencies=requirements_list)
 
@@ -151,6 +154,11 @@ class Environment:
 
         requirements_list = []
         return cls(environment_name=environment_name, dependencies=requirements_list)
+
+    @classmethod
+    def from_current(cls, environment_name: str = None):
+        deps = [dep for dep in freeze.freeze() if dep.split() > 0]
+        return cls(environment_name=environment_name, dependencies=deps)
 
 
 class EnvironmentSession:
