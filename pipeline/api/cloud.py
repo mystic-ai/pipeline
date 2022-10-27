@@ -442,8 +442,7 @@ class PipelineCloud:
                 " upload_pipeline function has only been tested in Python 3.9. "
                 "We strongly recommend you use Python 3.9 as pipelines uploaded"
                 " in other Python versions are known to be broken. We are working"
-                "on adding support for 3.10 and 3.8; join us on Discord"
-                " https://discord.com/invite/7REbAX5v3N if you'd like to help us!"
+                "on adding support for 3.10 and 3.8!"
             )
 
         new_name = new_pipeline_graph.name
