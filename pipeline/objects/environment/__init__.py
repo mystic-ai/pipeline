@@ -27,9 +27,18 @@ class Environment:
 
     initialized: bool = False
 
-    def __init__(self, environment_name: str = None, dependencies: List[str] = None):
+    def __init__(
+        self,
+        environment_name: str = None,
+        dependencies: List[str] = [],
+        extra_index_urls: List[str] = [],
+        extend_environments: List = [],
+    ):
         self.environment_name = environment_name
         self.dependencies = dependencies
+        self.extra_index_urls = extra_index_urls
+        for _env in extend_environments:
+            self.merge_with_environment(_env)
 
     def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> str:
         # TODO add arg for remaking on dependency change
@@ -67,10 +76,6 @@ class Environment:
                 )
                 shutil.rmtree(self.env_path)
 
-        # TODO change this to main
-        self.add_dependency("/Users/paul/mystic/pipeline-stack/pipeline")
-        self.add_dependency("dill")
-
         venv.create(
             env_dir=self.env_path,
             clear=True,
@@ -85,8 +90,22 @@ class Environment:
                 req_file.write(f"{_dep}\n")
 
         env_python_path = os.path.join(self.env_path, "bin/python")
+        extra_args = []
+        if len(self.extra_index_urls) > 0:
+            for extra_url in self.extra_index_urls:
+                extra_args.append("--extra-index-url")
+                extra_args.append(extra_url)
+
         subprocess.call(
-            [env_python_path, "-m", "pip", "install", "-r", requirements_path],
+            [
+                env_python_path,
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                requirements_path,
+                *extra_args,
+            ],
             stdout=subprocess.PIPE,
         )
         _print(f"New environment '{self.environment_name}' has been created")
@@ -110,6 +129,13 @@ class Environment:
                 raise Exception(
                     "Can either add a list of dependencies or an array of dependencies"
                 )
+
+    def merge_with_environment(self, env) -> None:
+        if not isinstance(env, Environment):
+            raise Exception("Can only merge with another environment")
+
+        self.dependencies.extend(env.dependencies)
+        self.extra_index_urls.extend(env.extra_index_urls)
 
     @classmethod
     def from_requirements(cls, requirements_path: str, environment_name: str = None):
