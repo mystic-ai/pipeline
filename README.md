@@ -6,10 +6,10 @@
 
 - [About](#about)
 - [Usage](#usage)
-  * [Huggingface Transformers](#huggingface-transformers)
+  - [Huggingface Transformers](#huggingface-transformers)
 - [Installation instructions](#installation-instructions)
-  * [Linux, Mac (intel)](#linux--mac--intel-)
-  * [Mac (arm/M1)](#mac--arm-m1-)
+  - [Linux, Mac (intel)](#linux--mac--intel-)
+  - [Mac (arm/M1)](#mac--arm-m1-)
 - [Development](#development)
 - [License](#license)
 
@@ -20,6 +20,8 @@ Pipeline is a python library that provides a simple way to construct computation
 The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect). In future releases we will be moving away from this syntax to a C based graph compiler which interprets python directly (and other languages) allowing users of the API to compose graphs in a more native way to the chosen language.
 
 # Usage
+
+> :warning: **Uploading pipelines to Pipeline Cloud works best in Python 3.9.** We strongly recommend you use Python 3.9 when uploading pipelines because the `pipeline-ai` library is still in beta and is known to cause opaque errors when pipelines are serialised from a non-3.9 environment.
 
 ## Huggingface Transformers
 
@@ -93,6 +95,7 @@ conda install -c huggingface transformers -y
 ```
 python -m pip install -U pipeline-ai
 ```
+
 # Development
 
 This project is made with poetry, [so firstly setup poetry on your machine](https://python-poetry.org/docs/#installation).
@@ -103,7 +106,6 @@ Once that is done, please run
 
 With this you should be good to go. This sets up dependencies, pre-commit hooks and
 pre-push hooks.
-
 
 You can manually run pre commit hooks with
 
