@@ -10,6 +10,11 @@ class DeploymentCreate(BaseModel):
     pipeline_id: str
 
 
+class DefaultProjectDeploymentCreate(BaseModel):
+    """Schema for creating a deployment on a users' default project"""
+    pipeline_id: str
+
+
 class DeploymentGet(BaseModel):
     id: str
     pipeline: PipelineGet
