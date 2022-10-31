@@ -100,7 +100,8 @@ def spacy_to_pipeline(
         @pipeline_function(run_once=True, on_startup=True)
         def load(self) -> bool:
             import spacy
-
+            
+            spacy.require_gpu()
             spacy.cli.download(spacy_model)
             self.nlp = spacy.load(spacy_model)
             return True

@@ -23,6 +23,7 @@ class model:
     def load(self) -> bool:
         import spacy
 
+        spacy.require_gpu()
         spacy.cli.download("en_core_web_sm")
         self.nlp = spacy.load("en_core_web_sm")
         return True
