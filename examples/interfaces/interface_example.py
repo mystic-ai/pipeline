@@ -23,7 +23,7 @@ with Pipeline("Interface Demo") as pipeline:
     )
     pipeline.add_variables(float_1, arguments)
 
-    output_1 = math(float_1, arguments.grab("num_samples"))
+    output_1 = math(float_1)
 
     pipeline.output(output_1)
 

@@ -2,11 +2,12 @@ from typing import List
 
 from cloudpickle import dumps
 from dill import loads
+from pydantic import BaseModel
 
 from pipeline.objects.function import Function
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.model import Model
-from pipeline.objects.variable import PipelineFile, Variable
+from pipeline.objects.variable import Interface, PipelineFile, Variable
 from pipeline.schemas.pipeline import PipelineGet
 from pipeline.util import generate_id
 
@@ -109,7 +110,6 @@ class Graph:
         self._has_run_startup = True
 
     def run(self, *inputs):
-        print("variables at run", [v.name for v in self.variables])
         input_variables: List[Variable] = [
             var for var in self.variables if var.is_input
         ]
@@ -130,6 +130,10 @@ class Graph:
                 running_variables[var.local_id] = var
 
         for i, input in enumerate(inputs):
+            print(input)
+            if isinstance(input, BaseModel):
+                for inp in input_variables[i].child_variables:
+                    running_variables[inp.local_id] = inp
             if not isinstance(input, input_variables[i].type_class):
                 raise Exception(
                     "Input type mismatch, expceted %s got %s"
@@ -139,6 +143,8 @@ class Graph:
                     )
                 )
             running_variables[input_variables[i].local_id] = input
+
+        print(running_variables)
 
         for node in self.nodes:
 

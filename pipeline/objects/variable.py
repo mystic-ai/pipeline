@@ -97,6 +97,3 @@ class Interface(Variable):
                     name=field.name,
                 )
             )
-
-    def grab(self, field) -> Any:
-        return self.child_variables[0]
