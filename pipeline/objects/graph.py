@@ -294,3 +294,23 @@ class Graph:
     def load(cls, load_path):
         with open(load_path, "rb") as load_file:
             return loads(load_file.read())
+
+    def render(self):
+        try:
+            import graphviz
+        except ImportError:
+            print((
+                "ERROR: graphviz not available, "
+                "install graphviz extra e.g. `pip install pipeline-ai[graphviz]`"
+            ))
+            return
+        g = graphviz.Digraph(self.name)
+        for node in self.nodes:
+            g.node(node.local_id, label=node.function.name)
+            for input in node.inputs:
+                g.node(input.local_id)
+                g.edge(input.local_id, node.local_id)
+            for output in node.outputs:
+                g.node(output.local_id)
+                g.edge(node.local_id, output.local_id)
+        return g
