@@ -6,13 +6,11 @@ from pipeline.schemas.project import ProjectGet
 
 
 class DeploymentCreate(BaseModel):
-    project_id: str
-    pipeline_id: str
+    """Schema for creating a pipeline deployment"""
 
-
-class DefaultProjectDeploymentCreate(BaseModel):
-    """Schema for creating a deployment on a users' default project"""
     pipeline_id: str
+    # If not provided, deployment will be created with users' default project
+    project_id: Optional[str] = None
 
 
 class DeploymentGet(BaseModel):
