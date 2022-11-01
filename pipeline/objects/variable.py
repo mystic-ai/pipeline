@@ -15,6 +15,7 @@ class Variable:
 
     is_input: bool
     is_output: bool
+    child_variables: list  # of self but list[Variable] ain't working
 
     def __init__(
         self,
@@ -31,6 +32,7 @@ class Variable:
         self.type_class = type_class
         self.is_input = is_input
         self.is_output = is_output
+        self.child_variables = []
 
         self.local_id = generate_id(10) if not local_id else local_id
 
@@ -77,3 +79,24 @@ class PipelineFile(Variable):
             name=schema.name,
             local_id=schema.local_id,
         )
+
+
+class Interface(Variable):
+    def __init__(
+        self,
+        type_class: Any,
+        **args,
+    ) -> None:
+        super().__init__(type_class=type_class, **args)
+        for field in type_class.__fields__.values():
+            self.child_variables.append(
+                Variable(
+                    type_class=field.type_,
+                    is_input=self.is_input,
+                    is_output=self.is_output,
+                    name=field.name,
+                )
+            )
+
+    def grab(self, field) -> Any:
+        return self.child_variables[0]

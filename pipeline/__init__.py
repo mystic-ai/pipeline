@@ -6,6 +6,7 @@ from pipeline.objects import (
     onnx_to_pipeline,
     pipeline_function,
     pipeline_model,
+    Interface,
 )
 
 __all__ = [
@@ -16,4 +17,5 @@ __all__ = [
     "PipelineCloud",
     "PipelineFile",
     "onnx_to_pipeline",
+    "Interface",
 ]

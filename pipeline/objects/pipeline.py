@@ -84,6 +84,9 @@ class Pipeline:
 
             if variable not in Pipeline._current_pipeline.variables:
                 Pipeline._current_pipeline.variables.append(variable)
+                if variable.child_variables:
+                    for v in variable.child_variables:
+                        Pipeline.add_variable(v)
         else:
             raise Exception("Cant add a variable when not defining a pipeline!")
 

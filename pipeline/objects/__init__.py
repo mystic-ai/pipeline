@@ -3,7 +3,7 @@ from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.model import Model
 from pipeline.objects.pipeline import Pipeline
-from pipeline.objects.variable import PipelineFile, Variable
+from pipeline.objects.variable import PipelineFile, Variable, Interface
 from pipeline.objects.wrappers import onnx_to_pipeline
 
 __all__ = [
@@ -16,4 +16,5 @@ __all__ = [
     "pipeline_model",
     "PipelineFile",
     "onnx_to_pipeline",
+    "Interface",
 ]

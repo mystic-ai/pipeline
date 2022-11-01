@@ -47,6 +47,7 @@ class Graph:
         self.local_id = generate_id(10)
 
         self.variables = variables if variables is not None else []
+        print(self.variables)
         self.functions = functions if functions is not None else []
         self.outputs = outputs if outputs is not None else []
         self.nodes = nodes if nodes is not None else []
@@ -108,6 +109,7 @@ class Graph:
         self._has_run_startup = True
 
     def run(self, *inputs):
+        print("variables at run", [v.name for v in self.variables])
         input_variables: List[Variable] = [
             var for var in self.variables if var.is_input
         ]
