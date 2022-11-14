@@ -86,7 +86,7 @@ class PipelineMetricsGet(RunMetricsGet):
     pipeline_name: str
 
 
-class PipelineMetricsGetSummary(BaseModel):
+class PipelineMetricsGetSummary(RunMetric):
     """Pipeline run summary metrics supplemented with pipeline meta data.
     Pipeline meta data is useful for list/paginated metrics views so the client
     can keep track of which pipeline is which"""
