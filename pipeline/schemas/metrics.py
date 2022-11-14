@@ -6,6 +6,17 @@ from pydantic import Field
 from .base import BaseModel
 
 
+class RunMetric(BaseModel):
+    #: total number of runs executed on the pipeline
+    run_count: int
+    #: total number of failed runs executed on the pipeline
+    failed_run_count: int
+    #: total number of succeeded runs executed on the pipeline
+    succeeded_run_count: int
+    #: total run compute time (typically of completed runs)
+    total_compute_ms: int
+
+
 class RunHardwareMetric(BaseModel):
     resource_type: str
     total_percentage: float
@@ -82,14 +93,6 @@ class PipelineMetricsGetSummary(BaseModel):
 
     pipeline_id: str
     pipeline_name: str
-    #: total number of runs executed on the pipeline
-    run_count: int
-    #: total number of failed runs executed on the pipeline
-    failed_run_count: int
-    #: total number of succeeded runs executed on the pipeline
-    succeeded_run_count: int
-    #: total run compute time (typically of completed runs)
-    total_compute_ms: int
 
 
 class MetricsQuery(BaseModel):
@@ -130,9 +133,8 @@ class PipelineComputeGet(BaseModel):
     total_compute_ms: int
 
 
-class TotalComputeGet(BaseModel):
+class TotalComputeGet(RunMetric):
     """Total compute time of all a users' runs"""
 
     start: datetime
     end: datetime
-    total_compute_ms: int
