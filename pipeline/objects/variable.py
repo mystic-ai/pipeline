@@ -1,3 +1,8 @@
+import os
+import uuid
+
+import dill
+
 from typing import Any
 
 from pipeline.schemas.pipeline import PipelineVariableGet
@@ -76,4 +81,26 @@ class PipelineFile(Variable):
             path=schema.pipeline_file_variable.path,
             name=schema.name,
             local_id=schema.local_id,
+        )
+
+    @classmethod
+    def from_object(
+        cls,
+        python_object: Any,
+        *,
+        name: str = None,
+        remote_id: str = None,
+        local_id: str = None,
+    ):
+        os.makedirs(".tmp", exist_ok=True)
+        tmp_name = str(uuid.uuid4())
+        tmp_path = os.path.join(".tmp", tmp_name)
+        with open(tmp_path, "wb") as tmp_file:
+            dill.dump(python_object, tmp_file)
+
+        cls(
+            tmp_path,
+            name=name,
+            remote_id=remote_id,
+            local_id=local_id,
         )
