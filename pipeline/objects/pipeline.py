@@ -1,6 +1,3 @@
-from typing import Any, Set, Union
-
-from pipeline.api import PipelineCloud
 from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.graph_node import GraphNode
@@ -13,19 +10,16 @@ class Pipeline:
     _current_pipeline: Graph
     _pipeline_context_active: bool = False
     _pipeline_context_name: str = None
-    _api: PipelineCloud = None
     _compute_type: str = "gpu"
     _min_gpu_vram_mb: int = None
 
     def __init__(
         self,
         new_pipeline_name: str,
-        api: PipelineCloud = None,
         compute_type: str = "gpu",
         min_gpu_vram_mb: int = None,
     ):
         self._pipeline_context_name = new_pipeline_name
-        self._api = api or PipelineCloud()
         self._compute_type = compute_type
         self._min_gpu_vram_mb = min_gpu_vram_mb
 
