@@ -137,3 +137,10 @@ pipeline-bak/
 *.env
 
 .DS_Store
+.tmp
+# Examples
+examples/docker/docker-compose.yml
+examples/docker/Dockerfile
+examples/docker/GPTNeo.graph
+examples/docker/requirements.txt
+

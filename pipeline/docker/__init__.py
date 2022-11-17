@@ -5,6 +5,7 @@ from typing import List
 import yaml
 
 from pipeline.objects import Graph
+from pipeline.objects.environment import Environment
 
 
 def create_pipeline_api(
@@ -12,6 +13,7 @@ def create_pipeline_api(
     *,
     output_dir="./",
     platform="linux/amd64",
+    environment:Environment=None,
     **environment_variables,
 ):
     paths = []
@@ -21,23 +23,39 @@ def create_pipeline_api(
         graph_path = os.path.join(output_dir, pipeline_graph.name + ".graph")
         pipeline_graph.save(graph_path)
         paths.append(graph_path)
+    if environment is not None:
+        environment.to_requirements()
+    create_dockerfile(paths, output_dir=output_dir, 
+        platform=platform,
+        requirements="requirements.txt",
+        )
 
-    create_dockerfile(paths, output_dir=output_dir, platform=platform)
     create_docker_compose(output_dir, **environment_variables)
 
 
 def create_dockerfile(
-    pipeline_graph_paths: List[str], *, output_dir="./", platform="linux/amd64"
+    pipeline_graph_paths: List[str], *, output_dir="./", platform="linux/amd64", requirements:str=None
 ):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     with open(os.path.join(output_dir, "Dockerfile"), "w") as docker_file:
         docker_file.writelines(
-            ["FROM --platform=%s mysticai/pipeline-docker:latest" % platform]
+            [
+                "FROM --platform=%s mysticai/pipeline-docker:latest" % platform,
+            ]
         )
+
+        if requirements is not None:
+            docker_file.writelines(
+                [
+                    f"\nCOPY {requirements} /app/requirements.txt",
+                    "\nRUN pip install -r requirements.txt"
+                ]
+            )
         docker_file.writelines(
             ["\nCOPY %s /app/pipelines/" % path for path in pipeline_graph_paths]
         )
+
 
 
 def create_docker_compose(path, **environment_vars):
