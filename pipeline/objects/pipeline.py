@@ -5,7 +5,6 @@ from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.variable import Variable
-from pipeline.schemas.pipeline import PipelineGet
 
 
 class Pipeline:
@@ -105,37 +104,3 @@ class Pipeline:
             Pipeline._current_pipeline.nodes.append(graph_node)
         else:
             raise Exception("Cant add a node when not defining a pipeline!")
-
-    @staticmethod
-    def run(graph_name: str, *inputs):
-        graph = Pipeline.get_pipeline(graph_name)
-        return graph.run(*inputs)
-
-    @staticmethod
-    def run_remote(id: Union[str, PipelineGet], data: Any):
-        return Pipeline._api.run_pipeline(id, data)
-
-    @staticmethod
-    def upload(
-        name: str, public: bool = False, description: str = "", tags: Set[str] = None
-    ) -> PipelineGet:
-        """
-        Upload a Pipeline to the Cloud.
-
-            Parameters:
-                    name (str): name identifier of pipeline to be uploaded.
-                    public (bool): If pipeline should be visible to public.
-                        Defaults to False.
-                    description (str): Description of the Pipeline.
-                    tags (Set[str]): Set of tags for the pipeline. Eg: {"BERT", "NLP"}
-
-            Returns:
-                    pipeline (PipelineGet): Object representing uploaded pipeline.
-        """
-        graph = Pipeline.get_pipeline(name)
-        return Pipeline._api.upload_pipeline(graph, public, description, tags)
-
-    @staticmethod
-    def api(api: PipelineCloud = None) -> PipelineCloud:
-        Pipeline._api = api or PipelineCloud()
-        return Pipeline._api
