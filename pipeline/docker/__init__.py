@@ -13,7 +13,7 @@ def create_pipeline_api(
     *,
     output_dir="./",
     platform="linux/amd64",
-    environment:Environment=None,
+    environment: Environment = None,
     **environment_variables,
 ):
     paths = []
@@ -25,16 +25,22 @@ def create_pipeline_api(
         paths.append(graph_path)
     if environment is not None:
         environment.to_requirements()
-    create_dockerfile(paths, output_dir=output_dir, 
+    create_dockerfile(
+        paths,
+        output_dir=output_dir,
         platform=platform,
         requirements="requirements.txt",
-        )
+    )
 
     create_docker_compose(output_dir, **environment_variables)
 
 
 def create_dockerfile(
-    pipeline_graph_paths: List[str], *, output_dir="./", platform="linux/amd64", requirements:str=None
+    pipeline_graph_paths: List[str],
+    *,
+    output_dir="./",
+    platform="linux/amd64",
+    requirements: str = None,
 ):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
@@ -49,13 +55,12 @@ def create_dockerfile(
             docker_file.writelines(
                 [
                     f"\nCOPY {requirements} /app/requirements.txt",
-                    "\nRUN pip install -r requirements.txt"
+                    "\nRUN pip install -r requirements.txt",
                 ]
             )
         docker_file.writelines(
             ["\nCOPY %s /app/pipelines/" % path for path in pipeline_graph_paths]
         )
-
 
 
 def create_docker_compose(path, **environment_vars):

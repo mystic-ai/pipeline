@@ -3,6 +3,7 @@ from pipeline import Pipeline, Variable, pipeline_model, pipeline_function
 
 from pipeline.objects.environment import Environment
 
+
 @pipeline_model
 class PipelineGPTNeo:
     def __init__(self):
@@ -13,6 +14,7 @@ class PipelineGPTNeo:
     def predict(self, input_data: str) -> str:
         if self.model == None:
             from transformers import GPTNeoForCausalLM, GPT2Tokenizer
+
             self.model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
             self.tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
 
@@ -28,7 +30,6 @@ class PipelineGPTNeo:
         return gen_text
 
 
-
 with Pipeline("GPTNeo") as builder:
     in_1 = Variable(str, is_input=True)
     builder.add_variables(in_1)
@@ -42,9 +43,12 @@ with Pipeline("GPTNeo") as builder:
 
 gpt_neo_pipeline = Pipeline.get_pipeline("GPTNeo")
 
-env = Environment("gptneo-env", dependencies=[
-    "transformers",
-    "torch",
-])
+env = Environment(
+    "gptneo-env",
+    dependencies=[
+        "transformers",
+        "torch",
+    ],
+)
 
 docker.create_pipeline_api([gpt_neo_pipeline], environment=env)

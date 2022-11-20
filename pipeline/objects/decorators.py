@@ -78,11 +78,12 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
 
 class pipeline_model(object):
     def __init__(
-        self, model_class=None,
+        self,
+        model_class=None,
     ):
         if model_class is not None:
             model_class.__pipeline_model__ = True
-            
+
         self.model_class = model_class
 
     def __call__(self, *args, **kwargs):

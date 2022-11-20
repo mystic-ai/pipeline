@@ -4,7 +4,6 @@ from typing import List, Union
 from pip._internal.commands.freeze import freeze
 
 
-
 """
 TODO:
 1.  Add in dependency checks to check if a set of deps can be installed.
@@ -17,8 +16,6 @@ TODO:
 
 
 class Environment:
-
-
     def __init__(
         self,
         environment_name: str = None,
@@ -31,13 +28,12 @@ class Environment:
         self.extra_index_urls = extra_index_urls
         for _env in extend_environments:
             self.merge_with_environment(_env)
-    
+
     def to_requirements(self, output_dir="./"):
-        requirements_path = os.path.join(os.path.join(output_dir,"requirements.txt"))
+        requirements_path = os.path.join(os.path.join(output_dir, "requirements.txt"))
         with open(requirements_path, "w") as req_file:
             for _dep in self.dependencies:
                 req_file.write(f"{_dep}\n")
-
 
     def add_dependency(self, dependency: str) -> None:
         if self.initialized:
