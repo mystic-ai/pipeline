@@ -1,16 +1,15 @@
-Pull request outline
+# Pull request outline
 
-___
 
-Checklist:
+## Checklist:
 - [ ] Docs updated
 - [ ] Tests written
 - [ ] Version bumped
 
-Related issues:
+## Related issues:
 
 ___
-
+_none_
 
 - _You can add a reference to an issue using hash followed by the issue number_
-- _If a checklist item must be ignored it must be struck through_
+- _If a checklist item is to be ignored it must be struck through_
