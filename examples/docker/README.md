@@ -93,8 +93,28 @@ Running this final command will generate 4 files in your local directory:
 3. `gptneo.graph` - The serialised graph createed by the Pipeline context manager
 4. `requirements.txt` - The python dependencies as defined above (`["transformers==4.24.0","torch==1.13.0"]`)
 
+The docker container creates a FastAPI python environment and loads in your pipeline. The endpoint used is the same as the PipelineCloud endpoint but the host name will be your ip on port 5010:
+
+```shell
+http://localhost:5010/v2/run
+```
+
 ### Using the auto-docker API
 
+Start the docker containers in the background by running:
+
+```shell
+sudo docker compose up -d
+```
+
+You can now send requests to the API running on your local system:
+
+```shell
+curl --request POST \
+  --url http://localhost:5010/v2/run \
+  --header 'Content-Type: application/json' \
+  --data '{"pipeline_id":"gptneo", "data":"Hey there my name is"}'
+```
 
 ## Not supported
 
