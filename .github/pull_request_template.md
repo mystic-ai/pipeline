@@ -4,6 +4,7 @@
 ## Checklist:
 - [ ] Docs updated
 - [ ] Tests written
+- [ ] Check for breaking changes in Resource
 - [ ] Version bumped
 
 ## Related issues:
