@@ -26,6 +26,8 @@ class TokenGet(BaseModel):
     is_active: bool
     #: Arbitrarily set user flag for token validity
     is_enabled: bool
+    #: User associated with this token (if user token)
+    user_id: Optional[str]
 
 
 class TokenCreate(BaseModel):
