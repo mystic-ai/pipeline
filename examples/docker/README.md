@@ -100,4 +100,4 @@ Running this final command will generate 4 files in your local directory:
 
 Currently the following Variables are not supported with the auto-docker feature:
 - PipelineFile
-- Local directories as dependencies for the environment 
+- Local directories as dependencies for the environment
