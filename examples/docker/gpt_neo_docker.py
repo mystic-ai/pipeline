@@ -1,6 +1,4 @@
-from pipeline import docker
-from pipeline import Pipeline, Variable, pipeline_model, pipeline_function
-
+from pipeline import Pipeline, Variable, docker, pipeline_function, pipeline_model
 from pipeline.objects.environment import Environment
 
 
@@ -13,7 +11,7 @@ class PipelineGPTNeo:
     @pipeline_function
     def predict(self, input_data: str) -> str:
         if self.model == None:
-            from transformers import GPTNeoForCausalLM, GPT2Tokenizer
+            from transformers import GPT2Tokenizer, GPTNeoForCausalLM
 
             self.model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
             self.tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
