@@ -49,7 +49,7 @@ class MyModel:
             self.my_model.load_state_dict(torch.load(model_file.path))
             self.my_model.eval()
             print("Model loaded!")
-        except:
+        except Exception:
             return False
         return True
 
@@ -78,9 +78,10 @@ if __name__ == "__main__":
     argv = sys.argv[1:]
 
     mode = "run"
+
     try:
         opts, args = getopt.getopt(argv, "hru", ["run", "upload"])
-    except:
+    except Exception:
         ...
 
     for opt, arg in opts:

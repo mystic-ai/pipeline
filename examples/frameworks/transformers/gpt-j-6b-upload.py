@@ -71,7 +71,7 @@ class TransformersModelForCausalLM:
 
         # TODO: Don't redefine output so that it can be cleaned on GPU (del technique)
         if kwargs["remove_input"]:
-            outputs = outputs[:, input_ids.shape[1] :]
+            outputs = outputs[:, (input_ids.shape[1]) :]
 
         if "num_return_sequences" in kwargs:
             return {
