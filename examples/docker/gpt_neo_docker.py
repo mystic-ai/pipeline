@@ -41,7 +41,6 @@ with Pipeline("GPTNeo") as builder:
 
 
 gpt_neo_pipeline = Pipeline.get_pipeline("GPTNeo")
-#print(gpt_neo_pipeline.run("Hi, how are you?"))
 
 env = Environment("gptneo-env", dependencies=[
     "transformers",
