@@ -38,9 +38,9 @@ def create_pipeline_api(
 def create_dockerfile(
     pipeline_graph_paths: List[str],
     *,
-    output_dir="./",
-    platform="linux/amd64",
-    requirements: str = None,
+    output_dir: str = "./",
+    platform: str = "linux/amd64",
+    requirements: Optional[str] = None,
 ):
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
