@@ -1,5 +1,5 @@
 import os
-from typing import List, Union
+from typing import List
 
 from pip._internal.commands.freeze import freeze
 
@@ -20,7 +20,7 @@ class Environment:
         environment_name: str = None,
         dependencies: List[str] = [],
         extra_index_urls: List[str] = [],
-        extend_environments: List = [],
+        extend_environments: List["Environment"] = [],
     ):
         self.environment_name = environment_name
         self.dependencies = dependencies
@@ -28,7 +28,7 @@ class Environment:
         for _env in extend_environments:
             self.merge_with_environment(_env)
 
-    def to_requirements(self, output_dir="./"):
+    def to_requirements(self, output_dir: str = "./") -> None:
         requirements_path = os.path.join(os.path.join(output_dir, "requirements.txt"))
         with open(requirements_path, "w") as req_file:
             for _dep in self.dependencies:
@@ -42,18 +42,7 @@ class Environment:
             )
         self.dependencies.append(dependency)
 
-    def add_dependencies(self, *dependencies: List[Union[List[str], str]]):
-        for _target in dependencies:
-            if isinstance(_target, list) and len(dependencies) == 1:
-                ...
-            elif isinstance(_target, str):
-                ...
-            else:
-                raise Exception(
-                    "Can either add a list of dependencies or an array of dependencies"
-                )
-
-    def merge_with_environment(self, env) -> None:
+    def merge_with_environment(self, env: "Environment") -> None:
         if not isinstance(env, Environment):
             raise Exception("Can only merge with another environment")
 

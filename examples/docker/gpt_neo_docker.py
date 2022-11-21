@@ -10,7 +10,7 @@ class PipelineGPTNeo:
 
     @pipeline_function
     def predict(self, input_data: str) -> str:
-        if self.model == None:
+        if self.model is None:
             from transformers import GPT2Tokenizer, GPTNeoForCausalLM
 
             self.model = GPTNeoForCausalLM.from_pretrained("EleutherAI/gpt-neo-125M")
@@ -44,8 +44,8 @@ gpt_neo_pipeline = Pipeline.get_pipeline("GPTNeo")
 env = Environment(
     "gptneo-env",
     dependencies=[
-        "transformers",
-        "torch",
+        "transformers==4.24.0",
+        "torch==1.13.0",
     ],
 )
 
