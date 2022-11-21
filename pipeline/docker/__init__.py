@@ -11,8 +11,8 @@ from pipeline.objects.environment import Environment
 def create_pipeline_api(
     pipeline_graphs: List[Graph],
     *,
-    output_dir="./",
-    platform="linux/amd64",
+    output_dir: str = "./",
+    platform: str = "linux/amd64",
     environment: Environment = None,
     **environment_variables,
 ):
