@@ -3,30 +3,15 @@ from typing import List
 
 from pip._internal.commands.freeze import freeze
 
-"""
-TODO:
-1.  Add in dependency checks to check if a set of deps can be installed.
-    This is a solved problem and we can use the internal testing from pip:
-
-    from pip._internal.req.req_install import InstallRequirement
-    from pip._vendor.packaging.requirements import Requirement
-    from pip._internal.operations import check
-"""
-
 
 class Environment:
     def __init__(
         self,
         environment_name: str = None,
         dependencies: List[str] = [],
-        extra_index_urls: List[str] = [],
-        extend_environments: List["Environment"] = [],
     ):
         self.environment_name = environment_name
         self.dependencies = dependencies
-        self.extra_index_urls = extra_index_urls
-        for _env in extend_environments:
-            self.merge_with_environment(_env)
 
     def to_requirements(self, output_dir: str = "./") -> None:
         requirements_path = os.path.join(os.path.join(output_dir, "requirements.txt"))
@@ -36,13 +21,6 @@ class Environment:
 
     def add_dependency(self, dependency: str) -> None:
         self.dependencies.append(dependency)
-
-    def merge_with_environment(self, env: "Environment") -> None:
-        if not isinstance(env, Environment):
-            raise Exception("Can only merge with another environment")
-
-        self.dependencies.extend(env.dependencies)
-        self.extra_index_urls.extend(env.extra_index_urls)
 
     @classmethod
     def from_requirements(cls, requirements_path: str, environment_name: str = None):
