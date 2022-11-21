@@ -1,7 +1,24 @@
 """
 Pipline has support for creating FastAPI endpoints for your Pipelines out of the box.
-To demonstrate this we'll create a basic GPT-Neo Pipeline with a custom environment and
-deploy the docker image.
+This file demonstrates this by creating a basic GPT-Neo Pipeline with a custom
+environment and deploying the docker image.
+
+Run this code in this directory:
+
+python gpt_neo_docker.py
+
+and then start the docker containers created:
+
+sudo docker compose up -d
+
+you can test the running images:
+
+
+curl --request POST \
+  --url http://localhost:5010/v2/run \
+  --header 'Content-Type: application/json' \
+  --data '{"pipeline_id":"gptneo", "data":"Hey there my name is"}'
+
 """
 
 
