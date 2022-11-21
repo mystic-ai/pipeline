@@ -1,3 +1,10 @@
+"""
+Pipline has support for creating FastAPI endpoints for your Pipelines out of the box.
+To demonstrate this we'll create a basic GPT-Neo Pipeline with a custom environment and
+deploy the docker image.
+"""
+
+
 from pipeline import Pipeline, Variable, docker, pipeline_function, pipeline_model
 from pipeline.objects.environment import Environment
 
