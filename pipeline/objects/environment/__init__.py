@@ -35,11 +35,6 @@ class Environment:
                 req_file.write(f"{_dep}\n")
 
     def add_dependency(self, dependency: str) -> None:
-        if self.initialized:
-            raise Exception(
-                "Cannot add dependency after the environment has \
-                been initialized."
-            )
         self.dependencies.append(dependency)
 
     def merge_with_environment(self, env: "Environment") -> None:
