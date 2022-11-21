@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from enum import Enum
 from typing import List
 
 from pydantic import Field
@@ -6,14 +7,34 @@ from pydantic import Field
 from .base import BaseModel
 
 
+class DurationUnit(Enum):
+    seconds = "seconds"
+    minutes = "minutes"
+    hours = "hours"
+    days = "days"
+    weeks = "weeks"
+
+
+class Duration(BaseModel):
+    """Representation of time duration in a given set of units.
+    Used for specifiying bucket interval sizes, typically in metrics charts."""
+
+    unit: DurationUnit
+    value: int
+
+
 class RunMetric(BaseModel):
-    #: total number of runs executed on the pipeline
+    """
+    Type of run metric data specified for a pipeline.
+    """
+
+    #: total number of runs executed
     run_count: int
-    #: total number of failed runs executed on the pipeline
+    #: total number of failed runs
     failed_run_count: int
-    #: total number of succeeded runs executed on the pipeline
+    #: total number of succeeded runs
     succeeded_run_count: int
-    #: total run compute time (typically of completed runs)
+    #: total run compute time (typically of succeeded runs)
     total_compute_ms: int
 
 
@@ -121,9 +142,20 @@ class RunMetricsQuery(MetricsQuery):
     bucket_count: int = 100
 
 
+class MetricsBucketsIntervalQuery(MetricsQuery):
+    """
+    Alternate query parameters for run metrics requests.
+    Specify a bucket time interval/duration instead of a number of buckets
+    """
+
+    interval: Duration
+
+
 class PipelineComputeGet(BaseModel):
-    """Pipeline compute metrics for retrieving the number of completed runs
-    and total compute time of all the runs on a pipeline"""
+    """
+    Pipeline compute metrics for retrieving the number of completed runs
+    and total compute time of all the runs on a pipeline
+    """
 
     start: datetime
     end: datetime
@@ -138,3 +170,25 @@ class TotalComputeGet(RunMetric):
 
     start: datetime
     end: datetime
+
+
+class PipelineRunMetricsData(BaseModel):
+    """
+    Overall and per-timestamp run metrics data for a given pipeline.
+    Used as list item in return data for run metrics over multiple pipelines
+    """
+
+    pipeline_id: str
+    pipeline_name: str
+    overall_bucket: RunMetric
+    metrics_buckets: List[RunMetric]
+
+
+class PipelinesRunMetricsGet(MetricsQuery):
+    """
+    Response schema for retrieving run metrics (overall + per-timestamp)
+    on a list of pipelines.
+    """
+
+    timestamps: List[datetime]
+    data: List[PipelineRunMetricsData]
