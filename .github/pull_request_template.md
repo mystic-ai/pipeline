@@ -7,6 +7,15 @@
 - [ ] Check for breaking changes in Resource
 - [ ] Version bumped
 
+Added:
+- A list of new things
+
+Changed:
+- A list of things changed
+
+Removed:
+- A list of things removed
+
 ## Related issues:
 _none_
 
