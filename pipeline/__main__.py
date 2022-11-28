@@ -5,4 +5,4 @@ import sys
 if __name__ == "__main__":
     from pipeline.console import main
 
-    sys.exit(main())
+    sys.exit(main(sys.argv))

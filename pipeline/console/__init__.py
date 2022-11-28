@@ -7,7 +7,7 @@ from pipeline import configuration
 from pipeline.util.logging import _print
 
 
-def main() -> int:
+def main(args) -> int:
     base_parser = argparse.ArgumentParser(
         prog="pipeline",
         description="Create or run pipelines locally or in the cloud!",
@@ -21,8 +21,11 @@ def main() -> int:
         default=False,
         type=bool,
     )
+
     command_parser = base_parser.add_subparsers(dest="command")
-    login_parser = command_parser.add_parser("login")
+    login_parser = command_parser.add_parser(
+        "login", help="Authenticate with a remote compute service"
+    )
 
     login_parser.add_argument(
         "-u",
@@ -36,7 +39,7 @@ def main() -> int:
         "-t", "--token", type=str, required=True, help="API token for remote"
     )
 
-    args: argparse.Namespace = base_parser.parse_args()
+    args: argparse.Namespace = base_parser.parse_args(args)
 
     if args.command == "login":
         url = f"https://{args.url}/v2/users/me"
@@ -62,4 +65,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv))
