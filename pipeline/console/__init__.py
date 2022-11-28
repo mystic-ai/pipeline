@@ -24,7 +24,7 @@ def main(args) -> int:
 
     command_parser = base_parser.add_subparsers(dest="command")
     login_parser = command_parser.add_parser(
-        "login", help="Authenticate with a remote compute service"
+        "login", description="Authenticate with a remote compute service"
     )
 
     login_parser.add_argument(
@@ -32,7 +32,7 @@ def main(args) -> int:
         "--url",
         type=str,
         required=False,
-        help="Remote URL for auth",
+        help="remote URL for auth (default=https://api.pipeline.ai)",
         default="https://api.pipeline.ai",
     )
     login_parser.add_argument(
