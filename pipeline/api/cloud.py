@@ -4,7 +4,6 @@ import hashlib
 import io
 import json
 import os
-import re
 import sys
 import urllib.parse
 from http import HTTPStatus
@@ -70,13 +69,10 @@ class PipelineCloud:
     ) -> None:
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
 
-        _hostname_regex = re.compile(r"https?://")
-        hostname = _hostname_regex.sub("", self.url).strip().strip("/")
-
         self.token = (
             token
             or os.getenv("PIPELINE_API_TOKEN")
-            or configuration.remote_auth.get(hostname)
+            or configuration.remote_auth.get(url)
         )
         self.timeout = timeout
         self.verbose = verbose

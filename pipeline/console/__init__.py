@@ -33,7 +33,7 @@ def main(args) -> int:
         type=str,
         required=False,
         help="Remote URL for auth",
-        default="api.pipeline.ai",
+        default="https://api.pipeline.ai",
     )
     login_parser.add_argument(
         "-t", "--token", type=str, required=True, help="API token for remote"
@@ -42,7 +42,7 @@ def main(args) -> int:
     args: argparse.Namespace = base_parser.parse_args(args)
 
     if args.command == "login":
-        url = f"https://{args.url}/v2/users/me"
+        url = f"{args.url}/v2/users/me"
 
         headers = {"Authorization": f"Bearer {args.token}"}
         try:
@@ -52,16 +52,19 @@ def main(args) -> int:
                 configuration.remote_auth[args.url] = args.token
                 configuration._save_auth()
                 _print(f"Successfully authenticated with {args.url}")
-                return
-
+                return 0
         except requests.exceptions.ConnectionError:
             _print(f"Couldn't connect to host {url}", level="ERROR")
+            return 1
+
         if args.verbose:
             print(response.status_code)
             print(response.text)
         _print(f"Couldn't authenticate with {args.url}", level="ERROR")
+        return 1
     else:
         base_parser.print_help()
+        return 0
 
 
 def _run() -> int:
