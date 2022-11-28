@@ -10,5 +10,4 @@ def test_help(capsys, option):
     except SystemExit:
         ...
     output: str = capsys.readouterr().out
-    print(output, flush=True)
     assert output.startswith("usage: pipeline")
