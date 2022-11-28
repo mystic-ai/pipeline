@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.2.0"
+version = "0.2.1"
 
 
 description = "Pipelines for machine learning workloads."
@@ -62,3 +62,6 @@ profile = "black"
 
 [tool.poetry.extras]
 docker = ["PyYAML"]
+
+[tool.poetry.scripts]
+pipeline = "pipeline.console:main"

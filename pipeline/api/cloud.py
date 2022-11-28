@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import sys
 import urllib.parse
 from http import HTTPStatus
@@ -16,6 +17,7 @@ from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
 from tqdm.utils import CallbackIOWrapper
 
+from pipeline import configuration
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.schemas.base import BaseModel
@@ -66,8 +68,16 @@ class PipelineCloud:
         timeout=60.0,
         verbose=True,
     ) -> None:
-        self.token = token or os.getenv("PIPELINE_API_TOKEN")
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
+
+        _hostname_regex = re.compile(r"https?://")
+        hostname = _hostname_regex.sub("", self.url).strip().strip("/")
+
+        self.token = (
+            token
+            or os.getenv("PIPELINE_API_TOKEN")
+            or configuration.remote_auth.get(hostname)
+        )
         self.timeout = timeout
         self.verbose = verbose
         self.__valid_token__ = False
