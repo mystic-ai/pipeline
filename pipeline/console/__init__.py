@@ -64,5 +64,5 @@ def main(args) -> int:
         base_parser.print_help()
 
 
-if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+def _run() -> int:
+    sys.exit(main(sys.argv[1:]))
