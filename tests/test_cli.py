@@ -4,5 +4,5 @@ import pytest
 
 
 @pytest.mark.parametrize("option", ("-h", "--help"))
-def test_help():
+def test_help(option):
     assert 0
