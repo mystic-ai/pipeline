@@ -15,7 +15,7 @@ you can test the running images:
 
 
 curl --request POST \
-  --url http://localhost:5010/v2/run \
+  --url http://localhost:5010/v2/runs \
   --header 'Content-Type: application/json' \
   --data '{"pipeline_id":"gptneo", "data":"Hey there my name is"}'
 

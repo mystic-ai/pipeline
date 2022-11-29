@@ -111,7 +111,7 @@ You can now send requests to the API running on your local system:
 
 ```shell
 curl --request POST \
-  --url http://localhost:5010/v2/run \
+  --url http://localhost:5010/v2/runs \
   --header 'Content-Type: application/json' \
   --data '{"pipeline_id":"gptneo", "data":"Hey there my name is"}'
 ```
