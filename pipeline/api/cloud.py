@@ -64,9 +64,9 @@ class PipelineCloud:
         *,
         url: str = None,
         token: str = None,
-        timeout=60.0,
-        verbose=True,
-    ) -> None:
+        timeout: float = 60.0,
+        verbose: bool = True,
+    ):
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
 
         self.token = (
@@ -80,7 +80,7 @@ class PipelineCloud:
         if self.token is not None:
             self.authenticate()
 
-    def authenticate(self, token: str = None):
+    def authenticate(self, token: str = None) -> None:
         """
         Authenticate with the pipeline.ai API
             Parameters:
