@@ -16,7 +16,13 @@ PIPELINE_CACHE = os.getenv(
     if (sys.platform == "win32" or sys.platform == "cygwin")
     else Path.home() / ".cache/pipeline/",
 )
+
+if isinstance(PIPELINE_CACHE, str):
+    PIPELINE_CACHE = Path(PIPELINE_CACHE)
+
 PIPELINE_CACHE.mkdir(exist_ok=True)
+
+PIPELINE_CACHE_AUTH = PIPELINE_CACHE / "auth.json"
 
 if version.parse(python_version()) < version.parse("3.9.13"):
     _print(
@@ -27,22 +33,14 @@ if version.parse(python_version()) < version.parse("3.9.13"):
 
 remote_auth: TypedDict("remote_auth", {"url": str}) = dict()
 
-if os.path.exists(os.path.join(PIPELINE_CACHE, "auth.json")):
-    with open(os.path.join(PIPELINE_CACHE, "auth.json"), "r") as auth_file:
-        remote_auth = json.loads(auth_file.read())
-        remote_auth = {
-            auth[0]: base64.b64decode(auth[1]).decode() for auth in remote_auth.items()
-        }
-
 
 def _load_auth():
-    if os.path.exists(os.path.join(PIPELINE_CACHE, "auth.json")):
-        with open(os.path.join(PIPELINE_CACHE, "auth.json"), "r") as auth_file:
-            remote_auth = json.loads(auth_file.read())
-            remote_auth = {
-                auth[0]: base64.b64decode(auth[1]).decode()
-                for auth in remote_auth.items()
-            }
+    if PIPELINE_CACHE_AUTH.exists():
+        remote_auth = json.loads(PIPELINE_CACHE_AUTH.read_text())
+        remote_auth = {
+            url: base64.b64decode(encoded_token).decode()
+            for url, encoded_token in remote_auth.items()
+        }
     else:
         raise Exception("Authentication file not found")
 
@@ -56,3 +54,7 @@ def _save_auth():
         }
 
         auth_file.write(json.dumps(_b64_remote_auth))
+
+
+if PIPELINE_CACHE_AUTH.exists():
+    _load_auth()
