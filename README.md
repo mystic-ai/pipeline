@@ -5,11 +5,14 @@
 # Table of Contents
 
 - [About](#about)
-- [Usage](#usage)
-  - [Huggingface Transformers](#huggingface-transformers)
+- [Quickstart](#quickstart)
+  - [Basic maths](#basic-maths)
+  - [Transformers (GPT-Neo 125M)](#transformers-gpt-neo-125m)
 - [Installation instructions](#installation-instructions)
   - [Linux, Mac (intel)](#linux--mac--intel-)
   - [Mac (arm/M1)](#mac--arm-m1-)
+- [Features](#features)
+  - [Future roadmap](#future-roadmap)
 - [Development](#development)
 - [License](#license)
 
