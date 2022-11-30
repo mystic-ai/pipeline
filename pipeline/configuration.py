@@ -20,8 +20,6 @@ PIPELINE_CACHE = os.getenv(
 if isinstance(PIPELINE_CACHE, str):
     PIPELINE_CACHE = Path(PIPELINE_CACHE)
 
-PIPELINE_CACHE.mkdir(exist_ok=True)
-
 PIPELINE_CACHE_AUTH = PIPELINE_CACHE / "auth.json"
 
 if version.parse(python_version()) < version.parse("3.9.13"):
@@ -42,10 +40,11 @@ def _load_auth():
             for url, encoded_token in remote_auth.items()
         }
     else:
-        raise Exception("Authentication file not found")
+        ...
 
 
 def _save_auth():
+    PIPELINE_CACHE.mkdir(exist_ok=True)
     with open(os.path.join(PIPELINE_CACHE, "auth.json"), "w") as auth_file:
 
         _b64_remote_auth = {
