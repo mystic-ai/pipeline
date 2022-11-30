@@ -12,7 +12,7 @@ from pipeline.util.logging import _print
 
 PIPELINE_CACHE = os.getenv(
     "PIPELINE_CACHE",
-    Path(os.getenv("APPDATA")) / "Local/.pipeline/"
+    Path(os.getenv("LOCALAPPDATA")) / ".pipeline/"
     if (sys.platform == "win32" or sys.platform == "cygwin")
     else Path.home() / ".cache/pipeline/",
 )
