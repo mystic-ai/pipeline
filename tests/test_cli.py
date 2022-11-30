@@ -5,8 +5,10 @@ from pipeline.console import main as cli_main
 
 @pytest.mark.parametrize("option", ("-h", "--help"))
 def test_help(capsys, option):
-    response_code = cli_main([option])
-    assert response_code == 0
+    try:
+        cli_main([option])
+    except SystemExit as system_exit:
+        assert system_exit.code == 0
 
     output: str = capsys.readouterr().out
     assert output.startswith("usage: pipeline")
