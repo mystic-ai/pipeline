@@ -12,13 +12,11 @@ from pipeline.util.logging import _print
 
 PIPELINE_CACHE = os.getenv(
     "PIPELINE_CACHE",
-    os.path.join(os.getenv("APPDATA"), "/Local/.pipeline/")
+    Path(os.getenv("APPDATA")) / "Local/.pipeline/"
     if (sys.platform == "win32" or sys.platform == "cygwin")
-    else os.path.join(str(Path.home()), ".cache/pipeline/"),
+    else Path.home() / ".cache/pipeline/",
 )
-
-if not os.path.exists(PIPELINE_CACHE):
-    os.makedirs(PIPELINE_CACHE)
+PIPELINE_CACHE.mkdir(exist_ok=True)
 
 if version.parse(python_version()) < version.parse("3.9.13"):
     _print(
