@@ -13,6 +13,43 @@ There are three main Docker images that will be added into the final docker comp
 2. `postgresql` - This is used for traffic logging, and will be extended to include auth.
 3. `redis` - For session data.
 
+## GPU support (Ubuntu 20.04+)
+
+Running docker with GPUs requires some explicit machine drivers and packages. Below are some steps for setting up an Ubuntu based machine to run Nvidia GPUs using the nvidia container runtime.
+
+You can install the latest drivers by running:
+```bash
+sudo apt-get install nvidia-driver-510 -y
+```
+
+Following this the nvidia container runtime is setup by running:
+
+```bash
+curl -s -L https://nvidia.github.io/nvidia-container-runtime/gpgkey | \
+sudo apt-key add -
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-container-runtime/$distribution/nvidia-container-runtime.list | \
+sudo tee /etc/apt/sources.list.d/nvidia-container-runtime.list
+sudo apt-get update
+
+sudo apt-get install nvidia-container-runtime -y
+```
+
+Now that the nvidia runtime is installed it must be configured in the docker daemon. You can do this by putting the following code into `/etc/docker/daemon.json`:
+
+```json
+{
+    "runtimes": {
+        "nvidia": {
+            "path": "/usr/bin/nvidia-container-runtime",
+            "runtimeArgs": []
+        }
+    },
+    "default-runtime": "nvidia"
+}
+```
+
+
 ## GPT Neo example
 ### Pipeline creation
 
@@ -119,5 +156,4 @@ curl --request POST \
 ## Not supported
 
 Currently the following Variables are not supported with the auto-docker feature:
-- PipelineFile
 - Local directories as dependencies for the environment
