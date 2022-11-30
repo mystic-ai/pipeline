@@ -1,5 +1,6 @@
 import argparse
 import sys
+from typing import List, Optional
 
 import requests
 
@@ -7,7 +8,7 @@ from pipeline import configuration
 from pipeline.util.logging import _print
 
 
-def main(args) -> int:
+def main(args: Optional[List[str]] = None) -> int:
     base_parser = argparse.ArgumentParser(
         prog="pipeline",
         description="Create or run pipelines locally or in the cloud!",
@@ -67,4 +68,4 @@ def main(args) -> int:
 
 
 def _run() -> int:
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(main())
