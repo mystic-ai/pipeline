@@ -23,8 +23,8 @@ def test_login(option, url, token):
 
 @pytest.mark.parametrize("option", ("login",))
 @pytest.mark.usefixtures("api_response")
-def test_login_fail(option, url):
-    response_code = cli_main([option, "-u", url, "-t", "wrong_token"])
+def test_login_fail(option, url, bad_token):
+    response_code = cli_main([option, "-u", url, "-t", bad_token])
     assert response_code == 1
 
 
