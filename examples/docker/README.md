@@ -49,6 +49,7 @@ Now that the nvidia runtime is installed it must be configured in the docker dae
 }
 ```
 
+The machine must then be rebooted for the drivers to start in the kernel.
 
 ## GPT Neo example
 ### Pipeline creation
