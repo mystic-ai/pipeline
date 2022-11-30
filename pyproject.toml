@@ -1,12 +1,14 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.0.47"
+version = "0.2.0"
+
+
 description = "Pipelines for machine learning workloads."
 authors = [
   "Paul Hetherington <ph@mystic.ai>",
   "Alex Pearwin <alex@mystic.ai>",
-  "Maximiliano Schulkin <max@mystic.ai>",
   "Neil Wang <neil@mystic.ai>",
+  "Ross Gray <ross@mystic.ai>",
 ]
 packages = [{ include = "pipeline" }]
 readme = "README.md"
@@ -25,17 +27,18 @@ pyhumps = "^3.0.2"
 requests-toolbelt = "^0.9.1"
 tqdm = "^4.62.3"
 PyYAML = { version = "^6.0", optional = true }
-cloudpickle = "^2.1.0"
-dill = "^0.3.4"
+cloudpickle = "^2.2.0"
+dill = "^0.3.6"
+httpx = "^0.23.1"
 
 [tool.poetry.dev-dependencies]
 pydantic = "^1.8.2"
 requests = "^2.26.0"
 pyhumps = "^3.0.2"
 pytest = "^6.2.5"
-black = "^22.3.0"
+black = "^22.10.0"
 pre-commit = "^2.16.0"
-flake8 = "^4.0.1"
+flake8 = "^5.0.4"
 isort = "^5.10.1"
 responses = "^0.20.0"
 

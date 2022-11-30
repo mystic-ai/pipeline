@@ -7,7 +7,7 @@
 import getopt
 import sys
 
-import numpy as np
+import torch
 
 from pipeline import (
     Pipeline,
@@ -17,62 +17,71 @@ from pipeline import (
     pipeline_function,
     pipeline_model,
 )
+from pipeline.util.torch_utils import tensor_to_list
 
 
 @pipeline_model
-class MyMatrixModel:
+class MyModel:
 
-    matrix: np.ndarray = None
+    model: torch.nn.Module = None
 
     def __init__(self):
-        ...
+        self.my_model = torch.nn.Sequential(
+            torch.nn.Linear(3, 5), torch.nn.Linear(5, 2)
+        )
 
     @pipeline_function
-    def predict(self, x: list[float]) -> list[float]:
-        import numpy as np
+    def predict(self, x: list[float]) -> str:
+        import torch
 
         # Dimension conversion of x: [3] -> [1, 3]
-        return np.array(np.dot(np.array([x]), self.matrix), dtype=np.float64).tolist()
+        assert len(x) == 3, "There must be 3 input numbers in a list"
+        x: torch.Tensor = torch.tensor(x).unsqueeze(0)
+
+        return self.my_model(x)
 
     @pipeline_function(run_once=True, on_startup=True)
-    def load(self, matrix_file: PipelineFile) -> bool:
+    def load(self, model_file: PipelineFile) -> bool:
+        import torch
+
         try:
-            print("Loading matrix...")
-            self.matrix = np.load(matrix_file.path)
-            print("Loaded matrix!")
-        except:
+            print("Loading model...")
+            self.my_model.load_state_dict(torch.load(model_file.path))
+            self.my_model.eval()
+            print("Model loaded!")
+        except Exception:
             return False
         return True
 
 
-np.save("example_matrix.npy", np.random.rand(3, 7))
-
-with Pipeline("Matrix pipeline") as pipeline:
+with Pipeline("ML pipeline") as pipeline:
     input_list = Variable(type_class=list, is_input=True)
-    matrix_file = PipelineFile(path="example_matrix.npy")
+    model_weight_file = PipelineFile(path="example_weights.pt")
 
-    pipeline.add_variables(input_list, matrix_file)
+    pipeline.add_variables(input_list, model_weight_file)
 
     # Note: When the pipeline is uploaded so are the weights.
     # When the Pipeline is loaded on a worker the ".path" variable in the PipelineFile
     # is not the local path any more but a path to the weights on the resource,
     # when the file is loaded on the worker a path is created for it.
 
-    matrix_model = MyMatrixModel()
-    matrix_model.load(matrix_file)
+    ml_model = MyModel()
+    ml_model.load(model_weight_file)
 
-    output = matrix_model.predict(input_list)
+    output = ml_model.predict(input_list)
+    output = tensor_to_list(output)
     pipeline.output(output)
 
-output_pipeline = Pipeline.get_pipeline("Matrix pipeline")
+output_pipeline = Pipeline.get_pipeline("ML pipeline")
 
 if __name__ == "__main__":
     argv = sys.argv[1:]
 
     mode = "run"
+
     try:
         opts, args = getopt.getopt(argv, "hru", ["run", "upload"])
-    except:
+    except Exception:
         ...
 
     for opt, arg in opts:
@@ -90,8 +99,7 @@ if __name__ == "__main__":
         print(output_pipeline.run([2.0, 3.4, 6.0]))
         print(output_pipeline.run([-6.8, 2.1, 1.01]))
     else:
-        pc = PipelineCloud(token="YOUR API TOKEN")
+        pc = PipelineCloud()
         uploaded_pipeline = pc.upload_pipeline(output_pipeline)
-        output = pc.run_pipeline(uploaded_pipeline, [[2.0, 3.4, 6.0]])
-        print(output["run_state"])
-        print(output["result_preview"])
+        output = pc.run_pipeline(uploaded_pipeline, [2.0, 3.4, 6.0])
+        print(output.result_preview)

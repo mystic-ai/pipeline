@@ -1,3 +1,4 @@
+import onnxruntime
 import torch
 from torch import nn
 
@@ -35,7 +36,6 @@ torch.onnx.export(
 )
 
 # run onnx inference
-import onnxruntime
 
 session = onnxruntime.InferenceSession(
     "example.onnx",
