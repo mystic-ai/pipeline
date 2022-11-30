@@ -19,34 +19,44 @@ Pipeline is a python library that provides a simple way to construct computation
 
 The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect). In future releases we will be moving away from this syntax to a C based graph compiler which interprets python directly (and other languages) allowing users of the API to compose graphs in a more native way to the chosen language.
 
-# Usage
+# Quickstart
 
 > :warning: **Uploading pipelines to Pipeline Cloud works best in Python 3.9.** We strongly recommend you use Python 3.9 when uploading pipelines because the `pipeline-ai` library is still in beta and is known to cause opaque errors when pipelines are serialised from a non-3.9 environment.
 
-## Huggingface Transformers
 
-```
-from pipeline import Pipeline, Variable, for_loop, pipeline_function
-from pipeline.model.transformer_models import TransformersModel
+## Basic maths
 
-with Pipeline(pipeline_name="GPTNeo") as pipeline:
-    input_str = Variable(variable_type=str, is_input=True)
+```python
+from pipeline import Pipeline, Variable, pipeline_function
 
-    hf_model = TransformersModel("EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-125M")
-    output_str = hf_model.predict(input_str)
 
-    pipeline.output(output_str)
+@pipeline_function
+def square(a: float) -> float:
+    return a**2
 
-output_pipeline = Pipeline.get_pipeline("GPTNeo")
+@pipeline_function
+def multiply(a: float, b: float) -> float:
+    return a * b
 
-print(output_pipeline.run("Hello"))
+with Pipeline("maths") as pipeline:
+    flt_1 = Variable(type_class=float, is_input=True)
+    flt_2 = Variable(type_class=float, is_input=True)
+    pipeline.add_variables(flt_1, flt_2)
+
+    sq_1 = square(flt_1)
+    res_1 = multiply(flt_2, sq_1)
+    pipeline.output(res_!)
+
+output_pipeline = Pipeline.get_pipeline("maths")
+print(output_pipeline.run(5.0, 6.0))
+
 ```
 
 # Installation instructions
 
 ## Linux, Mac (intel)
 
-```
+```shell
 pip install -U pipeline-ai
 ```
 
