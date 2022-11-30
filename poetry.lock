@@ -572,8 +572,8 @@ docker = ["PyYAML"]
 
 [metadata]
 lock-version = "1.1"
-python-versions = "^3.8"
-content-hash = "9ca601a452a113665a4b2653fcc0e1ab249c845c9b0cd72919a15ac904a8a972"
+python-versions = "^3.9"
+content-hash = "3606745a1ed75d0038fed895db65c9a4d41fdb16a4559abb08ff67a101fb8280"
 
 [metadata.files]
 anyio = [
