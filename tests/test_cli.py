@@ -35,3 +35,15 @@ def test_login_fail(option, url):
         assert response_code == 1
     except SystemExit as system_exit:
         assert system_exit.code == 1
+
+
+@pytest.mark.parametrize("option", ("-v", "--verbose"))
+def test_verbose(capsys, option):
+    try:
+        response_code = cli_main([option])
+        assert response_code == 0
+    except SystemExit as system_exit:
+        assert system_exit.code == 0
+
+    output: str = capsys.readouterr().out
+    assert output.startswith("usage: pipeline")

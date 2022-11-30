@@ -16,10 +16,8 @@ def main(args) -> int:
     base_parser.add_argument(
         "-v",
         "--verbose",
-        required=False,
         help="Verbose logging",
-        default=False,
-        type=bool,
+        action="store_true",
     )
 
     command_parser = base_parser.add_subparsers(dest="command")
