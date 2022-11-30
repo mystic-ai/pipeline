@@ -96,6 +96,29 @@ conda install -c huggingface transformers -y
 python -m pip install -U pipeline-ai
 ```
 
+# Features
+
+## Future roadmap
+
+Currently working on:
+- Custom environments
+- Reduced cold start in pytorch via custom tensor loading
+- CLI authentication
+
+Working on next:
+- Remote reference of objects in the `Pipeline` context manager
+- Remote events
+- Finetuning premade pipelines
+- Conditional logic flow in `Pipeline` context manager
+- Pipeline chaining (call another pipeline in a pipeline)
+
+More ideas:
+- Deployment control via CLI
+- Add in a `PipelineDirectory` object
+- Streaming pipeline runs
+- Logs on remote runs
+- Model deployment from CLI `pipeline deploy FILE.py`
+
 # Development
 
 This project is made with poetry, [so firstly setup poetry on your machine](https://python-poetry.org/docs/#installation).
