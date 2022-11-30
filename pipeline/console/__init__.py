@@ -45,12 +45,6 @@ def main(args) -> int:
         headers = {"Authorization": f"Bearer {args.token}"}
         try:
             response = requests.request("GET", url, headers=headers)
-
-            if response.status_code == 200:
-                configuration.remote_auth[args.url] = args.token
-                configuration._save_auth()
-                _print(f"Successfully authenticated with {args.url}")
-                return 0
         except requests.exceptions.ConnectionError:
             _print(f"Couldn't connect to host {url}", level="ERROR")
             return 1
@@ -58,6 +52,13 @@ def main(args) -> int:
         if args.verbose:
             print(response.status_code)
             print(response.text)
+
+        if response.status_code == 200:
+            configuration.remote_auth[args.url] = args.token
+            configuration._save_auth()
+            _print(f"Successfully authenticated with {args.url}")
+            return 0
+
         _print(f"Couldn't authenticate with {args.url}", level="ERROR")
         return 1
     else:
