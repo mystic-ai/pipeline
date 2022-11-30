@@ -17,7 +17,6 @@ def test_help(capsys, option):
 @pytest.mark.parametrize("option", ("login",))
 @pytest.mark.usefixtures("api_response")
 def test_login(option, url, token):
-    response_code = None
     response_code = cli_main([option, "-u", url, "-t", token])
     assert response_code == 0
 
@@ -25,7 +24,6 @@ def test_login(option, url, token):
 @pytest.mark.parametrize("option", ("login",))
 @pytest.mark.usefixtures("api_response")
 def test_login_fail(option, url):
-    response_code = None
     response_code = cli_main([option, "-u", url, "-t", "wrong_token"])
     assert response_code == 1
 
