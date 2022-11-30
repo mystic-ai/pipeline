@@ -3,7 +3,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from pipeline import pipeline_function, pipeline_model
 
 
-@pipeline_model()
+@pipeline_model
 class TransformersModelForCausalLM:
     def __init__(
         self,
@@ -23,7 +23,7 @@ class TransformersModelForCausalLM:
         gen_text = self.tokenizer.batch_decode(gen_tokens)[0]
         return gen_text
 
-    @pipeline_function
+    @pipeline_function(on_startup=True, run_once=True)
     def load(self) -> None:
         if self.model is None:
             self.model = AutoModelForCausalLM.from_pretrained(self.model_path)
