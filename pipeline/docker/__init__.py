@@ -150,5 +150,5 @@ def create_docker_compose(path, gpu_index: Optional[str] = None, **environment_v
 
 
 def build():
-    subprocess.run("sudo docker compose pull".split(" "))
-    subprocess.run("sudo docker compose build".split(" "))
+    subprocess.run("sudo docker compose pull".split())
+    subprocess.run("sudo docker compose build".split())
