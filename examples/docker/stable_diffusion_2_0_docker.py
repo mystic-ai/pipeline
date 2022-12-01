@@ -41,7 +41,6 @@ import numpy as np
 import torch
 from cloudpickle import dumps
 from diffusers import DiffusionPipeline, DPMSolverMultistepScheduler
-from diffusers.utils import logging
 from dill import loads
 
 from pipeline import (
@@ -53,11 +52,6 @@ from pipeline import (
     pipeline_model,
 )
 from pipeline.objects.environment import Environment
-
-# the below two functions don't seem to do their job
-logging.disable_progress_bar()
-logging.set_verbosity_error()
-
 
 scheduler = DPMSolverMultistepScheduler.from_pretrained(
     "stabilityai/stable-diffusion-2", subfolder="scheduler"
