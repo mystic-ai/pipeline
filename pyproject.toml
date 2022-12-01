@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.2.0"
+version = "0.2.1"
 
 
 description = "Pipelines for machine learning workloads."
@@ -19,7 +19,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.7,<4.0"
+python = "^3.9"
 pydantic = "^1.8.2"
 requests = "^2.26.0"
 setuptools = "^65.4.1"
@@ -62,3 +62,6 @@ profile = "black"
 
 [tool.poetry.extras]
 docker = ["PyYAML"]
+
+[tool.poetry.scripts]
+pipeline = "pipeline.console:_run"

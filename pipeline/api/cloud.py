@@ -16,6 +16,7 @@ from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
 from tqdm.utils import CallbackIOWrapper
 
+from pipeline import configuration
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.schemas.base import BaseModel
@@ -63,18 +64,23 @@ class PipelineCloud:
         *,
         url: str = None,
         token: str = None,
-        timeout=60.0,
-        verbose=True,
-    ) -> None:
-        self.token = token or os.getenv("PIPELINE_API_TOKEN")
+        timeout: float = 60.0,
+        verbose: bool = True,
+    ):
         self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
+
+        self.token = (
+            token
+            or os.getenv("PIPELINE_API_TOKEN")
+            or configuration.remote_auth.get(url)
+        )
         self.timeout = timeout
         self.verbose = verbose
         self.__valid_token__ = False
         if self.token is not None:
             self.authenticate()
 
-    def authenticate(self, token: str = None):
+    def authenticate(self, token: str = None) -> None:
         """
         Authenticate with the pipeline.ai API
             Parameters:
@@ -91,24 +97,14 @@ class PipelineCloud:
             raise MissingActiveToken(
                 token="", message="Please pass a valid token or set it as an ENV var"
             )
-        status_url = urllib.parse.urljoin(self.url, "/v2/users/me")
 
-        response = requests.get(
-            status_url,
-            headers={"Authorization": "Bearer %s" % _token},
-            timeout=self.timeout,
-        )
+        valid_token = self._validate_token(_token, self.url)
 
-        if (
-            response.status_code == HTTPStatus.FORBIDDEN
-            or response.status_code == HTTPStatus.UNAUTHORIZED
-        ):
+        if not valid_token:
             raise MissingActiveToken(token=_token)
-        else:
-            response.raise_for_status()
-
-        if response.json() and self.verbose:
+        elif self.verbose:
             print("Succesfully authenticated with the Pipeline API (%s)" % self.url)
+
         self.token = _token
         self.__valid_token__ = True
 
@@ -122,6 +118,24 @@ class PipelineCloud:
                     "or pass a valid token as a parameter authenticate(token)"
                 ),
             )
+
+    @staticmethod
+    def _validate_token(token: str, base_url: str) -> bool:
+        url = urllib.parse.urljoin(base_url, "/v2/users/me")
+
+        headers = {"Authorization": f"Bearer {token}"}
+
+        response = requests.request("GET", url, headers=headers)
+
+        if response.status_code == HTTPStatus.OK:
+            return True
+        elif (
+            response.status_code == HTTPStatus.UNAUTHORIZED
+            or response.status_code == HTTPStatus.FORBIDDEN
+        ):
+            return False
+        else:
+            response.raise_for_status()
 
     @staticmethod
     def _get_raise_for_status(
