@@ -84,7 +84,7 @@ def seed_everything(seed: int) -> int:
 
 
 def get_aspect_ratio(width: int, height: int) -> float:
-    return float(width / height)
+    return width / height
 
 
 class PromptShape(TypedDict):
