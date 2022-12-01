@@ -13,6 +13,7 @@ with Pipeline("HF pipeline") as builder:
         model_path="EleutherAI/gpt-neo-125M",
         tokenizer_path="EleutherAI/gpt-neo-125M",
     )
+    hf_model.load()
     output_str = hf_model.predict(input_str, model_kwargs)
 
     builder.output(output_str)

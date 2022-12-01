@@ -3,5 +3,5 @@
         81,
         88
     ],
-    "python.analysis.typeCheckingMode": "basic" // black guidelines
+    "python.formatting.provider": "black" // black guidelines
 }
