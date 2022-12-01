@@ -36,8 +36,6 @@ def _load_auth():
             url: base64.b64decode(encoded_token).decode()
             for url, encoded_token in remote_auth.items()
         }
-    else:
-        ...
 
 
 def _save_auth():
