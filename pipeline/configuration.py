@@ -10,15 +10,12 @@ from packaging import version
 
 from pipeline.util.logging import _print
 
-PIPELINE_CACHE = os.getenv(
+PIPELINE_CACHE = Path(os.getenv(
     "PIPELINE_CACHE",
     Path(os.getenv("LOCALAPPDATA")) / ".pipeline/"
     if (sys.platform == "win32" or sys.platform == "cygwin")
     else Path.home() / ".cache/pipeline/",
-)
-
-if isinstance(PIPELINE_CACHE, str):
-    PIPELINE_CACHE = Path(PIPELINE_CACHE)
+))
 
 PIPELINE_CACHE_AUTH = PIPELINE_CACHE / "auth.json"
 
