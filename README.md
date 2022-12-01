@@ -5,11 +5,14 @@
 # Table of Contents
 
 - [About](#about)
-- [Usage](#usage)
-  - [Huggingface Transformers](#huggingface-transformers)
+- [Quickstart](#quickstart)
+  - [Basic maths](#basic-maths)
+  - [Transformers (GPT-Neo 125M)](#transformers-gpt-neo-125m)
 - [Installation instructions](#installation-instructions)
   - [Linux, Mac (intel)](#linux--mac--intel-)
   - [Mac (arm/M1)](#mac--arm-m1-)
+- [Features](#features)
+  - [Future roadmap](#future-roadmap)
 - [Development](#development)
 - [License](#license)
 
@@ -19,34 +22,77 @@ Pipeline is a python library that provides a simple way to construct computation
 
 The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect). In future releases we will be moving away from this syntax to a C based graph compiler which interprets python directly (and other languages) allowing users of the API to compose graphs in a more native way to the chosen language.
 
-# Usage
+# Quickstart
 
 > :warning: **Uploading pipelines to Pipeline Cloud works best in Python 3.9.** We strongly recommend you use Python 3.9 when uploading pipelines because the `pipeline-ai` library is still in beta and is known to cause opaque errors when pipelines are serialised from a non-3.9 environment.
 
-## Huggingface Transformers
+
+## Basic maths
+
+```python
+from pipeline import Pipeline, Variable, pipeline_function
+
+
+@pipeline_function
+def square(a: float) -> float:
+    return a**2
+
+@pipeline_function
+def multiply(a: float, b: float) -> float:
+    return a * b
+
+with Pipeline("maths") as pipeline:
+    flt_1 = Variable(type_class=float, is_input=True)
+    flt_2 = Variable(type_class=float, is_input=True)
+    pipeline.add_variables(flt_1, flt_2)
+
+    sq_1 = square(flt_1)
+    res_1 = multiply(flt_2, sq_1)
+    pipeline.output(res_!)
+
+output_pipeline = Pipeline.get_pipeline("maths")
+print(output_pipeline.run(5.0, 6.0))
 
 ```
-from pipeline import Pipeline, Variable, for_loop, pipeline_function
-from pipeline.model.transformer_models import TransformersModel
 
-with Pipeline(pipeline_name="GPTNeo") as pipeline:
-    input_str = Variable(variable_type=str, is_input=True)
+## Transformers (GPT-Neo 125M)
 
-    hf_model = TransformersModel("EleutherAI/gpt-neo-125M", "EleutherAI/gpt-neo-125M")
-    output_str = hf_model.predict(input_str)
+_Note: requires `torch` and `transformers` as dependencies._
+```python
+from pipeline import Pipeline, Variable
+from pipeline.objects.huggingface.TransformersModelForCausalLM import (
+    TransformersModelForCausalLM,
+)
 
-    pipeline.output(output_str)
+with Pipeline("HF pipeline") as builder:
+    input_str = Variable(str, is_input=True)
+    model_kwargs = Variable(dict, is_input=True)
 
-output_pipeline = Pipeline.get_pipeline("GPTNeo")
+    builder.add_variables(input_str, model_kwargs)
 
-print(output_pipeline.run("Hello"))
+    hf_model = TransformersModelForCausalLM(
+        model_path="EleutherAI/gpt-neo-125M",
+        tokenizer_path="EleutherAI/gpt-neo-125M",
+    )
+    hf_model.load()
+    output_str = hf_model.predict(input_str, model_kwargs)
+
+    builder.output(output_str)
+
+output_pipeline = Pipeline.get_pipeline("HF pipeline")
+
+print(
+    output_pipeline.run(
+        "Hello my name is", {"min_length": 100, "max_length": 150, "temperature": 0.5}
+    )
+)
 ```
 
 # Installation instructions
 
 ## Linux, Mac (intel)
 
-```
+```shell
 pip install -U pipeline-ai
 ```
 
