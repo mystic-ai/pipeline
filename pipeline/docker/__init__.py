@@ -137,7 +137,7 @@ def create_docker_compose(path, gpu_index: Optional[str] = None, **environment_v
                     "devices": [
                         {
                             "driver": "nvidia",
-                            "device_ids": ["0"],
+                            "device_ids": [f"{gpu_index}"],
                             "capabilities": ["gpu"],
                         }
                     ]
