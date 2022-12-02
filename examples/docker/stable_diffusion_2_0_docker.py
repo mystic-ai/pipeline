@@ -6,8 +6,8 @@ environment and deploying the docker image.
 Run this code in this directory:
 
 pip install -U "transformers==4.21.2" "tokenizers==0.12.1" \
-        "torch" \
-        "diffusers @ git+https://github.com/huggingface/
+"torch" \
+"diffusers @ git+https://github.com/huggingface/
 diffusers.git@5755d16868ec3da7d5eb4f42db77b01fac842ea8"
 
 env HF_TOKEN="your hugging face token" python stable_diffusion_2_0_docker.py
