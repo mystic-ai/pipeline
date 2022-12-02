@@ -143,3 +143,5 @@ examples/docker/docker-compose.yml
 examples/docker/Dockerfile
 examples/docker/*.graph
 examples/docker/requirements.txt
+examples/docker/stable_diffusion_apple/ml-stable-diffusion
+examples/docker/stable_diffusion_apple/*.mlpackage

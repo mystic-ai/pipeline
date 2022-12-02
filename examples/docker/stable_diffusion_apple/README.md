@@ -7,10 +7,15 @@ python -m pip install -e ./ml-stable-diffusion/
 
 convert SD:
 
+
+_Note: Make sure you have a huggingface token, and accepted terms on the [runwayml/stable-diffusion-v1-5](https://huggingface.co/runwayml/stable-diffusion-v1-5) project_
 ```shell
+huggingface-cli login
+
 python -m python_coreml_stable_diffusion.torch2coreml --convert-unet \
 --convert-text-encoder --convert-vae-decoder --convert-safety-checker \
---model-version=runwayml/stable-diffusion-v1-5 -o .
+--model-version=runwayml/stable-diffusion-v1-5 \
+-o .
 ```
 
 basic testing:
