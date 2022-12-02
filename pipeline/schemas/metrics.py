@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from pydantic import Field
 
@@ -170,6 +170,14 @@ class TotalComputeGet(RunMetric):
 
     start: datetime
     end: datetime
+    #: change rate of run count
+    run_count_rate: Optional[float]
+    #: change rate of succeeded run count
+    succeeded_run_count_rate: Optional[float]
+    #: change rate of failed run count
+    failed_run_count_rate: Optional[float]
+    #: change rate of compute run time
+    total_compute_ms_rate: Optional[float]
 
 
 class PipelineRunMetricsData(BaseModel):
