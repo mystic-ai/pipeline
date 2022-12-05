@@ -72,8 +72,9 @@ class PipelineCloud:
         self.token = (
             token
             or os.getenv("PIPELINE_API_TOKEN")
-            or configuration.remote_auth.get(url)
+            or configuration.remote_auth.get(self.url)
         )
+
         self.timeout = timeout
         self.verbose = verbose
         self.__valid_token__ = False
