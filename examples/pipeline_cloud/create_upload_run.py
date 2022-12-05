@@ -3,9 +3,10 @@ from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
 #####################################
 # setup API client
 #####################################
-# Either pass in token directly (replace this token with your own)
-# api  = PipelineCloud(token="pipeline_token_value")
-# Or alternatively set the PIPELINE_API_TOKEN and init PipelineCloud with no arguments
+# Connect to pipeline cloud, you can set your token in one of three ways:
+# 1. Pass it in as a kwarg: PipelineCloud(token=...)
+# 2. Use pipeline CLI: pipeline login -t <token>
+# 3. Set the PIPELINE_API_TOKEN=... environment variable
 api = PipelineCloud()
 
 
