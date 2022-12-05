@@ -4,7 +4,7 @@ from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
 # setup API client
 #####################################
 # Either pass in token directly (replace this token with your own)
-api = PipelineCloud(token="pipeline_token_value")
+# api  = PipelineCloud(token="pipeline_token_value")
 # Or alternatively set the PIPELINE_API_TOKEN and init PipelineCloud with no arguments
 api = PipelineCloud()
 
