@@ -32,6 +32,7 @@ remote_auth: TypedDict("remote_auth", {"url": str}) = dict()
 
 
 def _load_auth():
+    global remote_auth
     if PIPELINE_CACHE_AUTH.exists():
         remote_auth = json.loads(PIPELINE_CACHE_AUTH.read_text())
         remote_auth = {
@@ -42,7 +43,8 @@ def _load_auth():
 
 def _save_auth():
     PIPELINE_CACHE.mkdir(exist_ok=True)
-    with open(os.path.join(PIPELINE_CACHE, "auth.json"), "w") as auth_file:
+
+    with open(PIPELINE_CACHE_AUTH, "w") as auth_file:
 
         _b64_remote_auth = {
             auth[0]: base64.b64encode(auth[1].encode()).decode()
@@ -52,5 +54,4 @@ def _save_auth():
         auth_file.write(json.dumps(_b64_remote_auth))
 
 
-if PIPELINE_CACHE_AUTH.exists():
-    _load_auth()
+_load_auth()
