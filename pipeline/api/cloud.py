@@ -67,7 +67,9 @@ class PipelineCloud:
         timeout: float = 60.0,
         verbose: bool = True,
     ):
-        self.url = url or os.getenv("PIPELINE_API_URL", "https://api.pipeline.ai")
+        self.url = (
+            url or os.getenv("PIPELINE_API_URL", None) or configuration.DEFAULT_REMOTE
+        )
 
         self.token = (
             token

@@ -19,7 +19,10 @@ PIPELINE_CACHE = Path(
     )
 )
 
+PIPELINE_CACHE_CONFIG = PIPELINE_CACHE / "config.json"
 PIPELINE_CACHE_AUTH = PIPELINE_CACHE / "auth.json"
+
+DEFAULT_REMOTE: str = None
 
 if version.parse(python_version()) < version.parse("3.9.13"):
     _print(
@@ -29,6 +32,7 @@ if version.parse(python_version()) < version.parse("3.9.13"):
     )
 
 remote_auth: TypedDict("remote_auth", {"url": str}) = dict()
+config: dict = dict()
 
 
 def _load_auth():
@@ -54,4 +58,23 @@ def _save_auth():
         auth_file.write(json.dumps(_b64_remote_auth))
 
 
+def _load_config():
+    global DEFAULT_REMOTE
+    global config
+    if PIPELINE_CACHE_CONFIG.exists():
+        config = json.loads(PIPELINE_CACHE_CONFIG.read_text())
+
+    DEFAULT_REMOTE = config.get("DEFAULT_REMOTE", "https://api.pipeline.ai")
+
+
+def _save_config():
+    global config
+
+    PIPELINE_CACHE.mkdir(exist_ok=True)
+
+    with open(PIPELINE_CACHE_CONFIG, "w") as config_file:
+        config_file.write(json.dumps(config))
+
+
+_load_config()
 _load_auth()
