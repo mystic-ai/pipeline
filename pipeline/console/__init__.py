@@ -59,8 +59,6 @@ def main(args: Optional[List[str]] = None) -> int:
     remote_set_parser.add_argument("url", help="The remote URL")
 
     args: argparse.Namespace = base_parser.parse_args(args)
-    print(dir(args))
-    print(args)
     if args.command == "login":
         valid_token = PipelineCloud._validate_token(args.token, args.url)
 
