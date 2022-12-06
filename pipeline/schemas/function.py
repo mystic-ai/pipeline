@@ -47,19 +47,19 @@ class FunctionIOCreate(BaseModel):
     file_id: Optional[str]
     file: Optional[FileCreate]
 
-    @root_validator
-    def file_or_id_validation(cls, values):
-        file, file_id = values.get("file"), values.get("file_id")
+    # @root_validator
+    # def file_or_id_validation(cls, values):
+    #     file, file_id = values.get("file"), values.get("file_id")
 
-        file_defined = file is not None
-        file_id_defined = file_id is not None
+    #     file_defined = file is not None
+    #     file_id_defined = file_id is not None
 
-        if file_defined == file_id_defined:
-            raise ValueError(
-                "You must define either the file OR file_id of a function."
-            )
+    #     if file_defined == file_id_defined:
+    #         raise ValueError(
+    #             "You must define either the file OR file_id of a function."
+    #         )
 
-        return values
+    #     return values
 
 
 class FunctionCreate(BaseModel):
@@ -84,16 +84,16 @@ class FunctionCreate(BaseModel):
     compute_type: ComputeType = ComputeType.gpu
     compute_requirements: Optional[ComputeRequirements]
 
-    @root_validator
-    def file_or_id_validation(cls, values):
-        file, file_id = values.get("file"), values.get("file_id")
+    # @root_validator
+    # def file_or_id_validation(cls, values):
+    #     file, file_id = values.get("file"), values.get("file_id")
 
-        file_defined = file is not None
-        file_id_defined = file_id is not None
+    #     file_defined = file is not None
+    #     file_id_defined = file_id is not None
 
-        if file_defined == file_id_defined:
-            raise ValueError(
-                "You must define either the file OR file_id of a function."
-            )
+    #     if file_defined == file_id_defined:
+    #         raise ValueError(
+    #             "You must define either the file OR file_id of a function."
+    #         )
 
-        return values
+    #     return values

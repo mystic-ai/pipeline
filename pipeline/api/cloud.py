@@ -152,8 +152,22 @@ class PipelineCloud:
             else:
                 response.raise_for_status()
 
-    def upload_file(self, file_or_path, remote_path) -> FileGet:
+    # def upload_file(self, file_or_path, remote_path) -> FileGet:
 
+    #     if isinstance(file_or_path, str):
+    #         # TODO: Change this to wrap the file object reader to convert to hex
+    #         # everytime anything is read instead of reading it all at once.
+
+    #         with open(file_or_path, "rb") as file:
+    #             buffer = file.read()
+    #         hex_buffer = buffer.hex()
+    #         return self._post_file(
+    #             "/v2/files/", io.BytesIO(hex_buffer.encode()), remote_path
+    #         )
+    #     else:
+    #         return self._post_file("/v2/files/", file_or_path, remote_path)
+
+    def format_upload_file(self, file_or_path):
         if isinstance(file_or_path, str):
             # TODO: Change this to wrap the file object reader to convert to hex
             # everytime anything is read instead of reading it all at once.
@@ -161,11 +175,9 @@ class PipelineCloud:
             with open(file_or_path, "rb") as file:
                 buffer = file.read()
             hex_buffer = buffer.hex()
-            return self._post_file(
-                "/v2/files/", io.BytesIO(hex_buffer.encode()), remote_path
-            )
+            return io.BytesIO(hex_buffer.encode())
         else:
-            return self._post_file("/v2/files/", file_or_path, remote_path)
+            return file_or_path
 
     def upload_data(self, file_or_path, remote_path) -> DataGet:
         uploaded_file = self.upload_file(file_or_path, remote_path)
@@ -176,6 +188,9 @@ class PipelineCloud:
         return self.upload_file(
             io.BytesIO(python_object_to_hex(obj).encode()), remote_path
         )
+
+    def format_upload_python_object_to_file(self, obj):
+        return self.format_upload_file(io.BytesIO(python_object_to_hex(obj).encode()))
 
     def _initialise_direct_pipeline_file_upload(self, file_size: int) -> str:
         """Initialise a direct multi-part pipeline file upload"""
@@ -368,6 +383,58 @@ class PipelineCloud:
             response.raise_for_status()
         return FileGet.parse_obj(response.json())
 
+    def _post_multipart_form_data(self, endpoint, file, json_data) -> FileGet:
+        self.raise_for_invalid_token()
+        if not hasattr(file, "name"):
+            file.name = generate_id(20)
+
+        e = encoder.MultipartEncoder(
+            fields={
+                "data": json_data,
+                "file": (
+                    file.name,
+                    file,
+                    "application/octet-stream",
+                    {"Content-Transfer-Encoding": "binary"},
+                ),
+            }
+        )
+        encoder_len = e.len
+        if self.verbose:
+            bar = tqdm(
+                desc=f"{PIPELINE_STR} Uploading",
+                unit="B",
+                unit_scale=True,
+                total=encoder_len,
+                unit_divisor=1024,
+            )
+        if self.verbose:
+
+            def progress_callback(monitor):
+                bar.n = monitor.bytes_read
+                bar.refresh()
+                if monitor.bytes_read == encoder_len:
+                    bar.close()
+
+        encoded_stream_data = encoder.MultipartEncoderMonitor(
+            e, callback=progress_callback if self.verbose else None
+        )
+
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+            "Content-type": encoded_stream_data.content_type,
+        }
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = requests.post(
+            url, headers=headers, data=encoded_stream_data, timeout=self.timeout
+        )
+        if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
+            schema = FunctionCreate.__name__
+            raise InvalidSchema(schema=schema)
+        else:
+            response.raise_for_status()
+        return FunctionGet.parse_obj(response.json())
+
     def upload_function(self, function: Function) -> FunctionGet:
         try:
             inputs = [
@@ -379,7 +446,7 @@ class PipelineCloud:
                 for name, type in function.typing_outputs.items()
             ]
 
-            file_schema = self.upload_python_object_to_file(function, "/lol")
+            file = self.format_upload_python_object_to_file(function)
 
             function_create_schema = FunctionCreate(
                 local_id=function.local_id,
@@ -388,28 +455,32 @@ class PipelineCloud:
                 hash=function.hash,
                 inputs=inputs,
                 output=output,
-                file_id=file_schema.id,
+                file_id="dummy",  # TODO
             )
         except AttributeError as e:
             raise InvalidSchema(schema="Function", message=str(e))
 
-        response = self._post("/v2/functions", function_create_schema.dict())
+        response = self._post_multipart_form_data(
+            "/v2/functions", file, function_create_schema.json()
+        )
         return FunctionGet.parse_obj(response)
 
     def upload_model(self, model: Model) -> ModelGet:
-        file_schema = self.upload_python_object_to_file(model, "/lol")
+        file = self.format_upload_python_object_to_file(model)
         try:
             model_create_schema = ModelCreate(
                 local_id=model.local_id,
                 name=model.name,
                 model_source=model.source,
                 hash=model.hash,
-                file_id=file_schema.id,
+                file_id="dummy",
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Model", message=str(e))
 
-        response = self._post("/v2/models", model_create_schema.dict())
+        response = self._post_multipart_form_data(
+            "/v2/models", file, model_create_schema.json()
+        )
         return ModelGet.parse_obj(response)
 
     def upload_pipeline(
