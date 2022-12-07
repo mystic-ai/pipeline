@@ -2,8 +2,12 @@ import argparse
 import sys
 from typing import List, Optional
 
+from tabulate import tabulate
+
 from pipeline import configuration
 from pipeline.api import PipelineCloud
+from pipeline.schemas.pagination import Paginated
+from pipeline.schemas.run import RunGet, RunState
 from pipeline.util.logging import _print
 
 
@@ -81,6 +85,28 @@ def main(args: Optional[List[str]] = None) -> int:
         help="List the authenticated remote compute services",
     )
 
+    ##########
+    # pipeline runs
+    ##########
+
+    runs_parser = command_parser.add_parser(
+        "runs",
+        description="Manage pipeline runs",
+        help="Manage pipeline runs",
+    )
+    runs_sub_parser = runs_parser.add_subparsers(dest="sub-command")
+
+    ##########
+    # pipeline runs list
+    ##########
+
+    runs_sub_parser.add_parser(
+        "list",
+        aliases=["ls"],
+        description="List the currently executing runs",
+        help="List the currently executing runs",
+    )
+
     args: argparse.Namespace = base_parser.parse_args(args)
     command = getattr(args, "command", None)
     sub_command = getattr(args, "sub-command", None)
@@ -116,7 +142,47 @@ def main(args: Optional[List[str]] = None) -> int:
             _print(f"Couldn't authenticate with {args.url}", level="ERROR")
             return 1
         else:
-            return 0
+            remote_parser.print_help()
+            return 1
+    elif command == "runs":
+        remote_service = PipelineCloud(verbose=False)
+        remote_service.authenticate()
+        if sub_command in ["list", "ls"]:
+            raw_result = remote_service.get_runs()
+            schema = Paginated[RunGet].parse_obj(raw_result)
+            runs = schema.data
+
+            terminal_run_states = [
+                RunState.FAILED,
+                RunState.COMPLETE,
+            ]
+
+            run_data = [
+                [
+                    _run.id,
+                    _run.created_at.strftime("%d-%m-%Y %H:%M:%S"),
+                    "executing",
+                    _run.runnable.id,
+                ]
+                for _run in runs
+                if _run.run_state not in terminal_run_states
+            ]
+            table = tabulate(
+                run_data,
+                headers=[
+                    "ID",
+                    "Created at",
+                    "State",
+                    "Pipeline",
+                ],
+                tablefmt="outline",
+            )
+            print(table)
+
+        else:
+            runs_parser.print_help()
+            return 1
+
     else:
         base_parser.print_help()
         return 0
