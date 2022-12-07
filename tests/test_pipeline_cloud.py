@@ -22,7 +22,7 @@ def test_cloud_init_failure(url, bad_token):
 @pytest.mark.usefixtures("api_response")
 def test_cloud_upload_file(url, token, file_get, tmp_file):
     api = PipelineCloud(url=url, token=token)
-    f = api.upload_file(tmp_file, "remote_path")
+    f = api.upload_file(tmp_file)
     assert f == file_get
 
 
