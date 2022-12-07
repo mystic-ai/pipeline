@@ -16,13 +16,13 @@ def test_help(capsys, option):
 
 @pytest.mark.usefixtures("api_response")
 def test_login(url, token):
-    response_code = cli_main(["login", "-u", url, "-t", token])
+    response_code = cli_main(["remote", "login", "-u", url, "-t", token])
     assert response_code == 0
 
 
 @pytest.mark.usefixtures("api_response")
 def test_login_fail(url, bad_token):
-    response_code = cli_main(["login", "-u", url, "-t", bad_token])
+    response_code = cli_main(["remote", "login", "-u", url, "-t", bad_token])
     assert response_code == 1
 
 
