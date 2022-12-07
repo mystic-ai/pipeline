@@ -33,6 +33,10 @@ def test_remote_list(capsys, sub_command):
     configuration._save_auth()
     configuration.config["DEFAULT_REMOTE"] = "test_url"
     configuration._save_config()
+
+    configuration._load_config()
+    configuration._load_auth()
+
     response_code = cli_main(["remote", sub_command])
     assert response_code == 0
     output: str = capsys.readouterr().out
