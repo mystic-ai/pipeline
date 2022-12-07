@@ -149,7 +149,11 @@ class PipelineCloud:
             isinstance(response, httpx.Response)
             and not response.status_code == httpx.codes.OK
         ):
-            content = response.json()
+            try:
+                content = response.json()
+            except json.JSONDecodeError:
+                response.raise_for_status()
+
             # Every exception has content of {detail, status_code[, headers]}
             # TODO Some exceptions in Top send detail as a string and not a dict.
             # These exceptions are now handled like normal HTTP exceptions.
