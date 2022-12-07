@@ -23,7 +23,7 @@ def test_login(url, token):
 
 @pytest.mark.usefixtures("api_response")
 def test_login_fail(url, bad_token):
-    response_code = cli_main(["remote ", "login", "-u", url, "-t", bad_token])
+    response_code = cli_main(["remote", "login", "-u", url, "-t", bad_token])
     assert response_code == 1
 
 
