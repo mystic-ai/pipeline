@@ -77,8 +77,8 @@ def main(args: Optional[List[str]] = None) -> int:
     remote_sub_parser.add_parser(
         "list",
         aliases=["ls"],
-        description="List the authenticatedremote compute services",
-        help="List the authenticatedremote compute services",
+        description="List the authenticated remote compute services",
+        help="List the authenticated remote compute services",
     )
 
     args: argparse.Namespace = base_parser.parse_args(args)
@@ -93,7 +93,7 @@ def main(args: Optional[List[str]] = None) -> int:
             _print(
                 f"Set new default remote to '{configuration.config['DEFAULT_REMOTE']}'"
             )
-            return 1
+            return 0
         elif sub_command in ["list", "ls"]:
             remotes = [
                 f"{_remote} (active)"
@@ -103,7 +103,7 @@ def main(args: Optional[List[str]] = None) -> int:
             ]
             _print("Authenticated remotes:")
             [print(_remote) for _remote in remotes]
-            return 1
+            return 0
         elif sub_command == "login":
             valid_token = PipelineCloud._validate_token(args.token, args.url)
 
