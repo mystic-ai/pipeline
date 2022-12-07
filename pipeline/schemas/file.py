@@ -4,7 +4,7 @@ from typing import Optional
 from .base import BaseModel
 
 
-class FileFormat(enum.Enum):
+class FileFormat(str, enum.Enum):
     """Represents the different formats files can be uploaded in"""
 
     hex = "hex"
@@ -13,7 +13,8 @@ class FileFormat(enum.Enum):
 
 class FileBase(BaseModel):
     name: str
-    file_format: Optional[FileFormat]
+    # TODO(RG): hex is currently the default but this will soon change
+    file_format: FileFormat = FileFormat.hex
 
 
 class FileGet(FileBase):
