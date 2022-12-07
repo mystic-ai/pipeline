@@ -1,4 +1,5 @@
 import pytest
+import requests
 
 from pipeline import PipelineCloud
 from pipeline.exceptions.InvalidSchema import InvalidSchema
@@ -81,3 +82,10 @@ def test_cloud_upload_pipeline_file(
         pipeline_file_var_get.file.dict()
         == finalise_direct_pipeline_file_upload_get_json["hex_file"]
     )
+
+
+@pytest.mark.usefixtures("api_response")
+def test_cloud_get_raise_for_status_when_non_json_error(url, token):
+    api = PipelineCloud(url=url, token=token)
+    with pytest.raises(requests.HTTPError, match="500 Server Error"):
+        api._post("/error/500", json_data={})

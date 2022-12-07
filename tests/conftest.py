@@ -149,6 +149,12 @@ def api_response(
                 ),
             ],
         )
+        rsps.add(
+            responses.POST,
+            url + "/error/500",
+            status=500,
+            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
         yield rsps
 
 
