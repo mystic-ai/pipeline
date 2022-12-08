@@ -1,4 +1,5 @@
 # flake8: noqa
+import os
 from datetime import datetime
 
 import cloudpickle
@@ -27,6 +28,8 @@ from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.run import RunGet, RunState
 from pipeline.schemas.runnable import RunnableType
 from pipeline.util import python_object_to_hex
+
+os.environ["PIPELINE_CACHE"] = "./tmp_cache/"
 
 python_content = """
 from pipeline.objects import Pipeline, Variable, pipeline_function
@@ -153,6 +156,18 @@ def api_response(
             responses.POST,
             url + "/error/500",
             status=500,
+            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
+        rsps.add(
+            responses.GET,
+            url + "/v2/runs",
+            json={},
+            match_querystring=[
+                matchers.query_param_matcher(
+                    dict(skip=0, limit=20, order_by="created_at:desc")
+                )
+            ],
+            status=200,
             match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
         )
         yield rsps
