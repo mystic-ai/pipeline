@@ -165,8 +165,10 @@ def main(args: Optional[List[str]] = None) -> int:
             remote_parser.print_help()
             return 1
     elif command == "runs":
+
         remote_service = PipelineCloud(verbose=False)
         remote_service.authenticate()
+
         if sub_command in ["list", "ls"]:
             raw_result = remote_service.get_runs()
             print(type(raw_result))

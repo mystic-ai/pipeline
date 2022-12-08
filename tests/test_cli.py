@@ -63,6 +63,7 @@ def test_runs_list(
 ):
     cli_main(["remote", "login", "-u", url, "-t", token])
     cli_main(["remote", "set", url])
+    configuration.DEFAULT_REMOTE = url
 
     response = cli_main(["runs", option])
 
