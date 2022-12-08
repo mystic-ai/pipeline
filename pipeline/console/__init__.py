@@ -169,7 +169,10 @@ def main(args: Optional[List[str]] = None) -> int:
         remote_service.authenticate()
         if sub_command in ["list", "ls"]:
             raw_result = remote_service.get_runs()
+            print(type(raw_result))
+
             schema = Paginated[RunGet].parse_obj(raw_result)
+
             runs = schema.data
 
             terminal_run_states = [
@@ -198,6 +201,7 @@ def main(args: Optional[List[str]] = None) -> int:
                 tablefmt="outline",
             )
             print(table)
+            return 0
         elif sub_command == "get":
             run_id = args.run_id
 
@@ -214,8 +218,11 @@ def main(args: Optional[List[str]] = None) -> int:
                     file_schema = FileGet.parse_obj(file_schema_raw)
                     raw_result = hex_to_python_object(file_schema.data)
                     print(json.dumps(raw_result))
+
+                return 0
             else:
                 print(json.dumps(result))
+                return 0
 
         else:
             runs_parser.print_help()

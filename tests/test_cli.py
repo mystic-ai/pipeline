@@ -51,3 +51,23 @@ def test_verbose(capsys, option):
 
     output: str = capsys.readouterr().out
     assert output.startswith("usage: pipeline")
+
+
+@pytest.mark.usefixtures("api_response")
+@pytest.mark.parametrize("option", ("list", "ls"))
+def test_runs_list(
+    url,
+    token,
+    option,
+    capsys,
+):
+    cli_main(["remote", "login", "-u", url, "-t", token])
+    cli_main(["remote", "set", url])
+
+    response = cli_main(["runs", option])
+
+    output: str = capsys.readouterr().out
+    runs = output.splitlines()
+    assert response == 0
+    assert len(runs) == 9
+    assert "| run_test_2 | 01-01-2000 00:00:00 | executing | test_function_id |" in runs
