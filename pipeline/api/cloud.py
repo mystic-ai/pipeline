@@ -67,9 +67,7 @@ class PipelineCloud:
         timeout: float = 60.0,
         verbose: bool = True,
     ):
-        self.url = (
-            url or os.getenv("PIPELINE_API_URL", None) or configuration.DEFAULT_REMOTE
-        )
+        self.url = url or os.getenv("PIPELINE_API_URL", configuration.DEFAULT_REMOTE)
 
         self.token = (
             token
@@ -753,11 +751,13 @@ class PipelineCloud:
         return md5.hexdigest()
 
     def get_runs(
-        self, limit: int = 20, skip: int = 0, created_at: str = "desc"
+        self, limit: int = 20, skip: int = 0, created_at_order: str = "desc"
     ) -> List[RunGet]:
         # Get runs from the remote compute service
         result = self._get(
             "/v2/runs",
-            params=dict(limit=limit, skip=skip, order_by=f"created_at:{created_at}"),
+            params=dict(
+                limit=limit, skip=skip, order_by=f"created_at:{created_at_order}"
+            ),
         )
         return result
