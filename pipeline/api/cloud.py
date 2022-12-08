@@ -152,20 +152,18 @@ class PipelineCloud:
             else:
                 response.raise_for_status()
 
-    # def upload_file(self, file_or_path, remote_path) -> FileGet:
+    def upload_file(self, file_or_path) -> FileGet:
 
-    #     if isinstance(file_or_path, str):
-    #         # TODO: Change this to wrap the file object reader to convert to hex
-    #         # everytime anything is read instead of reading it all at once.
+        if isinstance(file_or_path, str):
+            # TODO: Change this to wrap the file object reader to convert to hex
+            # everytime anything is read instead of reading it all at once.
 
-    #         with open(file_or_path, "rb") as file:
-    #             buffer = file.read()
-    #         hex_buffer = buffer.hex()
-    #         return self._post_file(
-    #             "/v2/files/", io.BytesIO(hex_buffer.encode()), remote_path
-    #         )
-    #     else:
-    #         return self._post_file("/v2/files/", file_or_path, remote_path)
+            with open(file_or_path, "rb") as file:
+                buffer = file.read()
+            hex_buffer = buffer.hex()
+            return self._post_file("/v2/files/", io.BytesIO(hex_buffer.encode()))
+        else:
+            return self._post_file("/v2/files/", file_or_path)
 
     def format_upload_file(self, file_or_path):
         if isinstance(file_or_path, str):
@@ -179,15 +177,16 @@ class PipelineCloud:
         else:
             return file_or_path
 
-    def upload_data(self, file_or_path, remote_path) -> DataGet:
-        uploaded_file = self.upload_file(file_or_path, remote_path)
-        uploaded_data = self._post("/v2/data", uploaded_file.dict())
+    def upload_data(self, file_or_path) -> DataGet:
+        file = self.format_upload_file(file_or_path)
+
+        response = self._post_file("/v2/data", file)
+        uploaded_data = DataGet.parse_obj(response.json())
+
         return DataGet.parse_obj(uploaded_data)
 
     def upload_python_object_to_file(self, obj, remote_path) -> FileGet:
-        return self.upload_file(
-            io.BytesIO(python_object_to_hex(obj).encode()), remote_path
-        )
+        return self.upload_file(io.BytesIO(python_object_to_hex(obj).encode()))
 
     def format_upload_python_object_to_file(self, obj):
         return self.format_upload_file(io.BytesIO(python_object_to_hex(obj).encode()))
@@ -331,14 +330,13 @@ class PipelineCloud:
 
         return response.json()
 
-    def _post_file(self, endpoint, file, remote_path) -> FileGet:
+    def _post_file(self, endpoint, file) -> FileGet:
         self.raise_for_invalid_token()
         if not hasattr(file, "name"):
             file.name = generate_id(20)
 
         e = encoder.MultipartEncoder(
             fields={
-                "file_path": remote_path,
                 "file": (
                     file.name,
                     file,
@@ -376,12 +374,14 @@ class PipelineCloud:
         response = requests.post(
             url, headers=headers, data=encoded_stream_data, timeout=self.timeout
         )
-        if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
-            schema = FileCreate.__name__
-            raise InvalidSchema(schema=schema)
-        else:
-            response.raise_for_status()
-        return FileGet.parse_obj(response.json())
+        response.raise_for_status()
+        return response
+        # if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
+        #     schema = FileCreate.__name__
+        #     raise InvalidSchema(schema=schema)
+        # else:
+        #     response.raise_for_status()
+        # return FileGet.parse_obj(response.json())
 
     def _post_multipart_form_data(self, endpoint, file, json_data) -> FileGet:
         self.raise_for_invalid_token()
@@ -428,12 +428,15 @@ class PipelineCloud:
         response = requests.post(
             url, headers=headers, data=encoded_stream_data, timeout=self.timeout
         )
-        if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
-            schema = FunctionCreate.__name__
-            raise InvalidSchema(schema=schema)
-        else:
-            response.raise_for_status()
-        return FunctionGet.parse_obj(response.json())
+        response.raise_for_status()
+        return response
+        # TODO !! below this needs to be refactored so it is applicable across create types
+        # if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
+        #     schema = FunctionCreate.__name__
+        #     raise InvalidSchema(schema=schema)
+        # else:
+        #     response.raise_for_status()
+        # return FunctionGet.parse_obj(response.json())
 
     def upload_function(self, function: Function) -> FunctionGet:
         try:
@@ -463,7 +466,7 @@ class PipelineCloud:
         response = self._post_multipart_form_data(
             "/v2/functions", file, function_create_schema.json()
         )
-        return FunctionGet.parse_obj(response)
+        return FunctionGet.parse_obj(response.json())
 
     def upload_model(self, model: Model) -> ModelGet:
         file = self.format_upload_python_object_to_file(model)
@@ -473,7 +476,7 @@ class PipelineCloud:
                 name=model.name,
                 model_source=model.source,
                 hash=model.hash,
-                file_id="dummy",
+                file_id="dummy",  # TODO
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Model", message=str(e))
@@ -481,7 +484,7 @@ class PipelineCloud:
         response = self._post_multipart_form_data(
             "/v2/models", file, model_create_schema.json()
         )
-        return ModelGet.parse_obj(response)
+        return ModelGet.parse_obj(response.json())
 
     def upload_pipeline(
         self,
@@ -535,57 +538,58 @@ class PipelineCloud:
 
         from pipeline.objects import PipelineFile
 
-        for _var in new_pipeline_graph.variables:
-            _var_type_file = self.upload_file(
-                io.BytesIO(python_object_to_hex(_var.type_class).encode()), "/"
-            )
-
-            pipeline_file_schema = None
-            if isinstance(_var, PipelineFile):
-                pipeline_file_schema = self.upload_pipeline_file(_var)
-
-            _var_schema = PipelineVariableGet(
-                local_id=_var.local_id,
-                name=_var.name,
-                type_file=_var_type_file,
-                is_input=_var.is_input,
-                is_output=_var.is_output,
-                pipeline_file_variable=pipeline_file_schema,
-            )
-
-            new_variables.append(_var_schema)
-
         new_graph_nodes = [
             _node.to_create_schema() for _node in new_pipeline_graph.nodes
         ]
         new_outputs = [_output.local_id for _output in new_pipeline_graph.outputs]
 
         compute_requirements = None
+
         if new_pipeline_graph.min_gpu_vram_mb:
             compute_requirements = ComputeRequirements(
                 min_gpu_vram_mb=new_pipeline_graph.min_gpu_vram_mb
             )
 
-        try:
-            pipeline_create_schema = PipelineCreate(
-                name=new_name,
-                variables=new_variables,
-                functions=new_functions,
-                models=new_models,
-                graph_nodes=new_graph_nodes,
-                outputs=new_outputs,
-                public=public,
-                description=description,
-                tags=tags or set(),
-                compute_type=new_pipeline_graph.compute_type,
-                compute_requirements=compute_requirements,
-            )
-        except ValidationError as e:
-            raise InvalidSchema(schema="Graph", message=str(e))
+        # for _var in new_pipeline_graph.variables:
+        #     file = self.format_upload_file(
+        #         io.BytesIO(python_object_to_hex(_var.type_class).encode())
+        #     )
+
+        #     pipeline_file_schema = None
+        #     if isinstance(_var, PipelineFile):
+        #         pipeline_file_schema = self.upload_pipeline_file(_var)
+
+        #     _var_schema = PipelineVariableGet(
+        #         local_id=_var.local_id,
+        #         name=_var.name,
+        #         type_file="dummy",  # _var_type_file,
+        #         is_input=_var.is_input,
+        #         is_output=_var.is_output,
+        #         pipeline_file_variable=pipeline_file_schema,
+        #     )
+
+        #     new_variables.append(_var_schema)
+
+        # try:
+        #     pipeline_create_schema = PipelineCreate(
+        #         name=new_name,
+        #         variables=new_variables,
+        #         functions=new_functions,
+        #         models=new_models,
+        #         graph_nodes=new_graph_nodes,
+        #         outputs=new_outputs,
+        #         public=public,
+        #         description=description,
+        #         tags=tags or set(),
+        #         compute_type=new_pipeline_graph.compute_type,
+        #         compute_requirements=compute_requirements,
+        #     )
+        # except ValidationError as e:
+        #     raise InvalidSchema(schema="Graph", message=str(e))
 
         if self.verbose:
             print("Uploading pipeline graph")
-        response = self._post(
+        response = self._post_multipart_form_data(
             "/v2/pipelines", json.loads(pipeline_create_schema.json())
         )
         return PipelineGet.parse_obj(response)
@@ -622,7 +626,7 @@ class PipelineCloud:
         # TODO: Add support for generic object inference. Only strs at the moment.
         if not isinstance(raw_data_or_schema, DataGet):
             temp_file = io.BytesIO(python_object_to_hex(raw_data_or_schema).encode())
-            uploaded_data = self.upload_data(temp_file, "/")
+            uploaded_data = self.upload_data(temp_file)
             _data_id = uploaded_data.id
         elif isinstance(raw_data_or_schema, DataGet):
             _data_id = raw_data_or_schema.id

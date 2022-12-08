@@ -1,4 +1,4 @@
-from pipeline import Pipeline, Variable, pipeline_function
+from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
 
 
 @pipeline_function
@@ -16,19 +16,26 @@ def multiply(a: float, b: float) -> float:
     return a * b
 
 
-with Pipeline("MathsIsFun") as pipeline:
+with Pipeline("MathsIsFun", compute_type="cpu") as pipeline:
     flt_1 = Variable(type_class=float, is_input=True)
     flt_2 = Variable(type_class=float, is_input=True)
     pipeline.add_variables(flt_1, flt_2)
-
     sq_1 = square(flt_1)
     res_1 = multiply(flt_2, sq_1)
     res_2 = minus(res_1, sq_1)
     sq_2 = square(res_2)
     res_3 = multiply(flt_2, sq_2)
     res_4 = minus(res_3, sq_1)
-
     pipeline.output(res_2, res_4)
 
 output_pipeline = Pipeline.get_pipeline("MathsIsFun")
-print(output_pipeline.run(5.0, 6.0))
+# print(output_pipeline.run(5.0, 6.0))
+
+api = PipelineCloud(
+    url="http://localhost:5001", token="2e9a012eba2eadb6ae20f3370ecb55ce"
+)
+uploaded_pipeline = api.upload_pipeline(output_pipeline)
+print(f"Uploaded new pipeline, id:{uploaded_pipeline.id}")
+
+run_result = api.run_pipeline(uploaded_pipeline, (5.0, 6.0))
+print(run_result)
