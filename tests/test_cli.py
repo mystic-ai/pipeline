@@ -72,3 +72,30 @@ def test_runs_list(
     assert response == 0
     assert len(runs) == 9
     assert "| run_test_2 | 01-01-2000 00:00:00 | executing | test_function_id |" in runs
+
+
+@pytest.mark.usefixtures("api_response")
+def test_runs_get(
+    url,
+    token,
+    capsys,
+    run_get,
+):
+    cli_main(["remote", "login", "-u", url, "-t", token])
+    cli_main(["remote", "set", url])
+    configuration.DEFAULT_REMOTE = url
+
+    response = cli_main(["runs", "get", run_get.id])
+
+    output: str = str(capsys.readouterr().out)
+    output_lines = output.splitlines()
+    assert response == 0
+    assert output_lines[2] == run_get.json()
+
+    response = cli_main(["runs", "get", run_get.id, "-r"])
+
+    output: str = str(capsys.readouterr().out)
+    output_lines = output.splitlines()
+    print(output)
+    assert response == 0
+    assert output == '{"test": "hello"}\n'

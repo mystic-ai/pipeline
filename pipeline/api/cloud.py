@@ -312,7 +312,6 @@ class PipelineCloud:
         response = requests.get(
             url, headers=headers, params=params, timeout=self.timeout
         )
-        print(type(response.json()))
         response.raise_for_status()
         return response.json()
 

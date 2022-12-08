@@ -179,6 +179,12 @@ def api_response(
                 ),
             ],
         )
+        rsps.add(
+            responses.GET,
+            url + f"/v2/runs/{run_get.id}",
+            json=json.loads(run_get.json()),
+            status=200,
+        )
         yield rsps
 
 
