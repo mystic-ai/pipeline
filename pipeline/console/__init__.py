@@ -1,4 +1,5 @@
 import argparse
+import json
 import sys
 from typing import List, Optional
 
@@ -6,8 +7,10 @@ from tabulate import tabulate
 
 from pipeline import configuration
 from pipeline.api import PipelineCloud
+from pipeline.schemas.file import FileGet
 from pipeline.schemas.pagination import Paginated
 from pipeline.schemas.run import RunGet, RunState
+from pipeline.util import hex_to_python_object
 from pipeline.util.logging import _print
 
 
@@ -60,7 +63,6 @@ def main(args: Optional[List[str]] = None) -> int:
         type=str,
         required=True,
         help="API token for remote",
-        # description="API token for remote",
     )
 
     ##########
@@ -105,6 +107,24 @@ def main(args: Optional[List[str]] = None) -> int:
         aliases=["ls"],
         description="List the currently executing runs",
         help="List the currently executing runs",
+    )
+    ##########
+    # pipeline runs get
+    ##########
+
+    runs_get_parser = runs_sub_parser.add_parser(
+        "get",
+        description="Get run information from a remote compute service",
+        help="Get run information from a remote compute service",
+    )
+
+    runs_get_parser.add_argument("run_id", help="The run id")
+
+    runs_get_parser.add_argument(
+        "-r",
+        "--result",
+        action="store_true",
+        help="Get the run result",
     )
 
     args: argparse.Namespace = base_parser.parse_args(args)
@@ -178,6 +198,24 @@ def main(args: Optional[List[str]] = None) -> int:
                 tablefmt="outline",
             )
             print(table)
+        elif sub_command == "get":
+            run_id = args.run_id
+
+            result = remote_service._get(f"/v2/runs/{run_id}")
+            if args.result:
+                result = RunGet.parse_obj(result)
+                if result.result_preview is not None:
+                    print(json.dumps(result.result_preview))
+                else:
+                    file_schema_raw = remote_service._get(
+                        f"/v2/files/{result.result.id}?return_data=true"
+                    )
+
+                    file_schema = FileGet.parse_obj(file_schema_raw)
+                    raw_result = hex_to_python_object(file_schema.data)
+                    print(json.dumps(raw_result))
+            else:
+                print(json.dumps(result))
 
         else:
             runs_parser.print_help()
