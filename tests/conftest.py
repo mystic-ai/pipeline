@@ -1,5 +1,8 @@
 # flake8: noqa
 import os
+
+os.environ["PIPELINE_CACHE"] = "./tmp_cache/"
+
 from datetime import datetime
 
 import cloudpickle
@@ -28,8 +31,6 @@ from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.run import RunGet, RunState
 from pipeline.schemas.runnable import RunnableType
 from pipeline.util import python_object_to_hex
-
-os.environ["PIPELINE_CACHE"] = "./tmp_cache/"
 
 python_content = """
 from pipeline.objects import Pipeline, Variable, pipeline_function
