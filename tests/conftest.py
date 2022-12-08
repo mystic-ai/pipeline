@@ -23,7 +23,7 @@ from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
-from pipeline.schemas.pagination import Paginated, PaginationDetails
+from pipeline.schemas.pagination import Paginated
 from pipeline.schemas.pipeline_file import (
     PipelineFileDirectUploadInitGet,
     PipelineFileDirectUploadPartGet,
