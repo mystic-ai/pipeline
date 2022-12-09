@@ -171,7 +171,6 @@ def main(args: Optional[List[str]] = None) -> int:
 
         if sub_command in ["list", "ls"]:
             raw_result = remote_service.get_runs()
-            print(type(raw_result))
 
             schema = Paginated[RunGet].parse_obj(raw_result)
 
