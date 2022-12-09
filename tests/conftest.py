@@ -1,4 +1,9 @@
 # flake8: noqa
+import os
+
+os.environ["PIPELINE_CACHE"] = "./.tmp_cache/"
+
+import json
 from datetime import datetime
 
 import cloudpickle
@@ -18,6 +23,7 @@ from pipeline.schemas.data import DataGet
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
+from pipeline.schemas.pagination import Paginated
 from pipeline.schemas.pipeline_file import (
     PipelineFileDirectUploadInitGet,
     PipelineFileDirectUploadPartGet,
@@ -44,6 +50,8 @@ def api_response(
     url,
     token,
     bad_token,
+    run_get,
+    run_executing_get,
     file_get_json,
     function_get_json,
     result_file_get_json,
@@ -154,6 +162,28 @@ def api_response(
             url + "/error/500",
             status=500,
             match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+        )
+        rsps.add(
+            responses.GET,
+            url + "/v2/runs",
+            json=json.loads(
+                Paginated[RunGet](
+                    skip=0, limit=20, total=2, data=[run_get, run_executing_get]
+                ).json()
+            ),
+            status=200,
+            match=[
+                matchers.header_matcher({"Authorization": "Bearer " + token}),
+                matchers.query_param_matcher(
+                    dict(skip=0, limit=20, order_by="created_at:desc")
+                ),
+            ],
+        )
+        rsps.add(
+            responses.GET,
+            url + f"/v2/runs/{run_get.id}",
+            json=json.loads(run_get.json()),
+            status=200,
         )
         yield rsps
 
@@ -277,13 +307,26 @@ def data_get(file_get):
 
 @pytest.fixture()
 def run_get(function_get, data_get, result_file_get):
+    datetime.now()
     return RunGet(
         id="run_test",
-        created_at=datetime.now(),
+        created_at=datetime(2000, 1, 1, 0, 0, 0, 0),
         run_state=RunState.COMPLETE,
         runnable=function_get,
         data=data_get,
         result=result_file_get,
+    )
+
+
+@pytest.fixture()
+def run_executing_get(function_get, data_get, result_file_get):
+    return RunGet(
+        id="run_test_2",
+        created_at=datetime(2000, 1, 1, 0, 0, 0, 0),
+        run_state=RunState.ALLOCATING_CLUSTER,
+        runnable=function_get,
+        data=data_get,
+        result=None,
     )
 
 
