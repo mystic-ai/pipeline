@@ -70,7 +70,6 @@ def test_runs_list(
     output: str = capsys.readouterr().out
     runs = output.splitlines()
     assert response == 0
-    # assert len(runs) == 9
     assert "| run_test_2 | 01-01-2000 00:00:00 | executing | test_function_id |" in runs
 
 
@@ -96,6 +95,5 @@ def test_runs_get(
 
     output: str = str(capsys.readouterr().out)
     output_lines = output.splitlines()
-    print(output)
     assert response == 0
     assert output == '{"test": "hello"}\n'
