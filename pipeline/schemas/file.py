@@ -1,10 +1,20 @@
+import enum
 from typing import Optional
 
 from .base import BaseModel
 
 
+class FileFormat(str, enum.Enum):
+    """Represents the different formats files can be uploaded in"""
+
+    hex = "hex"
+    binary = "binary"
+
+
 class FileBase(BaseModel):
     name: str
+    # hex is the default purely for backwards-compatability
+    file_format: FileFormat = FileFormat.hex
 
 
 class FileGet(FileBase):
