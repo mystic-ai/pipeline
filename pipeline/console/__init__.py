@@ -1,17 +1,9 @@
 import argparse
-import json
 import sys
 from typing import List, Optional
 
-from tabulate import tabulate
-
-from pipeline import configuration
-from pipeline.api import PipelineCloud
-from pipeline.schemas.file import FileGet
-from pipeline.schemas.pagination import Paginated
-from pipeline.schemas.run import RunGet, RunState
-from pipeline.util import hex_to_python_object
-from pipeline.util.logging import _print
+from pipeline.console.remote import remote as remote_command
+from pipeline.console.runs import runs as runs_command
 
 
 def main(args: Optional[List[str]] = None) -> int:
@@ -129,109 +121,20 @@ def main(args: Optional[List[str]] = None) -> int:
 
     args: argparse.Namespace = base_parser.parse_args(args)
     command = getattr(args, "command", None)
-    sub_command = getattr(args, "sub-command", None)
 
     if command == "remote":
-        if sub_command == "set":
-            default_url = args.url
-            configuration.config["DEFAULT_REMOTE"] = default_url
-            configuration._save_config()
-            _print(
-                f"Set new default remote to '{configuration.config['DEFAULT_REMOTE']}'"
-            )
-            return 0
-        elif sub_command in ["list", "ls"]:
-            remotes = [
-                f"{_remote} (active)"
-                if _remote == configuration.DEFAULT_REMOTE
-                else f"{_remote}"
-                for _remote in configuration.remote_auth.keys()
-            ]
-            _print("Authenticated remotes:")
-            [print(_remote) for _remote in remotes]
-            return 0
-        elif sub_command == "login":
-            valid_token = PipelineCloud._validate_token(args.token, args.url)
-
-            if valid_token:
-                configuration.remote_auth[args.url] = args.token
-                configuration._save_auth()
-                _print(f"Successfully authenticated with {args.url}")
-                return 0
-
-            _print(f"Couldn't authenticate with {args.url}", level="ERROR")
-            return 1
-        else:
+        if (code := remote_command(args)) is None:
             remote_parser.print_help()
             return 1
     elif command == "runs":
-
-        remote_service = PipelineCloud(verbose=False)
-        remote_service.authenticate()
-
-        if sub_command in ["list", "ls"]:
-            raw_result = remote_service.get_runs()
-
-            schema = Paginated[RunGet].parse_obj(raw_result)
-
-            runs = schema.data
-
-            terminal_run_states = [
-                RunState.FAILED,
-                RunState.COMPLETE,
-            ]
-
-            run_data = [
-                [
-                    _run.id,
-                    _run.created_at.strftime("%d-%m-%Y %H:%M:%S"),
-                    "executing",
-                    _run.runnable.id,
-                ]
-                for _run in runs
-                if _run.run_state not in terminal_run_states
-            ]
-            table = tabulate(
-                run_data,
-                headers=[
-                    "ID",
-                    "Created at",
-                    "State",
-                    "Pipeline",
-                ],
-                tablefmt="outline",
-            )
-            print(table)
-            return 0
-        elif sub_command == "get":
-            run_id = args.run_id
-
-            result = remote_service._get(f"/v2/runs/{run_id}")
-            if args.result:
-                result = RunGet.parse_obj(result)
-                if result.result_preview is not None:
-                    print(json.dumps(result.result_preview))
-                else:
-                    file_schema_raw = remote_service._get(
-                        f"/v2/files/{result.result.id}?return_data=true"
-                    )
-
-                    file_schema = FileGet.parse_obj(file_schema_raw)
-                    raw_result = hex_to_python_object(file_schema.data)
-                    print(json.dumps(raw_result))
-
-                return 0
-            else:
-                print(json.dumps(result))
-                return 0
-
-        else:
+        if (code := runs_command(args)) is None:
             runs_parser.print_help()
             return 1
-
     else:
         base_parser.print_help()
         return 0
+
+    return code
 
 
 def _run() -> int:
