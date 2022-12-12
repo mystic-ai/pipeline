@@ -1,11 +1,13 @@
-from typing import List
+from typing import List, Optional
 
 from .base import BaseModel
-from .file import FileGet
+from .file import FileFormat, FileGet
 
 
 class PipelineFileDirectUploadInitCreate(BaseModel):
     file_size: int
+    # hex is the default purely for backwards-compatability
+    file_format: FileFormat = FileFormat.hex
 
 
 class PipelineFileDirectUploadInitGet(BaseModel):
@@ -42,4 +44,7 @@ class PipelineFileDirectUploadFinaliseCreate(BaseModel):
 class PipelineFileGet(BaseModel):
     id: str
     name: str
-    hex_file: FileGet
+    # This is a legacy field that is replaced by 'file'.
+    # Can be deprecated once no clients are using it.
+    hex_file: Optional[FileGet]
+    file: Optional[FileGet]
