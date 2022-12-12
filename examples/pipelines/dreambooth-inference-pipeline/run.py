@@ -1,6 +1,7 @@
-from pipeline import PipelineCloud
 import base64
 import os
+
+from pipeline import PipelineCloud
 
 api = PipelineCloud()
 PIPELINE_ID = "UPDATE_WITH_YOUR_PIPELINE_ID"

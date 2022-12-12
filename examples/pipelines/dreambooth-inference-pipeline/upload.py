@@ -1,16 +1,22 @@
 import os
-from cloudpickle import dumps
-from dill import loads
-from typing import TypedDict, Optional
-import torch
-import numpy as np
 import random
+from typing import Optional, TypedDict
 
-from pipeline import pipeline_function, pipeline_model
-from pipeline import PipelineCloud, Variable, PipelineFile, Pipeline
-
+import numpy as np
+import torch
+from cloudpickle import dumps
 from diffusers import DiffusionPipeline
 from diffusers.utils import logging
+from dill import loads
+
+from pipeline import (
+    Pipeline,
+    PipelineCloud,
+    PipelineFile,
+    Variable,
+    pipeline_function,
+    pipeline_model,
+)
 
 logging.disable_progress_bar()
 logging.set_verbosity_error()
@@ -58,9 +64,9 @@ class StableDiffusionTxt2ImgModel:
     def predict(
         self, prompts: list[PromptShape], batch_kwargs: BatchKwargsShape
     ) -> list[list[str]]:
-        from io import BytesIO
         import base64
         import random
+        from io import BytesIO
 
         default_batch_kwargs = {
             "num_samples": 1,
