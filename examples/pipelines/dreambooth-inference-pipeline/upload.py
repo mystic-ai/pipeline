@@ -21,9 +21,11 @@ from diffusers.utils import logging
 logging.disable_progress_bar()
 logging.set_verbosity_error()
 
+
 class PromptShape(TypedDict):
     text_in: str
     seed: Optional[int]
+
 
 class BatchKwargsShape(TypedDict):
     num_samples: Optional[int]
@@ -34,7 +36,6 @@ class BatchKwargsShape(TypedDict):
     guidance_scale: Optional[float]
     eta: Optional[float]
     randomise_seed: Optional[bool]
-
 
 
 PIPELINE_NAME = "sd-dreambooth-library/herge-style"
