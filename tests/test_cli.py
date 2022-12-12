@@ -15,15 +15,13 @@ def test_help(capsys, option):
     assert output.startswith("usage: pipeline")
 
 
-@pytest.mark.usefixtures("api_response")
-def test_login(url, token):
-    response_code = cli_main(["remote", "login", "-u", url, "-t", token])
+def test_login(url, top_api_server, token):
+    response_code = cli_main(["login", "-u", url, "-t", token])
     assert response_code == 0
 
 
-@pytest.mark.usefixtures("api_response")
-def test_login_fail(url, bad_token):
-    response_code = cli_main(["remote", "login", "-u", url, "-t", bad_token])
+def test_login_fail(url, top_api_server_bad_token, bad_token):
+    response_code = cli_main(["login", "-u", url, "-t", bad_token])
     assert response_code == 1
 
 

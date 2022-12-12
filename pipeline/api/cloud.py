@@ -124,9 +124,7 @@ class PipelineCloud:
         url = urllib.parse.urljoin(base_url, "/v2/users/me")
 
         headers = {"Authorization": f"Bearer {token}"}
-
-        response = requests.request("GET", url, headers=headers)
-
+        response = httpx.request("GET", url, headers=headers)
         if response.status_code == HTTPStatus.OK:
             return True
         elif (
