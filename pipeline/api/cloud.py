@@ -124,7 +124,7 @@ class PipelineCloud:
         url = urllib.parse.urljoin(base_url, "/v2/users/me")
 
         headers = {"Authorization": f"Bearer {token}"}
-        response = httpx.request("GET", url, headers=headers)
+        response = httpx.get(url, headers=headers)
         if response.status_code == HTTPStatus.OK:
             return True
         elif (
@@ -224,9 +224,13 @@ class PipelineCloud:
         )
         part_upload_get = PipelineFileDirectUploadPartGet.parse_obj(response)
         # upload file chunk
-        response = requests.put(
-            part_upload_get.upload_url, data=data, timeout=self.timeout
+        response = httpx.put(
+            part_upload_get.upload_url,
+            data=data,
+            timeout=self.timeout,
         )
+        # content=cloudpickle.dumps(data),
+
         etag = response.headers["ETag"]
         return MultipartUploadMetadata(ETag=etag, PartNumber=part_num)
 
@@ -307,9 +311,7 @@ class PipelineCloud:
         }
 
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.get(
-            url, headers=headers, params=params, timeout=self.timeout
-        )
+        response = httpx.get(url, headers=headers, params=params, timeout=self.timeout)
         response.raise_for_status()
         return response.json()
 
@@ -321,7 +323,7 @@ class PipelineCloud:
         }
 
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.post(
+        response = httpx.post(
             url, headers=headers, json=json_data, timeout=self.timeout
         )
 
@@ -355,7 +357,7 @@ class PipelineCloud:
             "Authorization": "Bearer %s" % self.token,
         }
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.post(
+        response = httpx.post(
             url,
             headers=headers,
             files={"file": (file.name, file, "application/octet-stream")},

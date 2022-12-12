@@ -105,28 +105,28 @@ def top_api_server(
     httpserver.expect_request(
         f"/v2/functions/{function_get_id}",
         method="GET",
-        query_string="return_data=True",
+        query_string="return_data=true",
         headers={"Authorization": "Bearer " + token},
     ).respond_with_json(function_get_json)
 
     httpserver.expect_request(
         f"/v2/models/{model_get_id}",
         method="GET",
-        query_string="return_data=True",
+        query_string="return_data=true",
         headers={"Authorization": "Bearer " + token},
     ).respond_with_json(model_get_json)
 
     httpserver.expect_request(
         f"/v2/files/{result_file_get_id}",
         method="GET",
-        query_string="return_data=True",
+        query_string="return_data=true",
         headers={"Authorization": "Bearer " + token},
     ).respond_with_json(result_file_get_json)
 
     httpserver.expect_request(
         f"/v2/data/{data_get_id}",
         method="GET",
-        query_string="return_data=True",
+        query_string="return_data=true",
         headers={"Authorization": "Bearer " + token},
     ).respond_with_json(data_get_json)
 
@@ -159,6 +159,12 @@ def top_api_server(
             }
         ),
     ).respond_with_json(finalise_direct_pipeline_file_upload_get_json)
+
+    httpserver.expect_request(
+        "/error/500",
+        method="POST",
+        headers={"Authorization": "Bearer " + token},
+    ).respond_with_data(status=500)
 
     return httpserver
 
