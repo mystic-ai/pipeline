@@ -275,7 +275,7 @@ class PipelineCloud:
                 desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
                 unit="B",
                 unit_scale=True,
-                total=file_size * 2,  # since we hex encode the data
+                total=file_size,
                 unit_divisor=1024,
             )
         with open(pipeline_file.path, "rb") as f:
