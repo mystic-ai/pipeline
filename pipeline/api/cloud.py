@@ -229,7 +229,6 @@ class PipelineCloud:
             data=data,
             timeout=self.timeout,
         )
-        # content=cloudpickle.dumps(data),
 
         etag = response.headers["ETag"]
         return MultipartUploadMetadata(ETag=etag, PartNumber=part_num)
