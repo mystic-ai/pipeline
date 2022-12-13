@@ -7,7 +7,7 @@ import os
 import sys
 import urllib.parse
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Type, Union
 
 import httpx
 import requests
@@ -52,6 +52,24 @@ if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
 
 FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
+
+
+class CallbackBytesIO(io.BytesIO):
+    """Provides same interface as BytesIO but additionally calls a callback function
+    whenever the 'read' method is called.
+
+    This is similar to tqdm's own CallbackIOWrapper but this does not play nicely with
+    all features of httpx so we use our own in some cases.
+    """
+
+    def __init__(self, callback: Callable, initial_bytes: bytes):
+        self._callback = callback
+        super().__init__(initial_bytes)
+
+    def read(self, size=-1) -> bytes:
+        data = super().read(size)
+        self._callback(len(data))
+        return data
 
 
 class PipelineCloud:
@@ -226,7 +244,7 @@ class PipelineCloud:
         # upload file chunk
         response = httpx.put(
             part_upload_get.upload_url,
-            data=data,
+            content=data,
             timeout=self.timeout,
         )
 
@@ -287,7 +305,9 @@ class PipelineCloud:
                 data = io.BytesIO(file_data)
                 # If verbose then wrap our data object in a tqdm callback
                 if self.verbose:
-                    data = CallbackIOWrapper(progress.update, data, "read")
+                    data = CallbackBytesIO(progress.update, data)
+                else:
+                    data = io.BytesIO(data)
 
                 upload_metadata = self._direct_upload_pipeline_file_chunk(
                     data=data,
@@ -362,6 +382,8 @@ class PipelineCloud:
             files={"file": (file.name, file, "application/octet-stream")},
             timeout=self.timeout,
         )
+        if self.verbose:
+            progress.close()
         if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
             schema = FileCreate.__name__
             raise InvalidSchema(schema=schema)
