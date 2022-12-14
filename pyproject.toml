@@ -37,7 +37,6 @@ black = "^22.10.0"
 pre-commit = "^2.16.0"
 flake8 = "^5.0.4"
 isort = "^5.10.1"
-responses = "^0.20.0"
 pytest-httpserver = "^1.0.6"
 
 [build-system]
