@@ -266,10 +266,7 @@ class PipelineCloud:
         )
 
         parts = []
-        # Create file hash with arbitrary initial data.
-        # Since we were previously hex-encoding the file data we want to prevent 2
-        # versions of the same file (one hex-encoded and one not) having the same hash.
-        file_hash = hashlib.md5("pipeline file".encode())
+        file_hash = hashlib.sha256()
         if self.verbose:
             progress = tqdm(
                 desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
