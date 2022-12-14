@@ -1,5 +1,5 @@
-import pytest
 import httpx
+import pytest
 
 from pipeline import PipelineCloud
 from pipeline.exceptions.InvalidSchema import InvalidSchema
