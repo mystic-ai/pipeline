@@ -13,7 +13,7 @@ class FileFormat(str, enum.Enum):
 
 class FileBase(BaseModel):
     name: str
-    # TODO(RG): hex is currently the default but this will soon change
+    # hex is the default purely for backwards-compatability
     file_format: FileFormat = FileFormat.hex
 
 
