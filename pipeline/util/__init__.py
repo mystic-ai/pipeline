@@ -1,6 +1,7 @@
+import io
 import random
 import string
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from cloudpickle import dumps
 from dill import loads
@@ -25,3 +26,21 @@ def python_object_to_name(obj: Any) -> Optional[str]:
     except Exception:
         name = None
     return name
+
+
+class CallbackBytesIO(io.BytesIO):
+    """Provides same interface as BytesIO but additionally calls a callback function
+    whenever the 'read' method is called.
+
+    This is similar to tqdm's own CallbackIOWrapper but this does not play nicely with
+    all features of httpx so we use our own in some cases.
+    """
+
+    def __init__(self, callback: Callable, initial_bytes: bytes):
+        self._callback = callback
+        super().__init__(initial_bytes)
+
+    def read(self, size=-1) -> bytes:
+        data = super().read(size)
+        self._callback(len(data))
+        return data

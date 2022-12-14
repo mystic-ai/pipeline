@@ -7,7 +7,7 @@ import os
 import sys
 import urllib.parse
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Set, Type, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
 import httpx
 import requests
@@ -41,6 +41,7 @@ from pipeline.schemas.pipeline_file import (
 )
 from pipeline.schemas.run import RunCreate, RunGet
 from pipeline.util import (
+    CallbackBytesIO,
     generate_id,
     hex_to_python_object,
     python_object_to_hex,
@@ -52,24 +53,6 @@ if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
 
 FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
-
-
-class CallbackBytesIO(io.BytesIO):
-    """Provides same interface as BytesIO but additionally calls a callback function
-    whenever the 'read' method is called.
-
-    This is similar to tqdm's own CallbackIOWrapper but this does not play nicely with
-    all features of httpx so we use our own in some cases.
-    """
-
-    def __init__(self, callback: Callable, initial_bytes: bytes):
-        self._callback = callback
-        super().__init__(initial_bytes)
-
-    def read(self, size=-1) -> bytes:
-        data = super().read(size)
-        self._callback(len(data))
-        return data
 
 
 class PipelineCloud:
