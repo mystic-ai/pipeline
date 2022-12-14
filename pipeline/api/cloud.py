@@ -22,7 +22,7 @@ from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
-from pipeline.schemas.file import FileCreate, FileGet
+from pipeline.schemas.file import FileCreate, FileFormat, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import (
@@ -198,7 +198,9 @@ class PipelineCloud:
 
     def _initialise_direct_pipeline_file_upload(self, file_size: int) -> str:
         """Initialise a direct multi-part pipeline file upload"""
-        direct_upload_schema = PipelineFileDirectUploadInitCreate(file_size=file_size)
+        direct_upload_schema = PipelineFileDirectUploadInitCreate(
+            file_size=file_size, file_format=FileFormat.binary
+        )
         response = self._post(
             "/v2/pipeline-files/initiate-multipart-upload", direct_upload_schema.dict()
         )
@@ -257,7 +259,6 @@ class PipelineCloud:
         - Lastly, we finalise the multi-part upload with the server
         """
 
-        file_hash = self._hash_file(pipeline_file.path)
         file_size = os.path.getsize(pipeline_file.path)
 
         pipeline_file_id = self._initialise_direct_pipeline_file_upload(
@@ -265,12 +266,13 @@ class PipelineCloud:
         )
 
         parts = []
+        file_hash = hashlib.sha256()
         if self.verbose:
             progress = tqdm(
                 desc=f"{PIPELINE_FILE_STR} Uploading {pipeline_file.path}",
                 unit="B",
                 unit_scale=True,
-                total=file_size * 2,  # since we hex encode the data
+                total=file_size,
                 unit_divisor=1024,
             )
         with open(pipeline_file.path, "rb") as f:
@@ -280,11 +282,9 @@ class PipelineCloud:
                     if self.verbose:
                         progress.close()
                     break
-
+                file_hash.update(file_data)
                 part_num = len(parts) + 1
-
-                # convert data to hex
-                data = io.BytesIO(file_data.hex().encode())
+                data = io.BytesIO(file_data)
                 # If verbose then wrap our data object in a tqdm callback
                 if self.verbose:
                     data = CallbackIOWrapper(progress.update, data, "read")
@@ -296,11 +296,12 @@ class PipelineCloud:
                 )
                 parts.append(upload_metadata)
 
+        file_hash = file_hash.hexdigest()
         pipeline_file_get = self._finalise_direct_pipeline_file_upload(
             pipeline_file_id=pipeline_file_id, multipart_metadata=parts
         )
         return PipelineFileVariableGet(
-            path=pipeline_file.path, file=pipeline_file_get.hex_file, hash=file_hash
+            path=pipeline_file.path, file=pipeline_file_get.file, hash=file_hash
         )
 
     def _get(self, endpoint: str, params: Dict[str, Any] = None):
@@ -739,16 +740,6 @@ class PipelineCloud:
         from pipeline.objects import Graph
 
         return Graph.from_schema(p_get_schema)
-
-    def _hash_file(self, file_path: str, block_size=2**20) -> str:
-        md5 = hashlib.md5()
-        with open(file_path, "rb") as f:
-            while True:
-                data = f.read(block_size)
-                if not data:
-                    break
-                md5.update(data)
-        return md5.hexdigest()
 
     def get_runs(
         self, limit: int = 20, skip: int = 0, created_at_order: str = "desc"

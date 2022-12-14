@@ -80,7 +80,7 @@ def test_cloud_upload_pipeline_file(
     assert pipeline_file_var_get.path == str(file)
     assert (
         pipeline_file_var_get.file.dict()
-        == finalise_direct_pipeline_file_upload_get_json["hex_file"]
+        == finalise_direct_pipeline_file_upload_get_json["file"]
     )
 
 

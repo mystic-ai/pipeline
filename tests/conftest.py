@@ -359,7 +359,7 @@ def finalise_direct_pipeline_file_upload_get_json():
     return PipelineFileGet(
         id="pipeline_file_id",
         name="pipeline_file_id",
-        hex_file=FileGet(
+        file=FileGet(
             name="pipeline_file_id",
             id="dummy_file_id",
             path="pipeline_file_id",
