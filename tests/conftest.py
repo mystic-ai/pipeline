@@ -78,6 +78,8 @@ def top_api_server(
     pipeline_file_direct_upload_init_get_json,
     pipeline_file_direct_upload_part_get_json,
     finalise_direct_pipeline_file_upload_get_json,
+    run_get,
+    run_executing_get,
 ):
     """Return an HTTP server which acts like the Top service."""
 
@@ -165,6 +167,24 @@ def top_api_server(
         method="POST",
         headers={"Authorization": "Bearer " + token},
     ).respond_with_data(status=500)
+
+    httpserver.expect_request(
+        "/v2/runs",
+        method="GET",
+        headers={"Authorization": "Bearer " + token},
+        query_string="limit=20&skip=0&order_by=created_at%3Adesc",
+    ).respond_with_json(
+        json.loads(
+            Paginated[RunGet](
+                skip=0, limit=20, total=2, data=[run_get, run_executing_get]
+            ).json()
+        )
+    )
+
+    httpserver.expect_request(
+        f"/v2/runs/{run_get.id}",
+        method="GET",
+    ).respond_with_json(json.loads(run_get.json()))
 
     return httpserver
 
