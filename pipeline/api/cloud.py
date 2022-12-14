@@ -284,12 +284,11 @@ class PipelineCloud:
                     break
                 file_hash.update(file_data)
                 part_num = len(parts) + 1
-                data = io.BytesIO(file_data)
                 # If verbose then wrap our data object in a tqdm callback
                 if self.verbose:
-                    data = CallbackBytesIO(progress.update, data)
+                    data = CallbackBytesIO(progress.update, file_data)
                 else:
-                    data = io.BytesIO(data)
+                    data = io.BytesIO(file_data)
 
                 upload_metadata = self._direct_upload_pipeline_file_chunk(
                     data=data,
