@@ -4,7 +4,7 @@ from pipeline import PipelineCloud, configuration
 from pipeline.util.logging import _print
 
 
-def remote(args: argparse.Namespace):
+def remote(args: argparse.Namespace) -> int:
     sub_command = getattr(args, "sub-command", None)
 
     if sub_command == "set":

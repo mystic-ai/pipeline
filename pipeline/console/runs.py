@@ -10,7 +10,7 @@ from pipeline.schemas.run import RunGet, RunState
 from pipeline.util import hex_to_python_object
 
 
-def runs(args: argparse.Namespace):
+def runs(args: argparse.Namespace) -> int:
     sub_command = getattr(args, "sub-command", None)
 
     remote_service = PipelineCloud(verbose=False)

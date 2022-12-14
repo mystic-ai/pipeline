@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from pipeline.console.remote import remote as remote_command
 from pipeline.console.runs import runs as runs_command
+from pipeline.console.tags import tags as tags_command
 
 
 def main(args: Optional[List[str]] = None) -> int:
@@ -110,7 +111,10 @@ def main(args: Optional[List[str]] = None) -> int:
         help="Get run information from a remote compute service",
     )
 
-    runs_get_parser.add_argument("run_id", help="The run id")
+    runs_get_parser.add_argument(
+        "run_id",
+        help="The run id",
+    )
 
     runs_get_parser.add_argument(
         "-r",
@@ -119,6 +123,37 @@ def main(args: Optional[List[str]] = None) -> int:
         help="Get the run result",
     )
 
+    ##########
+    # pipeline tags
+    ##########
+
+    tags_parser = command_parser.add_parser(
+        "tags",
+        description="Manage pipeline tags",
+        help="Manage pipeline tags",
+    )
+
+    tags_sub_parser = tags_parser.add_subparsers(dest="sub-command")
+
+    ##########
+    # pipeline tags set
+    ##########
+
+    tags_set_parser = tags_sub_parser.add_parser(
+        "set",
+        help="Set the value of a tag",
+    )
+
+    tags_set_parser.add_argument(
+        "SOURCE",
+        help='The source pipeline:tag "<pipeline_name>:<pipeline_id>"',
+    )
+    tags_set_parser.add_argument(
+        "TARGET",
+        help='The final pipeline:tag "<pipeline_name>:<pipeline_id>"',
+    )
+
+    ##########
     args: argparse.Namespace = base_parser.parse_args(args)
     command = getattr(args, "command", None)
 
@@ -129,6 +164,10 @@ def main(args: Optional[List[str]] = None) -> int:
     elif command == "runs":
         if (code := runs_command(args)) is None:
             runs_parser.print_help()
+            return 1
+    elif command == "tags":
+        if (code := tags_command(args)) is None:
+            tags_parser.print_help()
             return 1
     else:
         base_parser.print_help()

@@ -108,3 +108,8 @@ class PipelineCreate(BaseModel):
                     "min_gpu_vram_mb should only be specified for gpu workloads"
                 )
         return v
+
+
+class PipelineTagCreate(BaseModel):
+    name: str
+    pipeline_id_or_pipeline_tag: str
