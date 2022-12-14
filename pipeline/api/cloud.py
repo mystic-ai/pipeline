@@ -10,7 +10,6 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
 import httpx
-import requests
 from pydantic import ValidationError
 from tqdm import tqdm
 from tqdm.utils import CallbackIOWrapper
@@ -137,11 +136,9 @@ class PipelineCloud:
             response.raise_for_status()
 
     @staticmethod
-    def _get_raise_for_status(
-        response: Union[requests.Response, httpx.Response]
-    ) -> None:
+    def _get_raise_for_status(response: httpx.Response) -> None:
         # A handler for errors that might be sent with messages from Top.
-        if (isinstance(response, requests.Response) and not response.ok) or (
+        if (
             isinstance(response, httpx.Response)
             and not response.status_code == httpx.codes.OK
         ):
