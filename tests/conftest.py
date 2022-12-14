@@ -45,16 +45,17 @@ def test_with_decorator():
 
 
 @pytest.fixture(scope="session")
-def url():
-    return "http://127.0.0.1:8080"
-
-
-@pytest.fixture(scope="session")
 def httpserver_listen_address():
     # Define the listen address for pytest-httpserver at the session scope so
     # we can use it in defining environment variables before app creation
     # https://pytest-httpserver.readthedocs.io/en/latest/howto.html#fixture
     return ("127.0.0.1", 8080)
+
+
+@pytest.fixture(scope="session")
+def url(httpserver_listen_address):
+    host, port = httpserver_listen_address
+    return f"http://{host}:{port}"
 
 
 @pytest.fixture
