@@ -82,7 +82,6 @@ def test_cloud_upload_pipeline_file(
     )
 
 
-# TODO check if actually fixed
 def test_cloud_get_raise_for_status_when_non_json_error(url, top_api_server, token):
     api = PipelineCloud(url=url, token=token)
     with pytest.raises(httpx.HTTPError, match="500 INTERNAL SERVER ERROR"):
