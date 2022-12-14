@@ -370,7 +370,7 @@ class PipelineCloud:
                 unit_divisor=1024,
             )
             # If verbose then wrap our file object in a tqdm callback
-            file = CallbackIOWrapper(progress.update, file, "read")
+            file = CallbackIOWrapper(progress.update, file)
 
         headers = {
             "Authorization": "Bearer %s" % self.token,
