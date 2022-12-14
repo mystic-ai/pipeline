@@ -1,5 +1,5 @@
 import pytest
-import requests
+import httpx
 
 from pipeline import PipelineCloud
 from pipeline.exceptions.InvalidSchema import InvalidSchema
@@ -85,5 +85,5 @@ def test_cloud_upload_pipeline_file(
 # TODO check if actually fixed
 def test_cloud_get_raise_for_status_when_non_json_error(url, top_api_server, token):
     api = PipelineCloud(url=url, token=token)
-    with pytest.raises(requests.HTTPError, match="500 Server Error"):
+    with pytest.raises(httpx.HTTPError, match="500 INTERNAL SERVER ERROR"):
         api._post("/error/500", json_data={})
