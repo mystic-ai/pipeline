@@ -177,7 +177,6 @@ class PipelineCloud:
 
             with open(file_or_path, "rb") as file:
                 buffer = file.read()
-            # TODO(RG): for now we're uploading as hex but this will soon change
             hex_buffer = buffer.hex()
             return self._post_file(
                 "/v2/files/",
