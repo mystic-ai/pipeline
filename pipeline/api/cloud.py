@@ -7,7 +7,18 @@ import os
 import sys
 import uuid
 from http import HTTPStatus
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    BinaryIO,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+)
 
 import dill
 import httpx
@@ -23,14 +34,14 @@ from pipeline.objects.variable import PipelineFile
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
-from pipeline.schemas.file import FileCreate, FileFormat, FileGet
+from pipeline.schemas.file import FileFormat, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
 from pipeline.schemas.pipeline import (
     PipelineCreate,
     PipelineFileVariableGet,
     PipelineGet,
-    PipelineVariableGet,
+    PipelineVariableCreate,
 )
 from pipeline.schemas.pipeline_file import (
     MultipartUploadMetadata,
@@ -44,10 +55,9 @@ from pipeline.schemas.pipeline_file import (
 from pipeline.schemas.run import RunCreate, RunGet
 from pipeline.util import (
     CallbackBytesIO,
-    generate_id,
-    hex_to_python_object,
+    dump_object,
+    load_object,
     package_version,
-    python_object_to_hex,
     python_object_to_name,
 )
 from pipeline.util.logging import PIPELINE_FILE_STR, PIPELINE_STR
@@ -56,7 +66,24 @@ if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
 
 FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
+BINARY_MIME_TYPE = "application/octet-stream"
 EnvironmentObjectOrID = Union[PipelineCloudEnvironment, str]
+
+
+def _as_upload_file(object, name: Optional[str] = None) -> Tuple[str, BinaryIO, str]:
+    """Represent `object` as an HTTP file upload.
+
+    Returns a structure suitable for passing to the `files` parameter of
+    httpx.request.
+    """
+    if name is None:
+        name = str(uuid.uuid4())
+    return (name, _as_binary_file(object), BINARY_MIME_TYPE)
+
+
+def _as_binary_file(obj) -> BinaryIO:
+    """Return `obj` as a pickle-encoded file opened in binary-read mode."""
+    return io.BytesIO(dump_object(obj))
 
 
 class PipelineCloud:
@@ -172,29 +199,11 @@ class PipelineCloud:
             else:
                 response.raise_for_status()
 
-    def upload_file(self, file_or_path) -> FileGet:
-
-        if isinstance(file_or_path, str):
-            # TODO: Change this to wrap the file object reader to convert to hex
-            # everytime anything is read instead of reading it all at once.
-
-            with open(file_or_path, "rb") as file:
-                buffer = file.read()
-            hex_buffer = buffer.hex()
-            return self._post_file(
-                "/v2/files/",
-                io.BytesIO(hex_buffer.encode()),
-            )
-        else:
-            return self._post_file("/v2/files/", file_or_path)
-
-    def upload_data(self, file_or_path) -> DataGet:
-        uploaded_file = self.upload_file(file_or_path)
-        uploaded_data = self._post("/v2/data", uploaded_file.dict())
+    def upload_data(self, obj: Any) -> DataGet:
+        """Upload the object as a pickle-encoded file to the API."""
+        files = dict(data=_as_upload_file(obj))
+        uploaded_data = self._post("/v2/data", files=files)
         return DataGet.parse_obj(uploaded_data)
-
-    def upload_python_object_to_file(self, obj) -> FileGet:
-        return self.upload_file(io.BytesIO(python_object_to_hex(obj).encode()))
 
     def _initialise_direct_pipeline_file_upload(self, file_size: int) -> str:
         """Initialise a direct multi-part pipeline file upload"""
@@ -202,7 +211,8 @@ class PipelineCloud:
             file_size=file_size, file_format=FileFormat.binary
         )
         response = self._post(
-            "/v2/pipeline-files/initiate-multipart-upload", direct_upload_schema.dict()
+            "/v2/pipeline-files/initiate-multipart-upload",
+            json_data=direct_upload_schema.dict(),
         )
         direct_upload_get = PipelineFileDirectUploadInitGet.parse_obj(response)
         return direct_upload_get.pipeline_file_id
@@ -223,7 +233,8 @@ class PipelineCloud:
             pipeline_file_id=pipeline_file_id, part_num=part_num
         )
         response = self._post(
-            "/v2/pipeline-files/presigned-url", part_upload_schema.dict()
+            "/v2/pipeline-files/presigned-url",
+            json_data=part_upload_schema.dict(),
         )
         part_upload_get = PipelineFileDirectUploadPartGet.parse_obj(response)
         # upload file chunk
@@ -246,7 +257,7 @@ class PipelineCloud:
         )
         response = self._post(
             "/v2/pipeline-files/finalise-multipart-upload",
-            finalise_upload_schema.dict(),
+            json_data=finalise_upload_schema.dict(),
         )
         return PipelineFileGet.parse_obj(response)
 
@@ -316,11 +327,54 @@ class PipelineCloud:
         response.raise_for_status()
         return response.json()
 
-    def _post(self, endpoint: str, json_data: dict) -> dict:
+    def _post(
+        self,
+        endpoint: str,
+        json_data: dict = None,
+        files: Optional[Union[list, dict]] = None,
+    ) -> dict:
         self.raise_for_invalid_token()
-        response = self.client.post(endpoint, json=json_data)
+        schema = json_data
+
+        progresses = []
+        data = None
+        if files is not None:
+            # Normalise dict/list types
+            if isinstance(files, dict):
+                files = files.items()
+            files_payload = []
+            for (form_name, (file_name, file_handle, file_type)) in files:
+                # If verbose then wrap our file object in a tqdm callback
+                if self.verbose:
+                    progress = tqdm(
+                        desc=f"{PIPELINE_STR} Uploading",
+                        unit="B",
+                        unit_scale=True,
+                        total=file_handle.getbuffer().nbytes,
+                        unit_divisor=1024,
+                    )
+                    file_handle = CallbackIOWrapper(progress.update, file_handle)
+                    progresses.append(progress)
+                files_payload.append((form_name, (file_name, file_handle, file_type)))
+            files = files_payload
+
+            # The `json` argument is ignored if `files` are given; we must
+            # JSON-encode the data ourselves and pass it to the `data` argument.
+            if json_data is not None:
+                data = dict(json=json.dumps(json_data))
+                json_data = None
+
+        response = self.client.post(
+            endpoint,
+            json=json_data,
+            data=data,
+            files=files,
+        )
+
+        for progress in progresses:
+            progress.close()
+
         if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
-            schema = json_data
             raise InvalidSchema(schema=schema)
         else:
             self._get_raise_for_status(response)
@@ -342,37 +396,6 @@ class PipelineCloud:
         if response.status_code != HTTPStatus.NO_CONTENT:
             self._get_raise_for_status(response)
 
-    def _post_file(self, endpoint: str, file: io.IOBase) -> FileGet:
-        self.raise_for_invalid_token()
-        if not hasattr(file, "name"):
-            file.name = generate_id(20)
-
-        file_size = file.getbuffer().nbytes
-
-        if self.verbose:
-            progress = tqdm(
-                desc=f"{PIPELINE_STR} Uploading",
-                unit="B",
-                unit_scale=True,
-                total=file_size,
-                unit_divisor=1024,
-            )
-            # If verbose then wrap our file object in a tqdm callback
-            file = CallbackIOWrapper(progress.update, file)
-
-        response = self.client.post(
-            endpoint,
-            files={"file": (file.name, file, "application/octet-stream")},
-        )
-        if self.verbose:
-            progress.close()
-        if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
-            schema = FileCreate.__name__
-            raise InvalidSchema(schema=schema)
-        else:
-            response.raise_for_status()
-        return FileGet.parse_obj(response.json())
-
     def upload_function(self, function: Function) -> FunctionGet:
         try:
             inputs = [
@@ -383,9 +406,6 @@ class PipelineCloud:
                 dict(name=name, type_name=python_object_to_name(type))
                 for name, type in function.typing_outputs.items()
             ]
-
-            file_schema = self.upload_python_object_to_file(function)
-
             function_create_schema = FunctionCreate(
                 local_id=function.local_id,
                 name=function.name,
@@ -393,28 +413,33 @@ class PipelineCloud:
                 hash=function.hash,
                 inputs=inputs,
                 output=output,
-                file_id=file_schema.id,
             )
         except AttributeError as e:
             raise InvalidSchema(schema="Function", message=str(e))
 
-        response = self._post("/v2/functions", function_create_schema.dict())
+        response = self._post(
+            "/v2/functions",
+            files=dict(pickle=_as_upload_file(function.function)),
+            json_data=function_create_schema.dict(),
+        )
         return FunctionGet.parse_obj(response)
 
     def upload_model(self, model: Model) -> ModelGet:
-        file_schema = self.upload_python_object_to_file(model)
         try:
             model_create_schema = ModelCreate(
                 local_id=model.local_id,
                 name=model.name,
                 model_source=model.source,
                 hash=model.hash,
-                file_id=file_schema.id,
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Model", message=str(e))
 
-        response = self._post("/v2/models", model_create_schema.dict())
+        response = self._post(
+            "/v2/models",
+            files=dict(pickle=_as_upload_file(model.model)),
+            json_data=model_create_schema.dict(),
+        )
         return ModelGet.parse_obj(response)
 
     def upload_pipeline(
@@ -456,7 +481,7 @@ class PipelineCloud:
             )
 
         new_name = new_pipeline_graph.name
-        if self.verbose:
+        if new_pipeline_graph.functions and self.verbose:
             print("Uploading functions")
         new_functions = [
             self.upload_function(_function)
@@ -464,21 +489,13 @@ class PipelineCloud:
         ]
         for i, uploaded_function_schema in enumerate(new_functions):
             new_pipeline_graph.functions[i].local_id = uploaded_function_schema.id
-        if self.verbose:
+        if new_pipeline_graph.models and self.verbose:
             print("Uploading models")
         new_models = [self.upload_model(_model) for _model in new_pipeline_graph.models]
 
-        new_variables: List[PipelineVariableGet] = []
-        if self.verbose:
-            print("Uploading variables")
-
-        from pipeline.objects import PipelineFile
-
+        new_variables: List[PipelineVariableCreate] = []
+        variable_type_uploads = []
         for _var in new_pipeline_graph.variables:
-            _var_type_file = self.upload_file(
-                io.BytesIO(python_object_to_hex(_var.type_class).encode())
-            )
-
             pipeline_file_schema = None
             if isinstance(_var, PipelineFile):
                 if _var.remote_id is not None:
@@ -496,15 +513,20 @@ class PipelineCloud:
                 else:
                     pipeline_file_schema = self.upload_pipeline_file(_var)
 
-            _var_schema = PipelineVariableGet(
+            _var_schema = PipelineVariableCreate(
                 local_id=_var.local_id,
                 name=_var.name,
-                type_file=_var_type_file,
                 is_input=_var.is_input,
                 is_output=_var.is_output,
                 pipeline_file_variable=pipeline_file_schema,
             )
 
+            variable_type_uploads.append(
+                _as_upload_file(
+                    _var.type_class,
+                    name=_var.local_id,
+                )
+            )
             new_variables.append(_var_schema)
 
         new_graph_nodes = [
@@ -538,8 +560,11 @@ class PipelineCloud:
 
         if self.verbose:
             print("Uploading pipeline graph")
+
         response = self._post(
-            "/v2/pipelines", json.loads(pipeline_create_schema.json())
+            "/v2/pipelines",
+            files=[("variable_types", v) for v in variable_type_uploads],
+            json_data=json.loads(pipeline_create_schema.json()),
         )
         return PipelineGet.parse_obj(response)
 
@@ -572,10 +597,8 @@ class PipelineCloud:
             Returns:
                     run (Any): Run object containing metadata and outputs.
         """
-        # TODO: Add support for generic object inference. Only strs at the moment.
         if not isinstance(raw_data_or_schema, DataGet):
-            temp_file = io.BytesIO(python_object_to_hex(raw_data_or_schema).encode())
-            uploaded_data = self.upload_data(temp_file)
+            uploaded_data = self.upload_data(raw_data_or_schema)
             _data_id = uploaded_data.id
         elif isinstance(raw_data_or_schema, DataGet):
             _data_id = raw_data_or_schema.id
@@ -606,7 +629,10 @@ class PipelineCloud:
             compute_type=compute_type,
             compute_requirements=compute_requirements,
         )
-        run_json: dict = self._post("/v2/runs", json.loads(run_create_schema.json()))
+        run_json: dict = self._post(
+            "/v2/runs",
+            json_data=json.loads(run_create_schema.json()),
+        )
         return RunGet.parse_obj(run_json)
 
     def _download_schema(
@@ -690,7 +716,7 @@ class PipelineCloud:
             endpoint=endpoint,
             params=dict(return_data=True),
         )
-        return hex_to_python_object(d_get_schema.hex_file.data)
+        return load_object(d_get_schema.hex_file.data)
 
     def download_result(self, result_id_or_schema: Union[str, RunGet]) -> Any:
         """
@@ -721,7 +747,7 @@ class PipelineCloud:
         f_get_schema: FileGet = self._download_schema(
             schema=FileGet, endpoint=endpoint, params=dict(return_data=True)
         )
-        return hex_to_python_object(f_get_schema.data)
+        return load_object(f_get_schema.data)
 
     def download_pipeline(self, id: str) -> Graph:
         """
@@ -772,7 +798,7 @@ class PipelineCloud:
             )
 
             configuration.PIPELINE_CACHE_FILES.mkdir(exist_ok=True)
-            raw_result = hex_to_python_object(downloaded_schema.data)
+            raw_result = load_object(downloaded_schema.data)
             file_path = configuration.PIPELINE_CACHE_FILES / variable.remote_id
             with open(file_path, "wb") as file:
                 dill.dump(raw_result, file=file)

@@ -4,7 +4,7 @@ from hashlib import sha256
 from typing import Any, Callable, Dict, Optional
 
 from pipeline.schemas.function import FunctionGet
-from pipeline.util import generate_id, hex_to_python_object
+from pipeline.util import generate_id, load_object
 
 
 class Function:
@@ -53,11 +53,16 @@ class Function:
 
     @classmethod
     def from_schema(cls, schema: FunctionGet):
-        unpickled_data = hex_to_python_object(schema.hex_file.data)
+        unpickled_data = load_object(schema.hex_file.data)
         if isinstance(unpickled_data, Function):
-            unpickled_data.local_id = schema.id
-            return unpickled_data
-        return cls(
-            unpickled_data,
-            remote_id=schema.id,
-        )
+            function = unpickled_data
+        else:
+            function = cls(
+                unpickled_data,
+                remote_id=schema.id,
+            )
+        # This assumes that whenever a Function is uploaded, any GraphNode
+        # referencing it has its `function` property updated to the remote ID
+        # of the Function.
+        function.local_id = schema.id
+        return function

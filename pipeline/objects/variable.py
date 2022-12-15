@@ -1,7 +1,7 @@
 from typing import Any
 
 from pipeline.schemas.pipeline import PipelineVariableGet
-from pipeline.util import generate_id, hex_to_python_object
+from pipeline.util import generate_id, load_object
 
 
 class Variable:
@@ -40,7 +40,7 @@ class Variable:
             return PipelineFile.from_schema(schema)
         else:
             return cls(
-                hex_to_python_object(schema.type_file.data),
+                load_object(schema.type_file.data),
                 is_input=schema.is_input,
                 is_output=schema.is_output,
                 name=schema.name,
