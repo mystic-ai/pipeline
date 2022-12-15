@@ -15,14 +15,12 @@ def test_help(capsys, option):
     assert output.startswith("usage: pipeline")
 
 
-@pytest.mark.usefixtures("api_response")
-def test_login(url, token):
+def test_login(url, top_api_server, token):
     response_code = cli_main(["remote", "login", "-u", url, "-t", token])
     assert response_code == 0
 
 
-@pytest.mark.usefixtures("api_response")
-def test_login_fail(url, bad_token):
+def test_login_fail(url, top_api_server_bad_token, bad_token):
     response_code = cli_main(["remote", "login", "-u", url, "-t", bad_token])
     assert response_code == 1
 
@@ -53,14 +51,8 @@ def test_verbose(capsys, option):
     assert output.startswith("usage: pipeline")
 
 
-@pytest.mark.usefixtures("api_response")
 @pytest.mark.parametrize("option", ("list", "ls"))
-def test_runs_list(
-    url,
-    token,
-    option,
-    capsys,
-):
+def test_runs_list(url, token, option, capsys, top_api_server):
     cli_main(["remote", "login", "-u", url, "-t", token])
     cli_main(["remote", "set", url])
     configuration.DEFAULT_REMOTE = url
@@ -73,13 +65,7 @@ def test_runs_list(
     assert "| run_test_2 | 01-01-2000 00:00:00 | executing | test_function_id |" in runs
 
 
-@pytest.mark.usefixtures("api_response")
-def test_runs_get(
-    url,
-    token,
-    capsys,
-    run_get,
-):
+def test_runs_get(url, token, capsys, run_get, top_api_server):
     cli_main(["remote", "login", "-u", url, "-t", token])
     cli_main(["remote", "set", url])
     configuration.DEFAULT_REMOTE = url

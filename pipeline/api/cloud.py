@@ -10,9 +10,7 @@ from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
 import httpx
-import requests
 from pydantic import ValidationError
-from requests_toolbelt.multipart import encoder
 from tqdm import tqdm
 from tqdm.utils import CallbackIOWrapper
 
@@ -42,6 +40,7 @@ from pipeline.schemas.pipeline_file import (
 )
 from pipeline.schemas.run import RunCreate, RunGet
 from pipeline.util import (
+    CallbackBytesIO,
     generate_id,
     hex_to_python_object,
     python_object_to_hex,
@@ -125,9 +124,7 @@ class PipelineCloud:
         url = urllib.parse.urljoin(base_url, "/v2/users/me")
 
         headers = {"Authorization": f"Bearer {token}"}
-
-        response = requests.request("GET", url, headers=headers)
-
+        response = httpx.get(url, headers=headers)
         if response.status_code == HTTPStatus.OK:
             return True
         elif (
@@ -139,11 +136,9 @@ class PipelineCloud:
             response.raise_for_status()
 
     @staticmethod
-    def _get_raise_for_status(
-        response: Union[requests.Response, httpx.Response]
-    ) -> None:
+    def _get_raise_for_status(response: httpx.Response) -> None:
         # A handler for errors that might be sent with messages from Top.
-        if (isinstance(response, requests.Response) and not response.ok) or (
+        if (
             isinstance(response, httpx.Response)
             and not response.status_code == httpx.codes.OK
         ):
@@ -171,7 +166,7 @@ class PipelineCloud:
             else:
                 response.raise_for_status()
 
-    def upload_file(self, file_or_path, remote_path) -> FileGet:
+    def upload_file(self, file_or_path) -> FileGet:
 
         if isinstance(file_or_path, str):
             # TODO: Change this to wrap the file object reader to convert to hex
@@ -181,20 +176,19 @@ class PipelineCloud:
                 buffer = file.read()
             hex_buffer = buffer.hex()
             return self._post_file(
-                "/v2/files/", io.BytesIO(hex_buffer.encode()), remote_path
+                "/v2/files/",
+                io.BytesIO(hex_buffer.encode()),
             )
         else:
-            return self._post_file("/v2/files/", file_or_path, remote_path)
+            return self._post_file("/v2/files/", file_or_path)
 
-    def upload_data(self, file_or_path, remote_path) -> DataGet:
-        uploaded_file = self.upload_file(file_or_path, remote_path)
+    def upload_data(self, file_or_path) -> DataGet:
+        uploaded_file = self.upload_file(file_or_path)
         uploaded_data = self._post("/v2/data", uploaded_file.dict())
         return DataGet.parse_obj(uploaded_data)
 
-    def upload_python_object_to_file(self, obj, remote_path) -> FileGet:
-        return self.upload_file(
-            io.BytesIO(python_object_to_hex(obj).encode()), remote_path
-        )
+    def upload_python_object_to_file(self, obj) -> FileGet:
+        return self.upload_file(io.BytesIO(python_object_to_hex(obj).encode()))
 
     def _initialise_direct_pipeline_file_upload(self, file_size: int) -> str:
         """Initialise a direct multi-part pipeline file upload"""
@@ -227,9 +221,12 @@ class PipelineCloud:
         )
         part_upload_get = PipelineFileDirectUploadPartGet.parse_obj(response)
         # upload file chunk
-        response = requests.put(
-            part_upload_get.upload_url, data=data, timeout=self.timeout
+        response = httpx.put(
+            part_upload_get.upload_url,
+            content=data,
+            timeout=self.timeout,
         )
+
         etag = response.headers["ETag"]
         return MultipartUploadMetadata(ETag=etag, PartNumber=part_num)
 
@@ -284,10 +281,11 @@ class PipelineCloud:
                     break
                 file_hash.update(file_data)
                 part_num = len(parts) + 1
-                data = io.BytesIO(file_data)
                 # If verbose then wrap our data object in a tqdm callback
                 if self.verbose:
-                    data = CallbackIOWrapper(progress.update, data, "read")
+                    data = CallbackBytesIO(progress.update, file_data)
+                else:
+                    data = io.BytesIO(file_data)
 
                 upload_metadata = self._direct_upload_pipeline_file_chunk(
                     data=data,
@@ -310,9 +308,7 @@ class PipelineCloud:
         }
 
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.get(
-            url, headers=headers, params=params, timeout=self.timeout
-        )
+        response = httpx.get(url, headers=headers, params=params, timeout=self.timeout)
         response.raise_for_status()
         return response.json()
 
@@ -324,7 +320,7 @@ class PipelineCloud:
         }
 
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.post(
+        response = httpx.post(
             url, headers=headers, json=json_data, timeout=self.timeout
         )
 
@@ -336,51 +332,36 @@ class PipelineCloud:
 
         return response.json()
 
-    def _post_file(self, endpoint, file, remote_path) -> FileGet:
+    def _post_file(self, endpoint: str, file: io.BytesIO) -> FileGet:
         self.raise_for_invalid_token()
         if not hasattr(file, "name"):
             file.name = generate_id(20)
 
-        e = encoder.MultipartEncoder(
-            fields={
-                "file_path": remote_path,
-                "file": (
-                    file.name,
-                    file,
-                    "application/octet-stream",
-                    {"Content-Transfer-Encoding": "binary"},
-                ),
-            }
-        )
-        encoder_len = e.len
+        file_size = file.getbuffer().nbytes
+
         if self.verbose:
-            bar = tqdm(
+            progress = tqdm(
                 desc=f"{PIPELINE_STR} Uploading",
                 unit="B",
                 unit_scale=True,
-                total=encoder_len,
+                total=file_size,
                 unit_divisor=1024,
             )
-        if self.verbose:
-
-            def progress_callback(monitor):
-                bar.n = monitor.bytes_read
-                bar.refresh()
-                if monitor.bytes_read == encoder_len:
-                    bar.close()
-
-        encoded_stream_data = encoder.MultipartEncoderMonitor(
-            e, callback=progress_callback if self.verbose else None
-        )
+            # If verbose then wrap our file object in a tqdm callback
+            file = CallbackIOWrapper(progress.update, file)
 
         headers = {
             "Authorization": "Bearer %s" % self.token,
-            "Content-type": encoded_stream_data.content_type,
         }
         url = urllib.parse.urljoin(self.url, endpoint)
-        response = requests.post(
-            url, headers=headers, data=encoded_stream_data, timeout=self.timeout
+        response = httpx.post(
+            url,
+            headers=headers,
+            files={"file": (file.name, file, "application/octet-stream")},
+            timeout=self.timeout,
         )
+        if self.verbose:
+            progress.close()
         if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
             schema = FileCreate.__name__
             raise InvalidSchema(schema=schema)
@@ -399,7 +380,7 @@ class PipelineCloud:
                 for name, type in function.typing_outputs.items()
             ]
 
-            file_schema = self.upload_python_object_to_file(function, "/lol")
+            file_schema = self.upload_python_object_to_file(function)
 
             function_create_schema = FunctionCreate(
                 local_id=function.local_id,
@@ -417,7 +398,7 @@ class PipelineCloud:
         return FunctionGet.parse_obj(response)
 
     def upload_model(self, model: Model) -> ModelGet:
-        file_schema = self.upload_python_object_to_file(model, "/lol")
+        file_schema = self.upload_python_object_to_file(model)
         try:
             model_create_schema = ModelCreate(
                 local_id=model.local_id,
@@ -486,7 +467,7 @@ class PipelineCloud:
 
         for _var in new_pipeline_graph.variables:
             _var_type_file = self.upload_file(
-                io.BytesIO(python_object_to_hex(_var.type_class).encode()), "/"
+                io.BytesIO(python_object_to_hex(_var.type_class).encode())
             )
 
             pipeline_file_schema = None
@@ -571,7 +552,7 @@ class PipelineCloud:
         # TODO: Add support for generic object inference. Only strs at the moment.
         if not isinstance(raw_data_or_schema, DataGet):
             temp_file = io.BytesIO(python_object_to_hex(raw_data_or_schema).encode())
-            uploaded_data = self.upload_data(temp_file, "/")
+            uploaded_data = self.upload_data(temp_file)
             _data_id = uploaded_data.id
         elif isinstance(raw_data_or_schema, DataGet):
             _data_id = raw_data_or_schema.id

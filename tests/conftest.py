@@ -9,8 +9,7 @@ from datetime import datetime
 import cloudpickle
 import dill
 import pytest
-import responses
-from responses import matchers
+from pytest_httpserver import HTTPServer
 
 from pipeline.objects import (
     Pipeline,
@@ -45,152 +44,164 @@ def test_with_decorator():
 """
 
 
+@pytest.fixture(scope="session")
+def httpserver_listen_address():
+    # Define the listen address for pytest-httpserver at the session scope so
+    # we can use it in defining environment variables before app creation
+    # https://pytest-httpserver.readthedocs.io/en/latest/howto.html#fixture
+    return ("127.0.0.1", 8080)
+
+
+@pytest.fixture(scope="session")
+def url(httpserver_listen_address):
+    host, port = httpserver_listen_address
+    return f"http://{host}:{port}"
+
+
 @pytest.fixture
-def api_response(
-    url,
+def top_api_server_bad_token(httpserver, bad_token):
+    httpserver.expect_request(
+        "/v2/users/me",
+        method="GET",
+        headers={"Authorization": "Bearer " + bad_token},
+    ).respond_with_json({"auth": False}, status=401)
+
+
+@pytest.fixture
+def top_api_server(
+    httpserver,
     token,
-    bad_token,
-    run_get,
-    run_executing_get,
-    file_get_json,
+    file_get,
     function_get_json,
-    result_file_get_json,
     model_get_json,
+    result_file_get_json,
     data_get_json,
     pipeline_file_direct_upload_init_get_json,
     pipeline_file_direct_upload_part_get_json,
-    presigned_url,
     finalise_direct_pipeline_file_upload_get_json,
+    run_get,
+    run_executing_get,
 ):
+    """Return an HTTP server which acts like the Top service."""
+
     function_get_id = function_get_json["id"]
     model_get_id = model_get_json["id"]
-    data_get_id = data_get_json["id"]
     result_file_get_id = result_file_get_json["id"]
-    with responses.RequestsMock(assert_all_requests_are_fired=False) as rsps:
-        rsps.add(
-            responses.GET,
-            url + "/v2/users/me",
-            json={"auth": True},
-            status=200,
-            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
+    data_get_id = data_get_json["id"]
+
+    # clear old assertions: tests where httpserver set to fail on purpose can cause
+    # later tests using httpserver to fail if the error is not flushed
+    httpserver.clear_assertions()
+
+    httpserver.expect_request(
+        "/v2/users/me",
+        method="GET",
+        headers={"Authorization": "Bearer " + token},
+    ).respond_with_json({"auth": True})
+
+    httpserver.expect_request(
+        "/v2/files/",
+        method="POST",
+        headers={"Authorization": "Bearer " + token},
+    ).respond_with_json(file_get.dict())
+
+    httpserver.expect_request(
+        f"/v2/functions/{function_get_id}",
+        method="GET",
+        query_string="return_data=true",
+        headers={"Authorization": "Bearer " + token},
+    ).respond_with_json(function_get_json)
+
+    httpserver.expect_request(
+        f"/v2/models/{model_get_id}",
+        method="GET",
+        query_string="return_data=true",
+        headers={"Authorization": "Bearer " + token},
+    ).respond_with_json(model_get_json)
+
+    httpserver.expect_request(
+        f"/v2/files/{result_file_get_id}",
+        method="GET",
+        query_string="return_data=true",
+        headers={"Authorization": "Bearer " + token},
+    ).respond_with_json(result_file_get_json)
+
+    httpserver.expect_request(
+        f"/v2/data/{data_get_id}",
+        method="GET",
+        query_string="return_data=true",
+        headers={"Authorization": "Bearer " + token},
+    ).respond_with_json(data_get_json)
+
+    httpserver.expect_request(
+        "/v2/pipeline-files/initiate-multipart-upload",
+        method="POST",
+        headers={"Authorization": "Bearer " + token},
+    ).respond_with_json(pipeline_file_direct_upload_init_get_json)
+
+    httpserver.expect_request(
+        "/v2/pipeline-files/presigned-url",
+        method="POST",
+        headers={"Authorization": "Bearer " + token},
+        data=json.dumps(
+            {
+                "pipeline_file_id": "pipeline_file_id",
+                "part_num": 1,
+            }
+        ),
+    ).respond_with_json(pipeline_file_direct_upload_part_get_json)
+
+    httpserver.expect_request(
+        "/v2/pipeline-files/finalise-multipart-upload",
+        method="POST",
+        headers={"Authorization": "Bearer " + token},
+        data=json.dumps(
+            {
+                "pipeline_file_id": "pipeline_file_id",
+                "multipart_metadata": [{"ETag": "dummy_etag", "PartNumber": 1}],
+            }
+        ),
+    ).respond_with_json(finalise_direct_pipeline_file_upload_get_json)
+
+    httpserver.expect_request(
+        "/error/500",
+        method="POST",
+        headers={"Authorization": "Bearer " + token},
+    ).respond_with_data(status=500)
+
+    httpserver.expect_request(
+        "/v2/runs",
+        method="GET",
+        headers={"Authorization": "Bearer " + token},
+        query_string="limit=20&skip=0&order_by=created_at%3Adesc",
+    ).respond_with_json(
+        json.loads(
+            Paginated[RunGet](
+                skip=0, limit=20, total=2, data=[run_get, run_executing_get]
+            ).json()
         )
-        rsps.add(
-            responses.GET,
-            url + "/v2/users/me",
-            json={"auth": True},
-            status=401,
-            match=[matchers.header_matcher({"Authorization": "Bearer " + bad_token})],
-        )
-        rsps.add(
-            responses.POST,
-            url + "/v2/files/",
-            json=file_get_json,
-            status=201,
-            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
-        )
-        rsps.add(
-            responses.GET,
-            url + f"/v2/functions/{function_get_id}",
-            json=function_get_json,
-            status=200,
-            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
-        )
-        rsps.add(
-            responses.GET,
-            url + f"/v2/models/{model_get_id}",
-            json=model_get_json,
-            status=200,
-            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
-        )
-        rsps.add(
-            responses.GET,
-            url + f"/v2/data/{data_get_id}",
-            json=data_get_json,
-            status=200,
-            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
-        )
-        rsps.add(
-            responses.GET,
-            url + f"/v2/files/{result_file_get_id}",
-            json=result_file_get_json,
-            status=200,
-            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
-        )
-        rsps.add(
-            responses.POST,
-            url + "/v2/pipeline-files/initiate-multipart-upload",
-            json=pipeline_file_direct_upload_init_get_json,
-            status=200,
-            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
-        )
-        rsps.add(
-            responses.POST,
-            url + "/v2/pipeline-files/presigned-url",
-            json=pipeline_file_direct_upload_part_get_json,
-            status=200,
-            match=[
-                matchers.header_matcher({"Authorization": "Bearer " + token}),
-                matchers.json_params_matcher(
-                    {
-                        "pipeline_file_id": "pipeline_file_id",
-                        "part_num": 1,
-                    }
-                ),
-            ],
-        )
-        # upload file directly using presigned url
-        rsps.add(
-            responses.PUT, presigned_url, status=200, headers={"Etag": "dummy_etag"}
-        )
-        rsps.add(
-            responses.POST,
-            url + "/v2/pipeline-files/finalise-multipart-upload",
-            json=finalise_direct_pipeline_file_upload_get_json,
-            status=200,
-            match=[
-                matchers.header_matcher({"Authorization": "Bearer " + token}),
-                matchers.json_params_matcher(
-                    {
-                        "pipeline_file_id": "pipeline_file_id",
-                        "multipart_metadata": [{"ETag": "dummy_etag", "PartNumber": 1}],
-                    }
-                ),
-            ],
-        )
-        rsps.add(
-            responses.POST,
-            url + "/error/500",
-            status=500,
-            match=[matchers.header_matcher({"Authorization": "Bearer " + token})],
-        )
-        rsps.add(
-            responses.GET,
-            url + "/v2/runs",
-            json=json.loads(
-                Paginated[RunGet](
-                    skip=0, limit=20, total=2, data=[run_get, run_executing_get]
-                ).json()
-            ),
-            status=200,
-            match=[
-                matchers.header_matcher({"Authorization": "Bearer " + token}),
-                matchers.query_param_matcher(
-                    dict(skip=0, limit=20, order_by="created_at:desc")
-                ),
-            ],
-        )
-        rsps.add(
-            responses.GET,
-            url + f"/v2/runs/{run_get.id}",
-            json=json.loads(run_get.json()),
-            status=200,
-        )
-        yield rsps
+    )
+
+    httpserver.expect_request(
+        f"/v2/runs/{run_get.id}",
+        method="GET",
+    ).respond_with_json(json.loads(run_get.json()))
+
+    return httpserver
 
 
-@pytest.fixture()
-def url():
-    return "http://127.0.0.1:8080"
+@pytest.fixture
+def data_store_httpserver():
+    server = HTTPServer(host="127.0.0.1", port=8081)
+    server.start()
+    server.expect_request(
+        "",
+        method="PUT",
+    ).respond_with_data(headers={"Etag": "dummy_etag"})
+    yield server
+    server.clear()
+    if server.is_running():
+        server.stop()
 
 
 @pytest.fixture()
@@ -346,7 +357,7 @@ def pipeline_file_direct_upload_init_get_json():
 
 @pytest.fixture()
 def presigned_url():
-    return "https://upload-file-here.com"
+    return "http://127.0.0.1:8081"
 
 
 @pytest.fixture()

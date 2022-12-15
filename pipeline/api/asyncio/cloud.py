@@ -32,7 +32,7 @@ class PipelineCloud(_SyncPipelineCloud):
     def _raise_not_implemeneted(self):
         raise NotImplementedError("This function is not implemented")
 
-    def upload_python_object_to_file(self, obj, remote_path) -> FileGet:
+    def upload_python_object_to_file(self, obj) -> FileGet:
         self._raise_not_implemeneted()
 
     def _initialise_direct_pipeline_file_upload(self, file_size: int) -> str:
@@ -89,7 +89,7 @@ class PipelineCloud(_SyncPipelineCloud):
     def download_pipeline(self, id: str) -> Graph:
         self._raise_not_implemeneted()
 
-    async def _post_file(self, endpoint, file, remote_path) -> FileGet:
+    async def _post_file(self, endpoint: str, file: io.BytesIO) -> FileGet:
         if not hasattr(file, "name"):
             file.name = generate_id(20)
 
@@ -111,7 +111,7 @@ class PipelineCloud(_SyncPipelineCloud):
             response.raise_for_status()
         return FileGet.parse_obj(response.json())
 
-    async def upload_file(self, file_or_path, remote_path) -> FileGet:
+    async def upload_file(self, file_or_path) -> FileGet:
 
         if isinstance(file_or_path, str):
             # TODO: Change this to wrap the file object reader to convert to hex
@@ -120,14 +120,12 @@ class PipelineCloud(_SyncPipelineCloud):
             with open(file_or_path, "rb") as file:
                 buffer = file.read()
             hex_buffer = buffer.hex()
-            return await self._post_file(
-                "/v2/files/", io.BytesIO(hex_buffer.encode()), remote_path
-            )
+            return await self._post_file("/v2/files/", io.BytesIO(hex_buffer.encode()))
         else:
-            return await self._post_file("/v2/files/", file_or_path, remote_path)
+            return await self._post_file("/v2/files/", file_or_path)
 
-    async def upload_data(self, file_or_path, remote_path) -> DataGet:
-        uploaded_file = await self.upload_file(file_or_path, remote_path)
+    async def upload_data(self, file_or_path) -> DataGet:
+        uploaded_file = await self.upload_file(file_or_path)
         uploaded_data = await self._post("/v2/data", uploaded_file.dict())
         return DataGet.parse_obj(uploaded_data)
 
@@ -183,7 +181,7 @@ class PipelineCloud(_SyncPipelineCloud):
         # TODO: Add support for generic object inference. Only strs at the moment.
         if not isinstance(raw_data_or_schema, DataGet):
             temp_file = io.BytesIO(python_object_to_hex(raw_data_or_schema).encode())
-            uploaded_data = await self.upload_data(temp_file, "/")
+            uploaded_data = await self.upload_data(temp_file)
             _data_id = uploaded_data.id
         elif isinstance(raw_data_or_schema, DataGet):
             _data_id = raw_data_or_schema.id
