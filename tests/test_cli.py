@@ -83,3 +83,11 @@ def test_runs_get(url, token, capsys, run_get, top_api_server):
     output_lines = output.splitlines()
     assert response == 0
     assert output == '{"test": "hello"}\n'
+
+
+@pytest.mark.usefixtures("api_response")
+def test_tags_set(
+    url,
+    token,
+):
+    ...

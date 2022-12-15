@@ -23,6 +23,7 @@ from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
 from pipeline.schemas.pagination import Paginated
+from pipeline.schemas.pipeline import PipelineTagCreate, PipelineTagGet
 from pipeline.schemas.pipeline_file import (
     PipelineFileDirectUploadInitGet,
     PipelineFileDirectUploadPartGet,
@@ -580,3 +581,31 @@ def file(tmp_path):
 @pytest.fixture()
 def pipeline_file(file):
     return PipelineFile(path=str(file), name="hello")
+
+
+@pytest.fixture()
+def tag_get(project_get: ProjectGet):
+    return PipelineTagGet(
+        id="pipeline_tag",
+        name="test:pipeline_id",
+        project_id=project_get.id,
+        pipeline_id="pipeline_id",
+    )
+
+
+@pytest.fixture()
+def tag_get_2(project_get: ProjectGet):
+    return PipelineTagGet(
+        id="pipeline_tag_2",
+        name="test:tag2",
+        project_id=project_get.id,
+        pipeline_id="pipeline_id",
+    )
+
+
+@pytest.fixture()
+def tag_create():
+    return PipelineTagCreate(
+        name="test:tag2",
+        pipeline_id="pipeline_id",
+    )

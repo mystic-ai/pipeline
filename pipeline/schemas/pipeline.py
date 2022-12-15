@@ -111,5 +111,21 @@ class PipelineCreate(BaseModel):
 
 
 class PipelineTagCreate(BaseModel):
+    # The full name of the tag, e.g. `my-pipeline:latest`.
     name: str
-    pipeline_id_or_pipeline_tag: str
+    # The pipeline ID this tag should point to.
+    pipeline_id: str
+    # The project ID is inferred from the project ID of the the pipeline.
+    # project_id: str
+
+
+class PipelineTagGet(BaseModel):
+    id: str
+    name: str
+    project_id: str
+    pipeline_id: str
+
+
+class PipelineTagPatch(BaseModel):
+    # The new pipeline ID this tag should point to.
+    pipeline_id: str

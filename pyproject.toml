@@ -1,6 +1,10 @@
 [tool.poetry]
 name = "pipeline-ai"
+<<<<<<< HEAD
 version = "0.2.12"
+=======
+version = "0.2.11"
+>>>>>>> 09738bb (Basic tests + schemas)
 description = "Pipelines for machine learning workloads."
 authors = [
   "Paul Hetherington <ph@mystic.ai>",
