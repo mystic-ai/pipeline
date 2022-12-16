@@ -9,26 +9,20 @@ datasets==2.7.1
 
 """
 
-from typing import List
 
-import evaluate
-import torch
 from datasets import DatasetDict, load_dataset
-from torch.optim import AdamW
-from torch.utils.data import DataLoader
-from tqdm.auto import tqdm
-from transformers import (
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    get_scheduler,
-)
 
-from pipeline import Pipeline, Variable, pipeline_function
+from pipeline import Pipeline, PipelineCloud, Variable, pipeline_function
+from pipeline.schemas.run import RunState
 
 
 @pipeline_function
-def preprocessing(dataset: DatasetDict) -> List[DataLoader]:
+def preprocessing(dataset: DatasetDict) -> list:
+    from torch.utils.data import DataLoader
+    from transformers import AutoTokenizer
+
     # Tokenize and reformt the dataset for use in pytorch
+
     tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
 
     def tokenize_function(examples):
@@ -52,7 +46,12 @@ def preprocessing(dataset: DatasetDict) -> List[DataLoader]:
 
 
 @pipeline_function
-def training_loop(dataloaders: List, training_args: dict) -> torch.nn.Module:
+def training_loop(dataloaders: list, training_args: dict) -> str:
+    import torch
+    from torch.optim import AdamW
+    from tqdm.auto import tqdm
+    from transformers import AutoModelForSequenceClassification, get_scheduler
+
     (train_dataloader, eval_dataloader) = dataloaders
 
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -90,7 +89,6 @@ def training_loop(dataloaders: List, training_args: dict) -> torch.nn.Module:
             optimizer.zero_grad()
             progress_bar.update(1)
 
-    metric = evaluate.load("accuracy")
     model.eval()
     for batch in eval_dataloader:
         batch = {k: v.to(device) for k, v in batch.items()}
@@ -98,17 +96,9 @@ def training_loop(dataloaders: List, training_args: dict) -> torch.nn.Module:
             outputs = model(**batch)
 
         logits = outputs.logits
-        predictions = torch.argmax(logits, dim=-1)
-        metric.add_batch(predictions=predictions, references=batch["labels"])
+        torch.argmax(logits, dim=-1)
 
     return model
-
-
-# res = metric.compute()
-
-# print(f"Metric:{res}")
-
-# Pipeline creation
 
 
 with Pipeline("bert-finetune") as builder:
@@ -127,8 +117,35 @@ finetune_pl = Pipeline.get_pipeline("bert-finetune")
 
 dataset = load_dataset("yelp_review_full")
 training_args = dict(num_epochs=3)
+# from transformers import AutoTokenizer
 
-output = finetune_pl.run(dataset, training_args)
+# print(dataset)
+# # print(len(dataset["train"]["label"]))
+# # print(len(dataset["train"]["text"][1]))
+# tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
 
 
-print(output)
+# def tokenize_function(examples):
+#     return tokenizer(examples["text"], padding="max_length", truncation=True)
+
+
+# tokenized_datasets = dataset.map(tokenize_function, batched=True)
+
+# print(tokenized_datasets["train"]["text"][0])
+
+# exit()
+
+run_remote = False
+pcloud = PipelineCloud()
+
+if run_remote:
+    uploaded_pipeline = pcloud.upload_pipeline(finetune_pl)
+
+    result_run = pcloud.run_pipeline(uploaded_pipeline, [dataset, training_args])
+    print(f"Run:{result_run.id}:{result_run.run_state}")
+
+    if result_run.run_state == RunState.FAILED:
+        print(result_run.error_info)
+else:
+    pcloud.download_remotes(finetune_pl)
+    output = finetune_pl.run(dataset, training_args)

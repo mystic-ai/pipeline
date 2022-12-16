@@ -102,12 +102,38 @@ def main(args: Optional[List[str]] = None) -> int:
     # pipeline runs list
     ##########
 
-    runs_sub_parser.add_parser(
+    runs_list_parser = runs_sub_parser.add_parser(
         "list",
         aliases=["ls"],
         description="List the currently executing runs",
         help="List the currently executing runs",
     )
+
+    runs_list_parser.add_argument(
+        "-s",
+        "--state",
+        required=False,
+        type=str,
+        help=f"Only get runs with this state {[e.value for e in RunState]}",
+        default=None,
+    )
+    runs_list_parser.add_argument(
+        "-l",
+        "--limit",
+        required=False,
+        help="Number of runs to get",
+        default=20,
+        type=int,
+    )
+    runs_list_parser.add_argument(
+        "-S",
+        "--skip",
+        required=False,
+        help="Number of runs to skip for pagination",
+        default=0,
+        type=int,
+    )
+
     ##########
     # pipeline runs get
     ##########
@@ -170,26 +196,27 @@ def main(args: Optional[List[str]] = None) -> int:
         remote_service.authenticate()
 
         if sub_command in ["list", "ls"]:
-            raw_result = remote_service.get_runs()
+
+            skip = getattr(args, "skip", 0)
+            limit = getattr(args, "limit", 0)
+            state = getattr(args, "state", None)
+            state = None if state is None else RunState(state)
+
+            raw_result = remote_service.get_runs(skip=skip, limit=limit)
 
             schema = Paginated[RunGet].parse_obj(raw_result)
 
             runs = schema.data
 
-            terminal_run_states = [
-                RunState.FAILED,
-                RunState.COMPLETE,
-            ]
-
             run_data = [
                 [
                     _run.id,
                     _run.created_at.strftime("%d-%m-%Y %H:%M:%S"),
-                    "executing",
+                    _run.run_state.value,
                     _run.runnable.id,
                 ]
                 for _run in runs
-                if _run.run_state not in terminal_run_states
+                if state is None or _run.run_state == state
             ]
             table = tabulate(
                 run_data,
