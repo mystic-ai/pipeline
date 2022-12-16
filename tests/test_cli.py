@@ -52,17 +52,14 @@ def test_verbose(capsys, option):
 
 
 @pytest.mark.parametrize("option", ("list", "ls"))
-def test_runs_list(url, token, option, capsys, top_api_server):
+def test_runs_list(url, token, option):
     cli_main(["remote", "login", "-u", url, "-t", token])
     cli_main(["remote", "set", url])
     configuration.DEFAULT_REMOTE = url
 
     response = cli_main(["runs", option])
 
-    output: str = capsys.readouterr().out
-    runs = output.splitlines()
     assert response == 0
-    assert "| run_test_2 | 01-01-2000 00:00:00 | executing | test_function_id |" in runs
 
 
 def test_runs_get(url, token, run_get):
