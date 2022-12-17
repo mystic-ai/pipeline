@@ -136,21 +136,82 @@ def main(args: Optional[List[str]] = None) -> int:
     tags_sub_parser = tags_parser.add_subparsers(dest="sub-command")
 
     ##########
-    # pipeline tags set
+    # pipeline tags create
     ##########
 
     tags_set_parser = tags_sub_parser.add_parser(
-        "set",
+        "create",
         help="Set the value of a tag",
     )
 
     tags_set_parser.add_argument(
-        "SOURCE",
+        "source",
         help='The source pipeline:tag "<pipeline_name>:<pipeline_id>"',
     )
     tags_set_parser.add_argument(
-        "TARGET",
-        help='The final pipeline:tag "<pipeline_name>:<pipeline_id>"',
+        "target",
+        help="The target pipeline:tag or pipeline_id",
+    )
+
+    ##########
+    # pipeline tags update
+    ##########
+
+    tags_update_parser = tags_sub_parser.add_parser(
+        "update",
+        help="Update the value of a tag",
+    )
+    tags_update_parser.add_argument(
+        "source",
+        help="The source pipeline:tag",
+    )
+    tags_update_parser.add_argument(
+        "target",
+        help="The target pipeline:tag or pipeline_id",
+    )
+
+    ##########
+    # pipeline tags list
+    ##########
+
+    tags_list_parser = tags_sub_parser.add_parser(
+        "list",
+        aliases=["ls"],
+        help="List tags on the remote compute service",
+    )
+
+    tags_list_parser.add_argument(
+        "-p",
+        "--pipeline-id",
+        type=str,
+        help="Filter by target pipeline id",
+    )
+
+    ##########
+    # pipeline tags delete
+    ##########
+
+    tags_delete_parser = tags_sub_parser.add_parser(
+        "delete",
+        aliases=["rm"],
+        help="Delete a pipeline tag (does not delete the pipeline)",
+    )
+
+    tags_delete_parser.add_argument(
+        "pipeline_tag", help="The pipeline tag or tag_id to delete"
+    )
+
+    ##########
+    # pipeline tags get
+    ##########
+
+    tags_get_parser = tags_sub_parser.add_parser(
+        "get",
+        help="Get tag information",
+    )
+
+    tags_get_parser.add_argument(
+        "pipeline_tag", help="The pipeline tag or tag_id to get"
     )
 
     ##########

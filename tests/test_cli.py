@@ -1,11 +1,13 @@
 import pytest
+from _pytest.capture import CaptureFixture
 
 from pipeline import configuration
 from pipeline.console import main as cli_main
+from pipeline.schemas.pipeline import PipelineTagGet
 
 
 @pytest.mark.parametrize("option", ("-h", "--help"))
-def test_help(capsys, option):
+def test_help(capsys: CaptureFixture, option):
     try:
         cli_main([option])
     except SystemExit as system_exit:
@@ -26,7 +28,7 @@ def test_login_fail(url, top_api_server_bad_token, bad_token):
 
 
 @pytest.mark.parametrize("sub_command", ("list", "ls"))
-def test_remote_list(capsys, sub_command):
+def test_remote_list(capsys: CaptureFixture, sub_command):
     configuration.remote_auth = dict(test_url="test_token", test_url2="test_token2")
     configuration._save_auth()
     configuration.config["DEFAULT_REMOTE"] = "test_url"
@@ -43,7 +45,10 @@ def test_remote_list(capsys, sub_command):
 
 
 @pytest.mark.parametrize("option", ("-v", "--verbose"))
-def test_verbose(capsys, option):
+def test_verbose(
+    capsys: CaptureFixture,
+    option,
+):
     response_code = cli_main([option])
     assert response_code == 0
 
@@ -86,8 +91,11 @@ def test_runs_get(url, token, capsys, run_get, top_api_server):
 
 
 @pytest.mark.usefixtures("api_response")
-def test_tags_set(
-    url,
-    token,
+def test_tags_create(
+    url: str,
+    token: str,
+    tag_get: PipelineTagGet,
+    capsys: CaptureFixture,
 ):
-    ...
+    response = cli_main(["tags", "create", tag_get.name, "pipeline_id"])
+    assert response == 0

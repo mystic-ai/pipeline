@@ -17,6 +17,7 @@ from tqdm.utils import CallbackIOWrapper
 from pipeline import configuration
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
+from pipeline.objects.variable import PipelineFile
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
@@ -244,7 +245,9 @@ class PipelineCloud:
         )
         return PipelineFileGet.parse_obj(response)
 
-    def upload_pipeline_file(self, pipeline_file) -> PipelineFileVariableGet:
+    def upload_pipeline_file(
+        self, pipeline_file: PipelineFile
+    ) -> PipelineFileVariableGet:
         """Upload PipelineFile given by pipeline_file.
 
         Since PipelineFiles can be very large, we implement this slightly
@@ -312,7 +315,7 @@ class PipelineCloud:
         response.raise_for_status()
         return response.json()
 
-    def _post(self, endpoint, json_data):
+    def _post(self, endpoint: str, json_data: dict) -> dict:
         self.raise_for_invalid_token()
         headers = {
             "Authorization": "Bearer %s" % self.token,
@@ -332,7 +335,27 @@ class PipelineCloud:
 
         return response.json()
 
-    def _post_file(self, endpoint: str, file: io.BytesIO) -> FileGet:
+    def _patch(self, endpoint: str, json_data: dict) -> dict:
+        self.raise_for_invalid_token()
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+            "Content-type": "application/json",
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = httpx.patch(
+            url, headers=headers, json=json_data, timeout=self.timeout
+        )
+
+        if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
+            schema = json_data
+            raise InvalidSchema(schema=schema)
+        else:
+            self._get_raise_for_status(response)
+
+        return response.json()
+
+    def _post_file(self, endpoint: str, file: io.IOBase) -> FileGet:
         self.raise_for_invalid_token()
         if not hasattr(file, "name"):
             file.name = generate_id(20)
