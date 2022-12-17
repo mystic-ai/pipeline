@@ -186,6 +186,22 @@ def main(args: Optional[List[str]] = None) -> int:
         type=str,
         help="Filter by target pipeline id",
     )
+    tags_list_parser.add_argument(
+        "-l",
+        "--limit",
+        required=False,
+        help="Number of tags to get",
+        default=20,
+        type=int,
+    )
+    tags_list_parser.add_argument(
+        "-s",
+        "--skip",
+        required=False,
+        help="Number of tags to skip for pagination",
+        default=0,
+        type=int,
+    )
 
     ##########
     # pipeline tags delete

@@ -1,7 +1,10 @@
 import argparse
 import re
 
+from tabulate import tabulate
+
 from pipeline import PipelineCloud
+from pipeline.schemas.pagination import Paginated
 from pipeline.schemas.pipeline import (
     PipelineTagCreate,
     PipelineTagGet,
@@ -67,11 +70,68 @@ def tags(args: argparse.Namespace) -> int:
         pipeline_id: str = getattr(args, "pipeline_id", None)
 
         if pipeline_id is not None:
-            ...
+            response = remote_service._get(
+                f"/v2/pipeline-tags/by-pipeline/{pipeline_id}",
+                params=dict(
+                    skip=getattr(args, "skip"),
+                    limit=getattr(args, "limit"),
+                    order_by="created_at:desc",
+                ),
+            )
+
+            paginated_results = Paginated[PipelineTagGet].parse_obj(response)
         else:
-            ...
-        return 1
+            response = remote_service._get(
+                "/v2/pipeline-tags",
+                params=dict(
+                    skip=getattr(args, "skip"),
+                    limit=getattr(args, "limit"),
+                    order_by="created_at:desc",
+                ),
+            )
+
+            paginated_results = Paginated[PipelineTagGet].parse_obj(response)
+
+        tags_list = paginated_results.data
+        tags_data = [
+            [
+                _tag.id,
+                _tag.name,
+                _tag.pipeline_id,
+            ]
+            for _tag in tags_list
+        ]
+
+        table = tabulate(
+            tags_data,
+            headers=[
+                "ID",
+                "Name",
+                "Target",
+            ],
+        )
+        print(table)
+        return 0
     elif sub_command in ["delete", "rm"]:
-        return 1
+        tag_name = getattr(args, "pipeline_tag")
+        tag_information = PipelineTagGet.parse_obj(
+            remote_service._get(f"/v2/pipeline-tags/by-name/{tag_name}")
+        )
+        remote_service._delete(f"/v2/pipeline-tags/{tag_information.id}")
+        _print(f"Deleted {tag_name}")
+        return 0
     elif sub_command == "get":
-        return 1
+        tag_name = getattr(args, "pipeline_tag")
+        tag_information = PipelineTagGet.parse_obj(
+            remote_service._get(f"/v2/pipeline-tags/by-name/{tag_name}")
+        )
+        table = tabulate(
+            [[tag_information.id, tag_information.name, tag_information.pipeline_id]],
+            headers=[
+                "ID",
+                "Name",
+                "Target",
+            ],
+        )
+        print(table)
+        return 0

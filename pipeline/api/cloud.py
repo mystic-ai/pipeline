@@ -355,6 +355,20 @@ class PipelineCloud:
 
         return response.json()
 
+    def _delete(self, endpoint: str) -> dict:
+        self.raise_for_invalid_token()
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+            "Content-type": "application/json",
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = httpx.delete(url, headers=headers, timeout=self.timeout)
+        if response.status_code is not HTTPStatus.NO_CONTENT:
+            self._get_raise_for_status(response)
+
+        return response.json()
+
     def _post_file(self, endpoint: str, file: io.IOBase) -> FileGet:
         self.raise_for_invalid_token()
         if not hasattr(file, "name"):
