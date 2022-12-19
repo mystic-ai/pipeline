@@ -1,8 +1,6 @@
 Stable diffusion discord bot
 ============================
 
-_Last edited: 2022-10-14_
-
 Overview
 --------
 
