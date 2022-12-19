@@ -16,10 +16,20 @@ pipeline_api = PipelineCloud(token=pipeline_token)
 
 async def handle_generation(image_prompt: str) -> io.BytesIO:
     response = await pipeline_api.run_pipeline(
-        "pipeline_67d9d8ec36d54c148c70df1f404b0369",
-        [[image_prompt], {"width": 512, "height": 512, "num_inference_steps": 50}],
+        "stable-diffusion-v1.5-txt2img-fp16@3.0",
+        [
+            [
+                dict(text_in=image_prompt),
+            ],
+            dict(
+                width=512,
+                height=512,
+                num_inference_steps=25,
+                num_samples=1,
+            ),
+        ],
     )
-    image_b64 = response.result_preview[0][0][0]
+    image_b64 = response.result_preview[0][0]["images_out"][0]
 
     image_decoded = base64.decodebytes(image_b64.encode())
     buffer = io.BytesIO(image_decoded)
@@ -62,7 +72,7 @@ async def paint(ctx: interactions.CommandContext, prompt: str) -> None:
             # You can add another argument 'ephemeral=True' to only show the
             # result to the user that sent the request.
         )
-    except:
+    except Exception:
         # If the image generation (or anything else) fails
         # for any reason it's best to let the user know
         await sent_response.edit(
