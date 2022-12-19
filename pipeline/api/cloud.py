@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import urllib.parse
+import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
@@ -474,7 +475,20 @@ class PipelineCloud:
 
             pipeline_file_schema = None
             if isinstance(_var, PipelineFile):
-                pipeline_file_schema = self.upload_pipeline_file(_var)
+                if _var.remote_id is not None:
+                    file_schema: FileGet = self._download_schema(
+                        schema=FileGet,
+                        endpoint=f"/v2/files/{_var.remote_id}",
+                        params=dict(
+                            return_data=False,
+                        ),
+                    )
+                    unique_identifier = str(uuid.uuid4())
+                    pipeline_file_schema = PipelineFileVariableGet(
+                        path=unique_identifier, hash=unique_identifier, file=file_schema
+                    )
+                else:
+                    pipeline_file_schema = self.upload_pipeline_file(_var)
 
             _var_schema = PipelineVariableGet(
                 local_id=_var.local_id,
