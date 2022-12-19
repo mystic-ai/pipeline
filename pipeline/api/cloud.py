@@ -9,6 +9,7 @@ import urllib.parse
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
+import dill
 import httpx
 from pydantic import ValidationError
 from tqdm import tqdm
@@ -17,6 +18,7 @@ from tqdm.utils import CallbackIOWrapper
 from pipeline import configuration
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
+from pipeline.objects.variable import PipelineFile
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
@@ -733,3 +735,25 @@ class PipelineCloud:
             ),
         )
         return result
+
+    def download_remotes(self, graph: Graph) -> None:
+        # Only remote PipelineFiles are supported
+        for variable in graph.variables:
+            if not isinstance(variable, PipelineFile) or variable.remote_id is None:
+                continue
+
+            downloaded_schema: FileGet = self._download_schema(
+                schema=FileGet,
+                endpoint=f"/v2/files/{variable.remote_id}",
+                params=dict(
+                    return_data=True,
+                ),
+            )
+
+            configuration.PIPELINE_CACHE_FILES.mkdir(exist_ok=True)
+            raw_result = hex_to_python_object(downloaded_schema.data)
+            file_path = configuration.PIPELINE_CACHE_FILES / variable.remote_id
+            with open(file_path, "wb") as file:
+                dill.dump(raw_result, file=file)
+
+            variable.path = file_path
