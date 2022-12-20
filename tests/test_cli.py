@@ -4,8 +4,14 @@ from pytest_httpserver import HTTPServer
 
 from pipeline import configuration
 from pipeline.console import main as cli_main
+from pipeline.console.tags import _update_or_create_tag
+from pipeline.schemas.pipeline import PipelineTagGet
 
-# from pipeline.schemas.pipeline import PipelineTagGet
+
+def _set_testing_remote_compute_service(url, token):
+    cli_main(["remote", "login", "-u", url, "-t", token])
+    cli_main(["remote", "set", url])
+    configuration.DEFAULT_REMOTE = url
 
 
 @pytest.mark.parametrize("option", ("-h", "--help"))
@@ -92,5 +98,24 @@ def test_runs_get(url, token, capsys, run_get, top_api_server):
     assert output == '{"test": "hello"}\n'
 
 
-def test_tags_create(top_api_server: HTTPServer):
-    ...
+##########
+# pipeline tags
+##########
+
+
+def test_tags_create(url: str, token: str, top_api_server: HTTPServer):
+    _set_testing_remote_compute_service(url=url, token=token)
+    with pytest.raises(SystemExit):
+        cli_main(["tags", "create", "bad_tag", "pipeline_id"])
+    assert cli_main(["tags", "create", "good:tag", "pipeline_id"]) == 0
+    assert cli_main(["tags", "create", "good:tag", "existing:tag"]) == 0
+
+    create_output = _update_or_create_tag("good:tag", "pipeline_id", "create")
+    print(create_output)
+
+    assert create_output == PipelineTagGet(
+        id="pipeline_tag_id",
+        name="good:tag",
+        project_id="project_id",
+        pipeline_id="pipeline_id",
+    )

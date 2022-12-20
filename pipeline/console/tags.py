@@ -1,5 +1,6 @@
 import argparse
 import re
+import sys
 from typing import List
 
 from tabulate import tabulate
@@ -30,7 +31,7 @@ def _update_or_create_tag(source: str, target: str, sub_command: str) -> Pipelin
     remote_service.authenticate()
     if not tag_re_pattern.match(source):
         _print("Source tag must match pattern 'pipeline:tag'", level="ERROR")
-        return 1
+        raise sys.exit(1)
 
     if tag_re_pattern.match(target):
         # Pointing to another tag

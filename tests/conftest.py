@@ -70,7 +70,7 @@ def top_api_server_bad_token(httpserver, bad_token):
 
 @pytest.fixture
 def top_api_server(
-    httpserver,
+    httpserver: HTTPServer,
     token,
     file_get,
     function_get_json,
@@ -187,6 +187,39 @@ def top_api_server(
         f"/v2/runs/{run_get.id}",
         method="GET",
     ).respond_with_json(json.loads(run_get.json()))
+
+    ##########
+    # /v2/pipeline-tags
+    ##########
+
+    httpserver.expect_request(
+        "/v2/pipeline-tags",
+        method="POST",
+        headers=dict(Authorization=f"Bearer {token}"),
+        data=PipelineTagCreate(name="good:tag", pipeline_id="pipeline_id").json(),
+    ).respond_with_json(
+        PipelineTagGet(
+            id="pipeline_tag_id",
+            name="good:tag",
+            project_id="project_id",
+            pipeline_id="pipeline_id",
+        ).dict()
+    )
+
+    httpserver.expect_request(
+        "/v2/pipeline-tags/by-name/existing:tag",  # Swap this out for a define tag?
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_json(
+        PipelineTagGet(
+            id="pipeline_tag_id_2",
+            name="existing:tag",
+            project_id="project_id",
+            pipeline_id="pipeline_id",
+        ).dict()
+    )
+
+    ##########
 
     return httpserver
 
