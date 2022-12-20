@@ -1,5 +1,6 @@
 import argparse
 import re
+from typing import List
 
 from tabulate import tabulate
 
@@ -15,6 +16,15 @@ from pipeline.util.logging import _print
 tag_re_pattern = re.compile(r"^[a-zA-Z\-\_]+:[a-zA-Z\-\_]+$", re.IGNORECASE)
 
 
+def _get_tag(tag_name: str) -> PipelineTagGet:
+    remote_service = PipelineCloud(verbose=False)
+    remote_service.authenticate()
+    tag_information = PipelineTagGet.parse_obj(
+        remote_service._get(f"/v2/pipeline-tags/by-name/{tag_name}")
+    )
+    return tag_information
+
+
 def _update_or_create_tag(source: str, target: str, sub_command: str) -> PipelineTagGet:
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
@@ -24,9 +34,7 @@ def _update_or_create_tag(source: str, target: str, sub_command: str) -> Pipelin
 
     if tag_re_pattern.match(target):
         # Pointing to another tag
-        target_schema = PipelineTagGet.parse_obj(
-            remote_service._get(f"/v2/pipeline-tags/by-name/{target}")
-        )
+        target_schema = _get_tag(target)
         target_pipeline = target_schema.pipeline_id
     else:
         # Pointing to a pipeline_id
@@ -43,9 +51,7 @@ def _update_or_create_tag(source: str, target: str, sub_command: str) -> Pipelin
         )
     else:
         # Update
-        existing_tag = PipelineTagGet.parse_obj(
-            remote_service._get(f"/v2/pipeline-tags/by-name/{source}")
-        )
+        existing_tag = _get_tag(source)
         patch_schema = PipelineTagPatch(pipeline_id=target_pipeline)
 
         response = remote_service._patch(
@@ -92,19 +98,26 @@ def _delete_tag(tag_name: str) -> None:
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
 
-    tag_information = PipelineTagGet.parse_obj(
-        remote_service._get(f"/v2/pipeline-tags/by-name/{tag_name}")
-    )
+    tag_information = _get_tag(tag_name)
     remote_service._delete(f"/v2/pipeline-tags/{tag_information.id}")
 
 
-def _get_tag(tag_name: str) -> PipelineTagGet:
-    remote_service = PipelineCloud(verbose=False)
-    remote_service.authenticate()
-    tag_information = PipelineTagGet.parse_obj(
-        remote_service._get(f"/v2/pipeline-tags/by-name/{tag_name}")
+def _tabulate_tags(tags: List[PipelineTagGet]) -> str:
+    return tabulate(
+        [
+            [
+                _tag.id,
+                _tag.name,
+                _tag.pipeline_id,
+            ]
+            for _tag in tags
+        ],
+        headers=[
+            "ID",
+            "Name",
+            "Target",
+        ],
     )
-    return tag_information
 
 
 def tags(args: argparse.Namespace) -> int:
@@ -113,12 +126,9 @@ def tags(args: argparse.Namespace) -> int:
     if sub_command in ["create", "update"]:
         source = getattr(args, "source")
         target = getattr(args, "target")
-
         tag_get_schema = _update_or_create_tag(source, target, sub_command)
         _print(f"Tag '{tag_get_schema.name}' -> '{tag_get_schema.pipeline_id}'")
-
         return 0
-
     elif sub_command in ["list", "ls"]:
         pipeline_id: str = getattr(args, "pipeline_id", None)
         paginated_results = _list_tags(
@@ -126,25 +136,8 @@ def tags(args: argparse.Namespace) -> int:
             getattr(args, "limit"),
             pipeline_id=pipeline_id,
         )
-        tags_list = paginated_results.data
-        tags_data = [
-            [
-                _tag.id,
-                _tag.name,
-                _tag.pipeline_id,
-            ]
-            for _tag in tags_list
-        ]
-
-        table = tabulate(
-            tags_data,
-            headers=[
-                "ID",
-                "Name",
-                "Target",
-            ],
-        )
-        print(table)
+        table_string = _tabulate_tags(paginated_results.data)
+        print(table_string)
         return 0
     elif sub_command in ["delete", "rm"]:
         tag_name = getattr(args, "pipeline_tag")
@@ -154,14 +147,6 @@ def tags(args: argparse.Namespace) -> int:
     elif sub_command == "get":
         tag_name = getattr(args, "pipeline_tag")
         tag_information = _get_tag(tag_name)
-
-        table = tabulate(
-            [[tag_information.id, tag_information.name, tag_information.pipeline_id]],
-            headers=[
-                "ID",
-                "Name",
-                "Target",
-            ],
-        )
-        print(table)
+        table_string = _tabulate_tags([tag_information])
+        print(table_string)
         return 0
