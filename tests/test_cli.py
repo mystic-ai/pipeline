@@ -1,5 +1,6 @@
 import pytest
 from _pytest.capture import CaptureFixture
+from pytest_httpserver import HTTPServer
 
 from pipeline import configuration
 from pipeline.console import main as cli_main
@@ -91,12 +92,5 @@ def test_runs_get(url, token, capsys, run_get, top_api_server):
     assert output == '{"test": "hello"}\n'
 
 
-# @pytest.mark.usefixtures("api_response")
-# def test_tags_create(
-#     url: str,
-#     token: str,
-#     tag_get: PipelineTagGet,
-#     capsys: CaptureFixture,
-# ):
-#     response = cli_main(["tags", "create", tag_get.name, "pipeline_id"])
-#     assert response == 0
+def test_tags_create(top_api_server: HTTPServer):
+    ...
