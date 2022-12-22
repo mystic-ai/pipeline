@@ -1,17 +1,10 @@
 import argparse
-import json
 import sys
 from typing import List, Optional
 
-from tabulate import tabulate
-
-from pipeline import configuration
-from pipeline.api import PipelineCloud
-from pipeline.schemas.file import FileGet
-from pipeline.schemas.pagination import Paginated
-from pipeline.schemas.run import RunGet, RunState
-from pipeline.util import hex_to_python_object
-from pipeline.util.logging import _print
+from pipeline.console.remote import remote as remote_command
+from pipeline.console.runs import runs as runs_command
+from pipeline.console.tags import tags as tags_command
 
 
 def main(args: Optional[List[str]] = None) -> int:
@@ -118,7 +111,10 @@ def main(args: Optional[List[str]] = None) -> int:
         help="Get run information from a remote compute service",
     )
 
-    runs_get_parser.add_argument("run_id", help="The run id")
+    runs_get_parser.add_argument(
+        "run_id",
+        help="The run id",
+    )
 
     runs_get_parser.add_argument(
         "-r",
@@ -127,111 +123,134 @@ def main(args: Optional[List[str]] = None) -> int:
         help="Get the run result",
     )
 
+    ##########
+    # pipeline tags
+    ##########
+
+    tags_parser = command_parser.add_parser(
+        "tags",
+        description="Manage pipeline tags",
+        help="Manage pipeline tags",
+    )
+
+    tags_sub_parser = tags_parser.add_subparsers(dest="sub-command")
+
+    ##########
+    # pipeline tags create
+    ##########
+
+    tags_set_parser = tags_sub_parser.add_parser(
+        "create",
+        help="Create a tag TARGET that points to SOURCE",
+    )
+
+    tags_set_parser.add_argument(
+        "source",
+        help="The source pipeline:tag or pipeline_id",
+    )
+    tags_set_parser.add_argument(
+        "target",
+        help="The target pipeline:tag",
+    )
+
+    ##########
+    # pipeline tags update
+    ##########
+
+    tags_update_parser = tags_sub_parser.add_parser(
+        "update",
+        help="Update a tag TARGET to point to a new SOURCE",
+    )
+    tags_update_parser.add_argument(
+        "source",
+        help="The source pipeline:tag or pipeline_id",
+    )
+    tags_update_parser.add_argument(
+        "target",
+        help="The target pipeline:tag",
+    )
+
+    ##########
+    # pipeline tags list
+    ##########
+
+    tags_list_parser = tags_sub_parser.add_parser(
+        "list",
+        aliases=["ls"],
+        help="List tags on the remote compute service",
+    )
+
+    tags_list_parser.add_argument(
+        "-p",
+        "--pipeline-id",
+        type=str,
+        help="Filter by target pipeline id",
+    )
+    tags_list_parser.add_argument(
+        "-l",
+        "--limit",
+        required=False,
+        help="Number of tags to get",
+        default=20,
+        type=int,
+    )
+    tags_list_parser.add_argument(
+        "-s",
+        "--skip",
+        required=False,
+        help="Number of tags to skip for pagination",
+        default=0,
+        type=int,
+    )
+
+    ##########
+    # pipeline tags delete
+    ##########
+
+    tags_delete_parser = tags_sub_parser.add_parser(
+        "delete",
+        aliases=["rm"],
+        help="Delete a pipeline tag (does not delete the pipeline)",
+    )
+
+    tags_delete_parser.add_argument(
+        "pipeline_tag", help="The pipeline tag or tag_id to delete"
+    )
+
+    ##########
+    # pipeline tags get
+    ##########
+
+    tags_get_parser = tags_sub_parser.add_parser(
+        "get",
+        help="Get tag information",
+    )
+
+    tags_get_parser.add_argument(
+        "pipeline_tag", help="The pipeline tag or tag_id to get"
+    )
+
+    ##########
     args: argparse.Namespace = base_parser.parse_args(args)
     command = getattr(args, "command", None)
-    sub_command = getattr(args, "sub-command", None)
 
     if command == "remote":
-        if sub_command == "set":
-            default_url = args.url
-            configuration.config["DEFAULT_REMOTE"] = default_url
-            configuration._save_config()
-            _print(
-                f"Set new default remote to '{configuration.config['DEFAULT_REMOTE']}'"
-            )
-            return 0
-        elif sub_command in ["list", "ls"]:
-            remotes = [
-                f"{_remote} (active)"
-                if _remote == configuration.DEFAULT_REMOTE
-                else f"{_remote}"
-                for _remote in configuration.remote_auth.keys()
-            ]
-            _print("Authenticated remotes:")
-            [print(_remote) for _remote in remotes]
-            return 0
-        elif sub_command == "login":
-            valid_token = PipelineCloud._validate_token(args.token, args.url)
-
-            if valid_token:
-                configuration.remote_auth[args.url] = args.token
-                configuration._save_auth()
-                _print(f"Successfully authenticated with {args.url}")
-                return 0
-
-            _print(f"Couldn't authenticate with {args.url}", level="ERROR")
-            return 1
-        else:
+        if (code := remote_command(args)) is None:
             remote_parser.print_help()
             return 1
     elif command == "runs":
-
-        remote_service = PipelineCloud(verbose=False)
-        remote_service.authenticate()
-
-        if sub_command in ["list", "ls"]:
-            raw_result = remote_service.get_runs()
-
-            schema = Paginated[RunGet].parse_obj(raw_result)
-
-            runs = schema.data
-
-            terminal_run_states = [
-                RunState.FAILED,
-                RunState.COMPLETE,
-            ]
-
-            run_data = [
-                [
-                    _run.id,
-                    _run.created_at.strftime("%d-%m-%Y %H:%M:%S"),
-                    "executing",
-                    _run.runnable.id,
-                ]
-                for _run in runs
-                if _run.run_state not in terminal_run_states
-            ]
-            table = tabulate(
-                run_data,
-                headers=[
-                    "ID",
-                    "Created at",
-                    "State",
-                    "Pipeline",
-                ],
-                tablefmt="outline",
-            )
-            print(table)
-            return 0
-        elif sub_command == "get":
-            run_id = args.run_id
-
-            result = remote_service._get(f"/v2/runs/{run_id}")
-            if args.result:
-                result = RunGet.parse_obj(result)
-                if result.result_preview is not None:
-                    print(json.dumps(result.result_preview))
-                else:
-                    file_schema_raw = remote_service._get(
-                        f"/v2/files/{result.result.id}?return_data=true"
-                    )
-
-                    file_schema = FileGet.parse_obj(file_schema_raw)
-                    raw_result = hex_to_python_object(file_schema.data)
-                    print(json.dumps(raw_result))
-
-                return 0
-            else:
-                print(json.dumps(result))
-                return 0
-
-        else:
+        if (code := runs_command(args)) is None:
             runs_parser.print_help()
             return 1
-
+    elif command == "tags":
+        if (code := tags_command(args)) is None:
+            tags_parser.print_help()
+            return 1
     else:
         base_parser.print_help()
         return 0
+
+    return code
 
 
 def _run() -> int:
