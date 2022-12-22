@@ -125,6 +125,12 @@ class Graph:
         # Add all PipelineFile's to the running variables
         for var in self.variables:
             if isinstance(var, PipelineFile):
+                if var.remote_id is not None and not var.path:
+                    raise Exception(
+                        "Must call PipelineCloud().download_remotes(...) on "
+                        "remote PipelineFiles"
+                    )
+
                 running_variables[var.local_id] = var
 
         for i, input in enumerate(inputs):
