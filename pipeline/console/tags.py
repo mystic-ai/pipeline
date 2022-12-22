@@ -47,7 +47,7 @@ def _update_or_create_tag(source: str, target: str, sub_command: str) -> Pipelin
 
     if sub_command == "create":
         tag_create_schema = PipelineTagCreate(
-            name=source,
+            name=target,
             pipeline_id=source_pipeline,
         )
         response = remote_service._post(

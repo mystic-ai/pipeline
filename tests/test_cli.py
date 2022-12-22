@@ -119,8 +119,16 @@ def test_tags_create(
 
     _set_testing_remote_compute_service(url=url, token=token)
     with pytest.raises(SystemExit):
-        cli_main(["tags", "create", "bad_tag", "pipeline_id"])
+        cli_main(
+            [
+                "tags",
+                "create",
+                "pipeline_id",
+                "bad_tag",
+            ]
+        )
     assert cli_main(["tags", "create", tag_get_2.pipeline_id, tag_get.name]) == 0
+
     assert cli_main(["tags", "create", tag_get_2.name, tag_get.name]) == 0
 
     create_output_by_pipeline_id = _update_or_create_tag(
