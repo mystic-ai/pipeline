@@ -108,6 +108,7 @@ def _tabulate_tags(tags: List[PipelineTagGet]) -> str:
             "Name",
             "Target",
         ],
+        tablefmt="outline",
     )
 
 
