@@ -97,11 +97,11 @@ def _tabulate_tags(tags: List[PipelineTagGet]) -> str:
     return tabulate(
         [
             [
-                _tag.id,
-                _tag.name,
-                _tag.pipeline_id,
+                tag.id,
+                tag.name,
+                tag.pipeline_id,
             ]
-            for _tag in tags
+            for tag in tags
         ],
         headers=[
             "ID",
