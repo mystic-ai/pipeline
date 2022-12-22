@@ -14,10 +14,14 @@ from pipeline.schemas.pipeline import (
 )
 from pipeline.util.logging import _print
 
-tag_re_pattern = re.compile(r"^[a-zA-Z\-\_]+:[a-zA-Z\-\_]+$", re.IGNORECASE)
+tag_re_pattern = re.compile(r"^[0-9a-zA-Z\-\_]+:[0-9a-zA-Z\-\_]+$", re.IGNORECASE)
 
 
 def _get_tag(tag_name: str) -> PipelineTagGet:
+    if not tag_re_pattern.match(tag_name):
+        _print("Source tag must match pattern 'pipeline:tag'", level="ERROR")
+        raise sys.exit(1)
+
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
     tag_information = PipelineTagGet.parse_obj(
@@ -46,7 +50,6 @@ def _update_or_create_tag(source: str, target: str, sub_command: str) -> Pipelin
             name=source,
             pipeline_id=target_pipeline,
         )
-
         response = remote_service._post(
             "/v2/pipeline-tags", json_data=tag_create_schema.dict()
         )
@@ -54,7 +57,6 @@ def _update_or_create_tag(source: str, target: str, sub_command: str) -> Pipelin
         # Update
         existing_tag = _get_tag(source)
         patch_schema = PipelineTagPatch(pipeline_id=target_pipeline)
-
         response = remote_service._patch(
             f"/v2/pipeline-tags/{existing_tag.id}", json_data=patch_schema.dict()
         )

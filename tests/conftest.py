@@ -10,6 +10,7 @@ import cloudpickle
 import dill
 import pytest
 from pytest_httpserver import HTTPServer
+from werkzeug.wrappers import Response
 
 from pipeline.objects import (
     Pipeline,
@@ -23,7 +24,11 @@ from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
 from pipeline.schemas.pagination import Paginated
-from pipeline.schemas.pipeline import PipelineTagCreate, PipelineTagGet
+from pipeline.schemas.pipeline import (
+    PipelineTagCreate,
+    PipelineTagGet,
+    PipelineTagPatch,
+)
 from pipeline.schemas.pipeline_file import (
     PipelineFileDirectUploadInitGet,
     PipelineFileDirectUploadPartGet,
@@ -73,6 +78,12 @@ def top_api_server(
     httpserver: HTTPServer,
     token,
     file_get,
+    tag_get: PipelineTagGet,
+    tag_get_2: PipelineTagGet,
+    tag_get_3: PipelineTagGet,
+    tag_get_patched: PipelineTagGet,
+    tag_patch: PipelineTagPatch,
+    tag_create: PipelineTagCreate,
     function_get_json,
     model_get_json,
     result_file_get_json,
@@ -196,29 +207,39 @@ def top_api_server(
         "/v2/pipeline-tags",
         method="POST",
         headers=dict(Authorization=f"Bearer {token}"),
-        data=PipelineTagCreate(name="good:tag", pipeline_id="pipeline_id").json(),
-    ).respond_with_json(
-        PipelineTagGet(
-            id="pipeline_tag_id",
-            name="good:tag",
-            project_id="project_id",
-            pipeline_id="pipeline_id",
-        ).dict()
-    )
+        data=tag_create.json(),
+    ).respond_with_json(tag_get.dict())
 
     httpserver.expect_request(
-        "/v2/pipeline-tags/by-name/existing:tag",  # Swap this out for a define tag?
+        f"/v2/pipeline-tags/by-name/{tag_get.name}",
         method="GET",
         headers=dict(Authorization=f"Bearer {token}"),
-    ).respond_with_json(
-        PipelineTagGet(
-            id="pipeline_tag_id_2",
-            name="existing:tag",
-            project_id="project_id",
-            pipeline_id="pipeline_id",
-        ).dict()
-    )
+    ).respond_with_json(tag_get.dict())
 
+    httpserver.expect_request(
+        f"/v2/pipeline-tags/by-name/{tag_get_2.name}",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_json(tag_get_2.dict())
+
+    httpserver.expect_request(
+        f"/v2/pipeline-tags/by-name/{tag_get_3.name}",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_json(tag_get_3.dict())
+
+    httpserver.expect_request(
+        f"/v2/pipeline-tags/by-name/missing:tag",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_response(Response(status=404))
+
+    httpserver.expect_request(
+        f"/v2/pipeline-tags/{tag_get.id}",
+        method="PATCH",
+        headers=dict(Authorization=f"Bearer {token}"),
+        data=tag_patch.json(),
+    ).respond_with_json(tag_get_patched.dict())
     ##########
 
     return httpserver
@@ -637,8 +658,35 @@ def tag_get_2(project_get: ProjectGet):
 
 
 @pytest.fixture()
+def tag_get_3(project_get: ProjectGet):
+    return PipelineTagGet(
+        id="pipeline_tag_3",
+        name="test:tag3",
+        project_id=project_get.id,
+        pipeline_id="pipeline_id_2",
+    )
+
+
+@pytest.fixture()
+def tag_get_patched(project_get: ProjectGet):
+    return PipelineTagGet(
+        id="pipeline_tag",
+        name="test:pipeline_id",
+        project_id=project_get.id,
+        pipeline_id="pipeline_id_2",
+    )
+
+
+@pytest.fixture()
 def tag_create():
     return PipelineTagCreate(
-        name="test:tag2",
+        name="test:pipeline_id",
         pipeline_id="pipeline_id",
+    )
+
+
+@pytest.fixture()
+def tag_patch():
+    return PipelineTagPatch(
+        pipeline_id="pipeline_id_2",
     )

@@ -1,10 +1,10 @@
 import pytest
 from _pytest.capture import CaptureFixture
-from pytest_httpserver import HTTPServer
+from httpx import HTTPStatusError
 
 from pipeline import configuration
 from pipeline.console import main as cli_main
-from pipeline.console.tags import _update_or_create_tag
+from pipeline.console.tags import _get_tag, _update_or_create_tag
 from pipeline.schemas.pipeline import PipelineTagGet
 
 
@@ -103,19 +103,70 @@ def test_runs_get(url, token, capsys, run_get, top_api_server):
 ##########
 
 
-def test_tags_create(url: str, token: str, top_api_server: HTTPServer):
+@pytest.mark.usefixtures("top_api_server")
+def test_tags_create(
+    url: str,
+    token: str,
+    tag_get: PipelineTagGet,
+    tag_get_2: PipelineTagGet,
+):
+
     _set_testing_remote_compute_service(url=url, token=token)
     with pytest.raises(SystemExit):
         cli_main(["tags", "create", "bad_tag", "pipeline_id"])
-    assert cli_main(["tags", "create", "good:tag", "pipeline_id"]) == 0
-    assert cli_main(["tags", "create", "good:tag", "existing:tag"]) == 0
+    assert cli_main(["tags", "create", tag_get.name, tag_get_2.pipeline_id]) == 0
+    assert cli_main(["tags", "create", tag_get.name, tag_get_2.name]) == 0
 
-    create_output = _update_or_create_tag("good:tag", "pipeline_id", "create")
-    print(create_output)
-
-    assert create_output == PipelineTagGet(
-        id="pipeline_tag_id",
-        name="good:tag",
-        project_id="project_id",
-        pipeline_id="pipeline_id",
+    create_output_by_pipeline_id = _update_or_create_tag(
+        tag_get.name, tag_get_2.pipeline_id, "create"
     )
+    create_output_by_tag_name = _update_or_create_tag(
+        tag_get.name, tag_get_2.name, "create"
+    )
+
+    assert create_output_by_pipeline_id == tag_get
+    assert create_output_by_tag_name == tag_get
+
+
+@pytest.mark.usefixtures("top_api_server")
+def test_tags_update(
+    url: str,
+    token: str,
+    tag_get: PipelineTagGet,
+    tag_get_3: PipelineTagGet,
+    tag_get_patched: PipelineTagGet,
+):
+    _set_testing_remote_compute_service(url=url, token=token)
+    with pytest.raises(SystemExit):
+        cli_main(["tags", "update", "bad_tag", "pipeline_id"])
+
+    # Attempting to update a missing tag should raise a 404 in the `_get_tag` function
+    with pytest.raises(HTTPStatusError):
+        cli_main(["tags", "update", "missing:tag", "pipeline_id"])
+
+    update_by_pipeline_id = _update_or_create_tag(
+        tag_get.name, tag_get_3.pipeline_id, "update"
+    )
+    update_by_tag_name = _update_or_create_tag(tag_get.name, tag_get_3.name, "update")
+
+    assert update_by_pipeline_id == tag_get_patched
+    assert update_by_tag_name == tag_get_patched
+
+
+@pytest.mark.usefixtures("top_api_server")
+def test_tags_get(
+    url: str,
+    token: str,
+    tag_get: PipelineTagGet,
+):
+    _set_testing_remote_compute_service(url=url, token=token)
+    with pytest.raises(SystemExit):
+        cli_main(["tags", "get", "bad_tag"])
+
+    # Attempting to update a missing tag should raise a 404 in the `_get_tag` function
+    with pytest.raises(HTTPStatusError):
+        cli_main(["tags", "get", "missing:tag"])
+
+    get_tag_by_name = _get_tag(tag_get.name)
+
+    assert get_tag_by_name == tag_get
