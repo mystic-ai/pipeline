@@ -253,6 +253,17 @@ def top_api_server(
             ).json()
         )
     )
+    httpserver.expect_request(
+        f"/v2/pipeline-tags/{tag_get.id}",
+        method="DELETE",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_response(Response(status=204))
+
+    httpserver.expect_request(
+        f"/v2/pipeline-tags/missing:tag",
+        method="DELETE",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_response(Response(status=404))
 
     ##########
 

@@ -4,7 +4,12 @@ from httpx import HTTPStatusError
 
 from pipeline import configuration
 from pipeline.console import main as cli_main
-from pipeline.console.tags import _get_tag, _list_tags, _update_or_create_tag
+from pipeline.console.tags import (
+    _delete_tag,
+    _get_tag,
+    _list_tags,
+    _update_or_create_tag,
+)
 from pipeline.schemas.pagination import Paginated
 from pipeline.schemas.pipeline import PipelineTagGet
 
@@ -183,8 +188,23 @@ def test_tags_list(
 ):
     _set_testing_remote_compute_service(url=url, token=token)
 
-    assert cli_main(["tags", "ls", "-p", "pipeline_id", "-l", "5", "-s", "1"]) == 0
+    assert cli_main(["tags", option, "-p", "pipeline_id", "-l", "5", "-s", "1"]) == 0
 
     list_tags = _list_tags(skip=1, limit=5, pipeline_id="pipeline_id")
 
     assert list_tags == tags_list
+
+
+@pytest.mark.usefixtures("top_api_server")
+@pytest.mark.parametrize("option", ("delete", "rm"))
+def test_tags_delete(option: str, url: str, token: str, tag_get: PipelineTagGet):
+    _set_testing_remote_compute_service(url=url, token=token)
+
+    with pytest.raises(SystemExit):
+        cli_main(["tags", option, "bad_tag"])
+
+    # Attempting to delete a missing tag should raise a 404
+    with pytest.raises(HTTPStatusError):
+        cli_main(["tags", option, "missing:tag"])
+
+    assert _delete_tag(tag_get.name) is None
