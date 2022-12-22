@@ -141,7 +141,7 @@ def main(args: Optional[List[str]] = None) -> int:
 
     tags_set_parser = tags_sub_parser.add_parser(
         "create",
-        help="Set the value of a tag",
+        help="Create a the tag TARGET that points to SOURCE",
     )
 
     tags_set_parser.add_argument(
