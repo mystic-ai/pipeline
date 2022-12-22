@@ -146,11 +146,11 @@ def main(args: Optional[List[str]] = None) -> int:
 
     tags_set_parser.add_argument(
         "source",
-        help='The source pipeline:tag "<pipeline_name>:<pipeline_id>"',
+        help="The source pipeline:tag or pipeline_id",
     )
     tags_set_parser.add_argument(
         "target",
-        help="The target pipeline:tag or pipeline_id",
+        help="The target pipeline:tag",
     )
 
     ##########
@@ -163,11 +163,11 @@ def main(args: Optional[List[str]] = None) -> int:
     )
     tags_update_parser.add_argument(
         "source",
-        help="The source pipeline:tag",
+        help="The source pipeline:tag or pipeline_id",
     )
     tags_update_parser.add_argument(
         "target",
-        help="The target pipeline:tag or pipeline_id",
+        help="The target pipeline:tag",
     )
 
     ##########

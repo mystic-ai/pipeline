@@ -120,14 +120,14 @@ def test_tags_create(
     _set_testing_remote_compute_service(url=url, token=token)
     with pytest.raises(SystemExit):
         cli_main(["tags", "create", "bad_tag", "pipeline_id"])
-    assert cli_main(["tags", "create", tag_get.name, tag_get_2.pipeline_id]) == 0
-    assert cli_main(["tags", "create", tag_get.name, tag_get_2.name]) == 0
+    assert cli_main(["tags", "create", tag_get_2.pipeline_id, tag_get.name]) == 0
+    assert cli_main(["tags", "create", tag_get_2.name, tag_get.name]) == 0
 
     create_output_by_pipeline_id = _update_or_create_tag(
-        tag_get.name, tag_get_2.pipeline_id, "create"
+        tag_get_2.pipeline_id, tag_get.name, "create"
     )
     create_output_by_tag_name = _update_or_create_tag(
-        tag_get.name, tag_get_2.name, "create"
+        tag_get_2.name, tag_get.name, "create"
     )
 
     assert create_output_by_pipeline_id == tag_get
@@ -144,16 +144,23 @@ def test_tags_update(
 ):
     _set_testing_remote_compute_service(url=url, token=token)
     with pytest.raises(SystemExit):
-        cli_main(["tags", "update", "bad_tag", "pipeline_id"])
+        cli_main(["tags", "update", "pipeline_id", "bad_tag"])
 
     # Attempting to update a missing tag should raise a 404 in the `_get_tag` function
     with pytest.raises(HTTPStatusError):
-        cli_main(["tags", "update", "missing:tag", "pipeline_id"])
+        cli_main(
+            [
+                "tags",
+                "update",
+                "pipeline_id",
+                "missing:tag",
+            ]
+        )
 
     update_by_pipeline_id = _update_or_create_tag(
-        tag_get.name, tag_get_3.pipeline_id, "update"
+        tag_get_3.pipeline_id, tag_get.name, "update"
     )
-    update_by_tag_name = _update_or_create_tag(tag_get.name, tag_get_3.name, "update")
+    update_by_tag_name = _update_or_create_tag(tag_get_3.name, tag_get.name, "update")
 
     assert update_by_pipeline_id == tag_get_patched
     assert update_by_tag_name == tag_get_patched

@@ -33,30 +33,30 @@ def _get_tag(tag_name: str) -> PipelineTagGet:
 def _update_or_create_tag(source: str, target: str, sub_command: str) -> PipelineTagGet:
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
-    if not tag_re_pattern.match(source):
-        _print("Source tag must match pattern 'pipeline:tag'", level="ERROR")
+    if not tag_re_pattern.match(target):
+        _print("Target tag must match pattern 'pipeline:tag'", level="ERROR")
         raise sys.exit(1)
 
-    if tag_re_pattern.match(target):
+    if tag_re_pattern.match(source):
         # Pointing to another tag
-        target_schema = _get_tag(target)
-        target_pipeline = target_schema.pipeline_id
+        source_schema = _get_tag(source)
+        source_pipeline = source_schema.pipeline_id
     else:
         # Pointing to a pipeline_id
-        target_pipeline = target
+        source_pipeline = source
 
     if sub_command == "create":
         tag_create_schema = PipelineTagCreate(
             name=source,
-            pipeline_id=target_pipeline,
+            pipeline_id=source_pipeline,
         )
         response = remote_service._post(
             "/v2/pipeline-tags", json_data=tag_create_schema.dict()
         )
     else:
         # Update
-        existing_tag = _get_tag(source)
-        patch_schema = PipelineTagPatch(pipeline_id=target_pipeline)
+        existing_tag = _get_tag(target)
+        patch_schema = PipelineTagPatch(pipeline_id=source_pipeline)
         response = remote_service._patch(
             f"/v2/pipeline-tags/{existing_tag.id}", json_data=patch_schema.dict()
         )
