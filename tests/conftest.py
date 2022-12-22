@@ -240,6 +240,20 @@ def top_api_server(
         headers=dict(Authorization=f"Bearer {token}"),
         data=tag_patch.json(),
     ).respond_with_json(tag_get_patched.dict())
+
+    httpserver.expect_request(
+        "/v2/pipeline-tags",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+        query_string="skip=1&limit=5&order_by=created_at%3Adesc&pipeline_id=pipeline_id",
+    ).respond_with_json(
+        json.loads(
+            Paginated[PipelineTagGet](
+                skip=1, limit=5, total=3, data=[tag_get_2, tag_get_3]
+            ).json()
+        )
+    )
+
     ##########
 
     return httpserver
@@ -689,4 +703,14 @@ def tag_create():
 def tag_patch():
     return PipelineTagPatch(
         pipeline_id="pipeline_id_2",
+    )
+
+
+@pytest.fixture()
+def tags_list(
+    tag_get_2: PipelineTagGet,
+    tag_get_3: PipelineTagGet,
+):
+    return Paginated[PipelineTagGet](
+        skip=1, limit=5, total=3, data=[tag_get_2, tag_get_3]
     )

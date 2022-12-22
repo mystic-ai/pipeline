@@ -4,7 +4,8 @@ from httpx import HTTPStatusError
 
 from pipeline import configuration
 from pipeline.console import main as cli_main
-from pipeline.console.tags import _get_tag, _update_or_create_tag
+from pipeline.console.tags import _get_tag, _list_tags, _update_or_create_tag
+from pipeline.schemas.pagination import Paginated
 from pipeline.schemas.pipeline import PipelineTagGet
 
 
@@ -170,3 +171,20 @@ def test_tags_get(
     get_tag_by_name = _get_tag(tag_get.name)
 
     assert get_tag_by_name == tag_get
+
+
+@pytest.mark.usefixtures("top_api_server")
+@pytest.mark.parametrize("option", ("list", "ls"))
+def test_tags_list(
+    option: str,
+    url: str,
+    token: str,
+    tags_list: Paginated[PipelineTagGet],
+):
+    _set_testing_remote_compute_service(url=url, token=token)
+
+    assert cli_main(["tags", "ls", "-p", "pipeline_id", "-l", "5", "-s", "1"]) == 0
+
+    list_tags = _list_tags(skip=1, limit=5, pipeline_id="pipeline_id")
+
+    assert list_tags == tags_list

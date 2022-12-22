@@ -70,29 +70,17 @@ def _list_tags(
 ) -> Paginated[PipelineTagGet]:
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
+    response = remote_service._get(
+        "/v2/pipeline-tags",
+        params=dict(
+            skip=skip,
+            limit=limit,
+            order_by="created_at:desc",
+            pipeline_id=pipeline_id,
+        ),
+    )
 
-    if pipeline_id is not None:
-        response = remote_service._get(
-            f"/v2/pipeline-tags/by-pipeline/{pipeline_id}",
-            params=dict(
-                skip=skip,
-                limit=limit,
-                order_by="created_at:desc",
-            ),
-        )
-
-        paginated_results = Paginated[PipelineTagGet].parse_obj(response)
-    else:
-        response = remote_service._get(
-            "/v2/pipeline-tags",
-            params=dict(
-                skip=skip,
-                limit=limit,
-                order_by="created_at:desc",
-            ),
-        )
-
-        paginated_results = Paginated[PipelineTagGet].parse_obj(response)
+    paginated_results = Paginated[PipelineTagGet].parse_obj(response)
 
     return paginated_results
 
