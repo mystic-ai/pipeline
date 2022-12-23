@@ -1,4 +1,12 @@
-from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
+import pytest
+
+from pipeline.objects import (
+    Pipeline,
+    PipelineFile,
+    Variable,
+    pipeline_function,
+    pipeline_model,
+)
 
 
 # Check if the decorator correctly uses __init__ and __enter__
@@ -108,3 +116,17 @@ def test_run_startup():
     output_pipeline = Pipeline.get_pipeline("test")
     output_number = output_pipeline.run()
     assert output_number == [1]
+
+
+def test_remote_file_not_downloaded():
+
+    with Pipeline("test") as builder:
+        test_file = PipelineFile(remote_id="test_file")
+        builder.add_variables(test_file)
+
+    test_pipeline = Pipeline.get_pipeline("test")
+    with pytest.raises(
+        Exception,
+        match="Must call PipelineCloud()",
+    ):
+        test_pipeline.run()

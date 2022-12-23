@@ -6,9 +6,11 @@ import json
 import os
 import sys
 import urllib.parse
+import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
 
+import dill
 import httpx
 from pydantic import ValidationError
 from tqdm import tqdm
@@ -17,6 +19,7 @@ from tqdm.utils import CallbackIOWrapper
 from pipeline import configuration
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
+from pipeline.objects.variable import PipelineFile
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
@@ -244,7 +247,9 @@ class PipelineCloud:
         )
         return PipelineFileGet.parse_obj(response)
 
-    def upload_pipeline_file(self, pipeline_file) -> PipelineFileVariableGet:
+    def upload_pipeline_file(
+        self, pipeline_file: PipelineFile
+    ) -> PipelineFileVariableGet:
         """Upload PipelineFile given by pipeline_file.
 
         Since PipelineFiles can be very large, we implement this slightly
@@ -312,7 +317,7 @@ class PipelineCloud:
         response.raise_for_status()
         return response.json()
 
-    def _post(self, endpoint, json_data):
+    def _post(self, endpoint: str, json_data: dict) -> dict:
         self.raise_for_invalid_token()
         headers = {
             "Authorization": "Bearer %s" % self.token,
@@ -332,7 +337,39 @@ class PipelineCloud:
 
         return response.json()
 
-    def _post_file(self, endpoint: str, file: io.BytesIO) -> FileGet:
+    def _patch(self, endpoint: str, json_data: dict) -> dict:
+        self.raise_for_invalid_token()
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+            "Content-type": "application/json",
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = httpx.patch(
+            url, headers=headers, json=json_data, timeout=self.timeout
+        )
+
+        if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
+            schema = json_data
+            raise InvalidSchema(schema=schema)
+        else:
+            self._get_raise_for_status(response)
+
+        return response.json()
+
+    def _delete(self, endpoint: str) -> None:
+        self.raise_for_invalid_token()
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+            "Content-type": "application/json",
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = httpx.delete(url, headers=headers, timeout=self.timeout)
+        if response.status_code != HTTPStatus.NO_CONTENT:
+            self._get_raise_for_status(response)
+
+    def _post_file(self, endpoint: str, file: io.IOBase) -> FileGet:
         self.raise_for_invalid_token()
         if not hasattr(file, "name"):
             file.name = generate_id(20)
@@ -472,7 +509,20 @@ class PipelineCloud:
 
             pipeline_file_schema = None
             if isinstance(_var, PipelineFile):
-                pipeline_file_schema = self.upload_pipeline_file(_var)
+                if _var.remote_id is not None:
+                    file_schema: FileGet = self._download_schema(
+                        schema=FileGet,
+                        endpoint=f"/v2/files/{_var.remote_id}",
+                        params=dict(
+                            return_data=False,
+                        ),
+                    )
+                    unique_identifier = str(uuid.uuid4())
+                    pipeline_file_schema = PipelineFileVariableGet(
+                        path=unique_identifier, hash=unique_identifier, file=file_schema
+                    )
+                else:
+                    pipeline_file_schema = self.upload_pipeline_file(_var)
 
             _var_schema = PipelineVariableGet(
                 local_id=_var.local_id,
@@ -733,3 +783,25 @@ class PipelineCloud:
             ),
         )
         return result
+
+    def download_remotes(self, graph: Graph) -> None:
+        # Only remote PipelineFiles are supported
+        for variable in graph.variables:
+            if not isinstance(variable, PipelineFile) or variable.remote_id is None:
+                continue
+
+            downloaded_schema: FileGet = self._download_schema(
+                schema=FileGet,
+                endpoint=f"/v2/files/{variable.remote_id}",
+                params=dict(
+                    return_data=True,
+                ),
+            )
+
+            configuration.PIPELINE_CACHE_FILES.mkdir(exist_ok=True)
+            raw_result = hex_to_python_object(downloaded_schema.data)
+            file_path = configuration.PIPELINE_CACHE_FILES / variable.remote_id
+            with open(file_path, "wb") as file:
+                dill.dump(raw_result, file=file)
+
+            variable.path = file_path
