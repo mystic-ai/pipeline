@@ -39,12 +39,7 @@ class Function:
         # TODO: Add verification that all inputs to function have a typing annotation,
         # except for "self"
         if "return" not in function.__annotations__:
-            raise Exception(
-                (
-                    "You must define an output type for a piepline function. "
-                    "e.g. def my_func(...) -> float:"
-                )
-            )
+            function.__annotations__["return"] = None
 
         self.typing_outputs = {"return": function.__annotations__["return"]}
 
