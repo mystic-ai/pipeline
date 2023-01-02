@@ -78,7 +78,7 @@ def top_api_server_bad_token(httpserver, bad_token):
 @pytest.fixture
 def top_api_server(
     httpserver: HTTPServer,
-    token,
+    token: str,
     file_get,
     # Tags
     tag_get: PipelineTagGet,
