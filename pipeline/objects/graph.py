@@ -188,7 +188,6 @@ class Graph:
                 output = node_function.function(*function_inputs)
 
             if len(node.outputs) > 1:
-                print("Multi output found")
                 if len(node.outputs) == len(output) == len(node_outputs):
                     number_of_outputs = len(output)
                     for i in range(number_of_outputs):
