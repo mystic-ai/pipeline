@@ -187,7 +187,19 @@ class Graph:
             else:
                 output = node_function.function(*function_inputs)
 
-            running_variables[node_outputs[0].local_id] = output
+            if len(node.outputs) > 1:
+                print("Multi output found")
+                if len(node.outputs) == len(output) == len(node_outputs):
+                    number_of_outputs = len(output)
+                    for i in range(number_of_outputs):
+                        running_variables[node_outputs[i].local_id] = output[i]
+                else:
+                    raise Exception(
+                        "Mismatch in number of outputs:"
+                        f"{len(node.outputs)}/{len(output)}/{len(node_outputs)}"
+                    )
+            else:
+                running_variables[node_outputs[0].local_id] = output
 
             if not getattr(node_function.function, "__has_run__", False):
                 node_function.function.__has_run__ = True

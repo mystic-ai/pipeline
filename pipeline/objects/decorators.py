@@ -1,3 +1,4 @@
+import typing
 from functools import partial, wraps
 
 from pipeline.objects.function import Function
@@ -31,10 +32,12 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
         if not Pipeline._pipeline_context_active:
             return function(*args, **kwargs)
         else:
-            function_ios = function.__annotations__
-            if "return" not in function_ios:
+            if "return" not in function.__annotations__:
                 raise Exception(
-                    "Must include an output type e.g. 'def my_func(...) -> int:'"
+                    (
+                        "You must define an output type for a piepline function. "
+                        "e.g. def my_func(...) -> float:"
+                    )
                 )
 
             processed_args: Variable = []
@@ -47,23 +50,38 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
                 else:
                     raise Exception(
                         (
-                            "You can't input random variables, "
-                            "follow the way of the Pipeline. Got type %s"
-                            % type(input_arg)
+                            f"Can only input pipeline variables to a function"
+                            f"when defining a graph, got: {type(input_arg)}"
                         )
                     )
 
-            node_output = Variable(type_class=function.__annotations__["return"])
-            Pipeline.add_variable(node_output)
+            node_outputs: typing.List[Variable] = []
+
+            function_output = function.__annotations__["return"]
+            if getattr(function_output, "__origin__", None) == tuple:
+                context_manager_variables = node_outputs = tuple(
+                    Variable(type_class=output_variable)
+                    for output_variable in function_output.__args__
+                )
+
+            else:
+                context_manager_variables = Variable(
+                    type_class=function.__annotations__["return"]
+                )
+                node_outputs = [context_manager_variables]
+
+            Pipeline.add_variables(*node_outputs)
             Pipeline.add_function(function.__pipeline_function__)
+
             new_node = GraphNode(
                 function=function.__pipeline_function__,
                 inputs=processed_args,
-                outputs=[node_output],
+                outputs=[*node_outputs],
             )
+
             Pipeline.add_graph_node(new_node)
 
-            return node_output
+            return context_manager_variables
 
     execute_func.__function__ = function
 

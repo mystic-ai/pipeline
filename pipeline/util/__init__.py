@@ -23,10 +23,9 @@ def hex_to_python_object(hex: str) -> Any:
 
 
 def python_object_to_name(obj: Any) -> Optional[str]:
-    try:
-        name = obj.__name__
-    except Exception:
-        name = None
+    # Consider limiting the size of the name in future releases
+    name = getattr(obj, "__name__", str(obj))
+
     return name
 
 

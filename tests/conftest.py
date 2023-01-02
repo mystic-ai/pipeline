@@ -84,13 +84,13 @@ def top_api_server(
     tag_get_patched: PipelineTagGet,
     tag_patch: PipelineTagPatch,
     tag_create: PipelineTagCreate,
-    function_get_json,
-    model_get_json,
-    result_file_get_json,
-    data_get_json,
-    pipeline_file_direct_upload_init_get_json,
-    pipeline_file_direct_upload_part_get_json,
-    finalise_direct_pipeline_file_upload_get_json,
+    function_get_json: dict,
+    model_get_json: dict,
+    result_file_get_json: dict,
+    data_get_json: dict,
+    pipeline_file_direct_upload_init_get_json: dict,
+    pipeline_file_direct_upload_part_get_json: dict,
+    finalise_direct_pipeline_file_upload_get_json: dict,
     run_get,
     run_executing_get,
 ):
@@ -201,7 +201,6 @@ def top_api_server(
 
     ##########
     # /v2/pipeline-tags
-    ##########
 
     httpserver.expect_request(
         "/v2/pipeline-tags",
@@ -266,6 +265,13 @@ def top_api_server(
     ).respond_with_response(Response(status=404))
 
     ##########
+    # /v2/functions
+
+    httpserver.expect_request(
+        "/v2/functions",
+        method="POST",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_json(function_get_json)
 
     return httpserver
 
