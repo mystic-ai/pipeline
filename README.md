@@ -142,28 +142,31 @@ conda install -c huggingface transformers -y
 python -m pip install -U pipeline-ai
 ```
 
-# Features
+# Roadmap
 
-## Future roadmap
+## v0.4.0 (Jan 2023)
 
-Currently working on:
-- Custom environments
-- Reduced cold start in pytorch via custom tensor loading
-- CLI authentication
+- Custom environments on PipelineCloud (remote compute services)
+- Kwarg inputs to runs
+- Extended IO inputs to `pipeline_function` objects
 
-Working on next:
-- Remote reference of objects in the `Pipeline` context manager
-- Remote events
-- Finetuning premade pipelines
-- Conditional logic flow in `Pipeline` context manager
-- Pipeline chaining (call another pipeline in a pipeline)
+## v0.5.0 (Jan/Feb 2023)
 
-More ideas:
-- Deployment control via CLI
-- Add in a `PipelineDirectory` object
-- Streaming pipeline runs
-- Logs on remote runs
-- Model deployment from CLI `pipeline deploy FILE.py`
+- Pipeline chaining
+- `if` statements & `while/for` loops
+
+## No current specified version features
+
+- Run log streaming
+- Run progress tracking
+- Resource dedication
+- Pipeline scecific remote load balancer (10% of traffic to one pipeline 80% to another)
+- Usage capping
+- Run result streaming
+- Progromatic autoscaling
+- Alerts
+- Events
+- Different python versions on remote compute services
 
 # Development
 
