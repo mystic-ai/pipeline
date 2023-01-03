@@ -5,11 +5,11 @@ from pipeline import Pipeline, pipeline_function
 
 def test_function_no_output_definition():
     @pipeline_function
-    def bad_func():  # No output defined
+    def test_function():  # No output defined
         ...
 
     with Pipeline("test"):
-        bad_func()
+        test_function()
 
     test_pl = Pipeline.get_pipeline("test")
 
@@ -19,11 +19,11 @@ def test_function_no_output_definition():
 
 def test_function_tuple_output():
     @pipeline_function
-    def bad_func() -> Tuple[str, int]:
+    def test_function() -> Tuple[str, int]:
         return ("test", 1)
 
     with Pipeline("test") as builder:
-        var1, var2 = bad_func()
+        var1, var2 = test_function()
 
         builder.output(var2, var1)
 
