@@ -1,5 +1,7 @@
 from typing import Tuple
 
+import pytest
+
 from pipeline import Pipeline, pipeline_function
 
 
@@ -32,3 +34,12 @@ def test_function_tuple_output():
     outputs = test_pl.run()
 
     assert outputs == [1, "test"]
+
+    @pipeline_function
+    def test_function_2(input_1: str):
+        ...
+
+    with pytest.raises(Exception):
+        with Pipeline("test2") as builder:
+            var = test_function()
+            test_function_2(var)

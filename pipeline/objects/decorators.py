@@ -47,6 +47,14 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
                 elif hasattr(input_arg, "__pipeline_model__"):
                     if function.__pipeline_function__.class_instance is None:
                         function.__pipeline_function__.class_instance = input_arg
+                elif isinstance(input_arg, tuple) and all(
+                    isinstance(var, Variable) for var in input_arg
+                ):
+                    raise Exception(
+                        "Must seperate outputs from functions with Tuple outputs:"
+                        "`var1, var2, ..., varN = func(...)`",
+                    )
+
                 else:
                     raise Exception(
                         (
