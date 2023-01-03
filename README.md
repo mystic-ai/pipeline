@@ -8,7 +8,7 @@
 - [Version roadmap](#version-roadmap)
   - [v0.4.0](#v040-jan-2023)
   - [v0.5.0](#v050-janfeb-2023)
-  - [No current specified version features](#no-current-specified-version-features)
+  - [Beyond](#beyond)
 - [Quickstart](#quickstart)
   - [Basic maths](#basic-maths)
   - [Transformers (GPT-Neo 125M)](#transformers-gpt-neo-125m)
@@ -36,7 +36,7 @@ The syntax used for defining AI/ML pipelines shares some similarities in syntax 
 - Pipeline chaining
 - `if` statements & `while/for` loops
 
-## No current specified version features
+## Beyond
 
 - Run log streaming
 - Run progress tracking
