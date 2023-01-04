@@ -5,7 +5,7 @@ from typing import Optional, TypedDict
 import numpy as np
 import torch
 from cloudpickle import dumps
-from diffusers import EulerDiscreteScheduler, StableDiffusionPipeline
+from diffusers import DiffusionPipeline
 from diffusers.utils import logging
 from dill import loads
 
@@ -18,46 +18,8 @@ from pipeline import (
     pipeline_model,
 )
 
-# the below two functions don't seem to do their job
 logging.disable_progress_bar()
 logging.set_verbosity_error()
-
-
-upload = True
-
-
-scheduler = EulerDiscreteScheduler.from_pretrained(
-    "stabilityai/stable-diffusion-2-base", subfolder="scheduler"
-)
-model = StableDiffusionPipeline.from_pretrained(
-    "stabilityai/stable-diffusion-2-base",
-    use_auth_token=os.environ.get("HF_TOKEN"),
-    scheduler=scheduler,
-    revision="fp16",
-    torch_dtype=torch.float16,
-    safety_checker=None,
-).to(0)
-
-temp_path = "temporary.model"
-with open(temp_path, "wb") as tmp_file:
-    tmp_file.write(dumps(model))
-
-#
-# pipeline.ai logic
-#
-
-
-def seed_everything(seed: int) -> int:
-    os.environ["PL_GLOBAL_SEED"] = str(seed)
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    return seed
-
-
-def get_aspect_ratio(width: int, height: int) -> float:
-    return float(width / height)
 
 
 class PromptShape(TypedDict):
@@ -76,18 +38,35 @@ class BatchKwargsShape(TypedDict):
     randomise_seed: Optional[bool]
 
 
+PIPELINE_NAME = "sd-dreambooth-library/herge-style"
+# Download dreambooth pre-trained pipeline from HF, but
+# feel free to use your own pre-trained pipeline or pytorch model here instead
+sd_pipeline = DiffusionPipeline.from_pretrained(PIPELINE_NAME)
+
+
+temp_path = "temporary.model"
+with open(temp_path, "wb") as tmp_file:
+    tmp_file.write(dumps(sd_pipeline))
+
+
+def seed_everything(seed: int) -> int:
+    os.environ["PL_GLOBAL_SEED"] = str(seed)
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    return seed
+
+
 @pipeline_model
 class StableDiffusionTxt2ImgModel:
     @pipeline_function
     def predict(
         self, prompts: list[PromptShape], batch_kwargs: BatchKwargsShape
     ) -> list[list[str]]:
-        print("🦁 run start")
         import base64
         import random
         from io import BytesIO
-
-        from PIL import Image
 
         default_batch_kwargs = {
             "num_samples": 1,
@@ -112,7 +91,8 @@ class StableDiffusionTxt2ImgModel:
             raise TypeError("seed must be an integer.")
         if not isinstance(kwargs["num_inference_steps"], int):
             raise TypeError(
-                "num_inference_steps must be an integer because denoising is done in full non-fractional steps."
+                "num_inference_steps must be an integer because denoising is done in "
+                "full non-fractional steps."
             )
         if kwargs["num_samples"] > 4:
             raise ValueError(
@@ -129,7 +109,6 @@ class StableDiffusionTxt2ImgModel:
 
         all_outputs = []
         for index, prompt in enumerate(prompts):
-            print(f"🌀 prompt {index}/{len(prompts) - 1}")
 
             if "seed" in prompt:
                 seed_everything(prompt["seed"])
@@ -142,7 +121,7 @@ class StableDiffusionTxt2ImgModel:
                 prompt["seed"] = random_seed
 
             metadata = {
-                "scheduler": "euler_discrete",
+                "scheduler": "ddim",
                 "seed": prompt["seed"]
                 if "seed" in prompt
                 else kwargs["seed"]
@@ -182,29 +161,21 @@ class StableDiffusionTxt2ImgModel:
 
             all_outputs.append(prompt_dict)
 
-            print(f"✅ prompt {index}/{len(prompts) - 1}")
-
-        print("🐸 run complete")
         return all_outputs
 
     @pipeline_function(run_once=True, on_startup=True)
     def load(self, model_file: PipelineFile) -> bool:
 
-        # it would be lovely to pass `device` to this load function, but for now...
         device = torch.device("cuda:0")
-
-        print("A1/1 loading model")
 
         with open(model_file.path, "rb") as tmp_file:
             self.model = loads(tmp_file.read())
         self.model.to(device)
 
-        print("🥑 model and weights load complete")
-
         return True
 
 
-with Pipeline("Stable Diffusion v2 txt2img fp16 v1.0", min_gpu_vram_mb=7598) as builder:
+with Pipeline(PIPELINE_NAME, min_gpu_vram_mb=3040) as builder:
     model_file = PipelineFile(path="temporary.model")
     prompts = Variable(list, is_input=True)
     batch_kwargs = Variable(dict, is_input=True)
@@ -218,28 +189,10 @@ with Pipeline("Stable Diffusion v2 txt2img fp16 v1.0", min_gpu_vram_mb=7598) as 
     builder.output(output)
 
 
-new_pipeline = Pipeline.get_pipeline("Stable Diffusion v2 txt2img fp16 v1.0")
-if upload:
-    api = PipelineCloud()
-    uploaded_pipeline = api.upload_pipeline(new_pipeline)
-    print(f"Uploaded pipeline id: {uploaded_pipeline.id}")
-else:
-    run = new_pipeline.run(
-        [{"text_in": "horse on a swing"}],
-        {"num_samples": 1},
-    )
+new_pipeline = Pipeline.get_pipeline(PIPELINE_NAME)
 
-    import base64
-    import os
-
-    folder_name = f"fp16_outputs"
-    os.makedirs(folder_name, exist_ok=True)
-    for index, result in enumerate(run[0]):
-        for sample in result["images_out"]:
-            with open(
-                f"{folder_name}/sample-{len(os.listdir(folder_name))}.jpg", "wb"
-            ) as file:
-                file.write(base64.b64decode(sample))
-        print(result["metadata"])
+api = PipelineCloud()
+uploaded_pipeline = api.upload_pipeline(new_pipeline)
+print(f"Uploaded pipeline id: {uploaded_pipeline.id}")
 
 os.remove("temporary.model")

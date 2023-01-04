@@ -34,7 +34,7 @@ export PIPELINE_API_TOKEN="YOUR_API_TOKEN"
 
 ## Upload the pipeline with weights
 
-To upload your pipeline, you only need to change one line in `upload.py` before running the script.
+To upload your pipeline, you only need to change one line in `dreambooth-upload.py` before running the script.
 
 Once you've updated the script with your own model, all you need to do is run the script. A pipeline id will be printed to your terminal if everything is successful. Copy this, because you'll need to reference it when submitting runs.
 
@@ -44,7 +44,7 @@ Now, to run the pipeline, all you need to do is add the ID of your uploaded pipe
 
 You can now run this script and it will save the images to a local folder on your computer.
 
-You can look at the `upload.py` script to see what parameters are available, and how to modify your pipeline. By default everything follows the pattern used in our public pipelines, the API for which you can find on the Dashboard -> Pre-trained models -> Stable Diffusion v1.5 txt2img v3.0.
+You can look at the `dreambooth-upload.py` script to see what parameters are available, and how to modify your pipeline. By default everything follows the pattern used in our public pipelines, the API for which you can find on the Dashboard -> Pre-trained models -> Stable Diffusion v1.5 txt2img v3.0.
 
 ## Help & Support
 
