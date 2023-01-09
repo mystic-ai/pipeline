@@ -2,6 +2,7 @@ from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.variable import Variable
+from pipeline.objects.environment import Environment
 
 
 class Pipeline:
@@ -18,10 +19,13 @@ class Pipeline:
         new_pipeline_name: str,
         compute_type: str = "gpu",
         min_gpu_vram_mb: int = None,
+        *,
+        environment: Environment = None,
     ):
         self._pipeline_context_name = new_pipeline_name
         self._compute_type = compute_type
         self._min_gpu_vram_mb = min_gpu_vram_mb
+        self.environment = environment
 
     def __enter__(self):
         Pipeline._pipeline_context_active = True
@@ -70,6 +74,13 @@ class Pipeline:
             return Pipeline.defined_pipelines[graph_name]
         else:
             raise Exception("No Pipeline graph found with name '%s'" % graph_name)
+
+    @staticmethod
+    def get_latest_pipeline() -> Graph:
+        if len(Pipeline.defined_pipelines) == 0:
+            raise Exception("No Pipelines created yet")
+
+        return Pipeline.defined_pipelines[list(Pipeline.defined_pipelines.keys())[-1]]
 
     @staticmethod
     def add_variable(variable: Variable) -> None:

@@ -5,6 +5,7 @@ from typing import List, Optional
 from pipeline.console.remote import remote as remote_command
 from pipeline.console.runs import runs as runs_command
 from pipeline.console.tags import tags as tags_command
+from pipeline.console.worker import worker as worker_command
 
 
 def main(args: Optional[List[str]] = None) -> int:
@@ -231,6 +232,16 @@ def main(args: Optional[List[str]] = None) -> int:
     )
 
     ##########
+    # pipeline worker
+    ##########
+
+    worker_parser = command_parser.add_parser(
+        "worker",
+        description="Run a pipeline worker process",
+        help="Run a pipeline worker process",
+    )
+
+    ##########
     args: argparse.Namespace = base_parser.parse_args(args)
     command = getattr(args, "command", None)
 
@@ -245,6 +256,10 @@ def main(args: Optional[List[str]] = None) -> int:
     elif command == "tags":
         if (code := tags_command(args)) is None:
             tags_parser.print_help()
+            return 1
+    elif command == "worker":
+        if (code := worker_command()) is None:
+            worker_parser.print_help()
             return 1
     else:
         base_parser.print_help()
