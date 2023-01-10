@@ -1,4 +1,5 @@
 import os
+import hashlib
 import shutil
 import subprocess
 import venv
@@ -40,6 +41,20 @@ class Environment:
         extend_environments = extend_environments or []
         for _env in extend_environments:
             self.merge_with_environment(_env)
+
+    @property
+    def hash(self) -> str:
+        """Generate unique hash for this environment so we can determine when
+        two environments are the same.
+        """
+        # Combine all the info that makes this environment unique
+        # env_str = f"{self.environment_name}"
+        env_str = [
+            self.environment_name,
+            [self.dependencies].join(";"),
+            [self.extra_index_urls].join(";"),
+        ].join("::")
+        return hashlib.sha256(env_str).hexdigest()
 
     def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> str:
         # TODO add arg for remaking on dependency change
@@ -203,23 +218,17 @@ class EnvironmentSession:
 
         env_python_path = os.path.join(self.environment.env_path, "bin/python")
 
-        # self._proc = subprocess.Popen(
-        #     [env_python_path, "-c", "print('hello')"],
-        #     stdout=subprocess.PIPE,
-        #     stderr=subprocess.PIPE,
-        #     stdin=subprocess.PIPE,
-        # )
         self._proc = subprocess.Popen(
-            [env_python_path, "-m", "pipeline worker"],
+            [env_python_path, "-m", "pipeline", "worker"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             stdin=subprocess.PIPE,
         )
 
         output = self._proc.stdout.readline().decode().strip()
-        print("Output is ", output)
         if output != "worker-started":
-            raise Exception("Worker couldn't start")
+            error = self._proc.stderr.read1().decode().strip()
+            raise Exception(f"Worker couldn't start: {error}")
         _print("Session started")
         return self
 

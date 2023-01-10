@@ -50,7 +50,9 @@ base_worker_environment = Environment(
         "Pillow==9.1.1",
         "pydantic==1.9.1",
         "catboost==1.1",
-        "/Users/ross/dev/pipeline-stack/pipeline",
+        # "/home/ubuntu/ross/pipeline-stack/pipeline",
+        "git+https://github.com/mystic-ai/pipeline.git@ross/envs",
+        # "dill==0.3.6",
     ],
 )
 
