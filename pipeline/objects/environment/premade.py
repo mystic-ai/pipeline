@@ -1,7 +1,7 @@
 from pipeline.objects.environment import Environment
 
 # worker_environment = Environment(
-#     environment_name="default-worker-environment",
+#     name="default-worker-environment",
 #     dependencies=[
 #         "loguru==0.5.3",
 #         "celery==5.2.3",
@@ -37,7 +37,7 @@ from pipeline.objects.environment import Environment
 # )
 
 base_worker_environment = Environment(
-    environment_name="base-worker-environment",
+    name="base-worker-environment",
     dependencies=[
         "fastapi==0.79.1",
         "starlette-context==0.3.3",
@@ -57,7 +57,7 @@ base_worker_environment = Environment(
 )
 
 worker_torch_environment = Environment(
-    environment_name="worker-torch-environment",
+    name="worker-torch-environment",
     dependencies=[
         "torch==1.13.0",
         "torchvision==0.14.0",

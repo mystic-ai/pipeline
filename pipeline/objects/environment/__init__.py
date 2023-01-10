@@ -30,12 +30,12 @@ class Environment:
 
     def __init__(
         self,
-        environment_name: str = None,
+        name: str = None,
         dependencies: List[str] = None,
         extra_index_urls: List[str] = None,
         extend_environments: List = None,
     ):
-        self.environment_name = environment_name
+        self.name = name
         self.dependencies = dependencies or []
         self.extra_index_urls = extra_index_urls or []
         extend_environments = extend_environments or []
@@ -48,9 +48,8 @@ class Environment:
         two environments are the same.
         """
         # Combine all the info that makes this environment unique
-        # env_str = f"{self.environment_name}"
         env_str = [
-            self.environment_name,
+            self.name,
             [self.dependencies].join(";"),
             [self.extra_index_urls].join(";"),
         ].join("::")
@@ -74,9 +73,7 @@ class Environment:
         Returns:
             None: Nothing is returned.
         """
-        self.env_path = os.path.join(
-            configuration.PIPELINE_CACHE, self.environment_name
-        )
+        self.env_path = os.path.join(configuration.PIPELINE_CACHE, self.name)
 
         if os.path.exists(self.env_path):
             if not overwrite:
@@ -89,7 +86,7 @@ class Environment:
                 return
             else:
                 _print(
-                    f"Deleting existing '{self.environment_name}' env",
+                    f"Deleting existing '{self.name}' env",
                     "WARNING",
                 )
                 shutil.rmtree(self.env_path)
@@ -126,7 +123,7 @@ class Environment:
             ],
             stdout=subprocess.PIPE,
         )
-        _print(f"New environment '{self.environment_name}' has been created")
+        _print(f"New environment '{self.name}' has been created")
         self.initialized = True
 
     def add_dependency(self, dependency: str) -> None:
@@ -156,7 +153,7 @@ class Environment:
         self.extra_index_urls.extend(env.extra_index_urls)
 
     @classmethod
-    def from_requirements(cls, requirements_path: str, environment_name: str = None):
+    def from_requirements(cls, requirements_path: str, name: str = None):
         if not os.path.exists(requirements_path):
             raise FileNotFoundError(
                 f"Could not find the requirements file '{requirements_path}'"
@@ -168,13 +165,13 @@ class Environment:
         requirements_list = [
             _req.trim() for _req in requirements_str_list if not _req.startswith("#")
         ]
-        return cls(environment_name=environment_name, dependencies=requirements_list)
+        return cls(name=name, dependencies=requirements_list)
 
     @classmethod
     def from_toml(
         cls,
         toml_path: str,
-        environment_name: str = None,
+        name: str = None,
         *,
         dependency_section: str = "tool.poetry.dependencies",
     ):
@@ -197,12 +194,12 @@ class Environment:
             )
 
         requirements_list = []
-        return cls(environment_name=environment_name, dependencies=requirements_list)
+        return cls(name=name, dependencies=requirements_list)
 
     @classmethod
-    def from_current(cls, environment_name: str = None):
+    def from_current(cls, name: str = None):
         deps = [dep for dep in freeze.freeze() if dep.split() > 0]
-        return cls(environment_name=environment_name, dependencies=deps)
+        return cls(name=name, dependencies=deps)
 
 
 class EnvironmentSession:
