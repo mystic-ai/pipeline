@@ -99,17 +99,17 @@ class Environment:
         )
 
         # Create requirements.txt for env
+        deps_str = "\n".join(self.dependencies)
+        _print(f"Installing the following requirements:\n{deps_str}")
         requirements_path = os.path.join(self.env_path, "requirements.txt")
         with open(requirements_path, "w") as req_file:
-            for _dep in self.dependencies:
-                req_file.write(f"{_dep}\n")
+            req_file.writelines(self.dependencies)
 
         env_python_path = os.path.join(self.env_path, "bin/python")
         extra_args = []
-        if len(self.extra_index_urls) > 0:
-            for extra_url in self.extra_index_urls:
-                extra_args.append("--extra-index-url")
-                extra_args.append(extra_url)
+        for extra_url in self.extra_index_urls:
+            extra_args.append("--extra-index-url")
+            extra_args.append(extra_url)
 
         subprocess.call(
             [
