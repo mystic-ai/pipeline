@@ -103,7 +103,8 @@ class Environment:
         _print(f"Installing the following requirements:\n{deps_str}")
         requirements_path = os.path.join(self.env_path, "requirements.txt")
         with open(requirements_path, "w") as req_file:
-            req_file.writelines(self.dependencies)
+            for dep in self.dependencies:
+                req_file.write(f"{dep}\n")
 
         env_python_path = os.path.join(self.env_path, "bin/python")
         extra_args = []
