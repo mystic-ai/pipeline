@@ -20,11 +20,7 @@ from pipeline.objects import (
     pipeline_model,
 )
 from pipeline.schemas.data import DataGet
-from pipeline.schemas.environment import (
-    EnvironmentCreate,
-    EnvironmentGet,
-    EnvironmentPatch,
-)
+from pipeline.schemas.environment import EnvironmentCreate, EnvironmentGet
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
@@ -83,12 +79,16 @@ def top_api_server(
     httpserver: HTTPServer,
     token,
     file_get,
+    # Tags
     tag_get: PipelineTagGet,
     tag_get_2: PipelineTagGet,
     tag_get_3: PipelineTagGet,
     tag_get_patched: PipelineTagGet,
     tag_patch: PipelineTagPatch,
     tag_create: PipelineTagCreate,
+    # Environments
+    environment_get: EnvironmentGet,
+    # Misc
     function_get_json,
     model_get_json,
     result_file_get_json,
@@ -271,7 +271,21 @@ def top_api_server(
     ).respond_with_response(Response(status=404))
 
     ##########
+    # /v2/environments
+    ##########
 
+    httpserver.expect_request(
+        f"/v2/environments/test",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_json(environment_get.dict())
+
+    httpserver.expect_request(
+        f"/v2/environments/environment_1",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_json(environment_get.dict())
+    ##########
     return httpserver
 
 
