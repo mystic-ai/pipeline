@@ -74,7 +74,7 @@ with Pipeline("maths") as pipeline:
 
     sq_1 = square(flt_1)
     res_1 = multiply(flt_2, sq_1)
-    pipeline.output(res_!)
+    pipeline.output(res_1)
 
 output_pipeline = Pipeline.get_pipeline("maths")
 print(output_pipeline.run(5.0, 6.0))
