@@ -1,5 +1,5 @@
-name: Production workflow
-on: [push]
+name: Lint and test
+on: [pull_request]
 jobs:
   lint:
     runs-on: ubuntu-latest
