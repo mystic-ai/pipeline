@@ -34,7 +34,6 @@ from pipeline.schemas.pipeline_file import (
     PipelineFileDirectUploadPartGet,
     PipelineFileGet,
 )
-from pipeline.schemas.project import ProjectGet
 from pipeline.schemas.run import RunGet, RunState
 from pipeline.schemas.runnable import RunnableType
 from pipeline.util import python_object_to_hex
@@ -346,44 +345,22 @@ def result_file_get_json(result_file_get):
 
 
 @pytest.fixture()
-def project_get():
-    return ProjectGet(
-        name="test_name",
-        id="test_project_id",
-        avatar_colour="#AA2216",
-        avatar_image_url=None,
-    )
-
-
-@pytest.fixture()
-def project_get_json(project_get):
-    return {
-        "avatar_colour": project_get.avatar_colour,
-        "avatar_image_url": project_get.avatar_image_url,
-        "name": project_get.name,
-        "id": project_get.id,
-    }
-
-
-@pytest.fixture()
-def function_get(file_get, project_get):
+def function_get(file_get):
     return FunctionGet(
         name="test_name",
         id="test_function_id",
         type=RunnableType.function,
-        project=project_get,
         hex_file=file_get,
         source_sample="test_source",
     )
 
 
 @pytest.fixture()
-def function_get_json(function_get, file_get_json, project_get_json):
+def function_get_json(function_get, file_get_json):
     return {
         "id": function_get.id,
         "type": function_get.type.value,
         "name": function_get.name,
-        "project": project_get_json,
         "hex_file": file_get_json,
         "source_sample": function_get.source_sample,
         "inputs": [],
@@ -493,12 +470,6 @@ def pickled_graph(pipeline_graph):
         "id": "pipeline_72c96d162d3347c38f83e56ce982455b",
         "type": "pipeline",
         "name": pipeline_graph.name,
-        "project": {
-            "avatar_colour": "#AA2216",
-            "avatar_image_url": None,
-            "name": "Default",
-            "id": "project_3b0253647cc844619ad5b5288af40e7d",
-        },
         "variables": [
             {
                 "local_id": "lpacWxZNeq",
@@ -534,12 +505,6 @@ def pickled_graph(pipeline_graph):
                 "id": "function_a66fae56c86e40769b4b01481b83c9b0",
                 "type": "function",
                 "name": "predict",
-                "project": {
-                    "avatar_colour": "#AA2216",
-                    "avatar_image_url": None,
-                    "name": "Default",
-                    "id": "project_3b0253647cc844619ad5b5288af40e7d",
-                },
                 "hex_file": {
                     "name": "LZpywTMKOoFwqOKNMEqB",
                     "id": "file_9ec0d8d609f54e8daaa9fb4d1f2291f5",
@@ -663,41 +628,37 @@ def pipeline_file(file):
 
 
 @pytest.fixture()
-def tag_get(project_get: ProjectGet):
+def tag_get():
     return PipelineTagGet(
         id="pipeline_tag",
         name="test:pipeline_id",
-        project_id=project_get.id,
         pipeline_id="pipeline_id",
     )
 
 
 @pytest.fixture()
-def tag_get_2(project_get: ProjectGet):
+def tag_get_2():
     return PipelineTagGet(
         id="pipeline_tag_2",
         name="test:tag2",
-        project_id=project_get.id,
         pipeline_id="pipeline_id",
     )
 
 
 @pytest.fixture()
-def tag_get_3(project_get: ProjectGet):
+def tag_get_3():
     return PipelineTagGet(
         id="pipeline_tag_3",
         name="test:tag3",
-        project_id=project_get.id,
         pipeline_id="pipeline_id_2",
     )
 
 
 @pytest.fixture()
-def tag_get_patched(project_get: ProjectGet):
+def tag_get_patched():
     return PipelineTagGet(
         id="pipeline_tag",
         name="test:pipeline_id",
-        project_id=project_get.id,
         pipeline_id="pipeline_id_2",
     )
 
