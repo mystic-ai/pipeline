@@ -9,7 +9,6 @@ def test_imports():
             data,
             file,
             function,
-            project,
             resource,
             run,
             runnable,
