@@ -20,6 +20,11 @@ from pipeline.objects import (
     pipeline_model,
 )
 from pipeline.schemas.data import DataGet
+from pipeline.schemas.environment import (
+    EnvironmentCreate,
+    EnvironmentGet,
+    EnvironmentPatch,
+)
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
@@ -724,4 +729,28 @@ def tags_list(
 ):
     return Paginated[PipelineTagGet](
         skip=1, limit=5, total=3, data=[tag_get_2, tag_get_3]
+    )
+
+
+@pytest.fixture()
+def environment_get() -> EnvironmentGet:
+    return EnvironmentGet(
+        id="environment_1",
+        name="test",
+        python_requirements=[
+            "dependency_1",
+            "dependency_2",
+        ],
+        locked=False,
+    )
+
+
+@pytest.fixture()
+def environment_create() -> EnvironmentCreate:
+    return EnvironmentCreate(
+        name="test",
+        python_requirements=[
+            "dependency_1",
+            "dependency_2",
+        ],
     )
