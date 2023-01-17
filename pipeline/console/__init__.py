@@ -2,6 +2,7 @@ import argparse
 import sys
 from typing import List, Optional
 
+from pipeline.console.environments import environments as environments_command
 from pipeline.console.remote import remote as remote_command
 from pipeline.console.runs import runs as runs_command
 from pipeline.console.tags import tags as tags_command
@@ -13,6 +14,7 @@ def main(args: Optional[List[str]] = None) -> int:
         description="Create or run pipelines locally or in the cloud!",
         add_help=True,
     )
+
     base_parser.add_argument(
         "-v",
         "--verbose",
@@ -231,6 +233,99 @@ def main(args: Optional[List[str]] = None) -> int:
     )
 
     ##########
+    # pipeline environments
+    ##########
+
+    environments_parser = command_parser.add_parser(
+        "environments",
+        description="Manage environments",
+        help="Manage environments",
+    )
+
+    environments_sub_parser = environments_parser.add_subparsers(dest="sub-command")
+
+    ##########
+    # pipeline environments create
+    ##########
+
+    environments_create_parser = environments_sub_parser.add_parser(
+        "create",
+        help="Create a new python environment",
+    )
+
+    environments_create_parser.add_argument(
+        "name",
+        help="The environment name",
+    )
+
+    # TODO: Create via requirements.txt
+    environments_create_parser.add_argument(
+        "-r",
+        "--requirements",
+        type=str,
+        help="Create environment from requirements file",
+        required=False,
+    )
+    environments_create_parser.add_argument(
+        "-l",
+        "--from-local",
+        action="store_true",
+        help="Create environment using all locally installed packages",
+        required=False,
+        default=False,
+    )
+
+    ##########
+    # pipeline environments get
+    ##########
+
+    environments_get_parser = environments_sub_parser.add_parser(
+        "get",
+        help="Get environment information",
+    )
+
+    environments_get_parser.add_argument(
+        "name_or_id", help="The environment name or id to get"
+    )
+    ##########
+    # pipeline environments list
+    ##########
+    # environments_list_parser = environments_sub_parser.add_parser(
+    #     "list",
+    #     aliases=["ls"],
+    #     help="List environments",
+    # )
+
+    ##########
+    # pipeline environments delete
+    ##########
+    environments_delete_parser = environments_sub_parser.add_parser(
+        "delete",
+        aliases=["rm"],
+        help="Delete environment",
+    )
+
+    environments_delete_parser.add_argument(
+        "name_or_id", help="The environment name or id to delete"
+    )
+
+    ##########
+    # pipeline environments update
+    ##########
+    environments_update_parser = environments_sub_parser.add_parser(
+        "update",
+        help="Update environment",
+    )
+
+    environments_update_parser.add_argument(
+        "name_or_id", help="The environment name or id to update"
+    )
+
+    # TODO: Lock
+    # TODO: Add/rm packages
+
+    ##########
+
     args: argparse.Namespace = base_parser.parse_args(args)
     command = getattr(args, "command", None)
 
@@ -245,6 +340,10 @@ def main(args: Optional[List[str]] = None) -> int:
     elif command == "tags":
         if (code := tags_command(args)) is None:
             tags_parser.print_help()
+            return 1
+    elif command == "environments":
+        if (code := environments_command(args)) is None:
+            environments_parser.print_help()
             return 1
     else:
         base_parser.print_help()

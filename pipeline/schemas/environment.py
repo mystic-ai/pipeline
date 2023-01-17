@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pipeline.schemas.base import BaseModel
 
@@ -12,8 +12,9 @@ class EnvironmentGet(BaseModel):
     id: str
     name: str
     python_requirements: List[str]
-    is_locked: bool
+    locked: bool
 
 
-class EnvironmentPythonRequirementsUpdate(BaseModel):
-    python_requirements: List[str]
+class EnvironmentPatch(BaseModel):
+    python_requirements: Optional[List[str]]
+    locked: Optional[bool]
