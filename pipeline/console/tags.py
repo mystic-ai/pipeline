@@ -14,7 +14,7 @@ from pipeline.schemas.pipeline import (
 )
 from pipeline.util.logging import _print
 
-tag_re_pattern = re.compile(r"^[0-9a-zA-Z\-\_]+:[0-9a-zA-Z\-\_]+$", re.IGNORECASE)
+tag_re_pattern = re.compile(r"^[0-9a-zA-Z\-\_]+:[0-9a-zA-Z\-\_]+$")
 
 
 def _get_tag(tag_name: str) -> PipelineTagGet:
