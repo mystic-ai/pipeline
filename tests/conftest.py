@@ -1,5 +1,6 @@
 # flake8: noqa
 import os
+import re
 
 os.environ["PIPELINE_CACHE"] = "./.tmp_cache/"
 
@@ -88,6 +89,10 @@ def top_api_server(
     tag_create: PipelineTagCreate,
     # Environments
     environment_get: EnvironmentGet,
+    environment_get_locked: EnvironmentGet,
+    environment_get_add_package: EnvironmentGet,
+    environment_get_rm_package: EnvironmentGet,
+    environment_create: EnvironmentCreate,
     # Misc
     function_get_json,
     model_get_json,
@@ -275,17 +280,92 @@ def top_api_server(
     ##########
 
     httpserver.expect_request(
-        f"/v2/environments/test",
+        f"/v2/environments/missing_environment",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_response(Response(status=404))
+
+    httpserver.expect_request(
+        f"/v2/environments/{environment_get.id}",
         method="GET",
         headers=dict(Authorization=f"Bearer {token}"),
     ).respond_with_json(environment_get.dict())
 
     httpserver.expect_request(
-        f"/v2/environments/environment_1",
+        f"/v2/environments/{environment_get.name}",
         method="GET",
         headers=dict(Authorization=f"Bearer {token}"),
     ).respond_with_json(environment_get.dict())
+
+    httpserver.expect_request(
+        f"/v2/environments",
+        method="POST",
+        headers=dict(Authorization=f"Bearer {token}"),
+        data=environment_create.json(),
+    ).respond_with_json(environment_get.dict())
+
+    httpserver.expect_request(
+        f"/v2/environments/{environment_get.id}",
+        method="DELETE",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_response(Response(status=204))
+
+    httpserver.expect_request(
+        f"/v2/environments/{environment_get.id}",
+        method="PATCH",
+        headers=dict(Authorization=f"Bearer {token}"),
+        json=dict(
+            locked=True,
+            python_requirements=None,
+        ),
+    ).respond_with_json(environment_get_locked.dict())
+
+    httpserver.expect_request(
+        f"/v2/environments/{environment_get.id}",
+        method="PATCH",
+        headers=dict(Authorization=f"Bearer {token}"),
+        json=dict(
+            python_requirements=environment_get_add_package.python_requirements,
+            locked=None,
+        ),
+    ).respond_with_json(environment_get_add_package.dict())
+
+    httpserver.expect_request(
+        f"/v2/environments/{environment_get.id}",
+        method="PATCH",
+        headers=dict(Authorization=f"Bearer {token}"),
+        json=dict(
+            python_requirements=environment_get_rm_package.python_requirements,
+            locked=None,
+        ),
+    ).respond_with_json(environment_get_rm_package.dict())
+
+    httpserver.expect_request(
+        f"/v2/environments",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+        query_string="skip=1&limit=3&order_by=created_at%3Adesc",
+    ).respond_with_json(
+        Paginated[EnvironmentGet](
+            skip=1,
+            limit=3,
+            total=4,
+            data=[
+                environment_get,
+                environment_get_add_package,
+                environment_get_rm_package,
+            ],
+        ).dict()
+    )
+
     ##########
+
+    httpserver.expect_request(re.compile(r"^/"), method="GET").respond_with_response(
+        Response(status=404),
+    )
+    httpserver.expect_request(re.compile(r"^/"), method="POST").respond_with_response(
+        Response(status=404),
+    )
     return httpserver
 
 
@@ -753,6 +833,45 @@ def environment_get() -> EnvironmentGet:
         name="test",
         python_requirements=[
             "dependency_1",
+            "dependency_2",
+        ],
+        locked=False,
+    )
+
+
+@pytest.fixture()
+def environment_get_locked() -> EnvironmentGet:
+    return EnvironmentGet(
+        id="environment_1",
+        name="test",
+        python_requirements=[
+            "dependency_1",
+            "dependency_2",
+        ],
+        locked=True,
+    )
+
+
+@pytest.fixture()
+def environment_get_add_package() -> EnvironmentGet:
+    return EnvironmentGet(
+        id="environment_1",
+        name="test",
+        python_requirements=[
+            "dependency_1",
+            "dependency_2",
+            "dependency_3",
+        ],
+        locked=False,
+    )
+
+
+@pytest.fixture()
+def environment_get_rm_package() -> EnvironmentGet:
+    return EnvironmentGet(
+        id="environment_1",
+        name="test",
+        python_requirements=[
             "dependency_2",
         ],
         locked=False,

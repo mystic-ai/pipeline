@@ -104,7 +104,6 @@ def _update_environment(
     update_schema = EnvironmentPatch(
         python_requirements=python_requirements, locked=locked
     )
-
     response = remote_service._patch(
         f"/v2/environments/{environment_information.id}",
         update_schema.dict(),
@@ -124,7 +123,9 @@ def _add_packages_to_environment(
 
     current_packages.extend(new_packages)
 
-    return _update_environment(python_requirements=current_packages)
+    return _update_environment(
+        environment_information.id, python_requirements=current_packages
+    )
 
 
 def _remove_packages_from_environment(
@@ -139,7 +140,9 @@ def _remove_packages_from_environment(
 
     [current_packages.remove(package) for package in packages]
 
-    return _update_environment(python_requirements=current_packages)
+    return _update_environment(
+        environment_information.id, python_requirements=current_packages
+    )
 
 
 def _update_environment_lock(name_or_id: str, locked: bool) -> EnvironmentGet:
