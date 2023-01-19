@@ -95,6 +95,7 @@ def test_pipeline_create_to_json():
     assert json.loads(schema.json()) == dict(
         name="pipe",
         description="",
+        project_id=None,
         public=False,
         tags=[],
         variables=[],
