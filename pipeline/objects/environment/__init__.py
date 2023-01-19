@@ -51,8 +51,8 @@ class Environment:
         env_str = "::".join(
             [
                 self.name,
-                ";".join([self.dependencies]),
-                ";".join([self.extra_index_urls]),
+                ";".join(self.dependencies),
+                ";".join(self.extra_index_urls),
             ]
         )
         return hashlib.sha256(env_str).hexdigest()
