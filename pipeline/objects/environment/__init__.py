@@ -48,11 +48,13 @@ class Environment:
         two environments are the same.
         """
         # Combine all the info that makes this environment unique
-        env_str = [
-            self.name,
-            [self.dependencies].join(";"),
-            [self.extra_index_urls].join(";"),
-        ].join("::")
+        env_str = "::".join(
+            [
+                self.name,
+                [self.dependencies].join(";"),
+                [self.extra_index_urls].join(";"),
+            ]
+        )
         return hashlib.sha256(env_str).hexdigest()
 
     def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> None:
