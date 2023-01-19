@@ -55,7 +55,7 @@ class Environment:
         ].join("::")
         return hashlib.sha256(env_str).hexdigest()
 
-    def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> str:
+    def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> None:
         # TODO add arg for remaking on dependency change
 
         """_summary_
@@ -128,23 +128,14 @@ class Environment:
         self.initialized = True
 
     def add_dependency(self, dependency: str) -> None:
+        self.add_dependencies([dependency])
+
+    def add_dependencies(self, dependencies: List[str]):
         if self.initialized:
             raise Exception(
-                "Cannot add dependency after the environment has \
-                been initialized."
+                "Cannot add dependencies after the environment has been initialized."
             )
-        self.dependencies.append(dependency)
-
-    def add_dependencies(self, *dependencies: List[Union[List[str], str]]):
-        for _target in dependencies:
-            if isinstance(_target, list) and len(dependencies) == 1:
-                ...
-            elif isinstance(_target, str):
-                ...
-            else:
-                raise Exception(
-                    "Can either add a list of dependencies or an array of dependencies"
-                )
+        self.dependencies.extend(dependencies)
 
     def merge_with_environment(self, env) -> None:
         if not isinstance(env, Environment):
