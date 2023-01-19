@@ -35,7 +35,6 @@ def _get_tag(tag_name: str) -> PipelineTagGet:
         raise sys.exit(1)
 
     remote_service = PipelineCloud(verbose=False)
-    remote_service.authenticate()
     tag_information = PipelineTagGet.parse_obj(
         remote_service._get(f"/v2/pipeline-tags/by-name/{tag_name}")
     )
@@ -44,7 +43,6 @@ def _get_tag(tag_name: str) -> PipelineTagGet:
 
 def _update_or_create_tag(source: str, target: str, sub_command: str) -> PipelineTagGet:
     remote_service = PipelineCloud(verbose=False)
-    remote_service.authenticate()
     if not VALID_TAG_NAME.match(target):
         _print("Target tag must match pattern 'pipeline:tag'", level="ERROR")
         raise sys.exit(1)
@@ -81,7 +79,6 @@ def _list_tags(
     skip: int, limit: int, pipeline_id: str = None
 ) -> Paginated[PipelineTagGet]:
     remote_service = PipelineCloud(verbose=False)
-    remote_service.authenticate()
     response = remote_service._get(
         "/v2/pipeline-tags",
         params=dict(
@@ -99,7 +96,6 @@ def _list_tags(
 
 def _delete_tag(tag_name: str) -> None:
     remote_service = PipelineCloud(verbose=False)
-    remote_service.authenticate()
 
     tag_information = _get_tag(tag_name)
     remote_service._delete(f"/v2/pipeline-tags/{tag_information.id}")

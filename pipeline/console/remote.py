@@ -1,6 +1,7 @@
 import argparse
 
 from pipeline import PipelineCloud, configuration
+from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.util.logging import _print
 
 
@@ -24,13 +25,13 @@ def remote(args: argparse.Namespace) -> int:
         [print(_remote) for _remote in remotes]
         return 0
     elif sub_command == "login":
-        valid_token = PipelineCloud._validate_token(args.token, args.url)
+        try:
+            PipelineCloud(token=args.token, url=args.url, verbose=False)
+        except MissingActiveToken:
+            _print(f"Couldn't authenticate with {args.url}", level="ERROR")
+            return 1
 
-        if valid_token:
-            configuration.remote_auth[args.url] = args.token
-            configuration._save_auth()
-            _print(f"Successfully authenticated with {args.url}")
-            return 0
-
-        _print(f"Couldn't authenticate with {args.url}", level="ERROR")
-        return 1
+        configuration.remote_auth[args.url] = args.token
+        configuration._save_auth()
+        _print(f"Successfully authenticated with {args.url}")
+        return 0
