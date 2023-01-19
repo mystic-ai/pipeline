@@ -55,7 +55,7 @@ class Environment:
                 ";".join(self.extra_index_urls),
             ]
         )
-        return hashlib.sha256(env_str).hexdigest()
+        return hashlib.sha256(env_str.encode()).hexdigest()
 
     def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> None:
         # TODO add arg for remaking on dependency change
