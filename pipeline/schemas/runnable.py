@@ -4,6 +4,7 @@ from typing import List, Optional
 from pydantic import Field
 
 from .base import BaseModel
+from .project import ProjectGet
 
 
 class RunnableType(enum.Enum):
@@ -22,6 +23,7 @@ class RunnableGet(BaseModel):
     id: str
     type: str
     name: Optional[str]
+    project: ProjectGet
 
 
 class RunnableGetDetailed(RunnableGet):

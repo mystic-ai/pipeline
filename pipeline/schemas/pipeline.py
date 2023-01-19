@@ -89,6 +89,7 @@ class PipelineCreate(BaseModel):
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]
     outputs: List[str]
+    project_id: Optional[str]
     public: bool = False
     description: str = ""
     tags: Set[str] = set()
@@ -114,11 +115,14 @@ class PipelineTagCreate(BaseModel):
     name: str
     # The pipeline ID this tag should point to.
     pipeline_id: str
+    # The project ID is inferred from the project ID of the the pipeline.
+    # project_id: str
 
 
 class PipelineTagGet(BaseModel):
     id: str
     name: str
+    project_id: str
     pipeline_id: str
 
 

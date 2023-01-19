@@ -45,9 +45,16 @@ class RunHardwareMetric(BaseModel):
     average_runtime: int
 
 
+class ProjectHardwareMetric(BaseModel):
+    project_id: str
+    project_name: str
+    project_usage: List[RunHardwareMetric]
+
+
 class HardwareMetric(BaseModel):
     start: datetime
     end: datetime
+    projects: List[ProjectHardwareMetric]
     account_usage: List[RunHardwareMetric]
 
 
