@@ -100,7 +100,7 @@ class Environment:
 
         # Create requirements.txt for env
         deps_str = "\n".join(self.dependencies)
-        _print(f"Installing the following requirements:\n{deps_str}")
+        _print(f"Installing the following requirements:\n{deps_str}\n")
         requirements_path = os.path.join(self.env_path, "requirements.txt")
         with open(requirements_path, "w") as req_file:
             for dep in self.dependencies:
