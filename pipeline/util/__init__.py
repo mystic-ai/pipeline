@@ -1,3 +1,4 @@
+import importlib.metadata
 import io
 import random
 import string
@@ -7,6 +8,11 @@ from cloudpickle import dumps
 from dill import loads
 
 from pipeline.schemas.file import FileCreate
+
+
+def package_version() -> str:
+    """Return the version of the installed `pipeline-ai` package."""
+    return importlib.metadata.version("pipeline-ai")
 
 
 def generate_id(length: int) -> str:

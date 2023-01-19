@@ -45,6 +45,7 @@ from pipeline.util import (
     CallbackBytesIO,
     generate_id,
     hex_to_python_object,
+    package_version,
     python_object_to_hex,
     python_object_to_name,
 )
@@ -91,7 +92,10 @@ class PipelineCloud:
         self._timeout = timeout
         self.client = httpx.Client(
             base_url=self.url,
-            headers=dict(authorization=f"Bearer {self.token}"),
+            headers={
+                "Authorization": f"Bearer {self.token}",
+                "User-Agent": f"pipeline-ai/{package_version()}",
+            },
             timeout=self._timeout,
         )
 
