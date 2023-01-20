@@ -10,6 +10,8 @@ from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
 from pipeline.schemas.runnable import RunnableGet, RunnableType
 
+from .validators import valid_pipeline_name
+
 
 class PipelineGraphNode(BaseModel):
     local_id: str
@@ -108,6 +110,18 @@ class PipelineCreate(BaseModel):
                     "min_gpu_vram_mb should only be specified for gpu workloads"
                 )
         return v
+
+    @validator("name")
+    def validate_name(cls, value):
+        if not valid_pipeline_name(value):
+            raise ValueError(
+                (
+                    "May contain lowercase letters, digits and separators."
+                    "Separators are periods, underscores, dashes and forward slashes."
+                    "Can not start or end with a separator."
+                )
+            )
+        return value
 
 
 class PipelineTagCreate(BaseModel):
