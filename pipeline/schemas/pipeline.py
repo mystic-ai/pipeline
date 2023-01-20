@@ -10,7 +10,7 @@ from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
 from pipeline.schemas.runnable import RunnableGet, RunnableType
 
-from .validators import valid_pipeline_name
+from .validators import valid_pipeline_name, valid_pipeline_tag_name
 
 
 class PipelineGraphNode(BaseModel):
@@ -131,6 +131,19 @@ class PipelineTagCreate(BaseModel):
     pipeline_id: str
     # The project ID is inferred from the project ID of the the pipeline.
     # project_id: str
+
+    @validator("name")
+    def validate_name(cls, value):
+        if not valid_pipeline_tag_name(value):
+            raise ValueError(
+                (
+                    "Must take the form: `name:tag`."
+                    "Name must match the pipeline name."
+                    "Tag may contain letters, digits, underscores, periods and dashes."
+                    "Tag may contain a maximum of 128 characters."
+                )
+            )
+        return value
 
 
 class PipelineTagGet(BaseModel):
