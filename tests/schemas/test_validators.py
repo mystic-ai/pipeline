@@ -84,5 +84,4 @@ def test_valid_pipeline_name(pipeline_name):
     ],
 )
 def test_invalid_pipeline_name(pipeline_name):
-    with pytest.raises(ValueError):
-        valid_pipeline_name(pipeline_name)
+    assert not valid_pipeline_name(pipeline_name)
