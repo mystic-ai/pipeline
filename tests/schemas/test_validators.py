@@ -66,3 +66,23 @@ def test_valid_usernames():
 )
 def test_valid_pipeline_name(pipeline_name):
     assert valid_pipeline_name(pipeline_name)
+
+
+@pytest.mark.parametrize(
+    "pipeline_name",
+    [
+        # empty
+        "",
+        # No blank space allowed
+        # name starts or ends with a separator
+        "-pipeline 123",
+        "/pipeline1233",
+        "my-pipeline_",
+        # invalid characters
+        "mystic(pipeline",
+        "mystic#pipeline",
+    ],
+)
+def test_invalid_pipeline_name(pipeline_name):
+    with pytest.raises(ValueError):
+        valid_pipeline_name(pipeline_name)
