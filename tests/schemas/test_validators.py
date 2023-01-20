@@ -1,4 +1,10 @@
-from pipeline.schemas.validators import valid_password, valid_username
+import pytest
+
+from pipeline.schemas.validators import (
+    valid_password,
+    valid_pipeline_name,
+    valid_username,
+)
 
 INVALID_PASSWORDS = [
     "askjhs",  # < 8 chars
@@ -45,3 +51,18 @@ def test_invalid_usernames():
 def test_valid_usernames():
     for username in VALID_USERNAMES:
         assert valid_username(username)
+
+
+@pytest.mark.parametrize(
+    "pipeline_name",
+    [
+        "pipeline",
+        "pipeline123",
+        "pipeline.1233",
+        "my-pipeline",
+        "my_pipeline",
+        "mystic/pipeline",
+    ],
+)
+def test_valid_pipeline_name(pipeline_name):
+    assert valid_pipeline_name(pipeline_name)
