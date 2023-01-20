@@ -8,7 +8,7 @@ def test_dockerfiles(tmp_path):
     def add_numbers(in_1: float, in_2: float) -> float:
         return in_1 + in_2
 
-    with Pipeline("AddNumbers") as builder:
+    with Pipeline("add-numbers") as builder:
         in_1 = Variable(float, is_input=True)
         in_2 = Variable(float, is_input=True)
         builder.add_variables(in_1, in_2)
@@ -17,7 +17,7 @@ def test_dockerfiles(tmp_path):
 
         builder.output(sum)
 
-    graph = Pipeline.get_pipeline("AddNumbers")
+    graph = Pipeline.get_pipeline("add-numbers")
     output = graph.run(3.0, 4.0)
     assert output[0] == 3 + 4
 

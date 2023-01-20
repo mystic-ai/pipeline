@@ -145,7 +145,7 @@ class GPTJ6B_Model:
 
 api = PipelineCloud()
 
-with Pipeline("GPT-J") as builder:
+with Pipeline("gpt-j") as builder:
     input_str = Variable(str, is_input=True)
     inference_kwargs = Variable(dict, is_input=True)
 
@@ -163,5 +163,5 @@ with Pipeline("GPT-J") as builder:
 
     builder.output(output_str)
 
-output_pipeline = Pipeline.get_pipeline("GPT-J")
+output_pipeline = Pipeline.get_pipeline("gpt-j")
 uploaded_pipeline = api.upload_pipeline(output_pipeline)

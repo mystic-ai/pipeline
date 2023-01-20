@@ -183,9 +183,7 @@ class StableDiffusionTxt2ImgModel:
         return True
 
 
-with Pipeline(
-    "Stable Diffusion v2 txt2img fp32 v1.0", min_gpu_vram_mb=15602
-) as builder:
+with Pipeline("stable-diffusion-v2", min_gpu_vram_mb=15602) as builder:
     model_file = PipelineFile(path="temporary.model")
     prompts = Variable(list, is_input=True)
     batch_kwargs = Variable(dict, is_input=True)
@@ -199,7 +197,7 @@ with Pipeline(
     builder.output(output)
 
 
-new_pipeline = Pipeline.get_pipeline("Stable Diffusion v2 txt2img fp32 v1.0")
+new_pipeline = Pipeline.get_pipeline("stable-diffusion-v2")
 upload = True
 if upload:
     api = PipelineCloud()
