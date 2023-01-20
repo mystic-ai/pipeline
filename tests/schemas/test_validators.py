@@ -134,5 +134,5 @@ def test_valid_pipeline_tag_name(tag_name):
         "pipeline:" + ("a" * 129),
     ],
 )
-def test_invalid_pipeline_tag_name(pipeline_name):
-    assert not valid_pipeline_tag_name(pipeline_name)
+def test_invalid_pipeline_tag_name(tag_name):
+    assert not valid_pipeline_tag_name(tag_name)
