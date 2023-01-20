@@ -36,7 +36,7 @@ def test_basic_pipeline():
 
     @pipeline_function
     def square(f_1: float) -> float:
-        return f_1**2
+        return f_1 ** 2
 
     with Pipeline("test") as my_pipeline:
         in_1 = Variable(float, is_input=True)
