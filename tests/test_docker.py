@@ -29,6 +29,6 @@ def test_dockerfiles(tmp_path):
         f"{test_dir}/docker-compose.yml"
     )
     # Check for the serialization of the graph
-    assert os.path.exists(f"{test_dir}/AddNumbers.graph")
+    assert os.path.exists(f"{test_dir}/add-numbers.graph")
 
     # TODO validate that the docker files are correct
