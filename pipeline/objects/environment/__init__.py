@@ -43,6 +43,14 @@ class Environment:
             self.merge_with_environment(_env)
 
     @property
+    def env_path(self):
+        return configuration.PIPELINE_CACHE / self.name
+
+    @property
+    def python_path(self):
+        return self.env_path / "bin" / "python"
+
+    @property
     def hash(self) -> str:
         """Generate unique hash for this environment so we can determine when
         two environments are the same.
@@ -75,7 +83,6 @@ class Environment:
         Returns:
             None: Nothing is returned.
         """
-        self.env_path = os.path.join(configuration.PIPELINE_CACHE, self.name)
 
         if os.path.exists(self.env_path):
             if not overwrite:
@@ -103,12 +110,11 @@ class Environment:
         # Create requirements.txt for env
         deps_str = "\n".join(self.dependencies)
         _print(f"Installing the following requirements:\n{deps_str}\n")
-        requirements_path = os.path.join(self.env_path, "requirements.txt")
+        requirements_path = self.env_path / "requirements.txt"
         with open(requirements_path, "w") as req_file:
             for dep in self.dependencies:
                 req_file.write(f"{dep}\n")
 
-        env_python_path = os.path.join(self.env_path, "bin/python")
         extra_args = []
         for extra_url in self.extra_index_urls:
             extra_args.append("--extra-index-url")
@@ -116,7 +122,7 @@ class Environment:
 
         subprocess.call(
             [
-                env_python_path,
+                self.python_path,
                 "-m",
                 "pip",
                 "install",
