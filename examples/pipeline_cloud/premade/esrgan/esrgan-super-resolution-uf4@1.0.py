@@ -425,7 +425,7 @@ class ESRGANModel:
         return True
 
 
-with Pipeline("ESRGAN Super Resolution", min_gpu_vram_mb=10000) as builder:
+with Pipeline("esrgan-super-resolution", min_gpu_vram_mb=10000) as builder:
     prompts = Variable(list, is_input=True)
     checkpoint_file = PipelineFile(path=checkpoint_path)
 
@@ -437,7 +437,7 @@ with Pipeline("ESRGAN Super Resolution", min_gpu_vram_mb=10000) as builder:
     output = esrgan_model.predict(prompts)
     builder.output(output)
 
-new_pipeline = Pipeline.get_pipeline("ESRGAN Super Resolution")
+new_pipeline = Pipeline.get_pipeline("esrgan-super-resolution")
 
 upload = False
 if upload:
