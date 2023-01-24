@@ -120,18 +120,24 @@ class Environment:
             extra_args.append("--extra-index-url")
             extra_args.append(extra_url)
 
-        subprocess.call(
-            [
-                self.python_path,
-                "-m",
-                "pip",
-                "install",
-                "-r",
-                requirements_path,
-                *extra_args,
-            ],
-            stdout=subprocess.PIPE,
-        )
+        try:
+            subprocess.run(
+                [
+                    self.python_path,
+                    "-m",
+                    "pip",
+                    "install",
+                    "-r",
+                    requirements_path,
+                    *extra_args,
+                ],
+                # stdout=subprocess.PIPE,
+                check=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            _print(f"Error installing requirements: {exc}")
+            raise
+
         _print(f"New environment '{self.name}' has been created")
         self.initialized = True
 
