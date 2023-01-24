@@ -1,5 +1,5 @@
-import os
 import hashlib
+import os
 import shutil
 import subprocess
 import venv
@@ -8,6 +8,9 @@ from typing import Any, List, Union
 import cloudpickle
 import tomli
 from pip._internal.commands.freeze import freeze
+from pip._internal.operations.check import check_install_conflicts
+from pip._internal.req.constructors import install_req_from_line
+from pip._vendor.packaging.requirements import Requirement
 
 from pipeline import configuration
 from pipeline.objects.graph import Graph
@@ -65,6 +68,27 @@ class Environment:
         )
         return hashlib.sha256(env_str.encode()).hexdigest()
 
+    def validate_requirements(self):
+        install_options = []
+        for extra_url in self.extra_index_urls:
+            install_options.append("--extra-index-url")
+            install_options.append(extra_url)
+        try:
+            requirements = [
+                install_req_from_line(
+                    dep,
+                    options=dict(install_options=install_options),
+                    user_supplied=True,
+                    isolated=True,
+                )
+                for dep in self.dependencies
+            ]
+            # This doesn't seem to work reliably
+            # _, result = check_install_conflicts(requirements)
+        except Exception as ex:
+            _print(f"Invalid requirements: {ex}")
+            raise
+
     def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> None:
         # TODO add arg for remaking on dependency change
 
@@ -106,6 +130,8 @@ class Environment:
             with_pip=True,
             upgrade_deps=upgrade_deps,
         )
+
+        self.validate_requirements()
 
         # Create requirements.txt for env
         deps_str = "\n".join(self.dependencies)
