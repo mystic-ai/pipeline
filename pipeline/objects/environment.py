@@ -38,6 +38,11 @@ class Environment:
             self.merge_with_environment(_env)
 
     @property
+    def id(self):
+        """TODO: this is a hack - replace with id from the actual environment data"""
+        return self.hash
+
+    @property
     def env_root_dir(self) -> Path:
         return configuration.PIPELINE_CACHE / "envs"
 
