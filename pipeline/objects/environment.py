@@ -3,28 +3,19 @@ import os
 import shutil
 import subprocess
 import venv
-from typing import Any, List, Union
+from typing import Any, List
 
 import cloudpickle
 import tomli
 from pip._internal.commands.freeze import freeze
-from pip._internal.operations.check import check_install_conflicts
+
+# from pip._internal.operations.check import check_install_conflicts
 from pip._internal.req.constructors import install_req_from_line
-from pip._vendor.packaging.requirements import Requirement
 
 from pipeline import configuration
 from pipeline.objects.graph import Graph
 from pipeline.util.logging import _print
-
-"""
-TODO:
-1.  Add in dependency checks to check if a set of deps can be installed.
-    This is a solved problem and we can use the internal testing from pip:
-
-    from pip._internal.req.req_install import InstallRequirement
-    from pip._vendor.packaging.requirements import Requirement
-    from pip._internal.operations import check
-"""
+from pipeline.exceptions.environment import EnvironmentInitializationError
 
 
 class Environment:
@@ -74,7 +65,11 @@ class Environment:
             install_options.append("--extra-index-url")
             install_options.append(extra_url)
         try:
-            requirements = [
+            # Try parsing each requirement, which should raise an exception if
+            # invalid.
+            # This just checks the format of each requirement and not whether it
+            # can be installed successfully or not.
+            [
                 install_req_from_line(
                     dep,
                     options=dict(install_options=install_options),
@@ -85,9 +80,10 @@ class Environment:
             ]
             # This doesn't seem to work reliably
             # _, result = check_install_conflicts(requirements)
-        except Exception as ex:
-            _print(f"Invalid requirements: {ex}")
-            raise
+        except Exception as exc:
+            error_msg = f"Invalid requirements: {exc}"
+            _print(error_msg, "ERROR")
+            raise EnvironmentInitializationError(error_msg)
 
     def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> None:
         # TODO add arg for remaking on dependency change
@@ -161,8 +157,9 @@ class Environment:
                 check=True,
             )
         except subprocess.CalledProcessError as exc:
-            _print(f"Error installing requirements: {exc}")
-            raise
+            error_msg = f"Error installing requirements: {exc}"
+            _print(error_msg, "ERROR")
+            raise EnvironmentInitializationError(error_msg)
 
         _print(f"New environment '{self.name}' has been created")
         self.initialized = True
@@ -284,3 +281,43 @@ class EnvironmentSession:
         pickled_run = cloudpickle.dumps(dict(pipeline_id=pipeline.local_id, data=data))
         response = self._send_command("run-pipeline", pickled_run.hex())
         return response
+
+
+default_worker_environment = Environment(
+    name="default-worker-environment",
+    dependencies=[
+        "torch==1.13.1",
+        "torchvision==0.14.1",
+        "torchaudio==0.13.1",
+        "transformers==4.21.2",
+        "opencv-python==4.5.3.56",
+        "tensorflow==2.9.1",
+        "tensorflow-hub==0.12.0",
+        # "detectron2==0.6",
+        "deepspeed==0.5.10",
+        "seaborn==0.11.2",
+        "numpy==1.21.0",
+        "Pillow==9.2.0",
+        "spacy[cuda113]==3.4.3",
+        "onnxruntime-gpu==1.12.1",
+        "sentence-transformers==2.2.2",
+        "accelerate==0.10.0",
+        "diffusers @ git+https://github.com/huggingface/diffusers.git@5755d16868ec3da7d5eb4f42db77b01fac842ea8",
+        "xgboost==1.6.2",
+        "einops==0.4.1",
+        "wandb==0.13.4",
+        "scikit-learn==1.1.2",
+        "catboost==1.1",
+        "pywhisper==1.0.6",
+    ],
+)
+
+
+worker_torch_environment = Environment(
+    name="worker-torch-environment",
+    dependencies=[
+        "torch==1.13.0",
+        "torchvision==0.14.0",
+        "torchaudio==0.13.0",
+    ],
+)

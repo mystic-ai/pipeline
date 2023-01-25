@@ -7,7 +7,7 @@ from typing import List, Optional
 import yaml
 
 from pipeline.objects import Graph, PipelineFile
-from pipeline.objects.environment import Environment
+from pipeline.pipeline.objects.environment import Environment
 
 
 def create_pipeline_api(
@@ -35,6 +35,7 @@ def create_pipeline_api(
         graph_path = os.path.join(output_dir, pipeline_graph.name + ".graph")
         pipeline_graph.save(graph_path)
         paths.append(graph_path)
+    # TODO - don't think this works
     if environment is not None:
         environment.to_requirements()
     create_dockerfile(
