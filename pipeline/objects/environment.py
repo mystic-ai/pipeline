@@ -9,6 +9,7 @@ import cloudpickle
 import tomli
 from pip._internal.commands.freeze import freeze
 
+#
 # from pip._internal.operations.check import check_install_conflicts
 from pip._internal.req.constructors import install_req_from_line
 
@@ -120,6 +121,7 @@ class Environment:
                 )
                 shutil.rmtree(self.env_path)
 
+        _print(f"Creating new virtualenv at {self.env_path}")
         venv.create(
             env_dir=self.env_path,
             clear=True,
@@ -131,7 +133,7 @@ class Environment:
 
         # Create requirements.txt for env
         deps_str = "\n".join(self.dependencies)
-        _print(f"Installing the following requirements:\n{deps_str}\n")
+        _print(f"Installing the following requirements:\n{deps_str}\n\n")
         requirements_path = self.env_path / "requirements.txt"
         with open(requirements_path, "w") as req_file:
             for dep in self.dependencies:
@@ -143,23 +145,28 @@ class Environment:
             extra_args.append(extra_url)
 
         try:
-            subprocess.run(
+            proc = subprocess.run(
                 [
-                    self.python_path,
+                    str(self.python_path),
                     "-m",
                     "pip",
                     "install",
                     "-r",
-                    requirements_path,
+                    str(requirements_path),
                     *extra_args,
                 ],
-                # stdout=subprocess.PIPE,
                 check=True,
+                capture_output=True,
             )
         except subprocess.CalledProcessError as exc:
             error_msg = f"Error installing requirements: {exc}"
             _print(error_msg, "ERROR")
-            raise EnvironmentInitializationError(error_msg)
+            _print("\nstdout = \n")
+            _print(proc.stdout)
+            _print("\nstderr = \n")
+            _print(proc.stderr)
+
+            raise EnvironmentInitializationError(error_msg, traceback="")
 
         _print(f"New environment '{self.name}' has been created")
         self.initialized = True
