@@ -39,7 +39,8 @@ class Environment:
 
     @property
     def env_path(self):
-        return configuration.PIPELINE_CACHE / self.name
+        # Try to ensure env_path is unique by adding start of hash
+        return configuration.PIPELINE_CACHE / "envs" / f"{self.name}-{self.hash[:10]}"
 
     @property
     def python_path(self):
