@@ -44,7 +44,7 @@ class Environment:
     @property
     def env_path(self):
         # Try to ensure env_path is unique by adding start of hash
-        return self.env_root_dir / f"{self.name}-{self.hash[:10]}"
+        return self.env_root_dir / f"{self.name}-{self.hash[:16]}"
 
     @property
     def python_path(self):
@@ -109,7 +109,7 @@ class Environment:
             None: Nothing is returned.
         """
 
-        self.env_root_dir.mkdir(exist_ok=True)
+        self.env_root_dir.mkdir(parents=True, exist_ok=True)
 
         if os.path.exists(self.env_path):
             if not overwrite:
