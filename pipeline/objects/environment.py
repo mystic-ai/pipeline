@@ -145,7 +145,7 @@ class Environment:
             extra_args.append(extra_url)
 
         try:
-            proc = subprocess.run(
+            subprocess.run(
                 [
                     str(self.python_path),
                     "-m",
@@ -162,9 +162,9 @@ class Environment:
             error_msg = f"Error installing requirements: {exc}"
             _print(error_msg, "ERROR")
             _print("\nstdout = \n")
-            _print(proc.stdout)
+            _print(exc.stdout)
             _print("\nstderr = \n")
-            _print(proc.stderr)
+            _print(exc.stderr)
 
             raise EnvironmentInitializationError(error_msg, traceback="")
 
