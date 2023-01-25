@@ -160,9 +160,11 @@ class Environment:
                 text=True,
             )
         except subprocess.CalledProcessError as exc:
-            error_msg = f"Error installing requirements: {exc}"
-            _print(error_msg, "ERROR")
-            raise EnvironmentInitializationError(error_msg, traceback=exc.stderr)
+            _print(f"Error installing requirements: {exc}", "ERROR")
+            _print(exc.stderr, "ERROR")
+            raise EnvironmentInitializationError(
+                f"Error installing requirements: {exc.stderr}"
+            )
 
         _print(f"New environment '{self.name}' has been created")
         self.initialized = True
