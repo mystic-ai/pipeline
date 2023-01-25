@@ -3,20 +3,20 @@ import os
 import shutil
 import subprocess
 import venv
+from pathlib import Path
 from typing import Any, List
 
 import cloudpickle
 import tomli
 from pip._internal.commands.freeze import freeze
-
-#
-# from pip._internal.operations.check import check_install_conflicts
 from pip._internal.req.constructors import install_req_from_line
 
+# from pip._internal.operations.check import check_install_conflicts
+
 from pipeline import configuration
+from pipeline.exceptions.environment import EnvironmentInitializationError
 from pipeline.objects.graph import Graph
 from pipeline.util.logging import _print
-from pipeline.exceptions.environment import EnvironmentInitializationError
 
 
 class Environment:
@@ -38,9 +38,13 @@ class Environment:
             self.merge_with_environment(_env)
 
     @property
+    def env_root_dir(self) -> Path:
+        return configuration.PIPELINE_CACHE / "envs"
+
+    @property
     def env_path(self):
         # Try to ensure env_path is unique by adding start of hash
-        return configuration.PIPELINE_CACHE / "envs" / f"{self.name}-{self.hash[:10]}"
+        return self.env_root_dir / f"{self.name}-{self.hash[:10]}"
 
     @property
     def python_path(self):
@@ -93,18 +97,19 @@ class Environment:
         """_summary_
 
         Args:
-            overwrite (bool, optional): If set to true then then if a venv exists
-            with the same name, it will be erased and replaced with this new one.
-            Defaults to False.
+            overwrite (bool, optional): If set to true then then if a venv
+            exists with the same path, it will be erased and replaced with this
+            new one.  Defaults to False.
 
             upgrade_deps (bool, optional): If true then the base venv variables
             will be upgraded to the latest on pypi. This will not effect the
-            defined env packages set in self.dependencies.
-            Defaults to True
+            defined env packages set in self.dependencies.  Defaults to True
 
         Returns:
             None: Nothing is returned.
         """
+
+        self.env_root_dir.mkdir(exist_ok=True)
 
         if os.path.exists(self.env_path):
             if not overwrite:
