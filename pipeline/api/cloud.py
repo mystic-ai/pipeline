@@ -225,11 +225,12 @@ class PipelineCloud:
         )
         part_upload_get = PipelineFileDirectUploadPartGet.parse_obj(response)
         # upload file chunk
-        response = self.client.put(
+        response = httpx.put(
             part_upload_get.upload_url,
             content=data,
+            timeout=self._timeout,
         )
-
+        response.raise_for_status()
         etag = response.headers["ETag"]
         return MultipartUploadMetadata(ETag=etag, PartNumber=part_num)
 
