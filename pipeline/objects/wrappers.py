@@ -8,7 +8,7 @@ from pipeline.objects import (
 )
 
 
-def onnx_to_pipeline(path: str, name: str = "ONNX model") -> Graph:
+def onnx_to_pipeline(path: str, name: str = "onnx_model") -> Graph:
     """
     Create a pipeline from an onnx model file
         Parameters:
