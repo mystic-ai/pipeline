@@ -20,7 +20,6 @@ from pipeline.util.logging import _print
 # from pip._internal.operations.check import check_install_conflicts
 
 
-
 class Environment:
 
     initialized: bool = False
@@ -42,7 +41,7 @@ class Environment:
     @property
     def id(self):
         """TODO: this is a hack - replace with id from the actual environment data"""
-        return self.hash
+        return self.name
 
     @property
     def env_root_dir(self) -> Path:
