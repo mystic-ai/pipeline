@@ -2,6 +2,7 @@ import hashlib
 import os
 import shutil
 import subprocess
+import sys
 import venv
 from pathlib import Path
 from typing import Any, List
@@ -11,12 +12,13 @@ import tomli
 from pip._internal.commands.freeze import freeze
 from pip._internal.req.constructors import install_req_from_line
 
-# from pip._internal.operations.check import check_install_conflicts
-
 from pipeline import configuration
 from pipeline.exceptions.environment import EnvironmentInitializationError
 from pipeline.objects.graph import Graph
 from pipeline.util.logging import _print
+
+# from pip._internal.operations.check import check_install_conflicts
+
 
 
 class Environment:
@@ -48,22 +50,32 @@ class Environment:
 
     @property
     def env_path(self):
-        # Try to ensure env_path is unique by adding start of hash
-        return self.env_root_dir / f"{self.name}-{self.hash[:16]}"
+        return self.env_root_dir / self.id
 
     @property
     def python_path(self):
         return self.env_path / "bin" / "python"
 
     @property
+    def hash_file_path(self):
+        """We store the env hash in a file so we can check whether dependencies
+        have been updated or not
+        """
+        return self.env_path / "hash.txt"
+
+    @property
     def hash(self) -> str:
         """Generate unique hash for this environment so we can determine when
         two environments are the same.
+
+        Note that currently this gets the local Python version (excluding patch
+        version) so is specific to where this is executed.
         """
         # Combine all the info that makes this environment unique
+        python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
         env_str = "::".join(
             [
-                self.name,
+                python_version,
                 ";".join(self.dependencies),
                 ";".join(self.extra_index_urls),
             ]
@@ -96,15 +108,27 @@ class Environment:
             _print(error_msg, "ERROR")
             raise EnvironmentInitializationError(error_msg)
 
-    def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> None:
-        # TODO add arg for remaking on dependency change
+    def _get_existing_env_hash_from_file(self):
+        """If a virtualenv with the same path already exists then get its hash"""
+        if not os.path.exists(self.hash_file_path):
+            return None
 
+        return self.hash_file_path.read_text()
+
+    def _write_hash_to_file(self):
+        """Write this environment's hash to a file.
+
+        This will fail if the virtualenv has not already been created.
+        """
+        self.hash_file_path.write_text(self.hash)
+
+    def initialize(self, *, overwrite: bool = False, upgrade_deps: bool = True) -> None:
         """_summary_
 
         Args:
-            overwrite (bool, optional): If set to true then then if a venv
-            exists with the same path, it will be erased and replaced with this
-            new one.  Defaults to False.
+            overwrite (bool, optional): If set to true then if a venv exists
+            with the same path, it will be erased and replaced with this new
+            one, but only if dependencies have been updated.  Defaults to False.
 
             upgrade_deps (bool, optional): If true then the base venv variables
             will be upgraded to the latest on pypi. This will not effect the
@@ -125,6 +149,8 @@ class Environment:
                     "WARNING",
                 )
                 return
+            elif self._get_existing_env_hash_from_file() == self.hash:
+                _print("An up-to-date virtualenv already exists -> will reuse")
             else:
                 _print(
                     f"Deleting existing '{self.name}' env",
@@ -176,6 +202,8 @@ class Environment:
             raise EnvironmentInitializationError(
                 f"Error installing requirements: {exc.stderr}"
             )
+
+        self._write_hash_to_file()
 
         _print(f"New environment '{self.name}' has been created")
         self.initialized = True
