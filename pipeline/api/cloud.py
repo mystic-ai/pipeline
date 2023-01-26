@@ -441,11 +441,11 @@ class PipelineCloud:
         # Pipeline Cloud currently supports Python 3.9.x only
         if (sys.version_info.major, sys.version_info.minor) != (3, 9):
             print(
-                "WARNING: pipeline-ai is still in development and the"
-                " upload_pipeline function has only been tested in Python 3.9. "
-                "We strongly recommend you use Python 3.9 as pipelines uploaded"
-                " in other Python versions are known to be broken. We are working"
-                "on adding support for 3.10 and 3.8!"
+                "WARNING: pipeline-ai is still in development and the "
+                "upload_pipeline function has only been tested in Python 3.9. "
+                "We strongly recommend you use Python 3.9 as pipelines uploaded "
+                "in other Python versions are not guaranteed to work. We are "
+                "working on adding support for 3.10 and 3.8!"
             )
 
         new_name = new_pipeline_graph.name

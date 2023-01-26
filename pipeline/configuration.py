@@ -6,8 +6,6 @@ from pathlib import Path
 from platform import python_version
 from typing import TypedDict
 
-from packaging import version
-
 from pipeline.util.logging import _print
 
 PIPELINE_CACHE = Path(
@@ -25,10 +23,13 @@ PIPELINE_CACHE_AUTH = PIPELINE_CACHE / "auth.json"
 
 DEFAULT_REMOTE: str = None
 
-if version.parse(python_version()) < version.parse("3.9.13"):
+# Pipeline Cloud currently supports Python 3.9.x only
+if (sys.version_info.major, sys.version_info.minor) != (3, 9):
     _print(
-        f"You are using python version '{python_version()}' "
-        "please upgrade to python >=3.9.13 to ensure correct serialisation.",
+        f"You are using Python version '{python_version()}' - "
+        "We currently only support Python 3.9. Pipelines uploaded using other "
+        "versions are not guaranteed to work. Support for other Python "
+        "versions is coming soon.",
         "WARNING",
     )
 

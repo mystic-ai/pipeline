@@ -28,7 +28,6 @@ cloudpickle = "^2.2.0"
 dill = "^0.3.6"
 httpx = "^0.23.1"
 tabulate = "^0.9.0"
-packaging = ">=21.0"
 tomli = "^2.0.1"
 
 [tool.poetry.dev-dependencies]
