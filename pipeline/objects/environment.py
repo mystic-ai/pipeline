@@ -149,7 +149,9 @@ class Environment:
                 )
                 return
             elif self._get_existing_env_hash_from_file() == self.hash:
+                self.initialized = True
                 _print("An up-to-date virtualenv already exists -> will reuse")
+                return
             else:
                 _print(
                     f"Deleting existing '{self.name}' env",
