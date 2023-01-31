@@ -98,6 +98,8 @@ class PipelineCreate(BaseModel):
     # By default a Pipeline will require GPU resources
     compute_type: ComputeType = ComputeType.gpu
     compute_requirements: Optional[ComputeRequirements]
+    # Execution environment, defines Python dependencies
+    environment_id: Optional[str]
 
     @validator("compute_requirements")
     def compute_type_is_gpu(cls, v, values):
