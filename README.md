@@ -1,4 +1,4 @@
-# [Pipeline](https://pipeline.ai) [![Production workflow](https://github.com/neuro-ai-dev/pipeline/actions/workflows/prod-wf.yml/badge.svg?branch=main)](https://github.com/neuro-ai-dev/pipeline/actions/workflows/prod-wf.yml) [![Version](https://img.shields.io/pypi/v/pipeline-ai)](https://pypi.org/project/pipeline-ai) ![Size](https://img.shields.io/github/repo-size/neuro-ai-dev/pipeline) ![Downloads](https://img.shields.io/pypi/dm/pipeline-ai) [![License](https://img.shields.io/crates/l/ap)](https://www.apache.org/licenses/LICENSE-2.0) [![Discord](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/eJQRkBdEcs)
+# [Pipeline](https://pipeline.ai) [![Version](https://img.shields.io/pypi/v/pipeline-ai)](https://pypi.org/project/pipeline-ai) ![Size](https://img.shields.io/github/repo-size/neuro-ai-dev/pipeline) ![Downloads](https://img.shields.io/pypi/dm/pipeline-ai) [![License](https://img.shields.io/crates/l/ap)](https://www.apache.org/licenses/LICENSE-2.0) [![Discord](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/eJQRkBdEcs)
 
 [_powered by mystic_](https://www.mystic.ai/)
 
@@ -23,6 +23,7 @@
 Pipeline is a python library that provides a simple way to construct computational graphs for AI/ML. The library is suitable for both development and production environments supporting inference and training/finetuning. This library is also a direct interface to [Pipeline.ai](https://pipeline.ai) which provides a compute engine to run pipelines at scale and on enterprise GPUs.
 
 The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect). In future releases we will be moving away from this syntax to a C based graph compiler which interprets python directly (and other languages) allowing users of the API to compose graphs in a more native way to the chosen language.
+
 # Version roadmap
 
 ## v0.4.0 (Jan 2023)
@@ -48,10 +49,10 @@ The syntax used for defining AI/ML pipelines shares some similarities in syntax 
 - Alerts
 - Events
 - Different python versions on remote compute services
+
 # Quickstart
 
 > :warning: **Uploading pipelines to Pipeline Cloud works best in Python 3.9.** We strongly recommend you use Python 3.9 when uploading pipelines because the `pipeline-ai` library is still in beta and is known to cause opaque errors when pipelines are serialised from a non-3.9 environment.
-
 
 ## Basic maths
 
@@ -74,7 +75,7 @@ with Pipeline("maths") as pipeline:
 
     sq_1 = square(flt_1)
     res_1 = multiply(flt_2, sq_1)
-    pipeline.output(res_!)
+    pipeline.output(res_1)
 
 output_pipeline = Pipeline.get_pipeline("maths")
 print(output_pipeline.run(5.0, 6.0))
@@ -84,13 +85,14 @@ print(output_pipeline.run(5.0, 6.0))
 ## Transformers (GPT-Neo 125M)
 
 _Note: requires `torch` and `transformers` as dependencies._
+
 ```python
 from pipeline import Pipeline, Variable
 from pipeline.objects.huggingface.TransformersModelForCausalLM import (
     TransformersModelForCausalLM,
 )
 
-with Pipeline("HF pipeline") as builder:
+with Pipeline("hf-pipeline") as builder:
     input_str = Variable(str, is_input=True)
     model_kwargs = Variable(dict, is_input=True)
 
@@ -105,7 +107,7 @@ with Pipeline("HF pipeline") as builder:
 
     builder.output(output_str)
 
-output_pipeline = Pipeline.get_pipeline("HF pipeline")
+output_pipeline = Pipeline.get_pipeline("hf-pipeline")
 
 print(
     output_pipeline.run(
@@ -167,8 +169,6 @@ conda install -c huggingface transformers -y
 ```
 python -m pip install -U pipeline-ai
 ```
-
-
 
 # Development
 

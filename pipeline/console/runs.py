@@ -14,7 +14,6 @@ def runs(args: argparse.Namespace) -> int:
     sub_command = getattr(args, "sub-command", None)
 
     remote_service = PipelineCloud(verbose=False)
-    remote_service.authenticate()
 
     if sub_command in ["list", "ls"]:
         raw_result = remote_service.get_runs()
