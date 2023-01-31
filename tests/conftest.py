@@ -5,6 +5,8 @@ os.environ["PIPELINE_CACHE"] = "./.tmp_cache/"
 
 import json
 from datetime import datetime
+from pathlib import Path
+from typing import Tuple
 
 import cloudpickle
 import dill
@@ -13,6 +15,7 @@ from pytest_httpserver import HTTPServer
 from werkzeug.wrappers import Response
 
 from pipeline.objects import (
+    Graph,
     Pipeline,
     PipelineFile,
     Variable,
@@ -51,7 +54,7 @@ def test_with_decorator():
 
 
 @pytest.fixture(scope="session")
-def httpserver_listen_address():
+def httpserver_listen_address() -> Tuple[str, int]:
     # Define the listen address for pytest-httpserver at the session scope so
     # we can use it in defining environment variables before app creation
     # https://pytest-httpserver.readthedocs.io/en/latest/howto.html#fixture
@@ -59,13 +62,13 @@ def httpserver_listen_address():
 
 
 @pytest.fixture(scope="session")
-def url(httpserver_listen_address):
+def url(httpserver_listen_address: Tuple[str, int]):
     host, port = httpserver_listen_address
     return f"http://{host}:{port}"
 
 
 @pytest.fixture
-def top_api_server_bad_token(httpserver, bad_token):
+def top_api_server_bad_token(httpserver: HTTPServer, bad_token: str):
     httpserver.expect_request(
         "/v2/users/me",
         method="GET",
@@ -76,23 +79,23 @@ def top_api_server_bad_token(httpserver, bad_token):
 @pytest.fixture
 def top_api_server(
     httpserver: HTTPServer,
-    token,
-    file_get,
+    token: str,
+    file_get: FileGet,
     tag_get: PipelineTagGet,
     tag_get_2: PipelineTagGet,
     tag_get_3: PipelineTagGet,
     tag_get_patched: PipelineTagGet,
     tag_patch: PipelineTagPatch,
     tag_create: PipelineTagCreate,
-    function_get_json,
-    model_get_json,
-    result_file_get_json,
-    data_get_json,
-    pipeline_file_direct_upload_init_get_json,
-    pipeline_file_direct_upload_part_get_json,
-    finalise_direct_pipeline_file_upload_get_json,
-    run_get,
-    run_executing_get,
+    function_get_json: dict,
+    model_get_json: dict,
+    result_file_get_json: dict,
+    data_get_json: dict,
+    pipeline_file_direct_upload_init_get_json: dict,
+    pipeline_file_direct_upload_part_get_json: dict,
+    finalise_direct_pipeline_file_upload_get_json: dict,
+    run_get: RunGet,
+    run_executing_get: RunGet,
 ):
     """Return an HTTP server which acts like the Top service."""
 
@@ -201,7 +204,6 @@ def top_api_server(
 
     ##########
     # /v2/pipeline-tags
-    ##########
 
     httpserver.expect_request(
         "/v2/pipeline-tags",
@@ -266,12 +268,19 @@ def top_api_server(
     ).respond_with_response(Response(status=404))
 
     ##########
+    # /v2/functions
+
+    httpserver.expect_request(
+        "/v2/functions",
+        method="POST",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_json(function_get_json)
 
     return httpserver
 
 
 @pytest.fixture
-def data_store_httpserver():
+def data_store_httpserver() -> HTTPServer:
     server = HTTPServer(host="127.0.0.1", port=8081)
     server.start()
     server.expect_request(
@@ -285,22 +294,22 @@ def data_store_httpserver():
 
 
 @pytest.fixture()
-def token():
+def token() -> str:
     return "token"
 
 
 @pytest.fixture()
-def bad_token():
+def bad_token() -> str:
     return "bad_token"
 
 
 @pytest.fixture()
-def tmp_file():
+def tmp_file() -> str:
     return "tests/test_model.py"
 
 
 @pytest.fixture()
-def serialized_function():
+def serialized_function() -> str:
     def test() -> str:
         return "I'm a test!"
 
@@ -308,7 +317,7 @@ def serialized_function():
 
 
 @pytest.fixture()
-def file_get(serialized_function):
+def file_get(serialized_function: str) -> FileGet:
     return FileGet(
         name="test",
         id="function_file_test",
@@ -319,7 +328,7 @@ def file_get(serialized_function):
 
 
 @pytest.fixture()
-def file_get_json(file_get):
+def file_get_json(file_get: FileGet) -> dict:
     return {
         "name": file_get.name,
         "id": file_get.id,
@@ -330,7 +339,7 @@ def file_get_json(file_get):
 
 
 @pytest.fixture()
-def result_file_get():
+def result_file_get() -> FileGet:
     return FileGet(
         name="test_result_file",
         id="result_file_test",
@@ -341,12 +350,12 @@ def result_file_get():
 
 
 @pytest.fixture()
-def result_file_get_json(result_file_get):
+def result_file_get_json(result_file_get: FileGet) -> dict:
     return result_file_get.dict()
 
 
 @pytest.fixture()
-def project_get():
+def project_get() -> ProjectGet:
     return ProjectGet(
         name="test_name",
         id="test_project_id",
@@ -356,7 +365,7 @@ def project_get():
 
 
 @pytest.fixture()
-def project_get_json(project_get):
+def project_get_json(project_get: ProjectGet) -> dict:
     return {
         "avatar_colour": project_get.avatar_colour,
         "avatar_image_url": project_get.avatar_image_url,
@@ -366,7 +375,7 @@ def project_get_json(project_get):
 
 
 @pytest.fixture()
-def function_get(file_get, project_get):
+def function_get(file_get: FileGet, project_get: ProjectGet) -> FunctionGet:
     return FunctionGet(
         name="test_name",
         id="test_function_id",
@@ -378,7 +387,9 @@ def function_get(file_get, project_get):
 
 
 @pytest.fixture()
-def function_get_json(function_get, file_get_json, project_get_json):
+def function_get_json(
+    function_get: FunctionGet, file_get_json: dict, project_get_json: dict
+) -> dict:
     return {
         "id": function_get.id,
         "type": function_get.type.value,
@@ -392,12 +403,14 @@ def function_get_json(function_get, file_get_json, project_get_json):
 
 
 @pytest.fixture()
-def data_get(file_get):
+def data_get(file_get: FileGet) -> DataGet:
     return DataGet(id="data_test", hex_file=file_get, created_at=datetime.now())
 
 
 @pytest.fixture()
-def run_get(function_get, data_get, result_file_get):
+def run_get(
+    function_get: FunctionGet, data_get: DataGet, result_file_get: FileGet
+) -> RunGet:
     datetime.now()
     return RunGet(
         id="run_test",
@@ -410,7 +423,7 @@ def run_get(function_get, data_get, result_file_get):
 
 
 @pytest.fixture()
-def run_executing_get(function_get, data_get, result_file_get):
+def run_executing_get(function_get: FunctionGet, data_get: DataGet) -> RunGet:
     return RunGet(
         id="run_test_2",
         created_at=datetime(2000, 1, 1, 0, 0, 0, 0),
@@ -422,7 +435,7 @@ def run_executing_get(function_get, data_get, result_file_get):
 
 
 @pytest.fixture()
-def data_get_json(data_get, file_get_json):
+def data_get_json(data_get: DataGet, file_get_json: FileGet) -> dict:
     return {
         "id": data_get.id,
         "hex_file": file_get_json,
@@ -431,22 +444,22 @@ def data_get_json(data_get, file_get_json):
 
 
 @pytest.fixture()
-def pipeline_file_direct_upload_init_get_json():
+def pipeline_file_direct_upload_init_get_json() -> dict:
     return PipelineFileDirectUploadInitGet(pipeline_file_id="pipeline_file_id").dict()
 
 
 @pytest.fixture()
-def presigned_url():
+def presigned_url() -> str:
     return "http://127.0.0.1:8081"
 
 
 @pytest.fixture()
-def pipeline_file_direct_upload_part_get_json(presigned_url):
+def pipeline_file_direct_upload_part_get_json(presigned_url) -> dict:
     return PipelineFileDirectUploadPartGet(upload_url=presigned_url).dict()
 
 
 @pytest.fixture()
-def finalise_direct_pipeline_file_upload_get_json():
+def finalise_direct_pipeline_file_upload_get_json() -> dict:
     return PipelineFileGet(
         id="pipeline_file_id",
         name="pipeline_file_id",
@@ -461,7 +474,7 @@ def finalise_direct_pipeline_file_upload_get_json():
 
 
 @pytest.fixture()
-def pipeline_graph():
+def pipeline_graph() -> Graph:
     @pipeline_model()
     class CustomModel:
         def __init__(self, model_path="", tokenizer_path=""):
@@ -488,7 +501,7 @@ def pipeline_graph():
 
 
 @pytest.fixture()
-def pickled_graph(pipeline_graph):
+def pickled_graph(pipeline_graph: Graph) -> dict:
     return {
         "id": "pipeline_72c96d162d3347c38f83e56ce982455b",
         "type": "pipeline",
@@ -577,12 +590,12 @@ def pickled_graph(pipeline_graph):
 
 
 @pytest.fixture()
-def serialized_model(pipeline_graph):
+def serialized_model(pipeline_graph: Graph) -> str:
     return python_object_to_hex(pipeline_graph.models[0].model)
 
 
 @pytest.fixture()
-def model_file_get(serialized_model):
+def model_file_get(serialized_model: str) -> FileGet:
     return FileGet(
         name="test",
         id="model_file_test",
@@ -593,7 +606,7 @@ def model_file_get(serialized_model):
 
 
 @pytest.fixture()
-def model_file_get_json(model_file_get):
+def model_file_get_json(model_file_get: FileGet) -> dict:
     return {
         "name": model_file_get.name,
         "id": model_file_get.id,
@@ -604,7 +617,7 @@ def model_file_get_json(model_file_get):
 
 
 @pytest.fixture()
-def model_get(model_file_get):
+def model_get(model_file_get: FileGet) -> ModelGet:
     return ModelGet(
         name="test_name",
         id="test_model_id",
@@ -614,7 +627,7 @@ def model_get(model_file_get):
 
 
 @pytest.fixture()
-def model_get_json(model_get, model_file_get_json):
+def model_get_json(model_get: ModelGet, model_file_get_json: dict) -> dict:
     return {
         "name": model_get.name,
         "id": model_get.id,
@@ -624,7 +637,7 @@ def model_get_json(model_get, model_file_get_json):
 
 
 @pytest.fixture()
-def pipeline_graph_with_compute_requirements():
+def pipeline_graph_with_compute_requirements() -> Graph:
     @pipeline_model()
     class CustomModel:
         def __init__(self, model_path="", tokenizer_path=""):
@@ -651,19 +664,19 @@ def pipeline_graph_with_compute_requirements():
 
 
 @pytest.fixture()
-def file(tmp_path):
+def file(tmp_path: Path) -> Path:
     path = tmp_path / "hello.txt"
     path.write_text("hello")
     return path
 
 
 @pytest.fixture()
-def pipeline_file(file):
+def pipeline_file(file: Path) -> PipelineFile:
     return PipelineFile(path=str(file), name="hello")
 
 
 @pytest.fixture()
-def tag_get(project_get: ProjectGet):
+def tag_get(project_get: ProjectGet) -> PipelineTagGet:
     return PipelineTagGet(
         id="pipeline_tag",
         name="test:pipeline_id",
@@ -673,7 +686,7 @@ def tag_get(project_get: ProjectGet):
 
 
 @pytest.fixture()
-def tag_get_2(project_get: ProjectGet):
+def tag_get_2(project_get: ProjectGet) -> PipelineTagGet:
     return PipelineTagGet(
         id="pipeline_tag_2",
         name="test:tag2",
@@ -683,7 +696,7 @@ def tag_get_2(project_get: ProjectGet):
 
 
 @pytest.fixture()
-def tag_get_3(project_get: ProjectGet):
+def tag_get_3(project_get: ProjectGet) -> PipelineTagGet:
     return PipelineTagGet(
         id="pipeline_tag_3",
         name="test:tag3",
@@ -693,7 +706,7 @@ def tag_get_3(project_get: ProjectGet):
 
 
 @pytest.fixture()
-def tag_get_patched(project_get: ProjectGet):
+def tag_get_patched(project_get: ProjectGet) -> PipelineTagGet:
     return PipelineTagGet(
         id="pipeline_tag",
         name="test:pipeline_id",
@@ -703,7 +716,7 @@ def tag_get_patched(project_get: ProjectGet):
 
 
 @pytest.fixture()
-def tag_create():
+def tag_create() -> PipelineTagCreate:
     return PipelineTagCreate(
         name="test:pipeline_id",
         pipeline_id="pipeline_id",
@@ -711,7 +724,7 @@ def tag_create():
 
 
 @pytest.fixture()
-def tag_patch():
+def tag_patch() -> PipelineTagPatch:
     return PipelineTagPatch(
         pipeline_id="pipeline_id_2",
     )
@@ -721,7 +734,7 @@ def tag_patch():
 def tags_list(
     tag_get_2: PipelineTagGet,
     tag_get_3: PipelineTagGet,
-):
+) -> Paginated[PipelineTagGet]:
     return Paginated[PipelineTagGet](
         skip=1, limit=5, total=3, data=[tag_get_2, tag_get_3]
     )
