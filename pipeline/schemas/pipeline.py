@@ -5,6 +5,7 @@ from pydantic import Field, root_validator, validator
 
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements, ComputeType
+from pipeline.schemas.environment import EnvironmentBase
 from pipeline.schemas.file import FileGet
 from pipeline.schemas.function import FunctionGet
 from pipeline.schemas.model import ModelGet
@@ -80,6 +81,7 @@ class PipelineGetDetailed(PipelineGet):
     public: bool
     # Maps language, e.g. `curl` or `python`, to an example Run creation code snippet
     run_examples: Dict[str, str] = {}
+    environment: EnvironmentBase
 
 
 class PipelineCreate(BaseModel):
