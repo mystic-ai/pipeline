@@ -9,7 +9,7 @@ class EnvironmentCreate(BaseModel):
     python_requirements: List[str]
 
 
-class EnvironmentBase(BaseModel):
+class EnvironmentBrief(BaseModel):
     id: str
     name: str
     deleted_at: Optional[datetime]
