@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from pipeline.schemas.base import BaseModel
@@ -6,6 +7,12 @@ from pipeline.schemas.base import BaseModel
 class EnvironmentCreate(BaseModel):
     name: str
     python_requirements: List[str]
+
+
+class EnvironmentBase(BaseModel):
+    id: str
+    name: str
+    deleted_at: Optional[datetime]
 
 
 class EnvironmentGet(BaseModel):
