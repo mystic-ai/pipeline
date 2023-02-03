@@ -29,7 +29,6 @@ VALID_TAG_NAME = re.compile(
 )
 
 
-
 def _get_tag(tag_name: str) -> PipelineTagGet:
     if not VALID_TAG_NAME.match(tag_name):
         _print("Source tag must match pattern 'pipeline:tag'", level="ERROR")
