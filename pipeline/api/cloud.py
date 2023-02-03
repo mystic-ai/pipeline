@@ -17,6 +17,7 @@ from tqdm import tqdm
 from tqdm.utils import CallbackIOWrapper
 
 from pipeline import configuration
+from pipeline.api.environments import PipelineCloudEnvironment, resolve_environment_id
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.objects.variable import PipelineFile
@@ -55,6 +56,7 @@ if TYPE_CHECKING:
     from pipeline.objects import Function, Graph, Model
 
 FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
+EnvironmentObjectOrID = Union[PipelineCloudEnvironment, str]
 
 
 class PipelineCloud:
@@ -456,6 +458,7 @@ class PipelineCloud:
         public: bool = False,
         description: str = "",
         tags: Set[str] = None,
+        environment: Optional[EnvironmentObjectOrID] = None,
     ) -> PipelineGet:
         """
         Upload a Pipeline to the Cloud.
@@ -467,6 +470,10 @@ class PipelineCloud:
                         Defaults to False.
                     description (str): Description of the Pipeline.
                     tags (Set[str]): Set of tags for the pipeline. Eg: {"BERT", "NLP"}
+                    environment (Optional[Union[PipelineCloudEnvironment, str]]):
+                        Identifier of the execution environment the pipeline
+                        should run within. If None (the default) a Mystic-
+                        provided default environment will be chosen.
 
             Returns:
                     pipeline (PipelineGet): Object representing uploaded pipeline.
@@ -559,6 +566,7 @@ class PipelineCloud:
                 tags=tags or set(),
                 compute_type=new_pipeline_graph.compute_type,
                 compute_requirements=compute_requirements,
+                environment_id=resolve_environment_id(environment),
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Graph", message=str(e))
