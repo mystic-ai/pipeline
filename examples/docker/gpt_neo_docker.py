@@ -52,7 +52,7 @@ class PipelineGPTNeo:
         return gen_text
 
 
-with Pipeline("gptneo") as builder:
+with Pipeline("GPTNeo") as builder:
     in_1 = Variable(str, is_input=True)
     builder.add_variables(in_1)
 
@@ -63,7 +63,7 @@ with Pipeline("gptneo") as builder:
     builder.output(out_str)
 
 
-gpt_neo_pipeline = Pipeline.get_pipeline("gptneo")
+gpt_neo_pipeline = Pipeline.get_pipeline("GPTNeo")
 
 env = Environment(
     "gptneo-env",

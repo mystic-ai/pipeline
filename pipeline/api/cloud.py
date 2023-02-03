@@ -5,6 +5,7 @@ import io
 import json
 import os
 import sys
+import urllib.parse
 import uuid
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Type, Union
@@ -46,7 +47,6 @@ from pipeline.util import (
     CallbackBytesIO,
     generate_id,
     hex_to_python_object,
-    package_version,
     python_object_to_hex,
     python_object_to_name,
 )
@@ -70,63 +70,46 @@ class PipelineCloud:
         timeout: float = 60.0,
         verbose: bool = True,
     ):
-        if url is None:
-            url = os.environ.get(
-                "PIPELINE_API_URL",
-                configuration.DEFAULT_REMOTE,
-            )
-        if token is None:
-            token = os.environ.get(
-                "PIPELINE_API_TOKEN",
-                configuration.remote_auth.get(url),
-            )
-        self._initialise_client(url, token, timeout)
+        self.url = url or os.getenv("PIPELINE_API_URL", configuration.DEFAULT_REMOTE)
 
+        self.token = (
+            token
+            or os.getenv("PIPELINE_API_TOKEN")
+            or configuration.remote_auth.get(self.url)
+        )
+
+        self.timeout = timeout
         self.verbose = verbose
         self.__valid_token__ = False
         if self.token is not None:
             self.authenticate()
 
-    def _initialise_client(self, url: str, token: str, timeout: float) -> None:
-        self._url = url
-        self._token = token
-        self._timeout = timeout
-        self.client = httpx.Client(
-            base_url=self.url,
-            headers={
-                "Authorization": f"Bearer {self.token}",
-                "User-Agent": f"pipeline-ai/{package_version()}",
-            },
-            timeout=self._timeout,
-        )
-
-    @property
-    def token(self):
-        return self._token
-
-    @property
-    def url(self):
-        return self._url
-
-    def authenticate(self) -> None:
-        """Authenticate with the pipeline.ai API."""
+    def authenticate(self, token: str = None) -> None:
+        """
+        Authenticate with the pipeline.ai API
+            Parameters:
+                token (str): API user token for authentication.
+                    Pass it as an arg or set it as an ENV var.
+            Returns:
+                None
+        """
         if self.verbose:
             print("Authenticating")
 
-        if self.token is None:
+        _token = token or self.token
+        if _token is None:
             raise MissingActiveToken(
-                token="",
-                message="Please pass a valid token or set it as an ENV var",
+                token="", message="Please pass a valid token or set it as an ENV var"
             )
 
-        response = self.client.get("/v2/users/me")
-        if response.status_code in {HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN}:
-            raise MissingActiveToken(token=self.token)
-        else:
-            self._get_raise_for_status(response)
+        valid_token = self._validate_token(_token, self.url)
 
-        if self.verbose:
+        if not valid_token:
+            raise MissingActiveToken(token=_token)
+        elif self.verbose:
             print("Succesfully authenticated with the Pipeline API (%s)" % self.url)
+
+        self.token = _token
         self.__valid_token__ = True
 
     def raise_for_invalid_token(self):
@@ -139,6 +122,22 @@ class PipelineCloud:
                     "or pass a valid token as a parameter authenticate(token)"
                 ),
             )
+
+    @staticmethod
+    def _validate_token(token: str, base_url: str) -> bool:
+        url = urllib.parse.urljoin(base_url, "/v2/users/me")
+
+        headers = {"Authorization": f"Bearer {token}"}
+        response = httpx.get(url, headers=headers)
+        if response.status_code == HTTPStatus.OK:
+            return True
+        elif (
+            response.status_code == HTTPStatus.UNAUTHORIZED
+            or response.status_code == HTTPStatus.FORBIDDEN
+        ):
+            return False
+        else:
+            response.raise_for_status()
 
     @staticmethod
     def _get_raise_for_status(response: httpx.Response) -> None:
@@ -229,9 +228,9 @@ class PipelineCloud:
         response = httpx.put(
             part_upload_get.upload_url,
             content=data,
-            timeout=self._timeout,
+            timeout=self.timeout,
         )
-        response.raise_for_status()
+
         etag = response.headers["ETag"]
         return MultipartUploadMetadata(ETag=etag, PartNumber=part_num)
 
@@ -310,34 +309,64 @@ class PipelineCloud:
         )
 
     def _get(self, endpoint: str, params: Dict[str, Any] = None):
-        self.raise_for_invalid_token()
-        response = self.client.get(endpoint, params=params)
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = httpx.get(url, headers=headers, params=params, timeout=self.timeout)
         response.raise_for_status()
         return response.json()
 
     def _post(self, endpoint: str, json_data: dict) -> dict:
         self.raise_for_invalid_token()
-        response = self.client.post(endpoint, json=json_data)
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+            "Content-type": "application/json",
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = httpx.post(
+            url, headers=headers, json=json_data, timeout=self.timeout
+        )
+
         if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
             schema = json_data
             raise InvalidSchema(schema=schema)
         else:
             self._get_raise_for_status(response)
+
         return response.json()
 
     def _patch(self, endpoint: str, json_data: dict) -> dict:
         self.raise_for_invalid_token()
-        response = self.client.patch(endpoint, json=json_data)
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+            "Content-type": "application/json",
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = httpx.patch(
+            url, headers=headers, json=json_data, timeout=self.timeout
+        )
+
         if response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY:
             schema = json_data
             raise InvalidSchema(schema=schema)
         else:
             self._get_raise_for_status(response)
+
         return response.json()
 
     def _delete(self, endpoint: str) -> None:
         self.raise_for_invalid_token()
-        response = self.client.delete(endpoint)
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+            "Content-type": "application/json",
+        }
+
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = httpx.delete(url, headers=headers, timeout=self.timeout)
         if response.status_code != HTTPStatus.NO_CONTENT:
             self._get_raise_for_status(response)
 
@@ -359,9 +388,15 @@ class PipelineCloud:
             # If verbose then wrap our file object in a tqdm callback
             file = CallbackIOWrapper(progress.update, file)
 
-        response = self.client.post(
-            endpoint,
+        headers = {
+            "Authorization": "Bearer %s" % self.token,
+        }
+        url = urllib.parse.urljoin(self.url, endpoint)
+        response = httpx.post(
+            url,
+            headers=headers,
             files={"file": (file.name, file, "application/octet-stream")},
+            timeout=self.timeout,
         )
         if self.verbose:
             progress.close()

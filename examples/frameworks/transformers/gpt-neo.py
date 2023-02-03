@@ -3,7 +3,7 @@ from pipeline.objects.huggingface.TransformersModelForCausalLM import (
     TransformersModelForCausalLM,
 )
 
-with Pipeline("hf-pipeline") as builder:
+with Pipeline("HF pipeline") as builder:
     input_str = Variable(str, is_input=True)
     model_kwargs = Variable(dict, is_input=True)
 
@@ -18,7 +18,7 @@ with Pipeline("hf-pipeline") as builder:
 
     builder.output(output_str)
 
-output_pipeline = Pipeline.get_pipeline("hf-pipeline")
+output_pipeline = Pipeline.get_pipeline("HF pipeline")
 
 print(
     output_pipeline.run(

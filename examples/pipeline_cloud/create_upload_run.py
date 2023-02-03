@@ -21,7 +21,7 @@ def multiply(a: float, b: float) -> float:
 #####################################
 # use ctx manager to configure pipeline
 #####################################
-with Pipeline("maths-test") as pipeline:
+with Pipeline("MathsTest") as pipeline:
     flt_1 = Variable(type_class=float, is_input=True)
     flt_2 = Variable(type_class=float, is_input=True)
     pipeline.add_variables(flt_1, flt_2)
@@ -34,7 +34,7 @@ with Pipeline("maths-test") as pipeline:
 #####################################
 # Upload Pipeline
 #####################################
-output_pipeline = Pipeline.get_pipeline("maths-test")
+output_pipeline = Pipeline.get_pipeline("MathsTest")
 uploaded_pipeline = api.upload_pipeline(output_pipeline)
 
 

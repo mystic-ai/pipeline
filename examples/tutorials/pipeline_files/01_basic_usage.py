@@ -54,7 +54,7 @@ class MyModel:
         return True
 
 
-with Pipeline("ml-pipeline") as pipeline:
+with Pipeline("ML pipeline") as pipeline:
     input_list = Variable(type_class=list, is_input=True)
     model_weight_file = PipelineFile(path="example_weights.pt")
 
@@ -72,7 +72,7 @@ with Pipeline("ml-pipeline") as pipeline:
     output = tensor_to_list(output)
     pipeline.output(output)
 
-output_pipeline = Pipeline.get_pipeline("ml-pipeline")
+output_pipeline = Pipeline.get_pipeline("ML pipeline")
 
 if __name__ == "__main__":
     argv = sys.argv[1:]

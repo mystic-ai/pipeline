@@ -14,27 +14,18 @@ from pipeline.schemas.pipeline import (
 )
 from pipeline.util.logging import _print
 
-# We loosely follow the Docker tag conventions for valid tag names, specifically:
-#
-# - A tag name comprises a 'name' component and a 'tag' component in that order
-#   separated by a colon, e.g. `name:tag`.
-# - Name components may contain lowercase letters, digits and separators.
-#   Separators are periods, underscores, dashes, and forward slashes.
-#   A name component may not start or end with a separator.
-# - A tag name must be valid ASCII and may contain lowercase and uppercase letters,
-#   digits, underscores, periods and dashes. A tag name may not start with a period
-#   or a dash and may contain a maximum of 128 characters.
-VALID_TAG_NAME = re.compile(
-    r"^[a-z0-9][a-z0-9-._/]*[a-z0-9]:[0-9A-Za-z_][0-9A-Za-z-_.]{0,127}$"
+tag_re_pattern = re.compile(
+    r"^[a-z0-9][a-z0-9-._/]*[a-z0-9]:[0-9A-Za-z_][0-9A-Za-z-_.]{0,127}$", re.IGNORECASE
 )
 
 
 def _get_tag(tag_name: str) -> PipelineTagGet:
-    if not VALID_TAG_NAME.match(tag_name):
+    if not tag_re_pattern.match(tag_name):
         _print("Source tag must match pattern 'pipeline:tag'", level="ERROR")
         raise sys.exit(1)
 
     remote_service = PipelineCloud(verbose=False)
+    remote_service.authenticate()
     tag_information = PipelineTagGet.parse_obj(
         remote_service._get(f"/v2/pipeline-tags/by-name/{tag_name}")
     )
@@ -43,11 +34,12 @@ def _get_tag(tag_name: str) -> PipelineTagGet:
 
 def _update_or_create_tag(source: str, target: str, sub_command: str) -> PipelineTagGet:
     remote_service = PipelineCloud(verbose=False)
-    if not VALID_TAG_NAME.match(target):
+    remote_service.authenticate()
+    if not tag_re_pattern.match(target):
         _print("Target tag must match pattern 'pipeline:tag'", level="ERROR")
         raise sys.exit(1)
 
-    if VALID_TAG_NAME.match(source):
+    if tag_re_pattern.match(source):
         # Pointing to another tag
         source_schema = _get_tag(source)
         source_pipeline = source_schema.pipeline_id
@@ -79,6 +71,7 @@ def _list_tags(
     skip: int, limit: int, pipeline_id: str = None
 ) -> Paginated[PipelineTagGet]:
     remote_service = PipelineCloud(verbose=False)
+    remote_service.authenticate()
     response = remote_service._get(
         "/v2/pipeline-tags",
         params=dict(
@@ -96,6 +89,7 @@ def _list_tags(
 
 def _delete_tag(tag_name: str) -> None:
     remote_service = PipelineCloud(verbose=False)
+    remote_service.authenticate()
 
     tag_information = _get_tag(tag_name)
     remote_service._delete(f"/v2/pipeline-tags/{tag_information.id}")

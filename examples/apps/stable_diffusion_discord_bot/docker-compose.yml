@@ -8,3 +8,4 @@ services:
       dockerfile: ./Dockerfile
     env_file:
       - secrets.env
+      

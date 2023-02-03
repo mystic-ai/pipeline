@@ -40,7 +40,7 @@ class TransformersModelForCausalLM:
 # environment variable
 api = PipelineCloud(token="pipeline_token_value")
 
-with Pipeline("hf-pipeline") as builder:
+with Pipeline("HF pipeline") as builder:
     input_str = Variable(str, is_input=True)
     model_kwargs = Variable(dict, is_input=True)
 
@@ -61,7 +61,7 @@ with Pipeline("hf-pipeline") as builder:
 
     builder.output(output_str)
 
-output_pipeline = Pipeline.get_pipeline("hf-pipeline")
+output_pipeline = Pipeline.get_pipeline("HF pipeline")
 
 print("Now uploading GPTNeo pipeline")
 uploaded_pipeline = api.upload_pipeline(output_pipeline)

@@ -28,7 +28,7 @@ def tokenize_str(
     return output_list
 
 
-with Pipeline("ml-pipeline") as pipeline:
+with Pipeline("ML pipeline") as pipeline:
     input_str = Variable(type_class=str, is_input=True)
     pipeline.add_variable(input_str)
 
@@ -38,7 +38,7 @@ with Pipeline("ml-pipeline") as pipeline:
 
     pipeline.output(output_str)
 
-output_pipeline = Pipeline.get_pipeline("ml-pipeline")
+output_pipeline = Pipeline.get_pipeline("ML pipeline")
 
 print(output_pipeline.run("Hello"))
 

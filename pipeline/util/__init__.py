@@ -1,4 +1,3 @@
-import importlib.metadata
 import io
 import random
 import string
@@ -8,11 +7,6 @@ from cloudpickle import dumps
 from dill import loads
 
 from pipeline.schemas.file import FileCreate
-
-
-def package_version() -> str:
-    """Return the version of the installed `pipeline-ai` package."""
-    return importlib.metadata.version("pipeline-ai")
 
 
 def generate_id(length: int) -> str:
@@ -29,9 +23,10 @@ def hex_to_python_object(hex: str) -> Any:
 
 
 def python_object_to_name(obj: Any) -> Optional[str]:
-    # Consider limiting the size of the name in future releases
-    name = getattr(obj, "__name__", str(obj))
-
+    try:
+        name = obj.__name__
+    except Exception:
+        name = None
     return name
 
 

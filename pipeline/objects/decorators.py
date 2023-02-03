@@ -1,4 +1,3 @@
-import typing
 from functools import partial, wraps
 
 from pipeline.objects.function import Function
@@ -32,12 +31,10 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
         if not Pipeline._pipeline_context_active:
             return function(*args, **kwargs)
         else:
-            if "return" not in function.__annotations__:
+            function_ios = function.__annotations__
+            if "return" not in function_ios:
                 raise Exception(
-                    (
-                        "You must define an output type for a piepline function. "
-                        "e.g. def my_func(...) -> float:"
-                    )
+                    "Must include an output type e.g. 'def my_func(...) -> int:'"
                 )
 
             processed_args: Variable = []
@@ -47,49 +44,26 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
                 elif hasattr(input_arg, "__pipeline_model__"):
                     if function.__pipeline_function__.class_instance is None:
                         function.__pipeline_function__.class_instance = input_arg
-                elif isinstance(input_arg, tuple) and all(
-                    isinstance(var, Variable) for var in input_arg
-                ):
-                    raise Exception(
-                        "Must seperate outputs from functions with Tuple outputs:"
-                        "`var1, var2, ..., varN = func(...)`",
-                    )
-
                 else:
                     raise Exception(
                         (
-                            f"Can only input pipeline variables to a function"
-                            f"when defining a graph, got: {type(input_arg)}"
+                            "You can't input random variables, "
+                            "follow the way of the Pipeline. Got type %s"
+                            % type(input_arg)
                         )
                     )
 
-            node_outputs: typing.List[Variable] = []
-
-            function_output = function.__annotations__["return"]
-            if getattr(function_output, "__origin__", None) == tuple:
-                context_manager_variables = node_outputs = tuple(
-                    Variable(type_class=output_variable)
-                    for output_variable in function_output.__args__
-                )
-
-            else:
-                context_manager_variables = Variable(
-                    type_class=function.__annotations__["return"]
-                )
-                node_outputs = [context_manager_variables]
-
-            Pipeline.add_variables(*node_outputs)
+            node_output = Variable(type_class=function.__annotations__["return"])
+            Pipeline.add_variable(node_output)
             Pipeline.add_function(function.__pipeline_function__)
-
             new_node = GraphNode(
                 function=function.__pipeline_function__,
                 inputs=processed_args,
-                outputs=[*node_outputs],
+                outputs=[node_output],
             )
-
             Pipeline.add_graph_node(new_node)
 
-            return context_manager_variables
+            return node_output
 
     execute_func.__function__ = function
 

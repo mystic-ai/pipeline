@@ -134,7 +134,7 @@ class TransformersModelForCausalLM:
 # environment variable
 api = PipelineCloud(token="pipeline_token_value")
 
-with Pipeline("gpt-j-6b") as builder:
+with Pipeline("GPT-J-6B") as builder:
     input_str = Variable(str, is_input=True)
     model_kwargs = Variable(dict, is_input=True)
 
@@ -155,7 +155,7 @@ with Pipeline("gpt-j-6b") as builder:
 
     builder.output(output_str)
 
-output_pipeline = Pipeline.get_pipeline("gpt-j-6b")
+output_pipeline = Pipeline.get_pipeline("GPT-J-6B")
 
 print("Now uploading GPT-J-6B pipeline")
 uploaded_pipeline = api.upload_pipeline(output_pipeline)
