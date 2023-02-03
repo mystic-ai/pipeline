@@ -10,11 +10,7 @@ PIPELINE_ID = "UPDATE_WITH_YOUR_PIPELINE_ID"
 run = api.run_pipeline(
     PIPELINE_ID,
     [
-        [
-            {
-                "text_in": "walking on the starlight,dreamy ultra wide shot, atmospheric, hyper realistic, epic composition, cinematic, octane render, artstation landscape vista photography 16K resolution, in herge_style"
-            }
-        ],
+        [{"text_in": "An old black cat on a brown leather sofa."}],
         {"num_samples": 1},
     ],
 )

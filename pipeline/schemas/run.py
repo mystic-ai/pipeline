@@ -41,7 +41,7 @@ class RunErrorInfo(BaseModel):
     """More info about the error if it was a pipeline_fault"""
 
     exception: str
-    traceback: str
+    traceback: Optional[str]
 
 
 class RunCreate(BaseModel):
