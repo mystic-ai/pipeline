@@ -105,4 +105,5 @@ def test_pipeline_create_to_json():
         outputs=[],
         compute_type="gpu",
         compute_requirements=dict(min_gpu_vram_mb=4000),
+        environment_id=None,
     )
