@@ -23,7 +23,6 @@ from pipeline.objects.variable import PipelineFile
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.compute_requirements import ComputeRequirements
 from pipeline.schemas.data import DataGet
-from pipeline.schemas.environment import EnvironmentGet
 from pipeline.schemas.file import FileCreate, FileFormat, FileGet
 from pipeline.schemas.function import FunctionCreate, FunctionGet
 from pipeline.schemas.model import ModelCreate, ModelGet
@@ -454,11 +453,9 @@ class PipelineCloud:
     def upload_pipeline(
         self,
         new_pipeline_graph: Graph,
-        *,
         public: bool = False,
         description: str = "",
         tags: Set[str] = None,
-        environment_name_or_id: str = None,
     ) -> PipelineGet:
         """
         Upload a Pipeline to the Cloud.
@@ -470,7 +467,6 @@ class PipelineCloud:
                         Defaults to False.
                     description (str): Description of the Pipeline.
                     tags (Set[str]): Set of tags for the pipeline. Eg: {"BERT", "NLP"}
-                    environment_name_or_id (str): Name of remote environment to use
 
             Returns:
                     pipeline (PipelineGet): Object representing uploaded pipeline.
@@ -486,10 +482,6 @@ class PipelineCloud:
                 " in other Python versions are known to be broken. We are working"
                 "on adding support for 3.10 and 3.8!"
             )
-
-        environment_information = PipelineGet.parse_obj(
-            self._get(f"/v2/environments/{environment_name_or_id}")
-        )
 
         new_name = new_pipeline_graph.name
         if self.verbose:
@@ -567,7 +559,6 @@ class PipelineCloud:
                 tags=tags or set(),
                 compute_type=new_pipeline_graph.compute_type,
                 compute_requirements=compute_requirements,
-                environment_id=environment_information.id,
             )
         except ValidationError as e:
             raise InvalidSchema(schema="Graph", message=str(e))
