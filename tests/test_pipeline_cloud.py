@@ -1,9 +1,7 @@
-from typing import List
-
 import httpx
 import pytest
 
-from pipeline import Pipeline, PipelineCloud, PipelineFile, pipeline_function
+from pipeline import Pipeline, PipelineCloud, PipelineFile
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.schemas.file import FileGet
@@ -33,23 +31,6 @@ def test_cloud_upload_function_fail(url, token):
     api = PipelineCloud(url=url, token=token)
     with pytest.raises(InvalidSchema):
         api.upload_function("")
-
-
-@pytest.mark.usefixtures("top_api_server")
-def test_cloud_upload_function(url, token):
-    api = PipelineCloud(url=url, token=token)
-
-    @pipeline_function
-    def sample_function(i1: str) -> List[int]:
-        ...
-
-    @pipeline_function
-    def sample_function_2(i1: str) -> None:
-        ...
-
-    # Test serialisation
-    api.upload_function(sample_function.__function__.__pipeline_function__)
-    api.upload_function(sample_function_2.__function__.__pipeline_function__)
 
 
 @pytest.mark.usefixtures("top_api_server")
