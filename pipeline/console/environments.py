@@ -20,7 +20,7 @@ environment_re_pattern = re.compile(r"^[0-9a-zA-Z]+[0-9a-zA-Z\_\-]+[0-9a-zA-Z]+$
 
 def _get_environment(name_or_id: str) -> EnvironmentGet:
 
-    remote_service = PipelineCloud()
+    remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
 
     environment_information = EnvironmentGet.parse_obj(
@@ -36,7 +36,7 @@ def _list_environments(
 ) -> Paginated[EnvironmentGet]:
     # TODO: Add in more filter fields
 
-    remote_service = PipelineCloud()
+    remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
 
     response = remote_service._get(
@@ -69,7 +69,7 @@ def _get_packages_from_local_env() -> List[str]:
 
 
 def _create_environment(name: str, packages: List[str]) -> EnvironmentGet:
-    remote_service = PipelineCloud()
+    remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
     # TODO: Check for local, editable, or private git repo packages
     # TODO: Validate name
@@ -82,7 +82,7 @@ def _create_environment(name: str, packages: List[str]) -> EnvironmentGet:
 
 
 def _delete_environment(name_or_id: str) -> None:
-    remote_service = PipelineCloud()
+    remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
 
     environment_information = _get_environment(name_or_id)
@@ -96,7 +96,7 @@ def _update_environment(
         raise Exception(
             "Must un/lock or define python_requirements when updating an Environment"
         )
-    remote_service = PipelineCloud()
+    remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
 
     environment_information = _get_environment(name_or_id)
