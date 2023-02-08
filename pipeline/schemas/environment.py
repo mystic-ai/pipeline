@@ -20,8 +20,6 @@ class EnvironmentGet(BaseModel):
     name: str
     python_requirements: List[str]
     locked: bool
-    created_at: datetime
-    updated_at: datetime
 
 
 class EnvironmentPatch(BaseModel):
