@@ -2,6 +2,7 @@ import argparse
 import sys
 from typing import List, Optional
 
+from pipeline.console.environments import environments as environments_command
 from pipeline.console.remote import remote as remote_command
 from pipeline.console.runs import runs as runs_command
 from pipeline.console.tags import tags as tags_command
@@ -13,6 +14,7 @@ def main(args: Optional[List[str]] = None) -> int:
         description="Create or run pipelines locally or in the cloud!",
         add_help=True,
     )
+
     base_parser.add_argument(
         "-v",
         "--verbose",
@@ -231,6 +233,139 @@ def main(args: Optional[List[str]] = None) -> int:
     )
 
     ##########
+    # pipeline environments
+    ##########
+
+    environments_parser = command_parser.add_parser(
+        "environments",
+        description="Manage environments",
+        help="Manage environments",
+    )
+
+    environments_sub_parser = environments_parser.add_subparsers(dest="sub-command")
+
+    ##########
+    # pipeline environments create
+    ##########
+
+    environments_create_parser = environments_sub_parser.add_parser(
+        "create",
+        help="Create a new python environment",
+    )
+
+    environments_create_parser.add_argument(
+        "name",
+        help="The environment name",
+    )
+
+    environments_create_parser.add_argument(
+        "-r",
+        "--requirements",
+        type=str,
+        help="Create environment from requirements file",
+        required=False,
+    )
+    environments_create_parser.add_argument(
+        "-l",
+        "--from-local",
+        action="store_true",
+        help="Create environment using all locally installed packages",
+        required=False,
+        default=False,
+    )
+
+    ##########
+    # pipeline environments get
+    ##########
+
+    environments_get_parser = environments_sub_parser.add_parser(
+        "get",
+        help="Get environment information",
+    )
+
+    environments_get_parser.add_argument(
+        "name_or_id", help="The environment name or id to get"
+    )
+    ##########
+    # pipeline environments list
+    ##########
+    environments_list_parser = environments_sub_parser.add_parser(
+        "list",
+        aliases=["ls"],
+        help="List environments",
+    )
+    environments_list_parser.add_argument(
+        "-l",
+        "--limit",
+        required=False,
+        help="Number of environments to list",
+        default=20,
+        type=int,
+    )
+
+    environments_list_parser.add_argument(
+        "-s",
+        "--skip",
+        required=False,
+        help="Number of environments to skip for pagination",
+        default=0,
+        type=int,
+    )
+
+    ##########
+    # pipeline environments delete
+    ##########
+    environments_delete_parser = environments_sub_parser.add_parser(
+        "delete",
+        aliases=["rm"],
+        help="Delete environment",
+    )
+
+    environments_delete_parser.add_argument(
+        "name_or_id", help="The environment name or id to delete"
+    )
+
+    ##########
+    # pipeline environments update
+    ##########
+    environments_update_parser = environments_sub_parser.add_parser(
+        "update",
+        help="Update environment",
+    )
+
+    environments_update_parser.add_argument(
+        "name_or_id", help="The environment name or id to update"
+    )
+
+    environments_update_sub_command = environments_update_parser.add_subparsers(
+        dest="environments-update-sub-command"
+    )
+
+    environments_update_sub_command.add_parser("lock", help="Lock environment")
+    environments_update_sub_command.add_parser("unlock", help="Unlock environment")
+
+    environments_update_add_command = environments_update_sub_command.add_parser(
+        "add", help="Add packages"
+    )
+
+    environments_update_remove_command = environments_update_sub_command.add_parser(
+        "remove", help="Remove packages"
+    )
+
+    environments_update_add_command.add_argument(
+        "packages",
+        metavar="package",
+        type=str,
+        nargs="+",
+    )
+    environments_update_remove_command.add_argument(
+        "packages",
+        metavar="package",
+        type=str,
+        nargs="+",
+    )
+    ##########
+
     args: argparse.Namespace = base_parser.parse_args(args)
     command = getattr(args, "command", None)
 
@@ -245,6 +380,14 @@ def main(args: Optional[List[str]] = None) -> int:
     elif command == "tags":
         if (code := tags_command(args)) is None:
             tags_parser.print_help()
+            return 1
+    elif command == "environments":
+
+        if (code := environments_command(args)) is None:
+            if getattr(args, "sub-command") == "update":
+                environments_update_parser.print_help()
+            else:
+                environments_parser.print_help()
             return 1
     else:
         base_parser.print_help()
