@@ -84,7 +84,7 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
             new_node = GraphNode(
                 function=function.__pipeline_function__,
                 inputs=processed_args,
-                outputs=[*node_outputs],
+                outputs=node_outputs,
             )
 
             Pipeline.add_graph_node(new_node)
