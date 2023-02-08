@@ -258,7 +258,6 @@ def main(args: Optional[List[str]] = None) -> int:
         help="The environment name",
     )
 
-    # TODO: Create via requirements.txt
     environments_create_parser.add_argument(
         "-r",
         "--requirements",

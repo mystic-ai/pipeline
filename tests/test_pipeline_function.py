@@ -2,7 +2,7 @@ from typing import Tuple
 
 import pytest
 
-from pipeline import Pipeline, pipeline_function
+from pipeline import Pipeline, Variable, pipeline_function
 
 
 def test_function_no_output_definition():
@@ -17,6 +17,22 @@ def test_function_no_output_definition():
 
     assert len(test_pl.functions) == 1
     assert len(test_pl.nodes) == 1
+
+
+def test_basic_function():
+    @pipeline_function
+    def return_inverse(in_bool: bool) -> bool:
+        return not in_bool
+
+    with Pipeline("test") as builder:
+        in_bool = Variable(type=bool, is_input=True)
+        builder.add_variable(in_bool)
+        output_bool = return_inverse(in_bool)
+        builder.output(output_bool)
+
+    test_pl = Pipeline.get_pipeline("test")
+
+    assert not test_pl.run(True)[0]
 
 
 def test_function_tuple_output():
