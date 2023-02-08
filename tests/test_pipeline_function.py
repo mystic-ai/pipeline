@@ -25,7 +25,7 @@ def test_basic_function():
         return not in_bool
 
     with Pipeline("test") as builder:
-        in_bool = Variable(type=bool, is_input=True)
+        in_bool = Variable(bool, is_input=True)
         builder.add_variable(in_bool)
         output_bool = return_inverse(in_bool)
         builder.output(output_bool)
