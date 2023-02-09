@@ -17,22 +17,24 @@ def run_pipeline(graph_id: str, data: t.Any):
 
     # with open("graph.tmp", "wb") as tmp:
     #     tmp.write(cp.dumps(graph))
-    unique_name = str(uuid.uuid4) + ".tmp"
-    with open(unique_name, "wb") as tmp:
-        tmp.write(cp.dumps(data))
+    # unique_name = str(uuid.uuid4()) + ".tmp"
+    # with open(unique_name, "wb") as tmp:
+    #     tmp.write(cp.dumps(data))
+
+    data_obj = io.BytesIO(cp.dumps(data))
 
     # graph_file = open("graph.tmp", "rb")
-    data_file = open(unique_name, "rb")
+    # data_file = open(unique_name, "rb")
 
     res = requests.post(
         "http://10.1.255.139:5025/v3/runs",
         params=dict(graph_id=graph_id),
-        files=dict(input_data=data_file),
+        files=dict(input_data=data_obj),
     )
 
     # graph_file.close()
-    data_file.close()
-    os.remove(unique_name)
+    # data_file.close()
+    # os.remove(unique_name)
     return res
 
 
