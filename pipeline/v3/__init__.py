@@ -1,7 +1,9 @@
 import asyncio
 import io
 import math
+import os
 import typing as t
+import uuid
 from multiprocessing import Pool
 
 import cloudpickle as cp
@@ -15,12 +17,12 @@ def run_pipeline(graph_id: str, data: t.Any):
 
     # with open("graph.tmp", "wb") as tmp:
     #     tmp.write(cp.dumps(graph))
-
-    with open("data.tmp", "wb") as tmp:
+    unique_name = str(uuid.uuid4) + ".tmp"
+    with open(unique_name, "wb") as tmp:
         tmp.write(cp.dumps(data))
 
     # graph_file = open("graph.tmp", "rb")
-    data_file = open("data.tmp", "rb")
+    data_file = open(unique_name, "rb")
 
     res = requests.post(
         "http://10.1.255.139:5025/v3/runs",
@@ -30,8 +32,7 @@ def run_pipeline(graph_id: str, data: t.Any):
 
     # graph_file.close()
     data_file.close()
-
-    # return res.json()["result"][0]
+    os.remove(unique_name)
     return res
 
 
