@@ -23,7 +23,7 @@ def run_pipeline(graph_id: str, data: t.Any):
     data_file = open("data.tmp", "rb")
 
     res = requests.post(
-        "http://localhost:5025/v3/runs",
+        "http://10.1.255.139:5025/v3/runs",
         params=dict(graph_id=graph_id),
         files=dict(input_data=data_file),
     )
@@ -43,7 +43,7 @@ def upload_pipeline(graph: Graph):
     graph_file = open("graph.tmp", "rb")
 
     res = httpx.post(
-        "http://localhost:5025/v3/pipelines",
+        "http://10.1.255.139:5025/v3/pipelines",
         files=dict(graph=graph_file),
     )
 
@@ -58,7 +58,7 @@ def map_pipeline(array: list, graph_id: str):
             obj_bytes = io.BytesIO(cp.dumps(data))
 
             r = await client.post(
-                "http://localhost:5025/v3/runs",
+                "http://10.1.255.139:5025/v3/runs",
                 params=dict(graph_id=graph_id),
                 files=dict(input_data=obj_bytes),
             )
