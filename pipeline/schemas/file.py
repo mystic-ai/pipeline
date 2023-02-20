@@ -1,5 +1,7 @@
 import enum
-from typing import Optional
+from typing import Optional, Union
+
+from pydantic import StrictBytes, StrictStr
 
 from .base import BaseModel
 
@@ -20,8 +22,8 @@ class FileBase(BaseModel):
 class FileGet(FileBase):
     id: str
     path: str
-    #: The data as hex-encoded bytes, if the data size is less than 20 kB
-    data: Optional[str]
+    #: When str, the data are hex-encoded bytes, else plain bytes
+    data: Optional[Union[StrictBytes, StrictStr]]
     #: The data size in bytes
     file_size: int
 

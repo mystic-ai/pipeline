@@ -2,7 +2,7 @@ import importlib.metadata
 import io
 import random
 import string
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Union
 
 from cloudpickle import dumps
 from dill import loads
@@ -26,6 +26,19 @@ def python_object_to_hex(obj: Any) -> str:
 def hex_to_python_object(hex: str) -> Any:
     h = bytes.fromhex(hex)
     return loads(h)
+
+
+def dump_object(obj: Any) -> bytes:
+    """Serialize `obj` as bytes."""
+    return dumps(obj)
+
+
+def load_object(pickled: Union[bytes, str]) -> Any:
+    """Deserialize an object from the payload."""
+    if isinstance(pickled, str):
+        return hex_to_python_object(pickled)
+    else:
+        return loads(pickled)
 
 
 def python_object_to_name(obj: Any) -> Optional[str]:

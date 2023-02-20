@@ -27,6 +27,39 @@ class PipelineFileVariableGet(BaseModel):
     file: FileGet
 
 
+class PipelineVariableCreate(BaseModel):
+    local_id: str
+    name: Optional[str]
+
+    type_file: Optional[FileGet] = Field(
+        default=None,
+        deprecated=True,
+        description="Use multipart Pipeline creation instead.",
+    )
+    type_file_id: Optional[str] = Field(
+        default=None,
+        deprecated=True,
+        description="Use multipart Pipeline creation instead.",
+    )
+
+    is_input: bool
+    is_output: bool
+
+    pipeline_file_variable: Optional[PipelineFileVariableGet]
+
+    @root_validator
+    def file_or_id_validation(cls, values):
+        # If either deprecated field is set, verify that only one of them is set.
+        type_file_defined = values.get("type_file") is not None
+        type_file_id_defined = values.get("type_file_id") is not None
+        deprecated_fields = type_file_defined or type_file_id_defined
+        if deprecated_fields and type_file_defined == type_file_id_defined:
+            raise ValueError(
+                "Inline file must be set using `type_file` OR `type_file_id`."
+            )
+        return values
+
+
 class PipelineVariableGet(BaseModel):
     local_id: str
     name: Optional[str]
@@ -88,7 +121,7 @@ class PipelineGetDetailed(PipelineGet):
 
 class PipelineCreate(BaseModel):
     name: str
-    variables: List[PipelineVariableGet]
+    variables: List[PipelineVariableCreate]
     functions: List[FunctionGet]
     models: List[ModelGet]
     graph_nodes: List[PipelineGraphNode]

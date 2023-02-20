@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import root_validator
+from pydantic import Field, root_validator
 
 from pipeline.schemas.base import BaseModel
 from pipeline.schemas.file import FileCreate, FileGet
@@ -39,17 +39,23 @@ class ModelCreate(BaseModel):
     hash: str
     name: str
 
-    file_id: Optional[str]
-    file: Optional[FileCreate]
+    file_id: Optional[str] = Field(
+        default=None,
+        deprecated=True,
+        description="Use multipart Model creation instead.",
+    )
+    file: Optional[FileCreate] = Field(
+        default=None,
+        deprecated=True,
+        description="Use multipart Model creation instead.",
+    )
 
     @root_validator
     def file_or_id_validation(cls, values):
-        file, file_id = values.get("file"), values.get("file_id")
-
-        file_defined = file is not None
-        file_id_defined = file_id is not None
-
-        if file_defined == file_id_defined:
-            raise ValueError("You must define either the file OR file_id of a model.")
-
+        # If either deprecated field is set, verify that only one of them is set.
+        file_defined = values.get("file") is not None
+        file_id_defined = values.get("file_id") is not None
+        deprecated_fields = file_defined or file_id_defined
+        if deprecated_fields and file_defined == file_id_defined:
+            raise ValueError("Inline file must be set using `file` OR `file_id`.")
         return values
