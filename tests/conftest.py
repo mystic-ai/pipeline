@@ -294,7 +294,7 @@ def top_api_server(
     ).respond_with_json(environment_get.dict())
 
     httpserver.expect_request(
-        f"/v2/environments/{environment_get.name}",
+        f"/v2/environments/by-name/{environment_get.name}",
         method="GET",
         headers=dict(Authorization=f"Bearer {token}"),
     ).respond_with_json(environment_get.dict())
