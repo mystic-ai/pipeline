@@ -22,7 +22,11 @@ def _get_environment(name_or_id: str, by_name=False) -> EnvironmentGet:
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
 
-    url = f"/v2/environments/by-name/{name_or_id}" if by_name else f"/v2/environments/{name_or_id}"
+    url = (
+        f"/v2/environments/by-name/{name_or_id}"
+        if by_name
+        else f"/v2/environments/{name_or_id}"
+    )
 
     environment_information = EnvironmentGet.parse_obj(remote_service._get(url))
 
