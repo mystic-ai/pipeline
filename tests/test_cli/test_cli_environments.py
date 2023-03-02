@@ -29,7 +29,7 @@ def test_cli_environments_get(
     token: str,
 ):
     _set_testing_remote_compute_service(url, token)
-    assert environment_get == _get_environment(environment_get.name)
+    assert environment_get == _get_environment(environment_get.name, by_name=True)
     assert environment_get == _get_environment(environment_get.id)
 
     with pytest.raises(httpx.HTTPStatusError):
@@ -56,7 +56,7 @@ def test_cli_environments_delete(
     token: str,
 ):
     _set_testing_remote_compute_service(url, token)
-    _delete_environment(environment_get.name)
+    _delete_environment(environment_get.name, by_name=True)
     _delete_environment(environment_get.id)
 
     with pytest.raises(httpx.HTTPStatusError):
@@ -71,7 +71,6 @@ def test_cli_environments_update(
     url: str,
     token: str,
 ):
-
     # locking
     _set_testing_remote_compute_service(url, token)
     assert _update_environment_lock(environment_get.id, locked=True).locked

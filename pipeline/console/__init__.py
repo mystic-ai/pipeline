@@ -286,6 +286,14 @@ def main(args: Optional[List[str]] = None) -> int:
     environments_get_parser.add_argument(
         "name_or_id", help="The environment name or id to get"
     )
+
+    environments_get_parser.add_argument(
+        "-n",
+        help="Get the environment by name",
+        required=False,
+        action="store_true",
+        default=False,
+    )
     ##########
     # pipeline environments list
     ##########
@@ -325,6 +333,14 @@ def main(args: Optional[List[str]] = None) -> int:
         "name_or_id", help="The environment name or id to delete"
     )
 
+    environments_delete_parser.add_argument(
+        "-n",
+        help="Delete the environment by name",
+        required=False,
+        action="store_true",
+        default=False,
+    )
+
     ##########
     # pipeline environments update
     ##########
@@ -335,6 +351,13 @@ def main(args: Optional[List[str]] = None) -> int:
 
     environments_update_parser.add_argument(
         "name_or_id", help="The environment name or id to update"
+    )
+    environments_update_parser.add_argument(
+        "-n",
+        help="Update the environment by name",
+        required=False,
+        action="store_true",
+        default=False,
     )
 
     environments_update_sub_command = environments_update_parser.add_subparsers(
@@ -382,7 +405,6 @@ def main(args: Optional[List[str]] = None) -> int:
             tags_parser.print_help()
             return 1
     elif command == "environments":
-
         if (code := environments_command(args)) is None:
             if getattr(args, "sub-command") == "update":
                 environments_update_parser.print_help()
