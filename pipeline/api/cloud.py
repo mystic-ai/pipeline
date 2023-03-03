@@ -419,7 +419,7 @@ class PipelineCloud:
 
         response = self._post(
             "/v2/functions",
-            files=dict(pickle=_as_upload_file(function.function)),
+            files=dict(pickle=_as_upload_file(function)),
             json_data=function_create_schema.dict(),
         )
         return FunctionGet.parse_obj(response)
@@ -437,7 +437,7 @@ class PipelineCloud:
 
         response = self._post(
             "/v2/models",
-            files=dict(pickle=_as_upload_file(model.model)),
+            files=dict(pickle=_as_upload_file(model)),
             json_data=model_create_schema.dict(),
         )
         return ModelGet.parse_obj(response)
