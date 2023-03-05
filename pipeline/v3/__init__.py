@@ -1,9 +1,8 @@
 import asyncio
 import io
 import math
-import os
+import time
 import typing as t
-import uuid
 from multiprocessing import Pool
 
 import cloudpickle as cp
@@ -12,42 +11,46 @@ import requests
 
 from pipeline.objects.graph import Graph
 
+LOCAL_IP = "10.1.255.139:5025"
+TESTING_API_IP = "10.1.255.156:5025"
+
+ACTIVE_IP = LOCAL_IP
+
 
 def run_pipeline(graph_id: str, data: t.Any):
-
-    # with open("graph.tmp", "wb") as tmp:
-    #     tmp.write(cp.dumps(graph))
-    # unique_name = str(uuid.uuid4()) + ".tmp"
-    # with open(unique_name, "wb") as tmp:
-    #     tmp.write(cp.dumps(data))
-
     data_obj = io.BytesIO(cp.dumps(data))
+    start_time = time.time()
 
-    # graph_file = open("graph.tmp", "rb")
-    # data_file = open(unique_name, "rb")
+    # headers = {
+    #     "Content-ype": "multipart/form-data",
+    # }
 
     res = requests.post(
-        "http://10.1.255.139:5025/v3/runs",
+        f"http://{ACTIVE_IP}/v3/runs",
         params=dict(graph_id=graph_id),
         files=dict(input_data=data_obj),
+        # headers=headers,
     )
+    end_time = time.time()
+    print(f"Run time: {end_time - start_time}")
 
-    # graph_file.close()
-    # data_file.close()
-    # os.remove(unique_name)
-    return res
+    return res.json()["result"][0]
 
 
-def upload_pipeline(graph: Graph):
-
+def upload_pipeline(graph: Graph, gpu_memory_min: int = None):
     with open("graph.tmp", "wb") as tmp:
         tmp.write(cp.dumps(graph))
 
     graph_file = open("graph.tmp", "rb")
 
+    params = dict()
+    if gpu_memory_min is not None:
+        params["gpu_memory_min"] = gpu_memory_min
+
     res = httpx.post(
-        "http://10.1.255.139:5025/v3/pipelines",
+        f"http://{ACTIVE_IP}/v3/pipelines",
         files=dict(graph=graph_file),
+        params=params,
     )
 
     graph_file.close()
@@ -61,7 +64,7 @@ def map_pipeline(array: list, graph_id: str):
             obj_bytes = io.BytesIO(cp.dumps(data))
 
             r = await client.post(
-                "http://10.1.255.139:5025/v3/runs",
+                f"http://{ACTIVE_IP}/v3/runs",
                 params=dict(graph_id=graph_id),
                 files=dict(input_data=obj_bytes),
             )

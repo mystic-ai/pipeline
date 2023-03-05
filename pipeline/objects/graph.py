@@ -58,7 +58,9 @@ class Graph:
 
     def _startup(self):
         if self._has_run_startup:
+            print("HAS RUN")
             return
+        print("Testing", flush=True)
 
         startup_variables = {}
 
@@ -68,7 +70,6 @@ class Graph:
                 startup_variables[var.local_id] = var
 
         for node in self.nodes:
-
             node_inputs: List[Variable] = []
             node_function: Function = None
 
@@ -78,7 +79,7 @@ class Graph:
                     break
             if (
                 getattr(node_function.function, "__run_once__", False)
-                and not getattr(node_function.function, "__has_run__", False)
+                and getattr(node_function.function, "__has_run__", False)
             ) or not getattr(node_function.function, "__on_startup__", False):
                 continue
 
@@ -145,7 +146,6 @@ class Graph:
             running_variables[input_variables[i].local_id] = input
 
         for node in self.nodes:
-
             node_inputs: List[Variable] = []
             node_outputs: List[Variable] = []
             node_function: Function = None
