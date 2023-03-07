@@ -7,6 +7,7 @@ from pip._internal.commands.freeze import freeze
 from tabulate import tabulate
 
 from pipeline import PipelineCloud
+from pipeline.api.environments import DEFAULT_ENVIRONMENT
 from pipeline.schemas.environment import (
     EnvironmentCreate,
     EnvironmentGet,
@@ -18,18 +19,26 @@ from pipeline.util.logging import _print
 environment_re_pattern = re.compile(r"^[0-9a-zA-Z]+[0-9a-zA-Z\_\-]+[0-9a-zA-Z]+$")
 
 
-def _get_environment(name_or_id, by_name=False) -> EnvironmentGet:
+def _get_environment(name_or_id, by_name=False, default=False) -> EnvironmentGet:
     """Retrieve the environment given an environment name or ID.
     This is called off the bat to resolve the ID and then make subsequent CRUD calls.
     """
+    if default and name_or_id:
+        raise Exception(
+            "You cannot provide name_or_id when retrieving the default environment"
+        )
+
+    def get_url(name_or_id, by_name, default):
+        if default:
+            return f"/v2/environments/{DEFAULT_ENVIRONMENT.id}"
+        if not by_name:
+            return f"/v2/environments/{name_or_id}"
+        return f"/v2/environments/by-name/{name_or_id}"
+
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
-    url = (
-        f"/v2/environments/by-name/{name_or_id}"
-        if by_name
-        else f"/v2/environments/{name_or_id}"
-    )
 
+    url = get_url(name_or_id, by_name, default)
     environment_information = EnvironmentGet.parse_obj(remote_service._get(url))
     return environment_information
 
@@ -199,7 +208,7 @@ def environments(args: argparse.Namespace) -> int:
 
     elif sub_command == "get":
         name_or_id = getattr(args, "name_or_id", None)
-        environment = _get_environment(name_or_id, args.n)
+        environment = _get_environment(name_or_id, args.n, args.default)
         print(environment.json())
         return 0
     elif sub_command in ["list", "ls"]:

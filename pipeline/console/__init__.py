@@ -282,9 +282,16 @@ def main(args: Optional[List[str]] = None) -> int:
         "get",
         help="Get environment information",
     )
-
     environments_get_parser.add_argument(
-        "name_or_id", help="The environment name or id to get"
+        "--default",
+        help="Get the default environment",
+        action="store_true",
+    )
+    # Positional arguments are required. We don't want to have to include name_or_id
+    # when the default flag is set
+    "--default" not in sys.argv and environments_get_parser.add_argument(
+        "name_or_id",
+        help="The environment name or id to get",
     )
 
     environments_get_parser.add_argument(
@@ -294,6 +301,7 @@ def main(args: Optional[List[str]] = None) -> int:
         action="store_true",
         default=False,
     )
+
     ##########
     # pipeline environments list
     ##########
