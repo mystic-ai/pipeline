@@ -35,8 +35,7 @@ def _get_environment(name_or_id, by_name=False) -> EnvironmentGet:
 
 
 def _list_environments(
-    skip: int,
-    limit: int,
+    skip: int, limit: int, public: bool = False
 ) -> Paginated[EnvironmentGet]:
     # TODO: Add in more filter fields
 
@@ -45,11 +44,7 @@ def _list_environments(
 
     response = remote_service._get(
         "/v2/environments",
-        params=dict(
-            skip=skip,
-            limit=limit,
-            order_by="created_at:desc",
-        ),
+        params=dict(skip=skip, limit=limit, order_by="created_at:desc", public=public),
     )
 
     paginated_environments = Paginated[EnvironmentGet].parse_obj(response)
@@ -204,8 +199,7 @@ def environments(args: argparse.Namespace) -> int:
         return 0
     elif sub_command in ["list", "ls"]:
         paginated_results = _list_environments(
-            getattr(args, "skip"),
-            getattr(args, "limit"),
+            getattr(args, "skip"), getattr(args, "limit"), args.public
         )
         table_string = _tabulate(paginated_results.data)
         print(table_string)

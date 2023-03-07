@@ -319,6 +319,11 @@ def main(args: Optional[List[str]] = None) -> int:
         default=0,
         type=int,
     )
+    environments_list_parser.add_argument(
+        "--public",
+        help="List publicly available environments",
+        action="store_true",
+    )
 
     ##########
     # pipeline environments delete
@@ -356,7 +361,6 @@ def main(args: Optional[List[str]] = None) -> int:
         "-n",
         help="Update the environment by name",
         required=False,
-        action="store_true",
         default=False,
     )
 
