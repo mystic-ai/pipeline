@@ -36,6 +36,16 @@ def test_cli_environments_get(
 
 
 @pytest.mark.usefixtures("top_api_server")
+def test_cli_get_get_default_environment(
+    environment_get_default: EnvironmentGet,
+    url: str,
+    token: str,
+):
+    _set_testing_remote_compute_service(url, token)
+    assert environment_get_default == _get_environment(None, default=True)
+
+
+@pytest.mark.usefixtures("top_api_server")
 def test_cli_environments_create(
     environment_create: EnvironmentCreate,
     environment_get: EnvironmentGet,

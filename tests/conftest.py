@@ -15,6 +15,7 @@ import pytest
 from pytest_httpserver import HTTPServer
 from werkzeug.wrappers import Response
 
+from pipeline.api.environments import DEFAULT_ENVIRONMENT
 from pipeline.objects import (
     Graph,
     Pipeline,
@@ -91,6 +92,7 @@ def top_api_server(
     tag_create: PipelineTagCreate,
     # Environments
     environment_get: EnvironmentGet,
+    environment_get_default: EnvironmentGet,
     environment_get_locked: EnvironmentGet,
     environment_get_add_package: EnvironmentGet,
     environment_get_rm_package: EnvironmentGet,
@@ -292,6 +294,12 @@ def top_api_server(
         method="GET",
         headers=dict(Authorization=f"Bearer {token}"),
     ).respond_with_json(environment_get.dict())
+
+    httpserver.expect_request(
+        f"/v2/environments/{environment_get_default.id}",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+    ).respond_with_json(environment_get_default.dict())
 
     httpserver.expect_request(
         f"/v2/environments/by-name/{environment_get.name}",
@@ -850,6 +858,19 @@ def environment_get_locked() -> EnvironmentGet:
     return EnvironmentGet(
         id="environment_1",
         name="test",
+        python_requirements=[
+            "dependency_1",
+            "dependency_2",
+        ],
+        locked=True,
+    )
+
+
+@pytest.fixture()
+def environment_get_default() -> EnvironmentGet:
+    return EnvironmentGet(
+        id=DEFAULT_ENVIRONMENT.id,
+        name=DEFAULT_ENVIRONMENT.name,
         python_requirements=[
             "dependency_1",
             "dependency_2",
