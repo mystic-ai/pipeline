@@ -118,3 +118,21 @@ def test_cli_environments_list(
             environment_get_rm_package,
         ],
     ) == _list_environments(skip=1, limit=3)
+
+
+@pytest.mark.usefixtures("top_api_server")
+def test_cli_environments_list_public(
+    environment_get_default: EnvironmentGet,
+    url: str,
+    token: str,
+):
+    _set_testing_remote_compute_service(url, token)
+
+    assert Paginated[EnvironmentGet](
+        skip=0,
+        limit=3,
+        total=1,
+        data=[
+            environment_get_default,
+        ],
+    ) == _list_environments(skip=0, limit=3, public=True)

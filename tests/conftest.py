@@ -7,7 +7,7 @@ os.environ["PIPELINE_CACHE"] = "./.tmp_cache/"
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple
+from typing import List, Tuple
 
 import cloudpickle
 import dill
@@ -364,6 +364,21 @@ def top_api_server(
                 environment_get,
                 environment_get_add_package,
                 environment_get_rm_package,
+            ],
+        ).dict()
+    )
+    httpserver.expect_request(
+        f"/v2/environments",
+        method="GET",
+        headers=dict(Authorization=f"Bearer {token}"),
+        query_string="skip=0&limit=3&order_by=created_at%3Adesc&public=true",
+    ).respond_with_json(
+        Paginated[EnvironmentGet](
+            skip=0,
+            limit=3,
+            total=1,
+            data=[
+                environment_get_default,
             ],
         ).dict()
     )
