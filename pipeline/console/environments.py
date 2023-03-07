@@ -41,10 +41,15 @@ def _list_environments(
 
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
+    # The required query parameters
+    params = dict(skip=skip, limit=limit, order_by="created_at:desc")
+    # Do not include public param when not True
+    if public:
+        params["public"] = True
 
     response = remote_service._get(
         "/v2/environments",
-        params=dict(skip=skip, limit=limit, order_by="created_at:desc", public=public),
+        params=params,
     )
 
     paginated_environments = Paginated[EnvironmentGet].parse_obj(response)
