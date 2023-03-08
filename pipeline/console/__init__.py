@@ -289,10 +289,11 @@ def main(args: Optional[List[str]] = None) -> int:
     )
     # Positional arguments are required. We don't want to have to include name_or_id
     # when the default flag is set
-    "--default" not in sys.argv and environments_get_parser.add_argument(
-        "name_or_id",
-        help="The environment name or id to get",
-    )
+    if "--default" not in sys.argv:
+        environments_get_parser.add_argument(
+            "name_or_id",
+            help="The environment name or id to get",
+        )
 
     environments_get_parser.add_argument(
         "-n",
