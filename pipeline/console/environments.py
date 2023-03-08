@@ -7,6 +7,7 @@ from pip._internal.commands.freeze import freeze
 from tabulate import tabulate
 
 from pipeline import PipelineCloud
+from pipeline.api.environments import DEFAULT_ENVIRONMENT
 from pipeline.schemas.environment import (
     EnvironmentCreate,
     EnvironmentGet,
@@ -18,37 +19,46 @@ from pipeline.util.logging import _print
 environment_re_pattern = re.compile(r"^[0-9a-zA-Z]+[0-9a-zA-Z\_\-]+[0-9a-zA-Z]+$")
 
 
-def _get_environment(name_or_id: str, by_name=False) -> EnvironmentGet:
+def _get_environment(name_or_id, by_name=False, default=False) -> EnvironmentGet:
+    """Retrieve the environment given an environment name or ID.
+    This is called off the bat to resolve the ID and then make subsequent CRUD calls.
+    """
+    if default and name_or_id:
+        raise Exception(
+            "You cannot provide name_or_id when retrieving the default environment"
+        )
+
+    def get_url(name_or_id, by_name, default):
+        if default:
+            return f"/v2/environments/{DEFAULT_ENVIRONMENT.id}"
+        if not by_name:
+            return f"/v2/environments/{name_or_id}"
+        return f"/v2/environments/by-name/{name_or_id}"
+
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
 
-    url = (
-        f"/v2/environments/by-name/{name_or_id}"
-        if by_name
-        else f"/v2/environments/{name_or_id}"
-    )
-
+    url = get_url(name_or_id, by_name, default)
     environment_information = EnvironmentGet.parse_obj(remote_service._get(url))
-
     return environment_information
 
 
 def _list_environments(
-    skip: int,
-    limit: int,
+    skip: int, limit: int, public: bool = False
 ) -> Paginated[EnvironmentGet]:
     # TODO: Add in more filter fields
 
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
+    # The required query parameters
+    params = dict(skip=skip, limit=limit, order_by="created_at:desc")
+    # Do not include public param when not True
+    if public:
+        params["public"] = True
 
     response = remote_service._get(
         "/v2/environments",
-        params=dict(
-            skip=skip,
-            limit=limit,
-            order_by="created_at:desc",
-        ),
+        params=params,
     )
 
     paginated_environments = Paginated[EnvironmentGet].parse_obj(response)
@@ -84,21 +94,23 @@ def _create_environment(name: str, packages: List[str]) -> EnvironmentGet:
     return EnvironmentGet.parse_obj(environment_dict)
 
 
-def _delete_environment(name_or_id: str, by_name=False) -> None:
+def _delete_environment(id: str) -> None:
+    """Delete an environment by id. For deletion by name, resolve the environment ID
+    first."""
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
 
-    environment_information = _get_environment(name_or_id, by_name=by_name)
-    remote_service._delete(f"/v2/environments/{environment_information.id}")
+    remote_service._delete(f"/v2/environments/{id}")
 
 
 def _update_environment(
-    name_or_id: str,
+    id: str,
     *,
     locked: bool = None,
     python_requirements: List[str] = None,
-    by_name=False,
 ) -> EnvironmentGet:
+    """Update an environment by id. For update by name, resolve the environment ID
+    first."""
     if locked is None and python_requirements is None:
         raise Exception(
             "Must un/lock or define python_requirements when updating an Environment"
@@ -106,65 +118,51 @@ def _update_environment(
     remote_service = PipelineCloud(verbose=False)
     remote_service.authenticate()
 
-    environment_information = _get_environment(name_or_id, by_name=by_name)
-
     update_schema = EnvironmentPatch(
         python_requirements=python_requirements, locked=locked
     )
     response = remote_service._patch(
-        f"/v2/environments/{environment_information.id}",
+        f"/v2/environments/{id}",
         update_schema.dict(),
     )
     return EnvironmentGet.parse_obj(response)
 
 
 def _add_packages_to_environment(
-    name_or_id: str,
+    environment: EnvironmentGet,
     new_packages: List[str],
-    by_name=False,
 ) -> EnvironmentGet:
-    environment_information = _get_environment(name_or_id, by_name=by_name)
-
-    current_packages = environment_information.python_requirements
+    current_packages = environment.python_requirements
     for new_package in new_packages:
         if new_package in current_packages:
             raise Exception(f"Package '{new_package}' is already in environment")
 
     current_packages.extend(new_packages)
 
-    return _update_environment(
-        environment_information.id, python_requirements=current_packages
-    )
+    return _update_environment(environment.id, python_requirements=current_packages)
 
 
 def _remove_packages_from_environment(
-    name_or_id: str,
+    environment: EnvironmentGet,
     packages: List[str],
-    by_name=False,
 ) -> EnvironmentGet:
-    environment_information = _get_environment(name_or_id, by_name=by_name)
-
-    current_packages = environment_information.python_requirements
+    current_packages = environment.python_requirements
     for package in packages:
         if package not in current_packages:
             raise Exception(f"Package '{package}' is not in environment")
 
     [current_packages.remove(package) for package in packages]
 
-    return _update_environment(
-        environment_information.id, python_requirements=current_packages
-    )
+    return _update_environment(environment.id, python_requirements=current_packages)
 
 
 def _update_environment_lock(
-    name_or_id: str, locked: bool, by_name=False
+    environment: EnvironmentGet, locked: bool
 ) -> EnvironmentGet:
-    environment_information = _get_environment(name_or_id, by_name=by_name)
-
-    if environment_information.locked == locked:
+    if environment.locked == locked:
         raise Exception(f"The environment already has locked={locked}")
 
-    return _update_environment(name_or_id, locked=locked, by_name=by_name)
+    return _update_environment(environment.id, locked=locked)
 
 
 def _tabulate(environments: List[EnvironmentGet]) -> str:
@@ -210,45 +208,43 @@ def environments(args: argparse.Namespace) -> int:
 
     elif sub_command == "get":
         name_or_id = getattr(args, "name_or_id", None)
-        by_name = getattr(args, "n", False)
-        environment = _get_environment(name_or_id, by_name=by_name)
+        environment = _get_environment(name_or_id, args.n, args.default)
         print(environment.json())
         return 0
     elif sub_command in ["list", "ls"]:
         paginated_results = _list_environments(
-            getattr(args, "skip"),
-            getattr(args, "limit"),
+            getattr(args, "skip"), getattr(args, "limit"), args.public
         )
         table_string = _tabulate(paginated_results.data)
         print(table_string)
         return 0
     elif sub_command in ["delete", "rm"]:
         name_or_id: str = getattr(args, "name_or_id")
-        by_name = getattr(args, "n", False)
-        _delete_environment(name_or_id, by_name=by_name)
+        environment = _get_environment(name_or_id, args.n)
+        _delete_environment(environment)
         _print(f"Deleted {name_or_id}")
         return 0
     elif sub_command == "update":
         name_or_id: str = getattr(args, "name_or_id")
-        by_name = getattr(args, "n", False)
+        environment = _get_environment(name_or_id, args.n)
 
         update_command = getattr(args, "environments-update-sub-command")
 
         if update_command == "add":
             packages = getattr(args, "packages")
-            _add_packages_to_environment(name_or_id, packages, by_name=by_name)
+            _add_packages_to_environment(environment, packages)
             _print(f"Added packages to {name_or_id}")
             return 0
         elif update_command == "remove":
             packages = getattr(args, "packages")
-            _remove_packages_from_environment(name_or_id, packages, by_name=by_name)
+            _remove_packages_from_environment(environment, packages)
             _print(f"Removed packages from {name_or_id}")
             return 0
         elif update_command == "lock":
-            _update_environment_lock(name_or_id, True, by_name=by_name)
+            _update_environment_lock(environment, True)
             _print(f"Locked {name_or_id}")
             return 0
         elif update_command == "unlock":
-            _update_environment_lock(name_or_id, False, by_name=by_name)
+            _update_environment_lock(environment, False)
             _print(f"Unlocked {name_or_id}")
             return 0
