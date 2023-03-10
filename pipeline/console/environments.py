@@ -221,7 +221,7 @@ def environments(args: argparse.Namespace) -> int:
     elif sub_command in ["delete", "rm"]:
         name_or_id: str = getattr(args, "name_or_id")
         environment = _get_environment(name_or_id, args.n)
-        _delete_environment(environment)
+        _delete_environment(environment.id)
         _print(f"Deleted {name_or_id}")
         return 0
     elif sub_command == "update":
