@@ -370,6 +370,7 @@ def main(args: Optional[List[str]] = None) -> int:
         "-n",
         help="Update the environment by name",
         required=False,
+        action="store_true",
         default=False,
     )
 
