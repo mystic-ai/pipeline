@@ -22,13 +22,13 @@
 
 Pipeline is a python library that provides a simple way to construct computational graphs for AI/ML. The library is suitable for both development and production environments supporting inference and training/finetuning. This library is also a direct interface to [Pipeline.ai](https://pipeline.ai) which provides a compute engine to run pipelines at scale and on enterprise GPUs.
 
-The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect). In future releases we will be moving away from this syntax to a C based graph compiler which interprets python directly (and other languages) allowing users of the API to compose graphs in a more native way to the chosen language.
+The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect). In future releases we will be moving away from this syntax to a C-based graph compiler which interprets python directly (and other languages) allowing API users to compose graphs in a more native way to the chosen language.
 
 # Version roadmap
 
 ## v0.4.0 (Jan 2023)
 
-- Custom environments on PipelineCloud (remote compute services)
+- Custom environments on PipelineCloud (remote computing services)
 - Kwarg inputs to runs
 - Extended IO inputs to `pipeline_function` objects
 
@@ -42,7 +42,7 @@ The syntax used for defining AI/ML pipelines shares some similarities in syntax 
 - Run log streaming
 - Run progress tracking
 - Resource dedication
-- Pipeline scecific remote load balancer (10% of traffic to one pipeline 80% to another)
+- Pipeline-specific remote load balancer (10% of traffic to one pipeline and 90% to another)
 - Usage capping
 - Run result streaming
 - Progromatic autoscaling
@@ -126,32 +126,32 @@ pip install -U pipeline-ai
 
 ## Mac (arm/M1)
 
-Due to the ARM architecture of the M1 core it is necessary to take additional steps to install Pipeline, mostly due to the transformers library. We recoomend running inside of a conda environment as shown below.
+Due to the ARM architecture of the M1 core, it is necessary to take additional steps to install Pipeline, primarily due to the transformers library. We recommend running inside of a conda environment, as shown below.
 
 1. Make sure Rosetta2 is disabled.
 2. From terminal run:
 
-```
+```shell
 xcode-select --install
 ```
 
 3. Install Miniforge, instructions here: [https://github.com/conda-forge/miniforge](https://github.com/conda-forge/miniforge) or follow the below:
    1. Download the Miniforge install script here: [https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh](https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh)
    2. Make the shell executable and run
-   ```
+   ```shell
    sudo chmod 775 Miniforge3-MacOSX-arm64.sh
    ./Miniforge3-MacOSX-arm64.sh
    ```
-4. Create a conda based virtual env and activate:
+4. Create a conda-based virtual env and activate:
 
-```
+```shell
 conda create --name pipeline-env python=3.9
 conda activate pipeline-env
 ```
 
 5. Install tensorflow
 
-```
+```shell
 conda install -c apple tensorflow-deps
 python -m pip install -U pip
 python -m pip install -U tensorflow-macos
@@ -160,19 +160,19 @@ python -m pip install -U tensorflow-metal
 
 6. Install transformers
 
-```
+```shell
 conda install -c huggingface transformers -y
 ```
 
 7. Install pipeline
 
-```
+```shell
 python -m pip install -U pipeline-ai
 ```
 
 # Development
 
-This project is made with poetry, [so firstly setup poetry on your machine](https://python-poetry.org/docs/#installation).
+This project is managed with poetry, [so firstly setup poetry on your machine](https://python-poetry.org/docs/#installation).
 
 Once that is done, please run
 
