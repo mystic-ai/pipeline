@@ -142,7 +142,7 @@ print(
 
 # Next Steps
 
-Try our [cloud quickstart](https://docs.pipeline.ai/docs/cloud-quickstart) guide to learn about how to run pipelines in the cloud on enterprise GPUs. Then check out our tutorials for guides on how to deploy your own [custom pipelines](https://dash.readme.com/project/pipeline-ai/v0.4.0/docs/custom-models), [environments](https://docs.pipeline.ai/docs/custom-environments) and [integrate with third party services](https://docs.pipeline.ai/docs/integrations). Go deeper and learn about object concepts in the [Python API section](https://docs.pipeline.ai/docs/pipelinepipeline).
+Try our [cloud quickstart](https://docs.pipeline.ai/docs/cloud-quickstart) guide to learn about how to run pipelines in the cloud on enterprise GPUs. Then check out our tutorials for guides on how to deploy your own [custom pipelines](https://docs.pipeline.ai/docs/custom-models), [environments](https://docs.pipeline.ai/docs/custom-environments) and [integrate with third party services](https://docs.pipeline.ai/docs/integrations). Go deeper and learn about object concepts in the [Python API section](https://docs.pipeline.ai/docs/pipelinepipeline).
 
 # Installation instructions
 
