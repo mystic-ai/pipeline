@@ -53,11 +53,19 @@ def main(args: Optional[List[str]] = None) -> int:
         default="https://api.pipeline.ai",
     )
     remote_login_parser.add_argument(
-        "-t",
-        "--token",
-        type=str,
-        required=True,
+        "alias",
         help="API token for remote",
+    )
+    remote_login_parser.add_argument(
+        "token",
+        help="API token for remote",
+    )
+
+    remote_login_parser.add_argument(
+        "-a",
+        "--active",
+        help="Set as the current active remote",
+        action="store_true",
     )
 
     ##########
@@ -69,7 +77,7 @@ def main(args: Optional[List[str]] = None) -> int:
         description="Set the currently used remote compute service URL",
         help="Set the currently used remote compute service URL",
     )
-    remote_set_parser.add_argument("url", help="The remote URL")
+    remote_set_parser.add_argument("alias", help="The remote alias")
 
     ##########
     # pipeline remote list

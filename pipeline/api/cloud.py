@@ -26,7 +26,7 @@ from pydantic import ValidationError
 from tqdm import tqdm
 from tqdm.utils import CallbackIOWrapper
 
-from pipeline import configuration
+from pipeline.configuration import current_configuration, PIPELINE_DIR
 from pipeline.api.environments import PipelineCloudEnvironment, resolve_environment_id
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
@@ -101,12 +101,16 @@ class PipelineCloud:
         if url is None:
             url = os.environ.get(
                 "PIPELINE_API_URL",
-                configuration.DEFAULT_REMOTE,
+                active_remote.url
+                if (active_remote := current_configuration.active_remote) is not None
+                else "https://api.pipeline.ai",
             )
         if token is None:
             token = os.environ.get(
                 "PIPELINE_API_TOKEN",
-                configuration.remote_auth.get(url),
+                active_remote.token
+                if (active_remote := current_configuration.active_remote) is not None
+                else None,
             )
         self._initialise_client(url, token, timeout)
 
@@ -343,7 +347,7 @@ class PipelineCloud:
             if isinstance(files, dict):
                 files = files.items()
             files_payload = []
-            for (form_name, (file_name, file_handle, file_type)) in files:
+            for form_name, (file_name, file_handle, file_type) in files:
                 # If verbose then wrap our file object in a tqdm callback
                 if self.verbose:
                     progress = tqdm(
@@ -797,9 +801,8 @@ class PipelineCloud:
                 ),
             )
 
-            configuration.PIPELINE_CACHE_FILES.mkdir(exist_ok=True)
             raw_result = load_object(downloaded_schema.data)
-            file_path = configuration.PIPELINE_CACHE_FILES / variable.remote_id
+            file_path = (PIPELINE_DIR / "files") / variable.remote_id
             with open(file_path, "wb") as file:
                 dill.dump(raw_result, file=file)
 
