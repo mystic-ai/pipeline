@@ -8,7 +8,6 @@ from multiprocessing import Pool
 
 import cloudpickle as cp
 import httpx
-import requests
 
 from pipeline import current_configuration
 from pipeline.objects.graph import Graph
@@ -23,10 +22,11 @@ ACTIVE_IP = (
 def run_pipeline(graph_id: str, data: t.Any):
     data_obj = io.BytesIO(cp.dumps(data))
 
-    res = requests.post(
+    res = httpx.post(
         f"{ACTIVE_IP}/v3/runs",
         params=dict(graph_id=graph_id),
         files=dict(input_data=data_obj),
+        timeout=300,
     )
 
     if res.status_code != 200:
@@ -35,7 +35,11 @@ def run_pipeline(graph_id: str, data: t.Any):
     return res.json()["result"][0]
 
 
-def upload_pipeline(graph: Graph, gpu_memory_min: int = None):
+def upload_pipeline(
+    graph: Graph,
+    gpu_memory_min: int = None,
+    environment_id_or_name: t.Union[str, int] = None,
+):
     with open("graph.tmp", "wb") as tmp:
         tmp.write(cp.dumps(graph))
 
@@ -44,6 +48,11 @@ def upload_pipeline(graph: Graph, gpu_memory_min: int = None):
     params = dict()
     if gpu_memory_min is not None:
         params["gpu_memory_min"] = gpu_memory_min
+
+    if isinstance(environment_id_or_name, int):
+        params["environment_id"] = environment_id_or_name
+    elif isinstance(environment_id_or_name, str):
+        params["environment_name"] = environment_id_or_name
 
     res = httpx.post(
         f"{ACTIVE_IP}/v3/pipelines",
@@ -93,3 +102,14 @@ def map_pipeline_mp(array: list, graph_id: str, *, pool_size=8):
             results.extend(batch_res)
 
     return results
+
+
+def create_environment(name: str, python_requirements: list[str]) -> int:
+
+    res = httpx.post(
+        f"{ACTIVE_IP}/v3/environments",
+        json={"name": name, "python_requirements": python_requirements},
+    )
+    res.raise_for_status()
+    env_id = res.json()["id"]
+    return env_id
