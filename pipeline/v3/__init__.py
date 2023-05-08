@@ -1,10 +1,8 @@
 import asyncio
 import io
 import math
-import time
 import typing as t
 from multiprocessing import Pool
-
 
 import cloudpickle as cp
 import httpx
@@ -12,6 +10,7 @@ import requests
 
 from pipeline import current_configuration
 from pipeline.objects.graph import Graph
+from pipeline.util.logging import _print
 
 ACTIVE_IP = (
     active_remote.url
@@ -30,6 +29,11 @@ def run_pipeline(graph_id: str, data: t.Any):
     )
 
     if res.status_code != 200:
+        _print(
+            f"Failed run (status={res.status_code}, text={res.text}, "
+            f"headers={res.headers})",
+            level="ERROR",
+        )
         raise Exception(f"Error: {res.status_code}, {res.text}")
 
     return res.json()["result"][0]
