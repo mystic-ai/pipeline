@@ -9,11 +9,12 @@ from tqdm import tqdm
 from pipeline import current_configuration
 from pipeline.util.logging import PIPELINE_STR
 
-ACTIVE_IP = (
-    active_remote.url
-    if (active_remote := current_configuration.active_remote) is not None
-    else None
-)
+# ACTIVE_IP = (
+#     active_remote.url
+#     if (active_remote := current_configuration.active_remote) is not None
+#     else None
+# )
+ACTIVE_IP = "http://localhost:5025"
 
 _client = httpx.Client(
     base_url=ACTIVE_IP,
