@@ -28,10 +28,14 @@ def post(
     endpoint: str,
     json_data: dict = None,
 ) -> httpx.Response:
-    response = _client.post(
-        endpoint,
-        json=json_data,
-    )
+    try:
+        response = _client.post(
+            endpoint,
+            json=json_data,
+        )
+        response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise Exception(f"HTTP error: {exc.response.status_code}, {exc.response.text}")
 
     return response
 
