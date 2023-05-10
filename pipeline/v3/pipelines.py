@@ -13,6 +13,7 @@ from pipeline.v3 import http
 
 def upload_pipeline(
     graph: Graph,
+    environment_id_or_name: t.Union[str, int] = None,
 ):
     if graph._has_run_startup:
         raise Exception("Graph has already been run, cannot upload")
@@ -48,6 +49,11 @@ def upload_pipeline(
     params = dict()
     if graph.min_gpu_vram_mb is not None:
         params["gpu_memory_min"] = graph.min_gpu_vram_mb
+
+    if isinstance(environment_id_or_name, int):
+        params["environment_id"] = environment_id_or_name
+    elif isinstance(environment_id_or_name, str):
+        params["environment_name"] = environment_id_or_name
 
     res = http.post_files(
         "/v3/pipelines",
