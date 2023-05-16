@@ -105,6 +105,7 @@ def post_files(
             data=monitor,
             headers={
                 "content-Type": monitor.content_type,
+                "Authorization": f"Bearer {current_configuration.active_remote.token}",
             },
         )
     else:
