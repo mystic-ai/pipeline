@@ -13,7 +13,6 @@ from pipeline.v3 import http
 
 def upload_pipeline(
     graph: Graph,
-    gpu_memory_min: int = None,
 ):
     if graph._has_run_startup:
         raise Exception("Graph has already been run, cannot upload")
@@ -47,8 +46,8 @@ def upload_pipeline(
     graph_file = open("graph.tmp", "rb")
 
     params = dict()
-    if gpu_memory_min is not None:
-        params["gpu_memory_min"] = gpu_memory_min
+    if graph.min_gpu_vram_mb is not None:
+        params["gpu_memory_min"] = graph.min_gpu_vram_mb
 
     res = http.post_files(
         "/v3/pipelines",
@@ -70,13 +69,17 @@ def run_pipeline(graph_id: str, data: t.Any):
         files=dict(input_data=data_obj),
     )
 
-    if res.status_code != 200:
+    if res.status_code == 500:
         _print(
             f"Failed run (status={res.status_code}, text={res.text}, "
             f"headers={res.headers})",
             level="ERROR",
         )
         raise Exception(f"Error: {res.status_code}, {res.text}")
+    elif res.status_code == 429:
+        raise Exception(
+            "Too many requests, please try again later",
+        )
 
     return res.json()["result"][0]
 
