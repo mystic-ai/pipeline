@@ -30,7 +30,7 @@ print(f"New pipeline ID = {pipeline_id}")
 
 start_time = datetime.datetime.now()
 
-result = run_pipeline(pipeline_id, 1)  # Local Pi est
+result = run_pipeline(pipeline_id, 1)
 
 end_time = datetime.datetime.now()
 

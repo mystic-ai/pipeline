@@ -13,7 +13,7 @@ from pipeline.v3 import http
 
 def upload_pipeline(
     graph: Graph,
-    environment_id_or_name: t.Union[str, int] = None,
+    environment_id_or_name: t.Union[str, int],
 ):
     if graph._has_run_startup:
         raise Exception("Graph has already been run, cannot upload")
