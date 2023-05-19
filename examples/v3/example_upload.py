@@ -1,7 +1,5 @@
-import datetime
-
 from pipeline import Pipeline, Variable, pipeline_function
-from pipeline.v3 import create_environment, run_pipeline, upload_pipeline
+from pipeline.v3 import create_environment, upload_pipeline
 
 
 @pipeline_function
@@ -23,17 +21,11 @@ pl = Pipeline.get_pipeline("pi-approx")
 
 env_id = create_environment(name="numpy", python_requirements=["numpy==1.24.3"])
 print(f"New environment ID = {env_id}")
+print(
+    "Environment will be pre-emptively cached on compute resources so please "
+    "wait a few mins before using..."
+)
 
 result = upload_pipeline(pl, environment_id_or_name=env_id)
 pipeline_id = result.json()["id"]
 print(f"New pipeline ID = {pipeline_id}")
-
-start_time = datetime.datetime.now()
-
-result = run_pipeline(pipeline_id, 1)
-
-end_time = datetime.datetime.now()
-
-total_time = (end_time - start_time).total_seconds() * 1e3
-
-print("Total time taken: %.3f ms, result: '%s'" % (total_time, result))
