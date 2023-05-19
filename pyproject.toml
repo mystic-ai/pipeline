@@ -23,7 +23,7 @@ pydantic = "^1.8.2"
 setuptools = "^65.4.1"
 pyhumps = "^3.0.2"
 tqdm = "^4.62.3"
-PyYAML = { version = "^6.0", optional = true }
+PyYAML = "^6.0"
 cloudpickle = "^2.2.0"
 dill = "^0.3.6"
 httpx = "^0.23.1"
@@ -59,9 +59,6 @@ exclude = '''
 
 [tool.isort]
 profile = "black"
-
-[tool.poetry.extras]
-docker = ["PyYAML"]
 
 [tool.poetry.scripts]
 pipeline = "pipeline.console:_run"

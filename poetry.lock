@@ -988,10 +988,7 @@ MarkupSafe = ">=2.1.1"
 [package.extras]
 watchdog = ["watchdog (>=2.3)"]
 
-[extras]
-docker = ["PyYAML"]
-
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "f3c5cf2889f0c15d20b9f94b948eef9436e37f47978590fab31b06c5cd22c673"
+content-hash = "4974c7fd0c341249340fce1d1cff72ab5fff29184c9c7db9a49589865534e544"
