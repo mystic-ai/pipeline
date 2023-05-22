@@ -5,6 +5,7 @@ from multiprocessing import Pool
 from pathlib import Path
 
 import cloudpickle as cp
+import httpx
 
 from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
@@ -66,7 +67,12 @@ def upload_pipeline(
     return res
 
 
-def run_pipeline(graph_id: str, data: t.Any):
+def run_pipeline(
+    graph_id: str,
+    data: t.Any,
+    *,
+    return_response: bool = False,
+) -> t.Union[t.Any, httpx.Response]:
     data_obj = io.BytesIO(cp.dumps(data))
 
     res = http.post_files(
@@ -75,16 +81,20 @@ def run_pipeline(graph_id: str, data: t.Any):
         files=dict(input_data=data_obj),
     )
 
+    if return_response:
+        return res
+
     if res.status_code == 500:
         _print(
             f"Failed run (status={res.status_code}, text={res.text}, "
             f"headers={res.headers})",
             level="ERROR",
         )
-        raise Exception(f"Error: {res.status_code}, {res.text}")
+        raise Exception(f"Error: {res.status_code}, {res.text}", res.status_code)
     elif res.status_code == 429:
         raise Exception(
             "Too many requests, please try again later",
+            res.status_code,
         )
 
     return res.json()["result"][0]
