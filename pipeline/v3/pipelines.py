@@ -97,6 +97,11 @@ def run_pipeline(
             res.status_code,
         )
 
+    try:
+        res.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise Exception(f"HTTP error: {exc.response.status_code}, {exc.response.text}")
+
     return res.json()["result"][0]
 
 
