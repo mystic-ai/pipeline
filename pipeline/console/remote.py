@@ -57,7 +57,11 @@ def remote(args: argparse.Namespace) -> int:
                 str(resource["current_run"])
                 if (resource["busy"] == 1 and resource["current_run"] != -1)
                 else "-",
-                resource["pipeline_cache"]["cached_pipelines"],
+                [
+                    p_id
+                    for cached_pipelines in resource["pipeline_cache"].values()
+                    for p_id in cached_pipelines
+                ],
                 resource["run_queue"],
                 "N/A"
                 if resource["gpus"] is None
