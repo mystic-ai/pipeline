@@ -40,6 +40,20 @@ def post(
     return response
 
 
+def get(
+    endpoint: str,
+) -> httpx.Response:
+    try:
+        response = _client.get(
+            endpoint,
+        )
+        response.raise_for_status()
+    except httpx.HTTPStatusError as exc:
+        raise Exception(f"HTTP error: {exc.response.status_code}, {exc.response.text}")
+
+    return response
+
+
 def create_callback(encoder: MultipartEncoder) -> t.Callable:
     encoder_len = encoder.len
     bar = tqdm(

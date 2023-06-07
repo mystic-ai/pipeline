@@ -10,6 +10,7 @@ import httpx
 from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
 from pipeline.v3 import http
+from pipeline.v3.schemas.runs import Run
 
 
 def upload_pipeline(
@@ -72,12 +73,16 @@ def run_pipeline(
     data: t.Any,
     *,
     return_response: bool = False,
-) -> t.Union[t.Any, httpx.Response]:
+    async_run: bool = False,
+) -> t.Union[Run, httpx.Response]:
     data_obj = io.BytesIO(cp.dumps(data))
 
     res = http.post_files(
         "/v3/runs",
-        params=dict(graph_id=graph_id),
+        params=dict(
+            graph_id=graph_id,
+            async_run=async_run,
+        ),
         files=dict(input_data=data_obj),
     )
 
@@ -102,7 +107,17 @@ def run_pipeline(
     except httpx.HTTPStatusError as exc:
         raise Exception(f"HTTP error: {exc.response.status_code}, {exc.response.text}")
 
-    return res.json()["result"][0]
+    # Everything is okay!
+    run_get = Run.parse_obj(res.json())
+
+    return run_get
+
+
+def get_pipeline_run(run_id: int) -> Run:
+    http_res = http.get(f"/v3/runs/{run_id}")
+
+    run_get = Run.parse_obj(http_res.json())
+    return run_get
 
 
 def map_pipeline_mp(array: list, graph_id: str, *, pool_size=8):
