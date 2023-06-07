@@ -51,7 +51,6 @@ class RunState(int, Enum):
             return cls.lookup[v]
         elif isinstance(v, int):
             return getattr(cls, cls.value_lookup[v])
-            return cls.value_lookup[v]
         else:
             raise ValueError(f"Invalid value: {v}")
 
