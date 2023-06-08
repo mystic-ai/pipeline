@@ -10,7 +10,7 @@ import httpx
 from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
 from pipeline.v3 import http
-from pipeline.v3.schemas.runs import Run
+from pipeline.v3.schemas.runs import Run, RunInput, RunIOType, RunCreate
 
 
 def upload_pipeline(
@@ -68,22 +68,42 @@ def upload_pipeline(
     return res
 
 
+def _data_to_run_input(data: t.Any) -> t.List[RunInput]:
+    input_array = []
+
+    for item in data:
+        input_type = RunIOType.from_object(item)
+        if input_type == RunIOType.file:
+            raise NotImplementedError("File input not yet supported")
+        elif input_type == RunIOType.pkl:
+            raise NotImplementedError("Python object input not yet supported")
+
+        input_schema = RunInput(
+            type=input_type,
+            value=item,
+        )
+        input_array.append(input_schema)
+
+    return input_array
+
+
 def run_pipeline(
-    graph_id: str,
-    data: t.Any,
-    *,
-    return_response: bool = False,
+    pipeline_id_or_tag: t.Union[str, int],
+    *data,
     async_run: bool = False,
+    return_response: bool = False,
 ) -> t.Union[Run, httpx.Response]:
     data_obj = io.BytesIO(cp.dumps(data))
 
-    res = http.post_files(
+    run_create_schema = RunCreate(
+        pipeline_id_or_tag=pipeline_id_or_tag,
+        input_data=_data_to_run_input(data),
+        async_run=async_run,
+    )
+
+    res = http.post(
         "/v3/runs",
-        params=dict(
-            graph_id=graph_id,
-            async_run=async_run,
-        ),
-        files=dict(input_data=data_obj),
+        json_data=run_create_schema.dict(),
     )
 
     if return_response:

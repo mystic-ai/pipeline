@@ -1,3 +1,4 @@
+import inspect
 from pipeline.objects.function import Function
 from pipeline.objects.graph import Graph
 from pipeline.objects.graph_node import GraphNode
@@ -74,7 +75,6 @@ class Pipeline:
     @staticmethod
     def add_variable(variable: Variable) -> None:
         if Pipeline._pipeline_context_active:
-
             if variable not in Pipeline._current_pipeline.variables:
                 Pipeline._current_pipeline.variables.append(variable)
         else:

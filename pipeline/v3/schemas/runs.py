@@ -1,6 +1,8 @@
+import io
 import typing as t
 from datetime import datetime
 from enum import Enum
+import json
 
 from pydantic import BaseModel
 
@@ -78,8 +80,67 @@ class RunFile(BaseModel):
         orm_mode = True
 
 
+class RunIOType(str, Enum):
+    integer: str = "integer"
+    string: str = "string"
+    fp: str = "fp"
+    dictionary: str = "dictionary"
+    boolean: str = "boolean"
+    none: str = "none"
+
+    pkl: str = "pkl"
+    file: str = "file"
+
+    @classmethod
+    def from_object(cls, obj: t.Any):
+        # Get the enum type for the object.
+        if isinstance(obj, int):
+            return cls.integer
+        elif isinstance(obj, float):
+            return cls.fp
+        elif isinstance(obj, str):
+            return cls.string
+        elif isinstance(obj, bool):
+            return cls.boolean
+        elif obj is None:
+            return cls.none
+        elif isinstance(obj, dict):
+            try:
+                json.dumps(obj)
+            except (TypeError, OverflowError):
+                return cls.pkl
+            return cls.dictionary
+        elif isinstance(obj, io.BufferedIOBase):
+            return cls.file
+        else:
+            return cls.pkl
+
+
+class RunOutputFile(BaseModel):
+    name: str
+    path: str
+    url: str
+    size: int
+
+
+class RunOutput(BaseModel):
+    type: RunIOType
+    value: t.Optional[t.Any]
+    file: t.Optional[RunOutputFile]
+
+
+class RunResult(BaseModel):
+    run_id: int
+    outputs: t.List[RunOutput]
+
+    def result_array(self) -> t.List[t.Any]:
+        return [output.value for output in self.outputs]
+
+
 class Run(BaseModel):
     id: int
+
+    created_at: datetime
 
     pipeline_id: int
     environment_id: int
@@ -88,11 +149,7 @@ class Run(BaseModel):
     state: RunState
     error: t.Optional[RunError]
 
-    result: t.Optional[t.Any]
-
-    files: t.Optional[t.List[RunFile]]
-
-    created_at: datetime
+    result: t.Optional[RunResult]
 
     class Config:
         # use_enum_values = True
@@ -103,3 +160,17 @@ class RunStateTransition(BaseModel):
     run_id: int
     new_state: RunState
     time: datetime
+
+
+class RunInput(BaseModel):
+    type: RunIOType
+    value: t.Any
+
+    file_name: t.Optional[str]
+    file_path: t.Optional[str]
+
+
+class RunCreate(BaseModel):
+    pipeline_id_or_tag: t.Union[int, str]
+    input_data: t.List[RunInput]
+    async_run: bool = False
