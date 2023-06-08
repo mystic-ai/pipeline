@@ -1,10 +1,10 @@
 import datetime
 
-from pipeline.v3 import run_pipeline
+from pipeline.v3.pipelines import run_pipeline
 
 start_time = datetime.datetime.now()
 
-result = run_pipeline("1", 1)
+result = run_pipeline("pipeline_0edac51784f74150ab921cca6e34ccdf", 1)
 
 end_time = datetime.datetime.now()
 

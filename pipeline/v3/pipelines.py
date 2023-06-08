@@ -15,8 +15,13 @@ from pipeline.v3.schemas.runs import Run
 
 def upload_pipeline(
     graph: Graph,
-    environment_id_or_name: t.Union[str, int],
+    environment_id: t.Optional[str],
+    environment_name: t.Optional[str] = None,
 ):
+    # either environment_id or environment_name should be specified
+    if environment_id is None and environment_name is None:
+        raise Exception("Either environment_id or environment_name must be specified")
+
     if graph._has_run_startup:
         raise Exception("Graph has already been run, cannot upload")
 
@@ -52,10 +57,10 @@ def upload_pipeline(
     if graph.min_gpu_vram_mb is not None:
         params["gpu_memory_min"] = graph.min_gpu_vram_mb
 
-    if isinstance(environment_id_or_name, int):
-        params["environment_id"] = environment_id_or_name
-    elif isinstance(environment_id_or_name, str):
-        params["environment_name"] = environment_id_or_name
+    if environment_id:
+        params["environment_id"] = environment_id
+    elif environment_name:
+        params["environment_name"] = environment_name
 
     res = http.post_files(
         "/v3/pipelines",
@@ -106,6 +111,9 @@ def run_pipeline(
         res.raise_for_status()
     except httpx.HTTPStatusError as exc:
         raise Exception(f"HTTP error: {exc.response.status_code}, {exc.response.text}")
+
+    # TODO - just returning JSON for now since waiting on schema changes
+    return res.json()
 
     # Everything is okay!
     run_get = Run.parse_obj(res.json())

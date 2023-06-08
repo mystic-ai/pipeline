@@ -1,5 +1,6 @@
 from pipeline import Pipeline, Variable, pipeline_function
-from pipeline.v3 import create_environment, upload_pipeline
+from pipeline.v3.environments import create_environment
+from pipeline.v3.pipelines import upload_pipeline
 
 
 @pipeline_function
@@ -26,6 +27,6 @@ print(
     "wait a few mins before using..."
 )
 
-result = upload_pipeline(pl, environment_id_or_name=env_id)
+result = upload_pipeline(pl, environment_id=env_id)
 pipeline_id = result.json()["id"]
 print(f"New pipeline ID = {pipeline_id}")
