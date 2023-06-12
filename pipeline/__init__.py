@@ -1,5 +1,5 @@
-from pipeline.configuration import current_configuration
 from pipeline.api.cloud import PipelineCloud
+from pipeline.configuration import current_configuration
 from pipeline.objects import (
     Pipeline,
     PipelineFile,

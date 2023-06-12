@@ -1,5 +1,5 @@
-import json
 import argparse
+import json
 
 from tabulate import tabulate
 

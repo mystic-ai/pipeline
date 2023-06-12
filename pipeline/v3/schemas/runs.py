@@ -1,8 +1,8 @@
 import io
+import json
 import typing as t
 from datetime import datetime
 from enum import Enum
-import json
 
 from pydantic import BaseModel
 

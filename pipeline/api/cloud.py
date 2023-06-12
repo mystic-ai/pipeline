@@ -26,8 +26,8 @@ from pydantic import ValidationError
 from tqdm import tqdm
 from tqdm.utils import CallbackIOWrapper
 
-from pipeline.configuration import current_configuration, PIPELINE_DIR
 from pipeline.api.environments import PipelineCloudEnvironment, resolve_environment_id
+from pipeline.configuration import PIPELINE_DIR, current_configuration
 from pipeline.exceptions.InvalidSchema import InvalidSchema
 from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.objects.variable import PipelineFile

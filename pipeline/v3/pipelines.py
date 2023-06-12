@@ -1,4 +1,3 @@
-import io
 import math
 import typing as t
 from multiprocessing import Pool
@@ -10,7 +9,7 @@ import httpx
 from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
 from pipeline.v3 import http
-from pipeline.v3.schemas.runs import Run, RunInput, RunIOType, RunCreate
+from pipeline.v3.schemas.runs import Run, RunCreate, RunInput, RunIOType
 
 
 def upload_pipeline(
@@ -93,8 +92,6 @@ def run_pipeline(
     async_run: bool = False,
     return_response: bool = False,
 ) -> t.Union[Run, httpx.Response]:
-    data_obj = io.BytesIO(cp.dumps(data))
-
     run_create_schema = RunCreate(
         pipeline_id_or_tag=pipeline_id_or_tag,
         input_data=_data_to_run_input(data),
@@ -140,7 +137,7 @@ def run_pipeline(
         raise Exception("Environment not cached", res.status_code)
     elif res.status_code == 502:
         _print(
-            f"Gateway error",
+            "Gateway error",
             level="ERROR",
         )
         raise Exception("Gateway error", res.status_code)
