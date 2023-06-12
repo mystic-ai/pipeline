@@ -104,6 +104,7 @@ def run_pipeline(
     res = http.post(
         "/v3/runs",
         json_data=run_create_schema.dict(),
+        raise_for_status=False,
     )
 
     if return_response:
@@ -117,15 +118,32 @@ def run_pipeline(
         )
         raise Exception(f"Error: {res.status_code}, {res.text}", res.status_code)
     elif res.status_code == 429:
+        _print(
+            f"Too many requests (status={res.status_code}, text={res.text})",
+            level="ERROR",
+        )
         raise Exception(
             "Too many requests, please try again later",
             res.status_code,
         )
-
-    try:
-        res.raise_for_status()
-    except httpx.HTTPStatusError as exc:
-        raise Exception(f"HTTP error: {exc.response.status_code}, {exc.response.text}")
+    elif res.status_code == 404:
+        _print(
+            f"Pipeline not found (status={res.status_code}, text={res.text})",
+            level="ERROR",
+        )
+        raise Exception("Pipeline not found", res.status_code)
+    elif res.status_code == 503:
+        _print(
+            f"Environment not cached (status={res.status_code}, text={res.text})",
+            level="ERROR",
+        )
+        raise Exception("Environment not cached", res.status_code)
+    elif res.status_code == 502:
+        _print(
+            f"Gateway error",
+            level="ERROR",
+        )
+        raise Exception("Gateway error", res.status_code)
 
     # Everything is okay!
     run_get = Run.parse_obj(res.json())

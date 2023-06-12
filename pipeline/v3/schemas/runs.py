@@ -27,6 +27,7 @@ class RunState(int, Enum):
     resource_rejected: int = 14
     resource_died: int = 15
     retrying: int = 13
+    rerouting: int = 21
 
     completed: int = 10
     failed: int = 12
@@ -70,8 +71,8 @@ class RunFileType(Enum):
 
 
 class RunFile(BaseModel):
-    id: int
-    run_id: int
+    id: str
+    run_id: str
     io_type: RunFileType
     path: str
 
@@ -130,7 +131,7 @@ class RunOutput(BaseModel):
 
 
 class RunResult(BaseModel):
-    run_id: int
+    run_id: str
     outputs: t.List[RunOutput]
 
     def result_array(self) -> t.List[t.Any]:
@@ -138,12 +139,12 @@ class RunResult(BaseModel):
 
 
 class Run(BaseModel):
-    id: int
+    id: str
 
     created_at: datetime
 
-    pipeline_id: int
-    environment_id: int
+    pipeline_id: str
+    environment_id: str
     environment_hash: str
 
     state: RunState
@@ -157,7 +158,7 @@ class Run(BaseModel):
 
 
 class RunStateTransition(BaseModel):
-    run_id: int
+    run_id: str
     new_state: RunState
     time: datetime
 
@@ -171,6 +172,6 @@ class RunInput(BaseModel):
 
 
 class RunCreate(BaseModel):
-    pipeline_id_or_tag: t.Union[int, str]
+    pipeline_id_or_tag: str
     input_data: t.List[RunInput]
     async_run: bool = False
