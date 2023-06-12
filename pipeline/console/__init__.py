@@ -94,7 +94,7 @@ def main(args: Optional[List[str]] = None) -> int:
     # pipeline remote resources
     ##########
 
-    remote_resources_parser = remote_sub_parser.add_parser(
+    remote_sub_parser.add_parser(
         "resources",
         description="Manage resources on a remote compute service",
         help="Manage resources on a remote compute service",

@@ -1,4 +1,3 @@
-import io
 import math
 import typing as t
 from multiprocessing import Pool
@@ -10,7 +9,7 @@ import httpx
 from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
 from pipeline.v3 import http
-from pipeline.v3.schemas.runs import Run
+from pipeline.v3.schemas.runs import Run, RunCreate, RunInput, RunIOType
 
 
 def upload_pipeline(
@@ -68,22 +67,41 @@ def upload_pipeline(
     return res
 
 
-def run_pipeline(
-    graph_id: str,
-    data: t.Any,
-    *,
-    return_response: bool = False,
-    async_run: bool = False,
-) -> t.Union[Run, httpx.Response]:
-    data_obj = io.BytesIO(cp.dumps(data))
+def _data_to_run_input(data: t.Any) -> t.List[RunInput]:
+    input_array = []
 
-    res = http.post_files(
+    for item in data:
+        input_type = RunIOType.from_object(item)
+        if input_type == RunIOType.file:
+            raise NotImplementedError("File input not yet supported")
+        elif input_type == RunIOType.pkl:
+            raise NotImplementedError("Python object input not yet supported")
+
+        input_schema = RunInput(
+            type=input_type,
+            value=item,
+        )
+        input_array.append(input_schema)
+
+    return input_array
+
+
+def run_pipeline(
+    pipeline_id_or_tag: t.Union[str, int],
+    *data,
+    async_run: bool = False,
+    return_response: bool = False,
+) -> t.Union[Run, httpx.Response]:
+    run_create_schema = RunCreate(
+        pipeline_id_or_tag=pipeline_id_or_tag,
+        input_data=_data_to_run_input(data),
+        async_run=async_run,
+    )
+
+    res = http.post(
         "/v3/runs",
-        params=dict(
-            graph_id=graph_id,
-            async_run=async_run,
-        ),
-        files=dict(input_data=data_obj),
+        json_data=run_create_schema.dict(),
+        raise_for_status=False,
     )
 
     if return_response:
@@ -97,15 +115,32 @@ def run_pipeline(
         )
         raise Exception(f"Error: {res.status_code}, {res.text}", res.status_code)
     elif res.status_code == 429:
+        _print(
+            f"Too many requests (status={res.status_code}, text={res.text})",
+            level="ERROR",
+        )
         raise Exception(
             "Too many requests, please try again later",
             res.status_code,
         )
-
-    try:
-        res.raise_for_status()
-    except httpx.HTTPStatusError as exc:
-        raise Exception(f"HTTP error: {exc.response.status_code}, {exc.response.text}")
+    elif res.status_code == 404:
+        _print(
+            f"Pipeline not found (status={res.status_code}, text={res.text})",
+            level="ERROR",
+        )
+        raise Exception("Pipeline not found", res.status_code)
+    elif res.status_code == 503:
+        _print(
+            f"Environment not cached (status={res.status_code}, text={res.text})",
+            level="ERROR",
+        )
+        raise Exception("Environment not cached", res.status_code)
+    elif res.status_code == 502:
+        _print(
+            "Gateway error",
+            level="ERROR",
+        )
+        raise Exception("Gateway error", res.status_code)
 
     # Everything is okay!
     run_get = Run.parse_obj(res.json())

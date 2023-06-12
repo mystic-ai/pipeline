@@ -74,7 +74,6 @@ class Pipeline:
     @staticmethod
     def add_variable(variable: Variable) -> None:
         if Pipeline._pipeline_context_active:
-
             if variable not in Pipeline._current_pipeline.variables:
                 Pipeline._current_pipeline.variables.append(variable)
         else:

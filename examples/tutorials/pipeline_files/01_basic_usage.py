@@ -22,7 +22,6 @@ from pipeline.util.torch_utils import tensor_to_list
 
 @pipeline_model
 class MyModel:
-
     model: torch.nn.Module = None
 
     def __init__(self):

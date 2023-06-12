@@ -17,7 +17,6 @@ class TransformersModelForCausalLM:
 
     @pipeline_function
     def predict(self, input_data: str, model_kwargs: dict) -> str:
-
         input_ids = self.tokenizer(input_data, return_tensors="pt").input_ids
         gen_tokens = self.model.generate(input_ids, **model_kwargs)
         gen_text = self.tokenizer.batch_decode(gen_tokens)[0]

@@ -116,7 +116,6 @@ def test_tags_create(
     tag_get: PipelineTagGet,
     tag_get_2: PipelineTagGet,
 ):
-
     _set_testing_remote_compute_service(url=url, token=token)
     with pytest.raises(SystemExit):
         cli_main(
