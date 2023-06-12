@@ -18,7 +18,6 @@ class Model:
     model: Any
 
     def __init__(self, model: Any, *, name: str = "", local_id: str = None):
-
         self.name = name
         self.model = model
         try:

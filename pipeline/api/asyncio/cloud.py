@@ -112,7 +112,6 @@ class PipelineCloud(_SyncPipelineCloud):
         return FileGet.parse_obj(response.json())
 
     async def upload_file(self, file_or_path) -> FileGet:
-
         if isinstance(file_or_path, str):
             # TODO: Change this to wrap the file object reader to convert to hex
             # everytime anything is read instead of reading it all at once.

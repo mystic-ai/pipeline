@@ -5,7 +5,6 @@ from pipeline.util import generate_id, load_object
 
 
 class Variable:
-
     local_id: str
     remote_id: str
 
@@ -49,7 +48,6 @@ class Variable:
 
 
 class PipelineFile(Variable):
-
     path: str
 
     def __init__(

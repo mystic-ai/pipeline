@@ -113,7 +113,6 @@ class pipeline_model(object):
         self.model_class = model_class
 
     def __call__(self, *args, **kwargs):
-
         if len(args) + len(kwargs) == 1:
             self.model_class = args[0]
             self.model_class.__pipeline_model__ = True

@@ -221,7 +221,6 @@ class StableDiffusionTxt2ImgModel:
 
     @pipeline_function(run_once=True, on_startup=True)
     def load(self, model_file: PipelineFile) -> bool:
-
         # it would be lovely to pass `device` to this load function, but for now...
         device = (
             torch.device("cuda:0") if torch.cuda.is_available() else torch.device("cpu")

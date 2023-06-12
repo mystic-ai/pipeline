@@ -109,7 +109,6 @@ class StableDiffusionTxt2ImgModel:
 
         all_outputs = []
         for index, prompt in enumerate(prompts):
-
             if "seed" in prompt:
                 seed_everything(prompt["seed"])
             elif "seed" in kwargs:
@@ -165,7 +164,6 @@ class StableDiffusionTxt2ImgModel:
 
     @pipeline_function(run_once=True, on_startup=True)
     def load(self, model_file: PipelineFile) -> bool:
-
         device = torch.device("cuda:0")
 
         with open(model_file.path, "rb") as tmp_file:

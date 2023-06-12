@@ -397,7 +397,6 @@ class ESRGANModel:
 
     @pipeline_function(run_once=True, on_startup=True)
     def load(self, checkpoint_file: PipelineFile) -> bool:
-
         # it would be lovely to pass `device` to this load function, but for now...
         device = torch.device("cuda:0")
 

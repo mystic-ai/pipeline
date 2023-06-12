@@ -28,7 +28,6 @@ class Paginated(GenericModel, Generic[DataType]):
 
     @classmethod
     def of(cls, item_list: List[DataType], details: PaginationDetails, total: int):
-
         return Paginated(
             skip=details.skip, limit=details.limit, total=total, data=item_list
         )
