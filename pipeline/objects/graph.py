@@ -101,7 +101,7 @@ class Graph:
             else:
                 node_function.function(*function_inputs)
 
-            if getattr(node_function.function, "__has_run__", False):
+            if getattr(node_function.function, "__run_once__", False):
                 node_function.function.__has_run__ = True
 
         self._has_run_startup = True
@@ -152,7 +152,6 @@ class Graph:
                 if function.local_id == node.function.local_id:
                     node_function = function
                     break
-
             if getattr(node_function.function, "__run_once__", False) and getattr(
                 node_function.function, "__has_run__", False
             ):
