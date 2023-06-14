@@ -9,7 +9,7 @@ import httpx
 from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
 from pipeline.v3 import http
-from pipeline.v3.schemas.runs import Run, RunCreate, RunInput, RunIOType
+from pipeline.v3.schemas.runs import Run, RunCreate, RunInput, RunIOType, RunOutput
 
 
 def upload_pipeline(
@@ -170,3 +170,19 @@ def map_pipeline_mp(array: list, graph_id: str, *, pool_size=8):
             results.extend(batch_res)
 
     return results
+
+
+def stream_pipeline(
+    pipeline_id_or_tag: t.Union[str, int],
+    *data,
+) -> t.Iterable[RunOutput]:
+    run_create_schema = RunCreate(
+        pipeline_id_or_tag=pipeline_id_or_tag,
+        input_data=_data_to_run_input(data),
+        async_run=False,
+    )
+
+    return http.stream_post(
+        "/v3/runs/stream",
+        json_data=run_create_schema.dict(),
+    )
