@@ -125,3 +125,15 @@ def post_files(
         )
 
     return response
+
+
+def stream_post(
+    endpoint: str,
+    json_data: dict = None,
+) -> t.Iterable[httpx.Response]:
+    with _client.stream(
+        "POST",
+        endpoint,
+        json=json_data,
+    ) as response:
+        yield response

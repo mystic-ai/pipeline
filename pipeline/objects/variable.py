@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Iterable
 
 from pipeline.schemas.pipeline import PipelineVariableGet
 from pipeline.util import generate_id, load_object
@@ -75,3 +75,7 @@ class PipelineFile(Variable):
             name=schema.name,
             local_id=schema.local_id,
         )
+
+
+class Stream(Variable, Iterable):
+    ...
