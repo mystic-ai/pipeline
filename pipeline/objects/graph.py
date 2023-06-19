@@ -31,6 +31,8 @@ class Graph:
     compute_type: str
     min_gpu_vram_mb: int
 
+    minimum_cache_number: int
+
     def __init__(
         self,
         *,
@@ -42,6 +44,7 @@ class Graph:
         models: List[Model] = None,
         compute_type: str = "gpu",
         min_gpu_vram_mb: int = None,
+        minimum_cache_number: int = None,
     ):
         self.name = name
         self.local_id = generate_id(10)
@@ -55,6 +58,7 @@ class Graph:
         self._has_run_startup = False
         self.compute_type = compute_type
         self.min_gpu_vram_mb = min_gpu_vram_mb
+        self.minimum_cache_number = minimum_cache_number
 
     def _startup(self):
         if self._has_run_startup:

@@ -51,6 +51,9 @@ def upload_pipeline(
     if graph.min_gpu_vram_mb is not None:
         params["gpu_memory_min"] = graph.min_gpu_vram_mb
 
+    if minimum_cache_number := getattr(graph, "minimum_cache_number", None):
+        params["minimum_cache_number"] = minimum_cache_number
+
     if isinstance(environment_id_or_name, int):
         params["environment_id"] = environment_id_or_name
     elif isinstance(environment_id_or_name, str):
