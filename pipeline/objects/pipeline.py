@@ -12,16 +12,19 @@ class Pipeline:
     _pipeline_context_name: str = None
     _compute_type: str = "gpu"
     _min_gpu_vram_mb: int = None
+    _minimum_cache_number: int = None
 
     def __init__(
         self,
         new_pipeline_name: str,
         compute_type: str = "gpu",
         min_gpu_vram_mb: int = None,
+        minimum_cache_number: int = None,
     ):
         self._pipeline_context_name = new_pipeline_name
         self._compute_type = compute_type
         self._min_gpu_vram_mb = min_gpu_vram_mb
+        self._minimum_cache_number = minimum_cache_number
 
     def __enter__(self):
         Pipeline._pipeline_context_active = True
@@ -30,6 +33,7 @@ class Pipeline:
             name=self._pipeline_context_name,
             compute_type=self._compute_type,
             min_gpu_vram_mb=self._min_gpu_vram_mb,
+            minimum_cache_number=self._minimum_cache_number,
         )
 
         return self
