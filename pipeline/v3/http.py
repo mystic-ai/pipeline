@@ -2,6 +2,8 @@ import io
 import typing as t
 
 import httpx
+
+# from httpx import _GeneratorContextManager
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from tqdm import tqdm
@@ -130,10 +132,9 @@ def post_files(
 def stream_post(
     endpoint: str,
     json_data: dict = None,
-) -> t.Iterable[httpx.Response]:
-    with _client.stream(
+) -> t.Iterator[httpx.Response]:
+    return _client.stream(
         "POST",
         endpoint,
         json=json_data,
-    ) as response:
-        yield response
+    )
