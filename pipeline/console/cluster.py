@@ -5,7 +5,6 @@ from pipeline.exceptions.MissingActiveToken import MissingActiveToken
 from pipeline.util.logging import _print
 
 
-# login/use/remove/get
 def login_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     login_parser = command_parser.add_parser(
         "login", help="Login with a compute cluster."
