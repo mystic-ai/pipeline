@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.5.0b8"
+version = "0.5.0b9"
 
 
 description = "Pipelines for machine learning workloads."

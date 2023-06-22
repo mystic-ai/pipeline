@@ -172,6 +172,6 @@ class RunInput(BaseModel):
 
 
 class RunCreate(BaseModel):
-    pipeline_id_or_tag: str
+    pipeline_id_or_pointer: str
     input_data: t.List[RunInput]
     async_run: bool = False
