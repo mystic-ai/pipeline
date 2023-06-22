@@ -90,13 +90,13 @@ def _data_to_run_input(data: t.Any) -> t.List[RunInput]:
 
 
 def run_pipeline(
-    pipeline_id_or_tag: t.Union[str, int],
+    pipeline_id_or_pointer: t.Union[str, int],
     *data,
     async_run: bool = False,
     return_response: bool = False,
 ) -> t.Union[Run, httpx.Response]:
     run_create_schema = RunCreate(
-        pipeline_id_or_tag=pipeline_id_or_tag,
+        pipeline_id_or_pointer=pipeline_id_or_pointer,
         input_data=_data_to_run_input(data),
         async_run=async_run,
     )
@@ -176,11 +176,11 @@ def map_pipeline_mp(array: list, graph_id: str, *, pool_size=8):
 
 
 def stream_pipeline(
-    pipeline_id_or_tag: t.Union[str, int],
+    pipeline_id_or_pointer: str,
     *data,
 ) -> t.Iterable[RunOutput]:
     run_create_schema = RunCreate(
-        pipeline_id_or_tag=pipeline_id_or_tag,
+        pipeline_id_or_pointer=pipeline_id_or_pointer,
         input_data=_data_to_run_input(data),
         async_run=False,
     )
