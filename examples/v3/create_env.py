@@ -1,4 +1,4 @@
-from pipeline.v3 import create_environment
+from pipeline.v3.environments import create_environment
 
 env_id = create_environment(name="numpy", python_requirements=["numpy==1.24.3"])
 print(f"New environment ID = {env_id}")

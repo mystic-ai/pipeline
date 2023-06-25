@@ -84,6 +84,13 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 
     get_parser.set_defaults(func=_get_pointer)
 
+    get_parser.add_argument(
+        "--name",
+        "-n",
+        type=str,
+        help="Pipeline name.",
+    )
+
 
 def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     delete_parser = command_parser.add_parser(
@@ -105,7 +112,12 @@ def _get_pointer(namespace: Namespace) -> None:
     _print("Getting pointers")
 
     cluster_api = PipelineCloud(verbose=False)
-    pointers_raw = cluster_api._get("/v3/pointers")
+
+    pipeline_name = getattr(namespace, "name", None)
+    query_params = dict()
+    if pipeline_name:
+        query_params["pipeline_name"] = pipeline_name
+    pointers_raw = cluster_api._get("/v3/pointers", params=query_params)
 
     pointers = [
         [

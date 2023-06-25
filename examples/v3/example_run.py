@@ -1,6 +1,6 @@
 import datetime
 
-from pipeline.v3 import run_pipeline
+from pipeline.v3.pipelines import run_pipeline
 
 start_time = datetime.datetime.now()
 
