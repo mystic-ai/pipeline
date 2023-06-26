@@ -10,10 +10,10 @@ def test_function_no_output_definition():
     def test_function():  # No output defined
         ...
 
-    with Pipeline("test"):
+    with Pipeline() as builder:
         test_function()
 
-    test_pl = Pipeline.get_pipeline("test")
+    test_pl = builder.get_pipeline()
 
     assert len(test_pl.functions) == 1
     assert len(test_pl.nodes) == 1
@@ -24,13 +24,13 @@ def test_basic_function():
     def return_inverse(in_bool: bool) -> bool:
         return not in_bool
 
-    with Pipeline("test") as builder:
+    with Pipeline() as builder:
         in_bool = Variable(bool, is_input=True)
         builder.add_variable(in_bool)
         output_bool = return_inverse(in_bool)
         builder.output(output_bool)
 
-    test_pl = Pipeline.get_pipeline("test")
+    test_pl = builder.get_pipeline()
 
     assert not test_pl.run(True)[0]
 
@@ -40,12 +40,12 @@ def test_function_tuple_output():
     def test_function() -> Tuple[str, int]:
         return ("test", 1)
 
-    with Pipeline("test") as builder:
+    with Pipeline() as builder:
         var1, var2 = test_function()
 
         builder.output(var2, var1)
 
-    test_pl = Pipeline.get_pipeline("test")
+    test_pl = builder.get_pipeline()
 
     outputs = test_pl.run()
 
@@ -56,6 +56,6 @@ def test_function_tuple_output():
         ...
 
     with pytest.raises(Exception):
-        with Pipeline("test2") as builder:
+        with Pipeline() as builder:
             var = test_function()
             test_function_2(var)

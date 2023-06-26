@@ -12,7 +12,7 @@ from pipeline.v3.schemas import pipelines as pipelines_schema
 def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     edit_parser = command_parser.add_parser(
         "pipelines",
-        aliases=["pipeline"],
+        aliases=["pipeline", "pl"],
         help="Edit a pipeline.",
     )
 
@@ -41,26 +41,53 @@ def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     get_parser = command_parser.add_parser(
         "pipelines",
-        aliases=["pipeline"],
+        aliases=["pipeline", "pl"],
         help="Get pipeline information.",
     )
 
     get_parser.set_defaults(func=_get_pipeline)
 
+    # get by name
+    get_parser.add_argument(
+        "--name",
+        "-n",
+        help="Pipeline name.",
+        type=str,
+    )
+
 
 def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
-    ...
+    delete_parser = command_parser.add_parser(
+        "pipelines",
+        aliases=["pipeline", "pl"],
+        help="Delete a pipeline.",
+    )
+
+    delete_parser.set_defaults(func=_delete_pipeline)
+
+    delete_parser.add_argument(
+        "pipeline_id",
+        help="Pipeline to delete.",
+    )
 
 
 def _get_pipeline(args: Namespace) -> None:
     _print("Getting pipelines")
 
     cluster_api = PipelineCloud(verbose=False)
-    pipelines_raw: t.List[dict] = cluster_api._get("/v3/pipelines")
+
+    params = dict()
+    if name := getattr(args, "name", None):
+        params["name"] = name
+    pipelines_raw: t.List[dict] = cluster_api._get(
+        "/v3/pipelines",
+        params=params,
+    )
 
     pipelines = [
         [
             pipeline_raw["id"],
+            pipeline_raw["name"],
             datetime.fromtimestamp(pipeline_raw.get("created_at"))
             if "created_at" in pipeline_raw
             else "N/A",
@@ -77,6 +104,7 @@ def _get_pipeline(args: Namespace) -> None:
         pipelines,
         headers=[
             "ID",
+            "Name",
             "Created At",
             "Updated At",
             "Cache number",
@@ -108,3 +136,14 @@ def _edit_pipeline(args: Namespace) -> None:
     )
 
     _print("Pipeline edited!")
+
+
+def _delete_pipeline(args: Namespace) -> None:
+    pipeline_id = getattr(args, "pipeline_id")
+
+    cluster_api = PipelineCloud(verbose=False)
+    cluster_api._delete(
+        f"/v3/pipelines/{pipeline_id}",
+    )
+
+    _print("Pipeline deleted!")

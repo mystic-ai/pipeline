@@ -1,6 +1,6 @@
 import datetime
 
-from pipeline.v3 import map_pipeline_mp
+from pipeline.v3.pipelines import map_pipeline_mp
 
 if __name__ == "__main__":
     start_time = datetime.datetime.now()

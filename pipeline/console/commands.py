@@ -59,6 +59,7 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     delete_parser = command_parser.add_parser(
         "delete",
+        aliases=["del", "rm"],
         description="Delete an object.",
         help="Delete an object.",
     )

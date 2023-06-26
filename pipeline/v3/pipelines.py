@@ -2,6 +2,7 @@ import math
 import typing as t
 from multiprocessing import Pool
 from pathlib import Path
+from tempfile import SpooledTemporaryFile
 
 import cloudpickle as cp
 import httpx
@@ -9,13 +10,17 @@ import httpx
 from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
 from pipeline.v3 import http
+from pipeline.v3.schemas import pipelines as pipeline_schemas
 from pipeline.v3.schemas.runs import Run, RunCreate, RunInput, RunIOType, RunOutput
 
 
 def upload_pipeline(
     graph: Graph,
+    name: str,
     environment_id_or_name: t.Union[str, int],
-):
+    required_gpu_vram_mb: t.Optional[int] = None,
+    minimum_cache_number: t.Optional[int] = None,
+) -> pipeline_schemas.PipelineGet:
     if graph._has_run_startup:
         raise Exception("Graph has already been run, cannot upload")
 
@@ -41,23 +46,20 @@ def upload_pipeline(
                 variable.remote_id = res.json()["id"]
             finally:
                 variable_file.close()
+    graph_file = SpooledTemporaryFile()
 
-    with open("graph.tmp", "wb") as tmp:
-        tmp.write(cp.dumps(graph))
-
-    graph_file = open("graph.tmp", "rb")
+    graph_file.write(cp.dumps(graph))
+    graph_file.seek(0)
 
     params = dict()
-    if graph.min_gpu_vram_mb is not None:
-        params["gpu_memory_min"] = graph.min_gpu_vram_mb
 
-    if minimum_cache_number := getattr(graph, "minimum_cache_number", None):
+    params["name"] = name
+    params["environment_id_or_name"] = environment_id_or_name
+
+    if required_gpu_vram_mb is not None:
+        params["gpu_memory_min"] = required_gpu_vram_mb
+    if minimum_cache_number is not None:
         params["minimum_cache_number"] = minimum_cache_number
-
-    if isinstance(environment_id_or_name, int):
-        params["environment_id"] = environment_id_or_name
-    elif isinstance(environment_id_or_name, str):
-        params["environment_name"] = environment_id_or_name
 
     res = http.post_files(
         "/v3/pipelines",
@@ -65,9 +67,16 @@ def upload_pipeline(
         params=params,
     )
 
+    if res.status_code != 200:
+        print("Error uploading pipeline")
+        print(res.text)
+        res.raise_for_status()
+
     graph_file.close()
 
-    return res
+    raw_json = res.json()
+
+    return pipeline_schemas.PipelineGet.parse_obj(raw_json)
 
 
 def _data_to_run_input(data: t.Any) -> t.List[RunInput]:
@@ -178,14 +187,16 @@ def map_pipeline_mp(array: list, graph_id: str, *, pool_size=8):
 def stream_pipeline(
     pipeline_id_or_pointer: str,
     *data,
-) -> t.Iterable[RunOutput]:
+) -> t.Iterator[RunOutput]:
     run_create_schema = RunCreate(
         pipeline_id_or_pointer=pipeline_id_or_pointer,
         input_data=_data_to_run_input(data),
         async_run=False,
     )
-
-    return http.stream_post(
+    with http.stream_post(
         "/v3/runs/stream",
         json_data=run_create_schema.dict(),
-    )
+    ) as generator:
+        for item in generator.iter_text():
+            if item:
+                yield RunOutput.parse_raw(item)

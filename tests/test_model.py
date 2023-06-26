@@ -17,16 +17,16 @@ def test_with_exit():
         def load(self) -> None:
             print("load")
 
-    with Pipeline("test") as my_pipeline:
+    with Pipeline() as builder:
         in_1 = Variable(str, is_input=True)
-        my_pipeline.add_variable(in_1)
+        builder.add_variable(in_1)
 
         my_model = CustomModel()
         str_1 = my_model.predict(in_1)
 
-        my_pipeline.output(str_1)
+        builder.output(str_1)
 
-    test_pipeline = Pipeline.get_pipeline("test")
+    test_pipeline = builder.get_pipeline()
     output = test_pipeline.run("hey")
 
     assert output == ["hey lol"]

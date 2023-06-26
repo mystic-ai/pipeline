@@ -9,7 +9,9 @@ class PipelineGet(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    name: str
     path: str
+
     minimum_cache_number: t.Optional[int]
     gpu_memory_min: t.Optional[int]
     environment_id: str
