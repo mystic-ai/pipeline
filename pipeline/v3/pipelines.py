@@ -187,14 +187,16 @@ def map_pipeline_mp(array: list, graph_id: str, *, pool_size=8):
 def stream_pipeline(
     pipeline_id_or_pointer: str,
     *data,
-) -> t.Iterable[RunOutput]:
+) -> t.Iterator[RunOutput]:
     run_create_schema = RunCreate(
         pipeline_id_or_pointer=pipeline_id_or_pointer,
         input_data=_data_to_run_input(data),
         async_run=False,
     )
-
-    return http.stream_post(
+    with http.stream_post(
         "/v3/runs/stream",
         json_data=run_create_schema.dict(),
-    )
+    ) as generator:
+        for item in generator.iter_text():
+            if item:
+                yield RunOutput.parse_raw(item)

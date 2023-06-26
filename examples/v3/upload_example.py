@@ -15,8 +15,10 @@ def pi_sample(i: int) -> bool:
 
 with Pipeline() as builder:
     input_var = Variable(int, is_input=True)
+
     builder.add_variables(input_var)
     b = pi_sample(input_var)
+
     builder.output(b)
 
 pl = builder.get_pipeline()
@@ -36,7 +38,7 @@ except HTTPStatusError as e:
 
 result = upload_pipeline(
     pl,
-    "ph/pi-sample2",
+    "ph/test:test",
     environment_id_or_name=env_id,
     minimum_cache_number=1,
     required_gpu_vram_mb=None,
