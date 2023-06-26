@@ -99,7 +99,7 @@ def test_run_startup():
 
 
 def test_remote_file_not_downloaded():
-    with Pipeline("test") as builder:
+    with Pipeline() as builder:
         test_file = PipelineFile(remote_id="test_file")
         builder.add_variables(test_file)
 
