@@ -21,6 +21,7 @@ class RunState(int, Enum):
     running: int = 7
     resource_returning: int = 8
     api_received: int = 9
+    celery_worker_received: int = 22
 
     in_queue: int = 16
     denied: int = 11
@@ -148,7 +149,8 @@ class Run(BaseModel):
     environment_hash: str
 
     state: RunState
-    error: t.Optional[RunError]
+
+    error: t.Optional[t.Tuple[RunError, str]]
 
     result: t.Optional[RunResult]
 
