@@ -1,3 +1,4 @@
+import importlib
 import math
 import typing as t
 from multiprocessing import Pool
@@ -20,9 +21,15 @@ def upload_pipeline(
     environment_id_or_name: t.Union[str, int],
     required_gpu_vram_mb: t.Optional[int] = None,
     minimum_cache_number: t.Optional[int] = None,
+    modules: t.Optional[t.List[str]] = None,
 ) -> pipeline_schemas.PipelineGet:
     if graph._has_run_startup:
         raise Exception("Graph has already been run, cannot upload")
+
+    if modules is not None:
+        for module_name in modules:
+            module = importlib.import_module(module_name)
+            cp.register_pickle_by_value(module)
 
     for variable in graph.variables:
         if isinstance(variable, PipelineFile):
