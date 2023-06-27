@@ -160,7 +160,7 @@ def run_pipeline(
     return run_get
 
 
-def get_pipeline_run(run_id: int) -> Run:
+def get_pipeline_run(run_id: str) -> Run:
     http_res = http.get(f"/v3/runs/{run_id}")
 
     run_get = Run.parse_obj(http_res.json())
