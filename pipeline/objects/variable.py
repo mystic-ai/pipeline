@@ -1,7 +1,8 @@
-from typing import Any, Iterable
+import tempfile
+from typing import Any, Iterable, List, Optional
 
 from pipeline.schemas.pipeline import PipelineVariableGet
-from pipeline.util import generate_id, load_object
+from pipeline.util import dump_object, generate_id, load_object
 
 
 class Variable:
@@ -74,6 +75,23 @@ class PipelineFile(Variable):
             path=schema.pipeline_file_variable.path,
             name=schema.name,
             local_id=schema.local_id,
+        )
+
+    @classmethod
+    def from_object(
+        cls,
+        obj: Any,
+        modules: Optional[List[str]] = None,
+    ):
+        temp_file = tempfile.NamedTemporaryFile()
+
+        bytes = dump_object(obj, temp_file, modules=modules)
+        temp_file.write(bytes)
+        temp_file.seek(0)
+
+        return cls(
+            path=temp_file.name,
+            name=temp_file.name,
         )
 
 
