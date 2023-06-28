@@ -85,7 +85,7 @@ class PipelineFile(Variable):
     ):
         temp_file = tempfile.NamedTemporaryFile()
 
-        bytes = dump_object(obj, temp_file, modules=modules)
+        bytes = dump_object(obj, modules=modules)
         temp_file.write(bytes)
         temp_file.seek(0)
 
