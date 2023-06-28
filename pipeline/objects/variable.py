@@ -83,7 +83,7 @@ class PipelineFile(Variable):
         obj: Any,
         modules: Optional[List[str]] = None,
     ):
-        temp_file = tempfile.NamedTemporaryFile()
+        temp_file = tempfile.NamedTemporaryFile(delete=False)
 
         bytes = dump_object(obj, modules=modules)
         temp_file.write(bytes)
