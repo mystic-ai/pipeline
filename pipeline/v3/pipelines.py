@@ -1,5 +1,6 @@
 import importlib
 import math
+import time
 import typing as t
 from multiprocessing import Pool
 from pathlib import Path
@@ -12,7 +13,14 @@ from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
 from pipeline.v3 import http
 from pipeline.v3.schemas import pipelines as pipeline_schemas
-from pipeline.v3.schemas.runs import Run, RunCreate, RunInput, RunIOType, RunOutput
+from pipeline.v3.schemas.runs import (
+    Run,
+    RunCreate,
+    RunInput,
+    RunIOType,
+    RunOutput,
+    RunState,
+)
 
 
 def upload_pipeline(
@@ -207,3 +215,24 @@ def stream_pipeline(
         for item in generator.iter_text():
             if item:
                 yield RunOutput.parse_raw(item)
+
+
+def poll_async_run(
+    run_id: str, *, timeout: int = None, interval: float | int = 1.0
+) -> Run:
+    start_time = time.time()
+    while True:
+        run_get = get_pipeline_run(run_id)
+        if run_get.state in [
+            RunState.completed,
+            RunState.failed,
+            RunState.rate_limited,
+            RunState.lost,
+            RunState.no_environment_installed,
+        ]:
+            return run_get
+
+        if timeout is not None and time.time() - start_time > timeout:
+            raise TimeoutError(f"Timeout waiting for run (run_id={run_id})")
+
+        time.sleep(1)
