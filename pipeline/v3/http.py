@@ -1,4 +1,5 @@
 import io
+import os
 import typing as t
 
 import httpx
@@ -14,13 +15,19 @@ from pipeline.util.logging import PIPELINE_STR
 ACTIVE_IP = (
     active_remote.url
     if (active_remote := current_configuration.active_remote) is not None
-    else None
+    else os.environ.get("PIPELINE_API_URL", None)
 )
 
+ACTIVE_TOKEN = (
+    current_configuration.active_remote.token
+    if current_configuration.active_remote is not None
+    else os.environ.get("PIPELINE_API_TOKEN", None)
+)
+print("YAY")
 _client = httpx.Client(
     base_url=ACTIVE_IP,
     headers={
-        "Authorization": f"Bearer {current_configuration.active_remote.token}",
+        "Authorization": f"Bearer {ACTIVE_TOKEN}",
     },
     timeout=300,
 )

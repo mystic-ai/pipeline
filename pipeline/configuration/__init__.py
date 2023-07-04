@@ -59,13 +59,16 @@ class Configuration:
             self._config = _ConfigurationModel()
             return
 
-        with open(path, "r") as configuration_file:
-            self._config = _ConfigurationModel.parse_obj(
-                yaml.load(
-                    configuration_file,
-                    Loader=yaml.FullLoader,
-                ),
-            )
+        try:
+            with open(path, "r") as configuration_file:
+                self._config = _ConfigurationModel.parse_obj(
+                    yaml.load(
+                        configuration_file,
+                        Loader=yaml.FullLoader,
+                    ),
+                )
+        except Exception:
+            self._config = _ConfigurationModel()
 
     def save(self) -> None:
         path = PIPELINE_DIR / "config.yaml"
