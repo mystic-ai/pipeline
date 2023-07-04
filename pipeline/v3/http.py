@@ -23,7 +23,6 @@ ACTIVE_TOKEN = (
     if current_configuration.active_remote is not None
     else os.environ.get("PIPELINE_API_TOKEN", None)
 )
-print("YAY")
 _client = httpx.Client(
     base_url=ACTIVE_IP,
     headers={
