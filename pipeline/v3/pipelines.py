@@ -235,4 +235,4 @@ def poll_async_run(
         if timeout is not None and time.time() - start_time > timeout:
             raise TimeoutError(f"Timeout waiting for run (run_id={run_id})")
 
-        time.sleep(1)
+        time.sleep(interval)
