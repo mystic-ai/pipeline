@@ -91,11 +91,13 @@ def _get_pipeline(args: Namespace) -> None:
             datetime.fromtimestamp(pipeline_raw.get("created_at"))
             if "created_at" in pipeline_raw
             else "N/A",
-            datetime.fromtimestamp(pipeline_raw.get("updated_at"))
-            if "updated_at" in pipeline_raw
-            else "N/A",
             val if (val := pipeline_raw.get("minimum_cache_number", "N/A")) else "N/A",
-            val if (val := pipeline_raw.get("gpu_memory_min", "N/A")) else "N/A",
+            str(pipeline_raw.get("accelerators", "N/A"))
+            + (
+                str(val)
+                if (val := pipeline_raw.get("gpu_memory_min", "N/A"))
+                else "N/A"
+            ),
         ]
         for pipeline_raw in pipelines_raw
     ]
@@ -105,10 +107,9 @@ def _get_pipeline(args: Namespace) -> None:
         headers=[
             "ID",
             "Name",
-            "Created At",
-            "Updated At",
-            "Cache number",
-            "GPU memory",
+            "Created",
+            "Cache #",
+            "Accelerators",
         ],
         tablefmt="outline",
     )

@@ -12,6 +12,7 @@ import httpx
 from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
 from pipeline.v3 import http
+from pipeline.v3.compute_requirements import Accelerator
 from pipeline.v3.schemas import pipelines as pipeline_schemas
 from pipeline.v3.schemas.runs import (
     Run,
@@ -30,6 +31,7 @@ def upload_pipeline(
     required_gpu_vram_mb: t.Optional[int] = None,
     minimum_cache_number: t.Optional[int] = None,
     modules: t.Optional[t.List[str]] = None,
+    accelerators: t.Optional[t.List[Accelerator]] | None = None,
 ) -> pipeline_schemas.PipelineGet:
     if graph._has_run_startup:
         raise Exception("Graph has already been run, cannot upload")
@@ -75,6 +77,11 @@ def upload_pipeline(
         params["gpu_memory_min"] = required_gpu_vram_mb
     if minimum_cache_number is not None:
         params["minimum_cache_number"] = minimum_cache_number
+
+    if accelerators is not None:
+        params["accelerators"] = [
+            acc.value for acc in accelerators if isinstance(acc, Accelerator)
+        ]
 
     res = http.post_files(
         "/v3/pipelines",
