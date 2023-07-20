@@ -89,6 +89,7 @@ class RunIOType(str, Enum):
     dictionary: str = "dictionary"
     boolean: str = "boolean"
     none: str = "none"
+    array: str = "array"
 
     pkl: str = "pkl"
     file: str = "file"
@@ -112,6 +113,12 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.dictionary
+        elif isinstance(obj, list):
+            try:
+                json.dumps(obj)
+            except (TypeError, OverflowError):
+                return cls.pkl
+            return cls.array
         elif isinstance(obj, io.BufferedIOBase):
             return cls.file
         else:
