@@ -79,6 +79,6 @@ upload_resonse: Response = upload_pipeline(
     gpt_neo_pipeline,
     "mystic/neo:main",
     environment_id_or_name=neo_env_name,
-    required_gpu_vram_mb=3000,
+    required_gpu_vram_mb=1500,
 )
 print(f"Uploaded GPTNeo, server response: {upload_resonse}")
