@@ -13,6 +13,7 @@ def create_environment(
             "/v3/environments",
             json_data={"name": name, "python_requirements": python_requirements},
         )
+
         env_id = res.json()["id"]
     except HTTPStatusError as e:
         if e.response.status_code == 409 and allow_existing:
