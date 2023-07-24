@@ -6,6 +6,7 @@ from tabulate import tabulate
 
 from pipeline.api import PipelineCloud
 from pipeline.util.logging import _print
+from pipeline.v3.compute_requirements import Accelerator
 from pipeline.v3.schemas import pipelines as pipelines_schema
 
 
@@ -83,7 +84,6 @@ def _get_pipeline(args: Namespace) -> None:
         "/v3/pipelines",
         params=params,
     )
-
     pipelines = [
         [
             pipeline_raw["id"],
@@ -92,11 +92,24 @@ def _get_pipeline(args: Namespace) -> None:
             if "created_at" in pipeline_raw
             else "N/A",
             val if (val := pipeline_raw.get("minimum_cache_number", "N/A")) else "N/A",
-            str(pipeline_raw.get("accelerators", "N/A"))
+            (
+                ""
+                if not (accelerators := pipeline_raw.get("accelerators", None))
+                else (
+                    "nvidia_all"
+                    if Accelerator.nvidia_all in accelerators
+                    else "\n".join(
+                        [
+                            f"{accelerators.count(accelerator)}× {accelerator}"
+                            for accelerator in set(accelerators)
+                        ]
+                    )
+                )
+            )
             + (
-                str(val)
+                " (" + str(val) + "MB VRAM)"
                 if (val := pipeline_raw.get("gpu_memory_min", "N/A"))
-                else "N/A"
+                else "-"
             ),
         ]
         for pipeline_raw in pipelines_raw
@@ -111,7 +124,7 @@ def _get_pipeline(args: Namespace) -> None:
             "Cache #",
             "Accelerators",
         ],
-        tablefmt="outline",
+        tablefmt="psql",
     )
     print(table)
 

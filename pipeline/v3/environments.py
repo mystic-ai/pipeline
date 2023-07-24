@@ -8,7 +8,6 @@ def create_environment(
     python_requirements: list[str],
     allow_existing: bool = True,
 ) -> int:
-    print("Yay")
     try:
         res = http.post(
             "/v3/environments",
