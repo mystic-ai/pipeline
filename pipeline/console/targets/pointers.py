@@ -130,7 +130,7 @@ def _get_pointer(namespace: Namespace) -> None:
     table = tabulate(
         pointers,
         headers=["Pointer", "Pipeline ID"],
-        tablefmt="outline",
+        tablefmt="psql",
     )
     print(table)
 

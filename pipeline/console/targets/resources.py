@@ -65,7 +65,7 @@ def list_resources() -> None:
             "Run queue",
             "GPUs",
         ],
-        tablefmt="outline",
+        tablefmt="psql",
     )
 
     print(table)

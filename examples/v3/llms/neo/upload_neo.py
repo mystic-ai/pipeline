@@ -1,6 +1,7 @@
 from httpx import Response
 
 from pipeline import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline.v3.compute_requirements import Accelerator
 from pipeline.v3.environments import create_environment
 from pipeline.v3.pipelines import upload_pipeline
 
@@ -80,5 +81,8 @@ upload_resonse: Response = upload_pipeline(
     "mystic/neo:main",
     environment_id_or_name=neo_env_name,
     required_gpu_vram_mb=1500,
+    accelerators=[
+        Accelerator.nvidia_t4,
+    ],
 )
 print(f"Uploaded GPTNeo, server response: {upload_resonse}")
