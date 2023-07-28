@@ -98,18 +98,26 @@ def _get_pipeline(args: Namespace) -> None:
                 else (
                     "nvidia_all"
                     if Accelerator.nvidia_all in accelerators
-                    else "\n".join(
-                        [
-                            f"{accelerators.count(accelerator)}× {accelerator}"
-                            for accelerator in set(accelerators)
-                        ]
+                    else (
+                        "cpu"
+                        if Accelerator.cpu in pipeline_raw.get("accelerators", [])
+                        else "\n".join(
+                            [
+                                f"{accelerators.count(accelerator)}× {accelerator}"
+                                for accelerator in set(accelerators)
+                            ]
+                        )
                     )
                 )
             )
             + (
                 " (" + str(val) + "MB VRAM)"
                 if (val := pipeline_raw.get("gpu_memory_min", "N/A"))
-                else "-"
+                else (
+                    ""
+                    if Accelerator.cpu in pipeline_raw.get("accelerators", [])
+                    else "-"
+                )
             ),
         ]
         for pipeline_raw in pipelines_raw

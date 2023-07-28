@@ -145,13 +145,15 @@ class PipelineCloud:
         if self.verbose:
             print("Authenticating")
 
+        self.__valid_token__ = True
+        return True
         if self.token is None:
             raise MissingActiveToken(
                 token="",
                 message="Please pass a valid token or set it as an ENV var",
             )
 
-        response = self.client.get("/v2/users/me")
+        response = self.client.get("/v3/bearer-or-jwt-protected")
         if response.status_code in {HTTPStatus.UNAUTHORIZED, HTTPStatus.FORBIDDEN}:
             raise MissingActiveToken(token=self.token)
         else:
