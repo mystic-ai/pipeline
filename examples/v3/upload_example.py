@@ -1,6 +1,7 @@
 from httpx import HTTPStatusError
 
 from pipeline import Pipeline, Variable, pipeline_function
+from pipeline.v3.compute_requirements import Accelerator
 from pipeline.v3.environments import create_environment
 from pipeline.v3.pipelines import upload_pipeline
 
@@ -25,7 +26,9 @@ pl = builder.get_pipeline()
 
 
 try:
-    env_id = create_environment(name="numpy", python_requirements=["numpy==1.24.3"])
+    env_id = create_environment(
+        name="paulh/numpy", python_requirements=["numpy==1.24.3"]
+    )
     print(f"New environment ID = {env_id}")
     print(
         "Environment will be pre-emptively cached on compute resources so please "
@@ -38,10 +41,13 @@ except HTTPStatusError as e:
 
 result = upload_pipeline(
     pl,
-    "ph/test:test",
-    environment_id_or_name=env_id,
+    "paulh/test",
+    environment_id_or_name="environment_effdf578d81a4f298ffbab6c656a8229",
     minimum_cache_number=1,
     required_gpu_vram_mb=None,
+    accelerators=[
+        Accelerator.cpu,
+    ],
 )
 
 pipeline_id = result.id
