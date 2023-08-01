@@ -18,8 +18,7 @@ def test_with_exit():
             print("load")
 
     with Pipeline() as builder:
-        in_1 = Variable(str, is_input=True)
-        builder.add_variable(in_1)
+        in_1 = Variable(str)
 
         my_model = CustomModel()
         str_1 = my_model.predict(in_1)

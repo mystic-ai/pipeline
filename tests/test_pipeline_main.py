@@ -26,10 +26,8 @@ def test_basic_pipeline():
         return f_1**2
 
     with Pipeline() as builder:
-        in_1 = Variable(float, is_input=True)
-        in_2 = Variable(float, is_input=True)
-
-        builder.add_variables(in_1, in_2)
+        in_1 = Variable(float)
+        in_2 = Variable(float)
 
         add_1 = add(in_1, in_2)
         sq_1 = square(add_1)
@@ -100,8 +98,7 @@ def test_run_startup():
 
 def test_remote_file_not_downloaded():
     with Pipeline() as builder:
-        test_file = PipelineFile(remote_id="test_file")
-        builder.add_variables(test_file)
+        PipelineFile(remote_id="test_file")
 
     test_pipeline = builder.get_pipeline()
     with pytest.raises(
