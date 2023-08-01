@@ -98,7 +98,7 @@ def test_run_startup():
 
 def test_remote_file_not_downloaded():
     with Pipeline() as builder:
-        PipelineFile(remote_id="test_file")
+        PipelineFile()
 
     test_pipeline = builder.get_pipeline()
     with pytest.raises(
