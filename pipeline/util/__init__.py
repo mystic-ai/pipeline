@@ -8,8 +8,6 @@ from typing import Any, Callable, List, Optional, Union
 from cloudpickle import dumps, register_pickle_by_value
 from dill import loads
 
-from pipeline.schemas.file import FileCreate
-
 
 def package_version() -> str:
     """Return the version of the installed `pipeline-ai` package."""
@@ -56,11 +54,11 @@ def python_object_to_name(obj: Any) -> Optional[str]:
     return name
 
 
-def python_object_to_file_create(obj: Any, name: str = None):
-    if name is None:
-        name = generate_id(20)
+# def python_object_to_file_create(obj: Any, name: str = None):
+#     if name is None:
+#         name = generate_id(20)
 
-    return FileCreate(name=name, file_bytes=python_object_to_hex)
+#     return FileCreate(name=name, file_bytes=python_object_to_hex)
 
 
 class CallbackBytesIO(io.BytesIO):

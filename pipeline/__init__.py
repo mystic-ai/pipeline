@@ -1,4 +1,3 @@
-from pipeline.api.cloud import PipelineCloud
 from pipeline.configuration import current_configuration
 from pipeline.objects import (
     Pipeline,
@@ -14,7 +13,6 @@ __all__ = [
     "Variable",
     "pipeline_model",
     "pipeline_function",
-    "PipelineCloud",
     "PipelineFile",
     "onnx_to_pipeline",
     "current_configuration",

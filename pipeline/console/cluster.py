@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 
-from pipeline import PipelineCloud, current_configuration
-from pipeline.exceptions.MissingActiveToken import MissingActiveToken
+from pipeline import current_configuration
+from pipeline.cloud import authenticate
 from pipeline.util.logging import _print
 
 
@@ -70,8 +70,11 @@ def _login(namespace: Namespace) -> None:
     active = getattr(namespace, "token", False)
 
     try:
-        PipelineCloud(token=token, url=url, verbose=False)
-    except MissingActiveToken:
+        authenticate(
+            token,
+            url,
+        )
+    except Exception:
         _print(f"Couldn't authenticate with {url}", level="ERROR")
         return
 

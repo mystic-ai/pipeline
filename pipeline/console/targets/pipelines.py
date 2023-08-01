@@ -4,10 +4,10 @@ from datetime import datetime
 
 from tabulate import tabulate
 
-from pipeline.api import PipelineCloud
+from pipeline.cloud import http
+from pipeline.cloud.compute_requirements import Accelerator
+from pipeline.cloud.schemas import pipelines as pipelines_schema
 from pipeline.util.logging import _print
-from pipeline.v3.compute_requirements import Accelerator
-from pipeline.v3.schemas import pipelines as pipelines_schema
 
 
 def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
@@ -75,15 +75,15 @@ def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 def _get_pipeline(args: Namespace) -> None:
     _print("Getting pipelines")
 
-    cluster_api = PipelineCloud(verbose=False)
+    # cluster_api = PipelineCloud(verbose=False)
 
     params = dict()
     if name := getattr(args, "name", None):
         params["name"] = name
-    pipelines_raw: t.List[dict] = cluster_api._get(
+    pipelines_raw: t.List[dict] = http.get(
         "/v3/pipelines",
         params=params,
-    )
+    ).json()
     pipelines = [
         [
             pipeline_raw["id"],
@@ -115,7 +115,8 @@ def _get_pipeline(args: Namespace) -> None:
                 if (val := pipeline_raw.get("gpu_memory_min", "N/A"))
                 else (
                     ""
-                    if Accelerator.cpu in pipeline_raw.get("accelerators", [])
+                    if (pl_accelerators := pipeline_raw.get("accelerators", [])) is None
+                    or Accelerator.cpu in pl_accelerators
                     else "-"
                 )
             ),
@@ -151,8 +152,7 @@ def _edit_pipeline(args: Namespace) -> None:
         _print("Nothing to edit.", level="ERROR")
         return
 
-    cluster_api = PipelineCloud(verbose=False)
-    cluster_api._patch(
+    http.patch(
         f"/v3/pipelines/{pipeline_id}",
         patch_schema.dict(),
     )
@@ -163,8 +163,7 @@ def _edit_pipeline(args: Namespace) -> None:
 def _delete_pipeline(args: Namespace) -> None:
     pipeline_id = getattr(args, "pipeline_id")
 
-    cluster_api = PipelineCloud(verbose=False)
-    cluster_api._delete(
+    http.delete(
         f"/v3/pipelines/{pipeline_id}",
     )
 

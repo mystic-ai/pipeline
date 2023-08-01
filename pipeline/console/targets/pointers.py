@@ -4,9 +4,9 @@ from argparse import ArgumentParser, Namespace, _SubParsersAction
 
 from tabulate import tabulate
 
-from pipeline.api import PipelineCloud
+from pipeline.cloud import http
+from pipeline.cloud.schemas import pointers as pointers_schema
 from pipeline.util.logging import _print
-from pipeline.v3.schemas import pointers as pointers_schema
 
 VALID_TAG_NAME = re.compile(
     r"^[a-z0-9][a-z0-9-._/]*[a-z0-9]:[0-9A-Za-z_][0-9A-Za-z-_.]{0,127}$"
@@ -111,13 +111,11 @@ def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 def _get_pointer(namespace: Namespace) -> None:
     _print("Getting pointers")
 
-    cluster_api = PipelineCloud(verbose=False)
-
     pipeline_name = getattr(namespace, "name", None)
     query_params = dict()
     if pipeline_name:
         query_params["pipeline_name"] = pipeline_name
-    pointers_raw = cluster_api._get("/v3/pointers", params=query_params)
+    pointers_raw = http.get("/v3/pointers", params=query_params)
 
     pointers = [
         [
@@ -148,8 +146,7 @@ def _create_pointer(namespace: Namespace) -> None:
         locked=locked,
     )
 
-    cluster_api = PipelineCloud(verbose=False)
-    cluster_api._post(
+    http.post(
         "/v3/pointers",
         json.loads(
             create_schema.json(),
@@ -179,8 +176,7 @@ def _edit_pointer(namespace: Namespace) -> None:
         locked=locked if locked is not None else not unlocked,
     )
 
-    cluster_api = PipelineCloud(verbose=False)
-    cluster_api._patch(
+    http.patch(
         f"/v3/pointers/{pointer}",
         json.loads(
             edit_schema.json(),
@@ -195,8 +191,7 @@ def _delete_pointer(namespace: Namespace) -> None:
 
     _print(f"Deleting pointer ({pointer})")
 
-    cluster_api = PipelineCloud(verbose=False)
-    cluster_api._delete(
+    http.delete(
         f"/v3/pointers/{pointer}",
     )
 
