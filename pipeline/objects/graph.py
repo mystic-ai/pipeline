@@ -166,14 +166,14 @@ class PipelineFile(Variable):
         self,
         *,
         path: str = None,
-        name: str = None,
+        title: str = None,
         local_id: str = None,
     ) -> None:
         super().__init__(
             type_class=self.__class__,
             is_input=False,
             is_output=False,
-            name=name,
+            title=title,
             local_id=local_id,
         )
         self.path = path
