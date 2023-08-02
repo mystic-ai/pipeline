@@ -1,4 +1,5 @@
 import importlib
+import json
 import math
 import platform
 import time
@@ -108,7 +109,7 @@ def upload_pipeline(
 
     _metadata.update(default_meta)
 
-    params["_metadata"] = _metadata
+    params["_metadata"] = json.dumps(_metadata)
 
     graph_file = SpooledTemporaryFile()
     graph_file.write(cp.dumps(graph))

@@ -6,30 +6,6 @@ from pipeline.cloud.schemas import BaseModel
 from pipeline.cloud.schemas.runs import RunIOType
 
 
-class PipelineGet(BaseModel):
-    id: str
-    created_at: datetime
-    updated_at: datetime
-
-    name: str
-    path: str
-
-    minimum_cache_number: t.Optional[int]
-    gpu_memory_min: t.Optional[int]
-    environment_id: str
-
-    accelerators: t.Optional[t.List[Accelerator]]
-
-    # input_variables: t.List["IOVariable"]
-    # output_variables: t.List["IOVariable"]
-
-
-class PipelinePatch(BaseModel):
-    minimum_cache_number: t.Optional[int]
-    gpu_memory_min: t.Optional[int]
-    accelerators: t.Optional[t.List[Accelerator]]
-
-
 class IOVariable(BaseModel):
     run_io_type: RunIOType
 
@@ -48,3 +24,29 @@ class IOVariable(BaseModel):
     max_length: int | None
     choices: list[t.Any] | None
     dict_schema: dict | None
+
+
+class PipelineGet(BaseModel):
+    id: str
+    created_at: datetime
+    updated_at: datetime
+
+    name: str
+    path: str
+
+    minimum_cache_number: t.Optional[int]
+    gpu_memory_min: t.Optional[int]
+    environment_id: str
+
+    accelerators: t.Optional[t.List[Accelerator]]
+
+    input_variables: t.List[IOVariable]
+    output_variables: t.List[IOVariable]
+
+    _metadata: t.Optional[dict]
+
+
+class PipelinePatch(BaseModel):
+    minimum_cache_number: t.Optional[int]
+    gpu_memory_min: t.Optional[int]
+    accelerators: t.Optional[t.List[Accelerator]]
