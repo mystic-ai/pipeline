@@ -1,14 +1,13 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "0.5.0b21"
+version = "1.0.0b1"
 
 
 description = "Pipelines for machine learning workloads."
 authors = [
   "Paul Hetherington <ph@mystic.ai>",
-  "Alex Pearwin <alex@mystic.ai>",
-  "Neil Wang <neil@mystic.ai>",
   "Ross Gray <ross@mystic.ai>",
+  "Yvan Buggy <yvan@mystic.ai>",
 ]
 packages = [{ include = "pipeline" }]
 readme = "README.md"
@@ -19,7 +18,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 pydantic = "^1.8.2"
 setuptools = "^65.4.1"
 pyhumps = "^3.0.2"

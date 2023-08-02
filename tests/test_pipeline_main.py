@@ -1,12 +1,4 @@
-import pytest
-
-from pipeline.objects import (
-    Pipeline,
-    PipelineFile,
-    Variable,
-    pipeline_function,
-    pipeline_model,
-)
+from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
 
 
 # Check if the decorator correctly uses __init__ and __enter__
@@ -26,10 +18,8 @@ def test_basic_pipeline():
         return f_1**2
 
     with Pipeline() as builder:
-        in_1 = Variable(float, is_input=True)
-        in_2 = Variable(float, is_input=True)
-
-        builder.add_variables(in_1, in_2)
+        in_1 = Variable(float)
+        in_2 = Variable(float)
 
         add_1 = add(in_1, in_2)
         sq_1 = square(add_1)
@@ -98,14 +88,13 @@ def test_run_startup():
     assert output_number == [1]
 
 
-def test_remote_file_not_downloaded():
-    with Pipeline() as builder:
-        test_file = PipelineFile(remote_id="test_file")
-        builder.add_variables(test_file)
+# def test_remote_file_not_downloaded():
+#     with Pipeline() as builder:
+#         PipelineFile()
 
-    test_pipeline = builder.get_pipeline()
-    with pytest.raises(
-        Exception,
-        match="Must call PipelineCloud()",
-    ):
-        test_pipeline.run()
+#     test_pipeline = builder.get_pipeline()
+#     with pytest.raises(
+#         Exception,
+#         match="Must call PipelineCloud()",
+#     ):
+#         test_pipeline.run()

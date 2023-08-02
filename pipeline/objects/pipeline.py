@@ -1,7 +1,5 @@
 from pipeline.objects.function import Function
-from pipeline.objects.graph import Graph
-from pipeline.objects.graph_node import GraphNode
-from pipeline.objects.variable import Variable
+from pipeline.objects.graph import Graph, GraphNode, Variable
 
 
 class Pipeline:
@@ -39,19 +37,6 @@ class Pipeline:
 
     def get_pipeline(self) -> Graph:
         return Pipeline._current_pipeline
-
-    @staticmethod
-    def add_variable(variable: Variable) -> None:
-        if Pipeline._pipeline_context_active:
-            if variable not in Pipeline._current_pipeline.variables:
-                Pipeline._current_pipeline.variables.append(variable)
-        else:
-            raise Exception("Cant add a variable when not defining a pipeline!")
-
-    @staticmethod
-    def add_variables(*variables: Variable) -> None:
-        for v in variables:
-            Pipeline.add_variable(v)
 
     @staticmethod
     def add_function(function: Function) -> None:

@@ -2,10 +2,9 @@ import typing
 from functools import partial, wraps
 
 from pipeline.objects.function import Function
-from pipeline.objects.graph_node import GraphNode
+from pipeline.objects.graph import GraphNode, Variable
 from pipeline.objects.model import Model
 from pipeline.objects.pipeline import Pipeline
-from pipeline.objects.variable import Variable
 
 
 def pipeline_function(function=None, *, run_once=False, on_startup=False):
@@ -68,17 +67,18 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
             function_output = function.__annotations__["return"]
             if getattr(function_output, "__origin__", None) == tuple:
                 context_manager_variables = node_outputs = tuple(
-                    Variable(type_class=output_variable)
+                    Variable(type_class=output_variable, is_input=False)
                     for output_variable in function_output.__args__
                 )
 
             else:
                 context_manager_variables = Variable(
-                    type_class=function.__annotations__["return"]
+                    type_class=function.__annotations__["return"],
+                    is_input=False,
                 )
                 node_outputs = [context_manager_variables]
 
-            Pipeline.add_variables(*node_outputs)
+            # Pipeline.add_variables(*node_outputs)
             Pipeline.add_function(function.__pipeline_function__)
 
             new_node = GraphNode(
