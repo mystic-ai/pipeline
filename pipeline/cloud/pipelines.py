@@ -1,7 +1,9 @@
 import importlib
 import math
+import platform
 import time
 import typing as t
+from importlib.metadata import version
 from multiprocessing import Pool
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
@@ -32,6 +34,7 @@ def upload_pipeline(
     minimum_cache_number: t.Optional[int] = None,
     modules: t.Optional[t.List[str]] = None,
     accelerators: t.Optional[t.List[Accelerator]] | None = None,
+    _metadata: t.Optional[dict] = None,
 ) -> pipeline_schemas.PipelineGet:
     if graph._has_run_startup:
         raise Exception("Graph has already been run, cannot upload")
@@ -63,10 +66,6 @@ def upload_pipeline(
                 variable.remote_id = res.json()["id"]
             finally:
                 variable_file.close()
-    graph_file = SpooledTemporaryFile()
-
-    graph_file.write(cp.dumps(graph))
-    graph_file.seek(0)
 
     params = dict()
 
@@ -96,10 +95,28 @@ def upload_pipeline(
     params["input_variables"] = input_variables
     params["output_variables"] = output_variables
 
+    if _metadata is None:
+        _metadata = dict()
+
+    default_meta = dict(
+        python_version=platform.python_version(),
+        system=platform.system(),
+        platform_version=platform.version(),
+        platform=platform.platform(),
+        sdk_version=version("pipeline-ai"),
+    )
+
+    _metadata.update(default_meta)
+
+    params["_metadata"] = _metadata
+
+    graph_file = SpooledTemporaryFile()
+    graph_file.write(cp.dumps(graph))
+    graph_file.seek(0)
+
     res = http.post_files(
         "/v3/pipelines",
         files=dict(graph=graph_file),
-        # params=params,
         data=params,
     )
 

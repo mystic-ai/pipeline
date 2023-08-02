@@ -3,6 +3,7 @@ from typing import Any, Iterable, List, Optional
 
 from cloudpickle import dumps
 from dill import loads
+from pydantic import BaseModel
 
 from pipeline.cloud.schemas.pipelines import IOVariable
 from pipeline.cloud.schemas.runs import RunIOType
@@ -48,6 +49,7 @@ class Variable:
         min_length: int | None = None,
         max_length: int | None = None,
         choices: list[Any] | None = None,
+        dict_schema: BaseModel | None = None,
     ):
         from pipeline.objects.pipeline import Pipeline
 
@@ -69,6 +71,7 @@ class Variable:
         self.min_length = min_length
         self.max_length = max_length
         self.choices = choices
+        self.dict_schema = dict_schema.schema() if dict_schema is not None else None
 
         if not Pipeline._pipeline_context_active:
             raise Exception("Cant add a variable when not defining a pipeline")
@@ -156,6 +159,7 @@ class Variable:
             min_length=self.min_length,
             max_length=self.max_length,
             choices=self.choices,
+            dict_schema=self.dict_schema,
         )
 
 

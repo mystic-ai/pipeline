@@ -115,7 +115,7 @@ def _get_pointer(namespace: Namespace) -> None:
     query_params = dict()
     if pipeline_name:
         query_params["pipeline_name"] = pipeline_name
-    pointers_raw = http.get("/v3/pointers", params=query_params)
+    pointers_raw = http.get("/v3/pointers", params=query_params).json()
 
     pointers = [
         [

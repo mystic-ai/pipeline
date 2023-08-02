@@ -47,3 +47,4 @@ class IOVariable(BaseModel):
     min_length: int | None
     max_length: int | None
     choices: list[t.Any] | None
+    dict_schema: dict | None

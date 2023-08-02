@@ -33,7 +33,7 @@ def _shorten_id(id: str, leading_length: int = 4, trailing_length: int = 4) -> s
 
 
 def list_resources() -> None:
-    resource_information = http.get("/v3/core/resources")
+    resource_information = http.get("/v3/core/resources").json()
     resource_information = [json.loads(resource) for resource in resource_information]
 
     resource_data = [
