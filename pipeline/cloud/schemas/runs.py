@@ -59,11 +59,16 @@ class RunState(int, Enum):
             raise ValueError(f"Invalid value: {v}")
 
 
-class RunError(Enum):
+class RunErrorType(Enum):
     input_error = 1
     unroutable = 2
     graph_error = 3
     runtime_error = 4
+
+
+class RunError(BaseModel):
+    exception: str
+    traceback: t.Optional[str]
 
 
 class RunFileType(Enum):
@@ -161,7 +166,7 @@ class Run(BaseModel):
 
     state: RunState
 
-    error: t.Optional[t.Tuple[RunError, str]]
+    error: t.Optional[RunError]
 
     result: t.Optional[RunResult]
 

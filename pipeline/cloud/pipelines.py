@@ -11,6 +11,7 @@ from tempfile import SpooledTemporaryFile
 
 import cloudpickle as cp
 import httpx
+from pydantic import ValidationError
 
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
@@ -18,6 +19,7 @@ from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas.runs import (
     Run,
     RunCreate,
+    RunError,
     RunInput,
     RunIOType,
     RunOutput,
@@ -241,7 +243,7 @@ def map_pipeline_mp(array: list, graph_id: str, *, pool_size=8):
 def stream_pipeline(
     pipeline_id_or_pointer: str,
     *data,
-) -> t.Iterator[RunOutput]:
+) -> t.Iterator[t.Any]:
     run_create_schema = RunCreate(
         pipeline_id_or_pointer=pipeline_id_or_pointer,
         input_data=_data_to_run_input(data),
@@ -253,7 +255,12 @@ def stream_pipeline(
     ) as generator:
         for item in generator.iter_text():
             if item:
-                yield RunOutput.parse_raw(item)
+                try:
+                    output = RunOutput.parse_raw(item)
+                    yield output.value
+                except ValidationError:
+                    output = RunError.parse_raw(item)
+                    yield output.traceback or output.exception
 
 
 def poll_async_run(
