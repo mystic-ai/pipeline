@@ -43,9 +43,8 @@ result = upload_pipeline(
     "paulh/test",
     environment_id_or_name="paulh/numpy",
     minimum_cache_number=1,
-    required_gpu_vram_mb=1000,
     accelerators=[
-        Accelerator.nvidia_t4,
+        Accelerator.cpu,
     ],
 )
 
