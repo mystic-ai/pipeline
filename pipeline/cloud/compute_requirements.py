@@ -13,6 +13,31 @@ class Accelerator(str, Enum):
     nvidia_all: str = "nvidia_all"
     cpu: str = "cpu"
 
+    @classmethod
+    def from_str(cls, accelerator: str) -> "Accelerator":
+        if "T4" in accelerator:
+            accelerator_type = Accelerator.nvidia_t4
+        elif "A100" in accelerator:
+            if "80GB" in accelerator:
+                accelerator_type = Accelerator.nvidia_a100_80gb
+            else:
+                accelerator_type = Accelerator.nvidia_a100
+        elif "H100" in accelerator:
+            accelerator_type = Accelerator.nvidia_h100
+        elif "V100" in accelerator:
+            if "32GB" in accelerator:
+                accelerator_type = Accelerator.nvidia_v100_32gb
+            else:
+                accelerator_type = Accelerator.nvidia_v100
+        elif "3090" in accelerator:
+            accelerator_type = Accelerator.nvidia_3090
+        elif "A16" in accelerator:
+            accelerator_type = Accelerator.nvidia_a16
+        else:
+            raise Exception(f"Unknown GPU name: {accelerator}")
+
+        return accelerator_type
+
 
 nvidia_gpus = [
     Accelerator.nvidia_t4,

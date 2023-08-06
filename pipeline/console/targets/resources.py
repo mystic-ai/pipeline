@@ -4,6 +4,7 @@ from argparse import ArgumentParser, _SubParsersAction
 from tabulate import tabulate
 
 from pipeline.cloud import http
+from pipeline.cloud.compute_requirements import Accelerator
 
 # Parser builder
 
@@ -48,9 +49,23 @@ def list_resources() -> None:
             if (resource["busy"] == 1 and resource["current_run"] != -1)
             else "-",
             [_shorten_id(id) for id in resource["run_queue"]],
-            "N/A"
-            if resource["gpus"] is None
-            else [gpu["name"].strip() for gpu in resource["gpus"]],
+            "cpu"
+            if not (accelerators := resource.get("gpus", None))
+            else (
+                "cpu"
+                if "cpu" in accelerators
+                else "\n".join(
+                    [
+                        f"{[accel['name'] for accel in accelerators].count(accelerator)}× {Accelerator.from_str(accelerator)} ({sum([accel['vram_total_mb'] for accel in accelerators if accel['name'] == accelerator]) / 1024.0}GB VRAM)"  # noqa E501
+                        for accelerator in set(
+                            [accel["name"] for accel in accelerators]
+                        )
+                    ]
+                )
+            )
+            # "N/A"
+            # if resource["gpus"] is None
+            # else [gpu["name"].strip() for gpu in resource["gpus"]],
         ]
         for resource in resource_information
     ]
@@ -62,7 +77,7 @@ def list_resources() -> None:
             "Pipelines",
             "Current run",
             "Run queue",
-            "GPUs",
+            "Accelerators",
         ],
         tablefmt="psql",
     )
