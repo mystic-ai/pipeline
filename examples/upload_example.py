@@ -28,7 +28,7 @@ pl = builder.get_pipeline()
 
 
 env_id = create_environment(
-    name="numpy",
+    name="paulh/numpy",
     python_requirements=["numpy==1.24.3"],
     allow_existing=True,
 )
@@ -40,10 +40,9 @@ print(
 
 result = upload_pipeline(
     pl,
-    "paulh/test:test",
-    environment_id_or_name="numpy",
+    "paulh/test",
+    environment_id_or_name="paulh/numpy",
     minimum_cache_number=1,
-    required_gpu_vram_mb=None,
     accelerators=[
         Accelerator.cpu,
     ],
