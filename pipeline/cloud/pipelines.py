@@ -11,6 +11,7 @@ from tempfile import SpooledTemporaryFile
 
 import cloudpickle as cp
 import httpx
+from pydantic import ValidationError
 
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
@@ -18,6 +19,7 @@ from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas.runs import (
     Run,
     RunCreate,
+    RunError,
     RunInput,
     RunIOType,
     RunOutput,
@@ -25,6 +27,25 @@ from pipeline.cloud.schemas.runs import (
 )
 from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
+
+
+class PipelineRunError(Exception):
+    """Error raised when there was an exception raised during a pipeline run"""
+
+    def __init__(
+        self,
+        exception: str,
+        traceback: t.Optional[str],
+    ) -> None:
+        self.exception = exception
+        self.traceback = traceback
+        super().__init__(self.exception, self.traceback)
+
+    def __str__(self):
+        error_msg = self.exception
+        if self.traceback:
+            error_msg += f"\n\nFull traceback from run:\n\n{self.traceback}"
+        return error_msg
 
 
 def upload_pipeline(
@@ -251,9 +272,18 @@ def stream_pipeline(
         "/v3/runs/stream",
         json_data=run_create_schema.dict(),
     ) as generator:
+        run_error = None
         for item in generator.iter_text():
             if item:
-                yield RunOutput.parse_raw(item)
+                try:
+                    output = RunOutput.parse_raw(item)
+                    yield output
+                except ValidationError:
+                    run_error = RunError.parse_raw(item)
+                if run_error is not None:
+                    raise PipelineRunError(
+                        run_error.exception, traceback=run_error.traceback
+                    )
 
 
 def poll_async_run(

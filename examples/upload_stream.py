@@ -14,9 +14,8 @@ def streaming_function(input_str: str) -> Stream[str]:
 
 
 with Pipeline() as builder:
-    input_str = Variable(type_class=str, is_input=True)
-    input_dict = Variable(type_class=dict, is_input=True)
-    builder.add_variables(input_str, input_dict)
+    input_str = Variable(type_class=str)
+    input_dict = Variable(type_class=dict)
 
     output_str = streaming_function(input_str)
 
