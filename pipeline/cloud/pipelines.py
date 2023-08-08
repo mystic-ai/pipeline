@@ -25,7 +25,7 @@ from pipeline.cloud.schemas.runs import (
     RunOutput,
     RunState,
 )
-from pipeline.objects import Graph, PipelineFile
+from pipeline.objects import File, FileURL, Graph
 from pipeline.util.logging import _print
 
 
@@ -67,7 +67,7 @@ def upload_pipeline(
             cp.register_pickle_by_value(module)
 
     for variable in graph.variables:
-        if isinstance(variable, PipelineFile):
+        if isinstance(variable, File):
             variable_path = Path(variable.path)
             if not variable_path.exists():
                 raise FileNotFoundError(
@@ -154,13 +154,38 @@ def upload_pipeline(
     return pipeline_schemas.PipelineGet.parse_obj(raw_json)
 
 
-def _data_to_run_input(data: t.Any) -> t.List[RunInput]:
+def _data_to_run_input(data: t.Tuple) -> t.List[RunInput]:
     input_array = []
 
     for item in data:
         input_type = RunIOType.from_object(item)
-        if input_type == RunIOType.file:
-            raise NotImplementedError("File input not yet supported")
+        if input_type == RunIOType.file or isinstance(item, File):
+            file_obj = open(item.path, "rb") if isinstance(item, File) else item
+
+            res = http.post_files(
+                "/v3/pipeline_files",
+                files=dict(pfile=file_obj),
+                progress=True,
+            )
+            file_path = res.json().get("path", None)
+
+            if file_path is None:
+                raise Exception("Error uploading file")
+
+            input_schema = RunInput(
+                type=input_type,
+                file_path=file_path,
+                file_name=file_path.split("/")[-1],
+            )
+            input_array.append(input_schema)
+            continue
+        elif isinstance(item, FileURL):
+            input_schema = RunInput(
+                type=RunIOType.file,
+                file_path=item.url,
+                file_name=item.url.split("/")[-1],
+            )
+            input_array.append(input_schema)
         elif input_type == RunIOType.pkl:
             raise NotImplementedError("Python object input not yet supported")
 

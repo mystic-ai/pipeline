@@ -24,7 +24,7 @@ levels = {
     "REMOTE_LOG": bcolors.OKCYAN,
 }
 PIPELINE_STR = f"{bcolors.OKBLUE}Pipeline{bcolors.ENDC}"
-PIPELINE_FILE_STR = f"{bcolors.OKBLUE}PipelineFile{bcolors.ENDC}"
+PIPELINE_FILE_STR = f"{bcolors.OKBLUE}File{bcolors.ENDC}"
 
 
 def _print(val, level="INFO"):

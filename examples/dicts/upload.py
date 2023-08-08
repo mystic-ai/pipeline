@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from pipeline import Pipeline, Variable, pipeline_function
+from pipeline import Pipeline, Variable, pipe
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.environments import create_environment
 from pipeline.cloud.pipelines import upload_pipeline
@@ -11,7 +11,7 @@ class MyKwargs(BaseModel):
     b: str = Field("hello", min_length=2, max_length=10)
 
 
-@pipeline_function
+@pipe
 def do_something(kwargs: dict) -> str:
     return str(kwargs)
 

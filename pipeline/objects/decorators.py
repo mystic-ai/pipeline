@@ -7,7 +7,7 @@ from pipeline.objects.model import Model
 from pipeline.objects.pipeline import Pipeline
 
 
-def pipeline_function(function=None, *, run_once=False, on_startup=False):
+def pipe(function=None, *, run_once=False, on_startup=False):
     """_summary_
 
     Args:
@@ -24,7 +24,7 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
 
     """
     if function is None:
-        return partial(pipeline_function, run_once=run_once, on_startup=on_startup)
+        return partial(pipe, run_once=run_once, on_startup=on_startup)
 
     @wraps(function)
     def execute_func(*args, **kwargs):
@@ -44,8 +44,8 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
                 if isinstance(input_arg, Variable):
                     processed_args.append(input_arg)
                 elif hasattr(input_arg, "__pipeline_model__"):
-                    if function.__pipeline_function__.class_instance is None:
-                        function.__pipeline_function__.class_instance = input_arg
+                    if function.__pipe__.class_instance is None:
+                        function.__pipe__.class_instance = input_arg
                 elif isinstance(input_arg, tuple) and all(
                     isinstance(var, Variable) for var in input_arg
                 ):
@@ -55,9 +55,18 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
                     )
 
                 else:
+                    print(hasattr(function, "__self__"))
+                    print(f"Function: {function}, Input: {input_arg}")
+                    # breakpoint()
+
+                    if function in input_arg.__dict__.values():
+                        print("Function found in class")
+                    else:
+                        print(input_arg.__dict__.values())
+
                     raise Exception(
                         (
-                            f"Can only input pipeline variables to a function"
+                            f"Can only input pipeline variables to a function "
                             f"when defining a graph, got: {type(input_arg)}"
                         )
                     )
@@ -79,10 +88,10 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
                 node_outputs = [context_manager_variables]
 
             # Pipeline.add_variables(*node_outputs)
-            Pipeline.add_function(function.__pipeline_function__)
+            Pipeline.add_function(function.__pipe__)
 
             new_node = GraphNode(
-                function=function.__pipeline_function__,
+                function=function.__pipe__,
                 inputs=processed_args,
                 outputs=node_outputs,
             )
@@ -97,7 +106,7 @@ def pipeline_function(function=None, *, run_once=False, on_startup=False):
     function.__has_run__ = False
 
     function.__on_startup__ = on_startup
-    function.__pipeline_function__ = Function(function)
+    function.__pipe__ = Function(function)
 
     return execute_func
 
