@@ -24,6 +24,7 @@ class IOVariable(BaseModel):
     max_length: int | None
     choices: list[t.Any] | None
     dict_schema: dict | None
+    default: t.Any | None
 
 
 class PipelineGet(BaseModel):
