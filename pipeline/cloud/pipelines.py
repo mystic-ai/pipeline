@@ -29,6 +29,25 @@ from pipeline.objects import Graph, PipelineFile
 from pipeline.util.logging import _print
 
 
+class PipelineRunError(Exception):
+    """Error raised when there was an exception raised during a pipeline run"""
+
+    def __init__(
+        self,
+        exception: str,
+        traceback: t.Optional[str],
+    ) -> None:
+        self.exception = exception
+        self.traceback = traceback
+        super().__init__(self.exception, self.traceback)
+
+    def __str__(self):
+        error_msg = self.exception
+        if self.traceback:
+            error_msg += f"\n\nFull traceback from run:\n\n{self.traceback}"
+        return error_msg
+
+
 def upload_pipeline(
     graph: Graph,
     name: str,
@@ -243,7 +262,7 @@ def map_pipeline_mp(array: list, graph_id: str, *, pool_size=8):
 def stream_pipeline(
     pipeline_id_or_pointer: str,
     *data,
-) -> t.Iterator[t.Any]:
+) -> t.Iterator[RunOutput]:
     run_create_schema = RunCreate(
         pipeline_id_or_pointer=pipeline_id_or_pointer,
         input_data=_data_to_run_input(data),
@@ -253,14 +272,18 @@ def stream_pipeline(
         "/v3/runs/stream",
         json_data=run_create_schema.dict(),
     ) as generator:
+        run_error = None
         for item in generator.iter_text():
             if item:
                 try:
                     output = RunOutput.parse_raw(item)
-                    yield output.value
+                    yield output
                 except ValidationError:
-                    output = RunError.parse_raw(item)
-                    yield output.traceback or output.exception
+                    run_error = RunError.parse_raw(item)
+                if run_error is not None:
+                    raise PipelineRunError(
+                        run_error.exception, traceback=run_error.traceback
+                    )
 
 
 def poll_async_run(
