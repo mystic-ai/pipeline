@@ -2,11 +2,11 @@ from typing import Tuple
 
 import pytest
 
-from pipeline import Pipeline, Variable, pipeline_function
+from pipeline import Pipeline, Variable, pipe
 
 
 def test_function_no_output_definition():
-    @pipeline_function
+    @pipe
     def test_function():  # No output defined
         ...
 
@@ -20,7 +20,7 @@ def test_function_no_output_definition():
 
 
 def test_basic_function():
-    @pipeline_function
+    @pipe
     def return_inverse(in_bool: bool) -> bool:
         return not in_bool
 
@@ -35,7 +35,7 @@ def test_basic_function():
 
 
 def test_function_tuple_output():
-    @pipeline_function
+    @pipe
     def test_function() -> Tuple[str, int]:
         return ("test", 1)
 
@@ -50,7 +50,7 @@ def test_function_tuple_output():
 
     assert outputs == [1, "test"]
 
-    @pipeline_function
+    @pipe
     def test_function_2(input_1: str):
         ...
 

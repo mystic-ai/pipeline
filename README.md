@@ -30,7 +30,7 @@ The syntax used for defining AI/ML pipelines shares some similarities in syntax 
 
 - Custom environments on PipelineCloud (remote compute services)
 - Kwarg inputs to runs
-- Extended IO inputs to `pipeline_function` objects
+- Extended IO inputs to `pipe` objects
 
 ## v0.5.0 (Jan/Feb 2023)
 
@@ -57,14 +57,14 @@ The syntax used for defining AI/ML pipelines shares some similarities in syntax 
 ## Basic maths
 
 ```python
-from pipeline import Pipeline, Variable, pipeline_function
+from pipeline import Pipeline, Variable, pipe
 
 
-@pipeline_function
+@pipe
 def square(a: float) -> float:
     return a**2
 
-@pipeline_function
+@pipe
 def multiply(a: float, b: float) -> float:
     return a * b
 

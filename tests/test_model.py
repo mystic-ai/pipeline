@@ -1,4 +1,4 @@
-from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline.objects import Pipeline, Variable, pipe, pipeline_model
 
 
 # Test basic Pipeline
@@ -9,11 +9,11 @@ def test_with_exit():
             self.model_path = model_path
             self.tokenizer_path = tokenizer_path
 
-        @pipeline_function
+        @pipe
         def predict(self, input: str, **kwargs: dict) -> str:
             return input + " lol"
 
-        @pipeline_function
+        @pipe
         def load(self) -> None:
             print("load")
 

@@ -1,5 +1,7 @@
 import tempfile
+from pathlib import Path
 from typing import Any, Iterable, List, Optional
+from urllib.parse import urlparse
 
 from cloudpickle import dumps
 from dill import loads
@@ -50,6 +52,7 @@ class Variable:
         max_length: int | None = None,
         choices: list[Any] | None = None,
         dict_schema: BaseModel | None = None,
+        allow_out_of_context_creation: bool = False,
     ):
         from pipeline.objects.pipeline import Pipeline
 
@@ -73,10 +76,11 @@ class Variable:
         self.choices = choices
         self.dict_schema = dict_schema.schema() if dict_schema is not None else None
 
-        if not Pipeline._pipeline_context_active:
+        if not Pipeline._pipeline_context_active and not allow_out_of_context_creation:
             raise Exception("Cant add a variable when not defining a pipeline")
 
-        Pipeline._current_pipeline.variables.append(self)
+        if Pipeline._pipeline_context_active:
+            Pipeline._current_pipeline.variables.append(self)
 
         self.local_id = generate_id(10) if not local_id else local_id
 
@@ -163,15 +167,16 @@ class Variable:
         )
 
 
-class PipelineFile(Variable):
-    path: str
+class File(Variable):
+    path: Path
 
     def __init__(
         self,
         *,
-        path: str = None,
+        path: str | Path = None,
         title: str = None,
         local_id: str = None,
+        allow_out_of_context_creation: bool = False,
     ) -> None:
         super().__init__(
             type_class=self.__class__,
@@ -179,8 +184,10 @@ class PipelineFile(Variable):
             is_output=False,
             title=title,
             local_id=local_id,
+            allow_out_of_context_creation=allow_out_of_context_creation,
         )
-        self.path = path
+
+        self.path = path if isinstance(path, Path) else Path(path)
 
     @classmethod
     def from_object(
@@ -198,6 +205,12 @@ class PipelineFile(Variable):
             path=temp_file.name,
             title=temp_file.name,
         )
+
+
+class FileURL:
+    def __init__(self, url: str):
+        self.url = url
+        urlparse(url)
 
 
 class Stream(Variable, Iterable):
@@ -261,8 +274,8 @@ class Graph:
         startup_variables = {}
 
         for var in self.variables:
-            # At the moment only the PipelineFile variable can be used on startup
-            if isinstance(var, PipelineFile):
+            # At the moment only the File variable can be used on startup
+            if isinstance(var, File):
                 startup_variables[var.local_id] = var
 
         for node in self.nodes:
@@ -319,7 +332,7 @@ class Graph:
 
         running_variables = {}
 
-        # Add all PipelineFile's to the running variables
+        # Add all File's to the running variables
         for var in self.variables:
             if isinstance(var, PipelineFile):
                 if not var.path:
