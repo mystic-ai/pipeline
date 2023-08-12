@@ -28,11 +28,11 @@ pl = builder.get_pipeline()
 
 
 env_id = create_environment(
-    name="paulh/numpy",
+    name="numpy",
     python_requirements=["numpy==1.24.3"],
     allow_existing=True,
 )
-print(f"New environment ID = {env_id}")
+print(f"Environment ID = {env_id}")
 print(
     "Environment will be pre-emptively cached on compute resources so please "
     "wait a few mins before using..."
@@ -40,8 +40,8 @@ print(
 
 result = upload_pipeline(
     pl,
-    "paulh/test",
-    environment_id_or_name="paulh/numpy",
+    "test",
+    environment_id_or_name="numpy",
     minimum_cache_number=1,
     accelerators=[
         Accelerator.cpu,

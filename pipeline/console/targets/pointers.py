@@ -2,6 +2,7 @@ import json
 import re
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 
+from httpx import HTTPStatusError
 from tabulate import tabulate
 
 from pipeline.cloud import http
@@ -16,7 +17,7 @@ VALID_TAG_NAME = re.compile(
 def create_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     create_parser = command_parser.add_parser(
         "pointers",
-        aliases=["pointer"],
+        aliases=["pointer", "ptr"],
         help="Create a new pointer.",
     )
 
@@ -44,7 +45,7 @@ def create_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     edit_parser = command_parser.add_parser(
         "pointers",
-        aliases=["pointer"],
+        aliases=["pointer", "ptr"],
         help="Edit a pointer.",
     )
 
@@ -55,8 +56,8 @@ def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     )
 
     edit_parser.add_argument(
-        "--new-pipeline-id-or-pointer",
-        "-t",
+        "--source",
+        "-s",
         type=str,
         help="Pipeline id or pointer to create a pointer to.",
         default=None,
@@ -78,7 +79,7 @@ def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     get_parser = command_parser.add_parser(
         "pointers",
-        aliases=["pointer"],
+        aliases=["pointer", "ptr"],
         help="Get pointer information.",
     )
 
@@ -91,11 +92,18 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         help="Pipeline name.",
     )
 
+    get_parser.add_argument(
+        "--show-deleted",
+        "-d",
+        action="store_true",
+        help="Show pointers to deleted pipelines.",
+    )
+
 
 def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     delete_parser = command_parser.add_parser(
         "pointers",
-        aliases=["pointer"],
+        aliases=["pointer", "ptr"],
         help="Delete a pointer.",
     )
 
@@ -112,7 +120,9 @@ def _get_pointer(namespace: Namespace) -> None:
     _print("Getting pointers")
 
     pipeline_name = getattr(namespace, "name", None)
+    show_deleted = getattr(namespace, "show_deleted", False)
     query_params = dict()
+    query_params["show_deleted"] = show_deleted
     if pipeline_name:
         query_params["pipeline_name"] = pipeline_name
     pointers_raw = http.get("/v3/pointers", params=query_params).json()
@@ -138,26 +148,33 @@ def _create_pointer(namespace: Namespace) -> None:
     pipeline_id_or_pointer = getattr(namespace, "pipeline_id_or_pointer")
     locked = getattr(namespace, "locked", False)
 
-    _print(f"Creating pointer ({new_pointer} -> {pipeline_id_or_pointer})")
-
     create_schema = pointers_schema.PointerCreate(
         pointer=new_pointer,
         pointer_or_pipeline_id=pipeline_id_or_pointer,
         locked=locked,
     )
+    try:
+        result = http.post(
+            "/v3/pointers",
+            json.loads(
+                create_schema.json(),
+            ),
+        )
 
-    http.post(
-        "/v3/pointers",
-        json.loads(
-            create_schema.json(),
-        ),
-    )
-    _print("Pointer created!")
+        pointer = pointers_schema.PointerGet.parse_obj(result.json())
+
+        _print(f"Created pointer {pointer.pointer} -> {pointer.pipeline_id}")
+    except HTTPStatusError as e:
+        if e.response.status_code == 409:
+            _print("Pointer already exists!", level="ERROR")
+            return
+        else:
+            raise e
 
 
 def _edit_pointer(namespace: Namespace) -> None:
     pointer = getattr(namespace, "pointer")
-    new_pipeline_id_or_pointer = getattr(namespace, "new_pipeline_id_or_pointer", None)
+    source = getattr(namespace, "source", None)
     locked = getattr(namespace, "locked", None)
     unlocked = getattr(namespace, "unlocked", None)
 
@@ -165,14 +182,14 @@ def _edit_pointer(namespace: Namespace) -> None:
         _print("Cannot lock and unlock at the same time!", level="ERROR")
         return
 
-    if new_pipeline_id_or_pointer is None and not locked and not unlocked:
+    if source is None and not locked and not unlocked:
         _print("Nothing to edit!", level="ERROR")
         return
 
     _print(f"Editing pointer ({pointer})")
 
     edit_schema = pointers_schema.PointerPatch(
-        pointer_or_pipeline_id=new_pipeline_id_or_pointer,
+        pointer_or_pipeline_id=source,
         locked=locked if locked is not None else not unlocked,
     )
 
