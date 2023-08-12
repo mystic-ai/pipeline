@@ -11,6 +11,7 @@ class Accelerator(str, Enum):
     nvidia_a16: str = "nvidia_a16"
     nvidia_h100: str = "nvidia_h100"
     nvidia_l4: str = "nvidia_l4"
+    nvidia_a5000: str = "nvidia_a5000"
     nvidia_all: str = "nvidia_all"
     cpu: str = "cpu"
 
@@ -36,6 +37,8 @@ class Accelerator(str, Enum):
             accelerator_type = Accelerator.nvidia_a16
         elif "L4" in accelerator:
             accelerator_type = Accelerator.nvidia_l4
+        elif "A5000" in accelerator:
+            accelerator_type = Accelerator.nvidia_a5000
         else:
             raise Exception(f"Unknown GPU name: {accelerator}")
 
@@ -52,5 +55,6 @@ nvidia_gpus = [
     Accelerator.nvidia_a16,
     Accelerator.nvidia_h100,
     Accelerator.nvidia_l4,
+    Accelerator.nvidia_a5000,
     Accelerator.nvidia_all,
 ]
