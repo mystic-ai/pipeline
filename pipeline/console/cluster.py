@@ -16,8 +16,8 @@ def login_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         "--url",
         type=str,
         required=False,
-        help="Remote URL for auth (default=https://api.pipeline.ai)",
-        default="https://api.pipeline.ai",
+        help="Remote URL for auth (default URL is for Catalyst=https://mystic.ai)",
+        default="https://mystic.ai",
     )
 
     login_parser.add_argument(
@@ -67,7 +67,11 @@ def _login(namespace: Namespace) -> None:
     alias = getattr(namespace, "alias")
     url = getattr(namespace, "url")
     token = getattr(namespace, "token")
-    active = getattr(namespace, "token", False)
+    active = getattr(namespace, "active", False)
+
+    if any([remote.alias == alias for remote in current_configuration.remotes]):
+        _print(f"Alias '{alias}' already exists", level="ERROR")
+        return
 
     try:
         authenticate(
@@ -77,7 +81,6 @@ def _login(namespace: Namespace) -> None:
     except Exception:
         _print(f"Couldn't authenticate with {url}", level="ERROR")
         return
-
     current_configuration.add_remote(
         alias=alias,
         url=url,
