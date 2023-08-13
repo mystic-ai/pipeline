@@ -8,6 +8,7 @@ from pipeline.cloud.pipelines import upload_pipeline
 def pi_sample(i: int) -> bool:
     import numpy as np
 
+    print("INSIDE FUNCTION")
     x, y = np.random.rand(2)
     return bool(x**2 + y**2 < 1.0)
 
