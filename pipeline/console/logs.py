@@ -2,6 +2,7 @@ import json
 import urllib.parse
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 
+from websockets.exceptions import ConnectionClosedError
 from websockets.sync.client import connect
 
 from pipeline import current_configuration
@@ -34,34 +35,40 @@ def _run_logs(args: Namespace) -> None:
     target_port = url_info.port
 
     connection_string = urllib.parse.urljoin(
-        "ws://" + target_host + ":" + str(target_port), f"/v3/logs/run/{run_id}"
+        "ws://" + target_host + ":" + str(target_port),
+        f"/v3/logs/run/{run_id}?follow={follow}",
     )
-    _print(f"Showing logs for run {run_id}")
-    with connect(
-        connection_string,
-        additional_headers={
-            "Authorization": f"Bearer {current_configuration.active_remote.token}"
-        },
-    ) as websocket:
-        while True:
+
+    try:
+        with connect(
+            connection_string,
+            additional_headers={
+                "Authorization": f"Bearer {current_configuration.active_remote.token}"
+            },
+        ) as websocket:
             message = websocket.recv()
+            _print(f"Showing logs for run {run_id}")
+            while True:
+                stream_data: dict = json.loads(json.loads(message))
+                streams = stream_data.get("streams", None)
+                if streams is None:
+                    raise Exception("No streams in message")
 
-            stream_data: dict = json.loads(json.loads(message))
-            streams = stream_data.get("streams", None)
-            if streams is None:
-                raise Exception("No streams in message")
+                if len(streams) == 0:
+                    raise Exception("No streams in message")
 
-            if len(streams) == 0:
-                raise Exception("No streams in message")
+                for stream in streams:
+                    values = stream.get("values", None)
+                    if values is None:
+                        raise Exception("No values in stream")
 
-            for stream in streams:
-                values = stream.get("values", None)
-                if values is None:
-                    raise Exception("No values in stream")
-
-                for value in values:
-                    _print_remote_log(
-                        value,
-                    )
-            if not follow:
-                break
+                    for value in values:
+                        _print_remote_log(
+                            value,
+                        )
+                if not follow:
+                    break
+                message = websocket.recv()
+    except ConnectionClosedError as e:
+        if e.code == 4000:
+            _print(f"Run {run_id} not found", level="ERROR")
