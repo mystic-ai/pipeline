@@ -1,6 +1,6 @@
 from argparse import ArgumentParser, _SubParsersAction
 
-from pipeline.console import cluster
+from pipeline.console import cluster, logs
 from pipeline.console.targets import environments, pipelines, pointers, resources
 
 
@@ -92,3 +92,16 @@ def cluster_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     cluster.use_parser(cluster_sub_parser)
     cluster.remove_parser(cluster_sub_parser)
     cluster.get_parser(cluster_sub_parser)
+
+
+def logs_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
+    logs_parser = command_parser.add_parser(
+        "logs",
+        description="Get logs.",
+        help="Get logs.",
+    )
+    logs_parser.set_defaults(func=lambda _: logs_parser.print_help())
+    logs_sub_parser = logs_parser.add_subparsers(
+        dest="target",
+    )
+    logs.run_logs_parser(logs_sub_parser)

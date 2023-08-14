@@ -38,6 +38,16 @@ class RunState(int, Enum):
 
     unknown: int = 20
 
+    @staticmethod
+    def is_terminal(state: "RunState") -> bool:
+        return state in [
+            RunState.completed,
+            RunState.failed,
+            RunState.lost,
+            RunState.no_environment_installed,
+            RunState.rate_limited,
+        ]
+
     @classmethod
     def __get_validators__(cls):
         cls.lookup = {v: k.value for v, k in cls.__members__.items()}

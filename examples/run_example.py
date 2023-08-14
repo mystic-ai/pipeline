@@ -4,7 +4,7 @@ from pipeline.cloud.pipelines import run_pipeline
 
 start_time = datetime.datetime.now()
 
-pointer = "paulh/test:v1"
+pointer = "test:v1"
 
 result = run_pipeline(pointer, 1)
 
