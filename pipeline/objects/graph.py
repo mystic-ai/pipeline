@@ -196,7 +196,7 @@ class PipelineFile(Variable):
 
         return cls(
             path=temp_file.name,
-            name=temp_file.name,
+            title=temp_file.name,
         )
 
 
@@ -322,11 +322,8 @@ class Graph:
         # Add all PipelineFile's to the running variables
         for var in self.variables:
             if isinstance(var, PipelineFile):
-                if var.remote_id is not None and not var.path:
-                    raise Exception(
-                        "Must call PipelineCloud().download_remotes(...) on "
-                        "remote PipelineFiles"
-                    )
+                if not var.path:
+                    raise Exception("Must define a path for a PipelineFile")
 
                 running_variables[var.local_id] = var
 
