@@ -229,8 +229,13 @@ def run_pipeline(
         )
         raise Exception("Gateway error", res.status_code)
 
-    # Everything is okay!
     run_get = Run.parse_obj(res.json())
+
+    if RunState.is_terminal(run_get.state) and run_get.state != RunState.completed:
+        raise Exception(
+            f"Remote Run '{run_get.id}' failed with exception: "
+            f"{getattr(getattr(run_get, 'error', None), 'traceback', None)}"
+        )
 
     return run_get
 
