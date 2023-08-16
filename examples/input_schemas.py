@@ -1,39 +1,27 @@
-from typing import Optional
-
+from pipeline import Pipeline, Variable, pipeline_function
 from pipeline.objects.graph import InputField, InputSchema
 
 
-# Don't accept pkl / file
 class MyInputSchema(InputSchema):
-    # in_1: int | None = InputField(1, lt=5, gt=-5, description="kwarg 1")
-    in_2: Optional[int] = InputField(default=1, lt=5, gt=-5, description="kwarg 1")
+    in_1: int = InputField(lt=5, gt=-5, description="kwarg 1", title="kwarg_1")
+    in_2: int | None = InputField(
+        default=0, lt=5, gt=-5, description="kwarg 1", title="kwarg_1"
+    )
 
 
-input_base = MyInputSchema()
-input_schema = input_base.to_schema()
-
-recreated_schema = InputSchema.from_schema(input_schema)
-print(recreated_schema.to_schema())
-
-recreated_schema.parse_dict({"in_2": 10})
-
-print(recreated_schema.in_2)
-
-# @pipeline_function
-# def my_function(in_1: int, kwarg_dict: MyInputSchema):
-#     return kwarg_dict.in_1
+@pipeline_function
+def my_func(in_1: int, other_schema: MyInputSchema) -> int:
+    return in_1 + other_schema.in_2 + other_schema.in_1
 
 
-# with Pipeline() as builder:
-#     var_1 = Variable(
-#         int,
-#         lt=10,
-#         gt=0,
-#         description="Variable 1",
-#         title="Variable 1",
-#     )
+with Pipeline() as builder:
+    var_1 = Variable(int, lt=10, ge=0)
+    var_2 = Variable(MyInputSchema)
 
-#     var_2 = Variable(MyInputSchema)
+    output = my_func(var_1, var_2)
+    builder.output(output)
 
-#     output = my_function(var_1, var_2)
-#     builder.output(output)
+my_pl = builder.get_pipeline()
+
+print(my_pl.run(1, MyInputSchema(in_1=1)))
+print(my_pl.run(1, dict(in_1=4, in_2=3)))

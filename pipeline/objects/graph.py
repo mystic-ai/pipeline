@@ -15,17 +15,45 @@ from pipeline.util import dump_object, generate_id
 
 
 class InputSchema:
-    def to_schema(self) -> List[dict]:
+    def __init__(self, **kwargs):
+        for key, value in self.__annotations__.items():
+            validation_field = getattr(self, key, None)
+            if not isinstance(validation_field, InputField):
+                raise Exception("Must be InputField")
+
+            if validation_field.default is ... and (
+                "typing.Optional" in str(value) or isinstance(value, UnionType)
+            ):
+                raise Exception("Must define default values for optional fields!")
+
+            if key not in kwargs and validation_field.default is not ...:
+                setattr(self, key, validation_field.default)
+                continue
+
+            if key not in kwargs and validation_field.default is ...:
+                raise Exception(f"Missing value for '{key}'")
+
+            validation_field.validate(kwargs[key])
+            setattr(self, key, kwargs[key])
+
+    def __repr__(self) -> str:
+        vars = ", ".join(
+            [f"{key}={getattr(self, key)}" for key in self.__annotations__.keys()]
+        )
+        return f"InputSchema({vars})"
+
+    @classmethod
+    def to_schema(cls) -> List[dict]:
         output_list: List[IOVariable] = []
 
-        items = dir(self)
+        items = dir(cls)
 
         for item, title in [
             (_field, item)
             for item in items
-            if (_field := getattr(self, item, None)) and isinstance(_field, InputField)
+            if (_field := getattr(cls, item, None)) and isinstance(_field, InputField)
         ]:
-            var_type = self.__annotations__[title]
+            var_type = cls.__annotations__[title]
 
             if isinstance(var_type, UnionType) or "typing.Optional" in str(var_type):
                 var_union_types = list(get_args(var_type))
@@ -89,7 +117,8 @@ class InputSchema:
 class InputField:
     def __init__(
         self,
-        default: Any | None = None,
+        default: Any | None = ...,
+        title: str | None = None,
         description: str | None = None,
         examples: list[Any] | None = None,
         gt: int | None = None,
@@ -105,6 +134,7 @@ class InputField:
         choices: list[Any] | None = None,
     ):
         self.default = default
+        self.title = title
         self.description = description
         self.examples = examples
         self.gt = gt
@@ -118,6 +148,14 @@ class InputField:
         self.min_length = min_length
         self.max_length = max_length
         self.choices = choices
+
+        if default is not ...:
+            try:
+                self.validate(self.default)
+            except VariableException as e:
+                raise VariableException(
+                    f"Default value {default} is invalid for field {self.title}"
+                ) from e
 
     def _to_io_schema(self, _type: Any, _title: str) -> IOVariable:
         return IOVariable(
@@ -156,6 +194,7 @@ class InputField:
             min_length=schema.min_length,
             max_length=schema.max_length,
             choices=schema.choices,
+            title=schema.title,
         )
 
     def validate(self, value: Any):
@@ -256,7 +295,6 @@ class Variable:
         max_length: int | None = None,
         choices: list[Any] | None = None,
         allow_out_of_context_creation: bool = False,
-        dict_schema: InputSchema | None = None,
     ):
         from pipeline.objects.pipeline import Pipeline
 
@@ -279,7 +317,7 @@ class Variable:
         self.max_length = max_length
         self.choices = choices
         self.dict_schema = (
-            dict_schema.to_schema() if isinstance(dict_schema, InputSchema) else None
+            type_class.to_schema() if isinstance(type_class, InputSchema) else None
         )
 
         if not Pipeline._pipeline_context_active and not allow_out_of_context_creation:
@@ -354,7 +392,9 @@ class Variable:
 
     def to_io_schema(self) -> IOVariable:
         return IOVariable(
-            run_io_type=RunIOType.from_object(self.type_class),
+            run_io_type=RunIOType.dictionary
+            if issubclass(self.type_class, InputSchema)
+            else RunIOType.from_object(self.type_class),
             title=self.title,
             description=self.description,
             examples=self.examples,
@@ -547,7 +587,12 @@ class Graph:
                 running_variables[var.local_id] = var
 
         for i, input in enumerate(inputs):
-            if not isinstance(input, input_variables[i].type_class):
+            target_type = input_variables[i].type_class
+
+            if issubclass(target_type, InputSchema) and isinstance(input, dict):
+                print("IN HERE")
+                input = target_type(**input)
+            elif not isinstance(input, input_variables[i].type_class):
                 raise Exception(
                     "Input type mismatch, expceted %s got %s"
                     % (
