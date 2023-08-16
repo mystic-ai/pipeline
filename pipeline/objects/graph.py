@@ -334,9 +334,9 @@ class Graph:
 
         # Add all File's to the running variables
         for var in self.variables:
-            if isinstance(var, PipelineFile):
+            if isinstance(var, File):
                 if not var.path:
-                    raise Exception("Must define a path for a PipelineFile")
+                    raise Exception("Must define a path for a File")
 
                 running_variables[var.local_id] = var
 
