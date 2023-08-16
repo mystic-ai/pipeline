@@ -1,8 +1,8 @@
 import tempfile
 from pathlib import Path
+from types import NoneType, UnionType
 from typing import Any, Iterable, List, Optional, get_args
 from urllib.parse import urlparse
-from types import NoneType, UnionType
 
 from cloudpickle import dumps
 from dill import loads
