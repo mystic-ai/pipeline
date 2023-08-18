@@ -20,10 +20,11 @@ this SDK can also be used with [Pipeline Core](https://www.mystic.ai/pipeline-co
 The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect). In future releases we will be moving away from this syntax to a C based graph compiler which interprets python directly (and other languages) allowing users of the API to compose graphs in a more native way to the chosen language.
 
 # Installation
-You must be using `python==3.10`.
+
+> :warning: You must be using `python==3.10`.
 
 ```shell
-python -m pip install -U --pre pipeline-ai
+python -m pip install pipeline-ai
 ```
 
 # Models
@@ -55,7 +56,6 @@ Below are some popular models that have been premade by the community on Catalys
 | [GPUs and Accelerators](https://docs.mystic.ai/docs/accelerators)|Add hardware definitions to your pipelines|
 | [Runs](https://docs.mystic.ai/docs/runs)|Running a pipeline remotely - how it works|
 
-> :warning: **Uploading pipelines to Catalyst requires Python 3.10.**
 
 Below is some sample python that demonstrates various features and how to use the Pipeline SDK to create a simple pipeline that can be run locally or on Catalyst.
 
