@@ -1,19 +1,19 @@
 from httpx import Response
 
-from pipeline import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline import Pipeline, Variable, entity, pipe
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.environments import create_environment
 from pipeline.cloud.pipelines import upload_pipeline
 
 
-@pipeline_model
+@entity
 class PipelineGPTNeo:
     def __init__(self):
         self.model = None
         self.tokenizer = None
         self.device = None
 
-    @pipeline_function(run_once=True, on_startup=True)
+    @pipe(run_once=True, on_startup=True)
     def load(self):
         import torch
         from transformers import GPT2Tokenizer, GPTNeoForCausalLM
@@ -29,7 +29,7 @@ class PipelineGPTNeo:
 
         self.tokenizer = GPT2Tokenizer.from_pretrained("EleutherAI/gpt-neo-125M")
 
-    @pipeline_function
+    @pipe
     def predict(self, input_data: str, length: int) -> str:
         input_ids = self.tokenizer(input_data, return_tensors="pt").input_ids.to(
             self.model.device

@@ -1,10 +1,10 @@
-from pipeline import Pipeline, pipeline_function
+from pipeline import Pipeline, pipe
 from pipeline.cloud.environments import create_environment
 from pipeline.cloud.pipelines import upload_pipeline
 from pipeline.objects.graph import Stream, Variable
 
 
-@pipeline_function
+@pipe
 def streaming_function(input_str: str) -> Stream[str]:
     import time
 

@@ -143,6 +143,28 @@ class RunIOType(str, Enum):
         else:
             return cls.pkl
 
+    @staticmethod
+    def to_object(io_type: "RunIOType"):
+        if isinstance(io_type, str):
+            io_type = RunIOType(io_type)
+
+        if io_type == RunIOType.integer:
+            return int
+        elif io_type == RunIOType.fp:
+            return float
+        elif io_type == RunIOType.string:
+            return str
+        elif io_type == RunIOType.boolean:
+            return bool
+        elif io_type == RunIOType.none:
+            return None
+        elif io_type == RunIOType.dictionary:
+            return dict
+        elif io_type == RunIOType.array:
+            return list
+        else:
+            raise ValueError(f"Invalid io_type: {io_type}")
+
 
 class RunOutputFile(BaseModel):
     name: str

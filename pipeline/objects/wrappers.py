@@ -1,11 +1,4 @@
-from pipeline.objects import (
-    Graph,
-    Pipeline,
-    PipelineFile,
-    Variable,
-    pipeline_function,
-    pipeline_model,
-)
+from pipeline.objects import File, Graph, Pipeline, Variable, entity, pipe
 
 
 def onnx_to_pipeline(path: str, name: str = "onnx_model") -> Graph:
@@ -19,20 +12,20 @@ def onnx_to_pipeline(path: str, name: str = "onnx_model") -> Graph:
                 pipeline (Graph): Executable Pipeline Graph object
     """
 
-    @pipeline_model
+    @entity
     class model:
         def __init__(self):
             self.session = None
 
         import numpy as np
 
-        @pipeline_function
+        @pipe
         def predict(self, onnx_output: list, onnx_input: dict = {}) -> list:
             res = self.session.run(onnx_output, onnx_input)
             return res[0].tolist()
 
-        @pipeline_function(run_once=True, on_startup=True)
-        def load(self, onnx_file: PipelineFile) -> bool:
+        @pipe(run_once=True, on_startup=True)
+        def load(self, onnx_file: File) -> bool:
             import onnxruntime
 
             self.session = onnxruntime.InferenceSession(
@@ -44,7 +37,7 @@ def onnx_to_pipeline(path: str, name: str = "onnx_model") -> Graph:
             return True
 
     with Pipeline(name) as pipeline:
-        onnx_file = PipelineFile(path=path)
+        onnx_file = File(path=path)
         onnx_output = Variable(list, is_input=True)
         onnx_input = Variable(dict, is_input=True)
 

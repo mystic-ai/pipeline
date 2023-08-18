@@ -1,10 +1,10 @@
-from pipeline import Pipeline, Variable, pipeline_function
+from pipeline import Pipeline, Variable, pipe
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.environments import create_environment
 from pipeline.cloud.pipelines import upload_pipeline
 
 
-@pipeline_function
+@pipe
 def pi_sample(i: int) -> bool:
     import numpy as np
 

@@ -1,19 +1,21 @@
 from pipeline.configuration import current_configuration
 from pipeline.objects import (
+    File,
+    FileURL,
     Pipeline,
-    PipelineFile,
     Variable,
+    entity,
     onnx_to_pipeline,
-    pipeline_function,
-    pipeline_model,
+    pipe,
 )
 
 __all__ = [
     "Pipeline",
     "Variable",
-    "pipeline_model",
-    "pipeline_function",
-    "PipelineFile",
+    "entity",
+    "pipe",
+    "File",
+    "FileURL",
     "onnx_to_pipeline",
     "current_configuration",
 ]

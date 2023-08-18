@@ -3,11 +3,11 @@ import time
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from pipeline import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline import Pipeline, Variable, entity, pipe
 from pipeline.cloud.pipelines import upload_pipeline
 
 
-@pipeline_model
+@entity
 class FalconPipeline:
     def __init__(self, model_name, dtype) -> None:
         self.model = None
@@ -15,7 +15,7 @@ class FalconPipeline:
         self.model_name = model_name
         self.dtype = dtype
 
-    @pipeline_function(on_startup=True, run_once=True)
+    @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
         torch.set_grad_enabled(False)  # Disable gradient calculation globally
         self.model = (
@@ -27,7 +27,7 @@ class FalconPipeline:
         )
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, use_fast=False)
 
-    @pipeline_function
+    @pipe
     def inference(self, prompt: str, kwargs: dict) -> str:
         default_kwargs = {
             "temperature": 1.0,

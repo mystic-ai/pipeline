@@ -4,10 +4,9 @@ from pipeline.cloud.pipelines import run_pipeline
 
 start_time = datetime.datetime.now()
 
-pointer = "paulh/dict-test:test"
+pointer = "schema-demo:v1"
 
-result = run_pipeline(pointer, {"a": 10})
-
+result = run_pipeline(pointer, 1, {"in_1": 4})
 
 end_time = datetime.datetime.now()
 

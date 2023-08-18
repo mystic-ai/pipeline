@@ -4,12 +4,12 @@ from threading import Thread
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 
-from pipeline import Pipeline, pipeline_function, pipeline_model
+from pipeline import Pipeline, entity, pipe
 from pipeline.cloud.pipelines import upload_pipeline
 from pipeline.objects.variable import Stream, Variable
 
 
-@pipeline_model
+@entity
 class FalconPipeline:
     def __init__(self, model_name, dtype, load_in_8bit) -> None:
         self.model = None
@@ -21,7 +21,7 @@ class FalconPipeline:
         self.dtype = dtype
         self.load_in_8bit = load_in_8bit
 
-    @pipeline_function(on_startup=True, run_once=True)
+    @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
         torch.set_grad_enabled(False)
         start_time = time.time()
@@ -41,7 +41,7 @@ class FalconPipeline:
         )
         self.loading_time = time.time() - start_time
 
-    @pipeline_function
+    @pipe
     def streaming_function(self, prompt: str, kwargs: dict) -> Stream[str]:
         st = time.time()
         input_ids = self.tokenizer(prompt, return_tensors="pt").input_ids.cuda()

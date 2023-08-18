@@ -1,4 +1,4 @@
-from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline.objects import Pipeline, Variable, entity, pipe
 
 
 # Check if the decorator correctly uses __init__ and __enter__
@@ -9,11 +9,11 @@ def test_with_decorator():
 
 # Test basic Pipeline
 def test_basic_pipeline():
-    @pipeline_function
+    @pipe
     def add(f_1: float, f_2: float) -> float:
         return f_1 + f_2
 
-    @pipeline_function
+    @pipe
     def square(f_1: float) -> float:
         return f_1**2
 
@@ -33,17 +33,17 @@ def test_basic_pipeline():
 
 
 def test_run_once():
-    @pipeline_model
+    @entity
     class simple_model:
         def __init__(self):
             self.test_number = 0
 
-        @pipeline_function(run_once=True)
+        @pipe(run_once=True)
         def run_once_func(self) -> int:
             self.test_number += 1
             return self.test_number
 
-        @pipeline_function
+        @pipe
         def get_number(self) -> int:
             return self.test_number
 
@@ -60,17 +60,17 @@ def test_run_once():
 
 
 def test_run_startup():
-    @pipeline_model
+    @entity
     class simple_model:
         def __init__(self):
             self.test_number = 0
 
-        @pipeline_function(on_startup=True)
+        @pipe(on_startup=True)
         def run_startup_func(self) -> int:
             self.test_number += 1
             return self.test_number
 
-        @pipeline_function
+        @pipe
         def get_number(self) -> int:
             return self.test_number
 
@@ -90,7 +90,7 @@ def test_run_startup():
 
 # def test_remote_file_not_downloaded():
 #     with Pipeline() as builder:
-#         PipelineFile()
+#         File()
 
 #     test_pipeline = builder.get_pipeline()
 #     with pytest.raises(

@@ -56,7 +56,7 @@ def list_resources() -> None:
                 if "cpu" in accelerators
                 else "\n".join(
                     [
-                        f"{[accel['name'] for accel in accelerators].count(accelerator)}× {Accelerator.from_str(accelerator)} ({sum([accel['vram_total_mb'] for accel in accelerators if accel['name'] == accelerator]) / 1024.0}GB VRAM)"  # noqa E501
+                        f"{[accel['name'] for accel in accelerators].count(accelerator)}× {Accelerator.from_str(accelerator)} ({round(sum([accel['vram_total_mb'] for accel in accelerators if accel['name'] == accelerator]) / 1024.0, 1)}GB VRAM)"  # noqa E501
                         for accelerator in set(
                             [accel["name"] for accel in accelerators]
                         )

@@ -1,15 +1,264 @@
+import inspect
 import tempfile
-from typing import Any, Iterable, List, Optional
+from pathlib import Path
+from types import NoneType, UnionType
+from typing import Any, Iterable, List, Optional, get_args
+from urllib.parse import urlparse
 
 from cloudpickle import dumps
 from dill import loads
-from pydantic import BaseModel
 
 from pipeline.cloud.schemas.pipelines import IOVariable
 from pipeline.cloud.schemas.runs import RunIOType
 from pipeline.objects.function import Function
 from pipeline.objects.model import Model
 from pipeline.util import dump_object, generate_id
+
+
+class InputSchema:
+    def __init__(self, **kwargs):
+        for key, value in self.__annotations__.items():
+            validation_field = getattr(self, key, None)
+            if not isinstance(validation_field, InputField):
+                raise Exception("Must be InputField")
+
+            if validation_field.default is ... and (
+                "typing.Optional" in str(value) or isinstance(value, UnionType)
+            ):
+                raise Exception("Must define default values for optional fields!")
+
+            if key not in kwargs and validation_field.default is not ...:
+                setattr(self, key, validation_field.default)
+                continue
+
+            if key not in kwargs and validation_field.default is ...:
+                raise Exception(f"Missing value for '{key}'")
+
+            validation_field.validate(kwargs[key])
+            setattr(self, key, kwargs[key])
+
+    def __repr__(self) -> str:
+        vars = ", ".join(
+            [f"{key}={getattr(self, key)}" for key in self.__annotations__.keys()]
+        )
+        return f"InputSchema({vars})"
+
+    @classmethod
+    def to_schema(cls) -> List[dict]:
+        output_list: List[IOVariable] = []
+
+        items = dir(cls)
+
+        for item, title in [
+            (_field, item)
+            for item in items
+            if (_field := getattr(cls, item, None)) and isinstance(_field, InputField)
+        ]:
+            var_type = cls.__annotations__[title]
+
+            if isinstance(var_type, UnionType) or "typing.Optional" in str(var_type):
+                var_union_types = list(get_args(var_type))
+                if len(var_union_types) > 2:
+                    raise Exception("Only support Union of 2 types")
+                if NoneType in var_union_types:
+                    if item.default is None:
+                        raise Exception(
+                            "Must define default values for optional fields!"
+                        )
+
+                    var_union_types.remove(NoneType)
+                else:
+                    raise Exception("Only support Union with None")
+                var_type = var_union_types[0]
+
+            output_list.append(
+                item._to_io_schema(
+                    _type=var_type,
+                    _title=title,
+                ).dict()
+            )
+        return output_list
+
+    @classmethod
+    def from_schema(cls, schemas: List[dict]) -> "InputSchema":
+        new_input_schema = cls()
+        new_input_schema.__annotations__ = {}
+        for schema in schemas:
+            input_field = InputField._from_io_schema(IOVariable(**schema))
+
+            setattr(
+                new_input_schema,
+                schema.get("title"),
+                input_field,
+            )
+
+            new_input_schema.__annotations__[schema.get("title")] = RunIOType.to_object(
+                schema.get("run_io_type")
+            )
+
+        return new_input_schema
+
+    def parse_dict(self, input_dict: dict) -> None:
+        for item, title in [
+            (_field, item)
+            for item in dir(self)
+            if (_field := getattr(self, item, None)) and isinstance(_field, InputField)
+        ]:
+            print(f"Assesing {title}")
+            entered_value = input_dict.get(title, None)
+            if item.default is None and entered_value is None:
+                raise Exception(f"Field {title} is not optional, no value entered")
+
+            item.validate(entered_value)
+
+            print(f"Now {title}={entered_value}")
+            setattr(self, title, entered_value)
+
+    def to_dict(self) -> dict:
+        return {key: getattr(self, key) for key in self.__annotations__.keys()}
+
+
+class InputField:
+    def __init__(
+        self,
+        default: Any | None = ...,
+        title: str | None = None,
+        description: str | None = None,
+        examples: list[Any] | None = None,
+        gt: int | None = None,
+        ge: int | None = None,
+        lt: int | None = None,
+        le: int | None = None,
+        multiple_of: int | None = None,
+        allow_inf_nan: bool | None = None,
+        max_digits: int | None = None,
+        decimal_places: int | None = None,
+        min_length: int | None = None,
+        max_length: int | None = None,
+        choices: list[Any] | None = None,
+    ):
+        self.default = default
+        self.title = title
+        self.description = description
+        self.examples = examples
+        self.gt = gt
+        self.ge = ge
+        self.lt = lt
+        self.le = le
+        self.multiple_of = multiple_of
+        self.allow_inf_nan = allow_inf_nan
+        self.max_digits = max_digits
+        self.decimal_places = decimal_places
+        self.min_length = min_length
+        self.max_length = max_length
+        self.choices = choices
+
+        if default is not ...:
+            try:
+                self.validate(self.default)
+            except VariableException as e:
+                raise VariableException(
+                    f"Default value {default} is invalid for field {self.title}"
+                ) from e
+
+    def _to_io_schema(self, _type: Any, _title: str) -> IOVariable:
+        return IOVariable(
+            run_io_type=RunIOType.from_object(_type),
+            title=_title,
+            description=self.description,
+            examples=self.examples,
+            gt=self.gt,
+            ge=self.ge,
+            lt=self.lt,
+            le=self.le,
+            multiple_of=self.multiple_of,
+            allow_inf_nan=self.allow_inf_nan,
+            max_digits=self.max_digits,
+            decimal_places=self.decimal_places,
+            min_length=self.min_length,
+            max_length=self.max_length,
+            choices=self.choices,
+            default=self.default,
+        )
+
+    @classmethod
+    def _from_io_schema(cls, schema: IOVariable):
+        return cls(
+            default=schema.default,
+            description=schema.description,
+            examples=schema.examples,
+            gt=schema.gt,
+            ge=schema.ge,
+            lt=schema.lt,
+            le=schema.le,
+            multiple_of=schema.multiple_of,
+            allow_inf_nan=schema.allow_inf_nan,
+            max_digits=schema.max_digits,
+            decimal_places=schema.decimal_places,
+            min_length=schema.min_length,
+            max_length=schema.max_length,
+            choices=schema.choices,
+            title=schema.title,
+        )
+
+    def validate(self, value: Any):
+        if self.choices is not None:
+            if value not in self.choices:
+                raise VariableException(
+                    f"Value is not in the choices of {self.choices}"
+                )
+
+        if self.gt is not None:
+            if value <= self.gt:
+                raise VariableException(f"Value is not greater than {self.gt}")
+
+        if self.ge is not None:
+            if value < self.ge:
+                raise VariableException(
+                    f"Value is not greater than or equal to {self.ge}"
+                )
+
+        if self.lt is not None:
+            if value >= self.lt:
+                raise VariableException(f"Value is not less than {self.lt}")
+
+        if self.le is not None:
+            if value > self.le:
+                raise VariableException(f"Value is not less than or equal to {self.le}")
+
+        if self.multiple_of is not None:
+            if value % self.multiple_of != 0:
+                raise VariableException(
+                    f"Value is not a multiple of {self.multiple_of}"
+                )
+
+        if self.allow_inf_nan is not None:
+            if not self.allow_inf_nan and (
+                value == float("inf") or value == float("-inf") or value == float("nan")
+            ):
+                raise VariableException("Value is not allowed to be infinity or nan")
+
+        if self.max_digits is not None:
+            if len(str(value)) > self.max_digits:
+                raise VariableException(f"Value has more than {self.max_digits} digits")
+
+        if self.decimal_places is not None:
+            if len(str(value).split(".")[1]) > self.decimal_places:
+                raise VariableException(
+                    f"Value has more than {self.decimal_places} decimal places"
+                )
+
+        if self.min_length is not None:
+            if len(str(value)) < self.min_length:
+                raise VariableException(
+                    f"Value has less than {self.min_length} characters"
+                )
+
+        if self.max_length is not None:
+            if len(str(value)) > self.max_length:
+                raise VariableException(
+                    f"Value has more than {self.max_length} characters"
+                )
 
 
 class VariableException(Exception):
@@ -49,7 +298,7 @@ class Variable:
         min_length: int | None = None,
         max_length: int | None = None,
         choices: list[Any] | None = None,
-        dict_schema: BaseModel | None = None,
+        allow_out_of_context_creation: bool = False,
     ):
         from pipeline.objects.pipeline import Pipeline
 
@@ -71,12 +320,15 @@ class Variable:
         self.min_length = min_length
         self.max_length = max_length
         self.choices = choices
-        self.dict_schema = dict_schema.schema() if dict_schema is not None else None
+        self.dict_schema = (
+            type_class.to_schema() if isinstance(type_class, InputSchema) else None
+        )
 
-        if not Pipeline._pipeline_context_active:
+        if not Pipeline._pipeline_context_active and not allow_out_of_context_creation:
             raise Exception("Cant add a variable when not defining a pipeline")
 
-        Pipeline._current_pipeline.variables.append(self)
+        if Pipeline._pipeline_context_active:
+            Pipeline._current_pipeline.variables.append(self)
 
         self.local_id = generate_id(10) if not local_id else local_id
 
@@ -144,7 +396,12 @@ class Variable:
 
     def to_io_schema(self) -> IOVariable:
         return IOVariable(
-            run_io_type=RunIOType.from_object(self.type_class),
+            run_io_type=RunIOType.dictionary
+            if (
+                inspect.isclass(self.type_class)
+                and issubclass(self.type_class, InputSchema)
+            )
+            else RunIOType.from_object(self.type_class),
             title=self.title,
             description=self.description,
             examples=self.examples,
@@ -163,15 +420,16 @@ class Variable:
         )
 
 
-class PipelineFile(Variable):
-    path: str
+class File(Variable):
+    path: Path
 
     def __init__(
         self,
         *,
-        path: str = None,
+        path: str | Path = None,
         title: str = None,
         local_id: str = None,
+        allow_out_of_context_creation: bool = False,
     ) -> None:
         super().__init__(
             type_class=self.__class__,
@@ -179,8 +437,10 @@ class PipelineFile(Variable):
             is_output=False,
             title=title,
             local_id=local_id,
+            allow_out_of_context_creation=allow_out_of_context_creation,
         )
-        self.path = path
+
+        self.path = path if isinstance(path, Path) else Path(path)
 
     @classmethod
     def from_object(
@@ -198,6 +458,12 @@ class PipelineFile(Variable):
             path=temp_file.name,
             title=temp_file.name,
         )
+
+
+class FileURL:
+    def __init__(self, url: str):
+        self.url = url
+        urlparse(url)
 
 
 class Stream(Variable, Iterable):
@@ -261,8 +527,8 @@ class Graph:
         startup_variables = {}
 
         for var in self.variables:
-            # At the moment only the PipelineFile variable can be used on startup
-            if isinstance(var, PipelineFile):
+            # At the moment only the File variable can be used on startup
+            if isinstance(var, File):
                 startup_variables[var.local_id] = var
 
         for node in self.nodes:
@@ -319,16 +585,21 @@ class Graph:
 
         running_variables = {}
 
-        # Add all PipelineFile's to the running variables
+        # Add all File's to the running variables
         for var in self.variables:
-            if isinstance(var, PipelineFile):
+            if isinstance(var, File):
                 if not var.path:
-                    raise Exception("Must define a path for a PipelineFile")
+                    raise Exception("Must define a path for a File")
 
                 running_variables[var.local_id] = var
 
         for i, input in enumerate(inputs):
-            if not isinstance(input, input_variables[i].type_class):
+            target_type = input_variables[i].type_class
+
+            if issubclass(target_type, InputSchema) and isinstance(input, dict):
+                print("IN HERE")
+                input = target_type(**input)
+            elif not isinstance(input, input_variables[i].type_class):
                 raise Exception(
                     "Input type mismatch, expceted %s got %s"
                     % (

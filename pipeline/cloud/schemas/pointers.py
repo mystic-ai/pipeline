@@ -6,7 +6,7 @@ from pydantic import validator
 from pipeline.cloud.schemas import BaseModel
 
 POINTER_REGEX = re.compile(
-    r"^[a-zA-Z0-9][a-zA-Z0-9-._/]*[a-zA-Z0-9]:[0-9A-Za-z][0-9A-Za-z-_.]{0,127}[0-9A-Za-z]$"
+    r"^[a-zA-Z0-9][a-zA-Z0-9-._/]*[a-zA-Z0-9]:[0-9A-Za-z][0-9A-Za-z-_.]{0,127}[0-9A-Za-z]$"  # noqa
 )
 
 
