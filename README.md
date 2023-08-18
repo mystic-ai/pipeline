@@ -7,6 +7,7 @@ Find loads of premade models in in production for free in Catalyst: [https://www
 
 - [About](#about)
 - [Installation](#installation)
+- [Models](#models)
 - [Example and tutorials](#example-and-tutorials)
 - [Development](#development)
 - [License](#license)
