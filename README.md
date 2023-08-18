@@ -25,6 +25,19 @@ You must be using `python==3.10`.
 python -m pip install -U --pre pipeline-ai
 ```
 
+# Models
+
+Below are some popular models that have been premade by the community on Catalyst. You can find more models in the [explore](https://beta.mystic.ai/explore) section of Catalyst, and the source code for these models is also referenced in the table.
+
+| Model | Category | Description | Source |
+| --- | --- | --- | --- |
+| [meta/llama2-7B](https://beta.mystic.ai/meta/llama2-70b) | LLM| A 7B parameter LLM created by Meta | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [meta/llama2-13B](https://beta.mystic.ai/meta/llama2-70b) |LLM| A 13B parameter LLM created by Meta | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [meta/llama2-70B](https://beta.mystic.ai/meta/llama2-70b) |LLM| A 70B parameter LLM created by Meta | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [tiiuae/falcon-40B](https://beta.mystic.ai/meta/llama2-70b) |LLM| Falcon-40B is a 40B parameters causal decoder-only model built by TII and trained on 1T tokens of RefinedWeb enhanced with curated corpora. | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [runwayml/stable-diffusion-1.5](https://beta.mystic.ai/meta/llama2-70b) |Vision| Text -> Image | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [runwayml/stable-diffusion-2.0](https://beta.mystic.ai/meta/llama2-70b) |Vision| Text -> Image | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [runwayml/stable-diffusion-2.1](https://beta.mystic.ai/meta/llama2-70b) |Vision| Text -> Image | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
 
 
 # Example and tutorials
