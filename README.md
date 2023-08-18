@@ -6,7 +6,7 @@ Find loads of premade models in in production for free in Catalyst: [https://www
 
 - [About](#about)
 - [Installation](#installation)
-- [Example](#examples)
+- [Example and tutorials](#example-and-tutorials)
 - [Development](#development)
 - [License](#license)
 
@@ -24,9 +24,23 @@ You must be using `python==3.10`.
 python -m pip install -U --pre pipeline-ai
 ```
 
-# Example
 
-> :warning: **Uploading pipelines to Catalyst works best in Python 3.10.**
+
+# Example and tutorials
+
+| Tutorial | Description |
+| --- | --- |
+| [Keyword schemas](https://docs.mystic.ai/docs/keyword-schemas)|Set default, min, max, and various other constraints on your inputs with schemas|
+| [Entity objects](https://docs.mystic.ai/docs/entity-objects)|Use entity objects to persist values and store things|
+| [Cold start optimisations](https://docs.mystic.ai/docs/cold-start-optimisations)|Premade functions to do heavy tasks seperately|
+| [Input/output types](https://docs.mystic.ai/docs/typing)|Defining what goes in and out of your pipes|
+| [Files](https://docs.mystic.ai/docs/files)|Inputing or outputing files from your runs|
+| [Pipeline building](https://docs.mystic.ai/docs/pipeline-building)|Building pipelines - how it works|
+| [Virtual environments](https://docs.mystic.ai/docs/virtual-environments)|Creating a virtual environment for your pipeline to run in|
+| [GPUs and Accelerators](https://docs.mystic.ai/docs/accelerators)|Add hardware definitions to your pipelines|
+| [Runs](https://docs.mystic.ai/docs/runs)|Running a pipeline remotely - how it works|
+
+> :warning: **Uploading pipelines to Catalyst requires Python 3.10.**
 
 Below is some sample python that demonstrates various features and how to use the Pipeline SDK to create a simple pipeline that can be run locally or on Catalyst.
 
@@ -43,7 +57,7 @@ from pipeline.objects import File
 from pipeline.objects.graph import InputField, InputSchema
 
 
-class ModelKwargs(InputSchema): # TUTORIAL: Keyword schemas - https://docs.mystic.ai/docs/keyword-schemas
+class ModelKwargs(InputSchema): # TUTORIAL: Keyword schemas
     height: int | None = InputField(default=512, ge=64, le=1024)
     width: int | None = InputField(default=512, ge=64, le=1024)
     num_inference_steps: int | None = InputField(default=50)
@@ -51,9 +65,9 @@ class ModelKwargs(InputSchema): # TUTORIAL: Keyword schemas - https://docs.mysti
     guidance_scale: int | None = InputField(default=7.5)
 
 
-@pipeline_model # TUTORIAL: Entity objects - https://docs.mystic.ai/docs/entity-objects
+@pipeline_model # TUTORIAL: Entity objects
 class StableDiffusionModel:
-    @pipe(on_startup=True, run_once=True) # TUTORIAL: Cold start optimisations - https://docs.mystic.ai/docs/cold-start-optimisations
+    @pipe(on_startup=True, run_once=True) # TUTORIAL: Cold start optimisations
     def load(self):
         model_id = "runwayml/stable-diffusion-v1-5"
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -63,7 +77,7 @@ class StableDiffusionModel:
         self.pipe = self.pipe.to(device)
 
     @pipe
-    def predict(self, prompt: str, kwargs: ModelKwargs) -> List[File]: # TUTORIAL: Input/output types - https://docs.mystic.ai/docs/typing
+    def predict(self, prompt: str, kwargs: ModelKwargs) -> List[File]: # TUTORIAL: Input/output types
         defaults = kwargs.to_dict()
         images = self.pipe(prompt, **defaults).images
 
@@ -72,12 +86,12 @@ class StableDiffusionModel:
             path = Path(f"/tmp/sd/image-{i}.jpg")
             path.parent.mkdir(parents=True, exist_ok=True)
             image.save(str(path))
-            output_images.append(File(path=path, allow_out_of_context_creation=True)) # TUTORIAL: Files - https://docs.mystic.ai/docs/files
+            output_images.append(File(path=path, allow_out_of_context_creation=True)) # TUTORIAL: Files
 
         return output_images
 
 
-with Pipeline() as builder: # TUTORIAL: Pipeline building - https://docs.mystic.ai/docs/pipeline-building
+with Pipeline() as builder: # TUTORIAL: Pipeline building
     prompt = Variable(str)
     kwargs = Variable(ModelKwargs)
     model = StableDiffusionModel()
@@ -87,7 +101,7 @@ with Pipeline() as builder: # TUTORIAL: Pipeline building - https://docs.mystic.
 
 my_pl = builder.get_pipeline()
 
-environments.create_environment( # TUTORIAL: Virtual environments - https://docs.mystic.ai/docs/virtual-environments
+environments.create_environment( # TUTORIAL: Virtual environments
     "stable-diffusion",
     python_requirements=[
         "torch==2.0.1",
@@ -103,11 +117,11 @@ pipelines.upload_pipeline(
     environment_id_or_name="stable-diffusion",
     required_gpu_vram_mb=10_000,
     accelerators=[
-        compute_requirements.Accelerator.nvidia_l4, # TUTORIAL: GPUs and Accelerators - https://docs.mystic.ai/docs/virtual-environments
+        compute_requirements.Accelerator.nvidia_l4, # TUTORIAL: GPUs and Accelerators
     ],
 )
 
-output = pipelines.run_pipeline( # TUTORIAL: Runs - https://docs.mystic.ai/docs/runs
+output = pipelines.run_pipeline( # TUTORIAL: Runs
     "stable-diffusion:latest",
     prompt="A photo of a cat",
     kwargs=dict(),
