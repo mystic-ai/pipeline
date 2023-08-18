@@ -1,9 +1,9 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from pipeline import pipe, pipeline_model
+from pipeline import entity, pipe
 
 
-@pipeline_model
+@entity
 class TransformersModelForCausalLM:
     def __init__(
         self,

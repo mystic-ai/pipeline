@@ -1,9 +1,9 @@
-from pipeline.objects import Pipeline, Variable, pipe, pipeline_model
+from pipeline.objects import Pipeline, Variable, entity, pipe
 
 
 # Test basic Pipeline
 def test_with_exit():
-    @pipeline_model()
+    @entity()
     class CustomModel:
         def __init__(self, model_path="", tokenizer_path=""):
             self.model_path = model_path

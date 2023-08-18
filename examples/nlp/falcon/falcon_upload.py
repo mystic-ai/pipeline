@@ -3,11 +3,11 @@ import time
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from pipeline import Pipeline, Variable, pipe, pipeline_model
+from pipeline import Pipeline, Variable, entity, pipe
 from pipeline.cloud.pipelines import upload_pipeline
 
 
-@pipeline_model
+@entity
 class FalconPipeline:
     def __init__(self, model_name, dtype) -> None:
         self.model = None

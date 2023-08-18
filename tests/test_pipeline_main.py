@@ -1,4 +1,4 @@
-from pipeline.objects import Pipeline, Variable, pipe, pipeline_model
+from pipeline.objects import Pipeline, Variable, entity, pipe
 
 
 # Check if the decorator correctly uses __init__ and __enter__
@@ -33,7 +33,7 @@ def test_basic_pipeline():
 
 
 def test_run_once():
-    @pipeline_model
+    @entity
     class simple_model:
         def __init__(self):
             self.test_number = 0
@@ -60,7 +60,7 @@ def test_run_once():
 
 
 def test_run_startup():
-    @pipeline_model
+    @entity
     class simple_model:
         def __init__(self):
             self.test_number = 0

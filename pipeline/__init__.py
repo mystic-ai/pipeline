@@ -4,15 +4,15 @@ from pipeline.objects import (
     FileURL,
     Pipeline,
     Variable,
+    entity,
     onnx_to_pipeline,
     pipe,
-    pipeline_model,
 )
 
 __all__ = [
     "Pipeline",
     "Variable",
-    "pipeline_model",
+    "entity",
     "pipe",
     "File",
     "FileURL",

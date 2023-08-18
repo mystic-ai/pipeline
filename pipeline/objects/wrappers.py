@@ -1,4 +1,4 @@
-from pipeline.objects import File, Graph, Pipeline, Variable, pipe, pipeline_model
+from pipeline.objects import File, Graph, Pipeline, Variable, entity, pipe
 
 
 def onnx_to_pipeline(path: str, name: str = "onnx_model") -> Graph:
@@ -12,7 +12,7 @@ def onnx_to_pipeline(path: str, name: str = "onnx_model") -> Graph:
                 pipeline (Graph): Executable Pipeline Graph object
     """
 
-    @pipeline_model
+    @entity
     class model:
         def __init__(self):
             self.session = None

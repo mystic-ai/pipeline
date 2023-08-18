@@ -1,12 +1,12 @@
 from httpx import Response
 
-from pipeline import Pipeline, Variable, pipe, pipeline_model
+from pipeline import Pipeline, Variable, entity, pipe
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.environments import create_environment
 from pipeline.cloud.pipelines import upload_pipeline
 
 
-@pipeline_model
+@entity
 class PipelineGPTNeo:
     def __init__(self):
         self.model = None

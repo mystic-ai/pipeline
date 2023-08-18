@@ -43,7 +43,7 @@ def pipe(function=None, *, run_once=False, on_startup=False):
             for input_arg in args:
                 if isinstance(input_arg, Variable):
                     processed_args.append(input_arg)
-                elif hasattr(input_arg, "__pipeline_model__"):
+                elif hasattr(input_arg, "__entity__"):
                     if function.__pipe__.class_instance is None:
                         function.__pipe__.class_instance = input_arg
                 elif isinstance(input_arg, tuple) and all(
@@ -111,20 +111,20 @@ def pipe(function=None, *, run_once=False, on_startup=False):
     return execute_func
 
 
-class pipeline_model(object):
+class entity(object):
     def __init__(
         self,
         model_class=None,
     ):
         if model_class is not None:
-            model_class.__pipeline_model__ = True
+            model_class.__entity__ = True
 
         self.model_class = model_class
 
     def __call__(self, *args, **kwargs):
         if len(args) + len(kwargs) == 1:
             self.model_class = args[0]
-            self.model_class.__pipeline_model__ = True
+            self.model_class.__entity__ = True
             return self.__function_exe__
         else:
             return self.__function_exe__(*args, **kwargs)

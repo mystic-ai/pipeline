@@ -4,12 +4,12 @@ from threading import Thread
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
 
-from pipeline import Pipeline, pipe, pipeline_model
+from pipeline import Pipeline, entity, pipe
 from pipeline.cloud.pipelines import upload_pipeline
 from pipeline.objects.variable import Stream, Variable
 
 
-@pipeline_model
+@entity
 class FalconPipeline:
     def __init__(self, model_name, dtype, load_in_8bit) -> None:
         self.model = None

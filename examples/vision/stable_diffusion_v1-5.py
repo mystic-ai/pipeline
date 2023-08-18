@@ -4,7 +4,7 @@ from typing import List
 import torch
 from diffusers import StableDiffusionPipeline
 
-from pipeline import Pipeline, Variable, pipe, pipeline_model
+from pipeline import Pipeline, Variable, entity, pipe
 from pipeline.cloud import compute_requirements, environments, pipelines
 from pipeline.objects import File
 from pipeline.objects.graph import InputField, InputSchema
@@ -18,7 +18,7 @@ class ModelKwargs(InputSchema):
     guidance_scale: int | None = InputField(default=7.5)
 
 
-@pipeline_model
+@entity
 class StableDiffusionModel:
     def __init__(self):
         ...

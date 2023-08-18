@@ -1,4 +1,4 @@
-from pipeline.objects.decorators import pipe, pipeline_model
+from pipeline.objects.decorators import entity, pipe
 from pipeline.objects.function import Function
 from pipeline.objects.graph import File, FileURL, Graph, Variable
 from pipeline.objects.model import Model
@@ -12,7 +12,7 @@ __all__ = [
     "Model",
     "Variable",
     "pipe",
-    "pipeline_model",
+    "entity",
     "File",
     "FileURL",
     "onnx_to_pipeline",
