@@ -1,173 +1,118 @@
-# [Pipeline](https://pipeline.ai) [![Version](https://img.shields.io/pypi/v/pipeline-ai)](https://pypi.org/project/pipeline-ai) ![Size](https://img.shields.io/github/repo-size/neuro-ai-dev/pipeline) ![Downloads](https://img.shields.io/pypi/dm/pipeline-ai) [![License](https://img.shields.io/crates/l/ap)](https://www.apache.org/licenses/LICENSE-2.0) [![Discord](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/eJQRkBdEcs)
+# [Pipeline SDK](https://mystic.ai) [![Version](https://img.shields.io/pypi/v/pipeline-ai)](https://pypi.org/project/pipeline-ai) ![Size](https://img.shields.io/github/repo-size/neuro-ai-dev/pipeline) ![Downloads](https://img.shields.io/pypi/dm/pipeline-ai) [![License](https://img.shields.io/crates/l/ap)](https://www.apache.org/licenses/LICENSE-2.0) [![Discord](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/eJQRkBdEcs)
 
-[_powered by mystic_](https://www.mystic.ai/)
+Find loads of premade models in in production for free in Catalyst: [https://www.mystic.ai/explore](https://beta.mystic.ai/)
 
 # Table of Contents
 
 - [About](#about)
-- [Version roadmap](#version-roadmap)
-  - [v0.4.0](#v040-jan-2023)
-  - [v0.5.0](#v050-janfeb-2023)
-  - [Beyond](#beyond)
-- [Quickstart](#quickstart)
-  - [Basic maths](#basic-maths)
-  - [Transformers (GPT-Neo 125M)](#transformers-gpt-neo-125m)
-- [Installation instructions](#installation-instructions)
-  - [Linux, Mac (intel)](#linux--mac--intel-)
-  - [Mac (arm/M1)](#mac--arm-m1-)
+- [Installation](#installation)
+- [Example](#examples)
 - [Development](#development)
 - [License](#license)
 
 # About
 
-Pipeline is a python library that provides a simple way to construct computational graphs for AI/ML. The library is suitable for both development and production environments supporting inference and training/finetuning. This library is also a direct interface to [Pipeline.ai](https://pipeline.ai) which provides a compute engine to run pipelines at scale and on enterprise GPUs.
+Pipeline is a python library that provides a simple way to construct computational graphs for AI/ML. The library is suitable for both development and production environments supporting inference and training/finetuning. This library is also a direct interface to [Catalyst](https://www.mystic.ai/pipeline-catalyst) which provides a compute engine to run pipelines at scale and on enterprise GPUs. Along with Catalyst,
+this SDK can also be used with [Pipeline Core](https://www.mystic.ai/pipeline-core) on a private hosted cluster.
 
 The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect). In future releases we will be moving away from this syntax to a C based graph compiler which interprets python directly (and other languages) allowing users of the API to compose graphs in a more native way to the chosen language.
 
-# Version roadmap
-
-## v0.4.0 (Jan 2023)
-
-- Custom environments on PipelineCloud (remote compute services)
-- Kwarg inputs to runs
-- Extended IO inputs to `pipe` objects
-
-## v0.5.0 (Jan/Feb 2023)
-
-- Pipeline chaining
-- `if` statements & `while/for` loops
-
-## Beyond
-
-- Run log streaming
-- Run progress tracking
-- Resource dedication
-- Pipeline scecific remote load balancer (10% of traffic to one pipeline 80% to another)
-- Usage capping
-- Run result streaming
-- Progromatic autoscaling
-- Alerts
-- Events
-- Different python versions on remote compute services
-
-# Quickstart
-
-> :warning: **Uploading pipelines to Pipeline Cloud works best in Python 3.9.** We strongly recommend you use Python 3.9 when uploading pipelines because the `pipeline-ai` library is still in beta and is known to cause opaque errors when pipelines are serialised from a non-3.9 environment.
-
-## Basic maths
-
-```python
-from pipeline import Pipeline, Variable, pipe
-
-
-@pipe
-def square(a: float) -> float:
-    return a**2
-
-@pipe
-def multiply(a: float, b: float) -> float:
-    return a * b
-
-with Pipeline("maths") as pipeline:
-    flt_1 = Variable(type_class=float, is_input=True)
-    flt_2 = Variable(type_class=float, is_input=True)
-    pipeline.add_variables(flt_1, flt_2)
-
-    sq_1 = square(flt_1)
-    res_1 = multiply(flt_2, sq_1)
-    pipeline.output(res_1)
-
-output_pipeline = Pipeline.get_pipeline("maths")
-print(output_pipeline.run(5.0, 6.0))
-
-```
-
-## Transformers (GPT-Neo 125M)
-
-_Note: requires `torch` and `transformers` as dependencies._
-
-```python
-from pipeline import Pipeline, Variable
-from pipeline.objects.huggingface.TransformersModelForCausalLM import (
-    TransformersModelForCausalLM,
-)
-
-with Pipeline("hf-pipeline") as builder:
-    input_str = Variable(str, is_input=True)
-    model_kwargs = Variable(dict, is_input=True)
-
-    builder.add_variables(input_str, model_kwargs)
-
-    hf_model = TransformersModelForCausalLM(
-        model_path="EleutherAI/gpt-neo-125M",
-        tokenizer_path="EleutherAI/gpt-neo-125M",
-    )
-    hf_model.load()
-    output_str = hf_model.predict(input_str, model_kwargs)
-
-    builder.output(output_str)
-
-output_pipeline = Pipeline.get_pipeline("hf-pipeline")
-
-print(
-    output_pipeline.run(
-        "Hello my name is", {"min_length": 100, "max_length": 150, "temperature": 0.5}
-    )
-)
-```
-
-# Installation instructions
-
-## Linux, Mac (intel)
+# Installation
+You must be using `python==3.10`.
 
 ```shell
-pip install -U pipeline-ai
+python -m pip install -U --pre pipeline-ai
 ```
 
-## Mac (arm/M1)
+# Example
 
-Due to the ARM architecture of the M1 core it is necessary to take additional steps to install Pipeline, mostly due to the transformers library. We recoomend running inside of a conda environment as shown below.
+> :warning: **Uploading pipelines to Catalyst works best in Python 3.10.**
 
-1. Make sure Rosetta2 is disabled.
-2. From terminal run:
+Below is some sample python that demonstrates various features and how to use the Pipeline SDK to create a simple pipeline that can be run locally or on Catalyst.
 
-```
-xcode-select --install
-```
+```python
+from pathlib import Path
+from typing import List
 
-3. Install Miniforge, instructions here: [https://github.com/conda-forge/miniforge](https://github.com/conda-forge/miniforge) or follow the below:
-   1. Download the Miniforge install script here: [https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh](https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-MacOSX-arm64.sh)
-   2. Make the shell executable and run
-   ```
-   sudo chmod 775 Miniforge3-MacOSX-arm64.sh
-   ./Miniforge3-MacOSX-arm64.sh
-   ```
-4. Create a conda based virtual env and activate:
+import torch
+from diffusers import StableDiffusionPipeline
 
-```
-conda create --name pipeline-env python=3.9
-conda activate pipeline-env
-```
+from pipeline import Pipeline, Variable, pipe, pipeline_model
+from pipeline.cloud import compute_requirements, environments, pipelines
+from pipeline.objects import File
+from pipeline.objects.graph import InputField, InputSchema
 
-5. Install tensorflow
 
-```
-conda install -c apple tensorflow-deps
-python -m pip install -U pip
-python -m pip install -U tensorflow-macos
-python -m pip install -U tensorflow-metal
-```
+class ModelKwargs(InputSchema): # TUTORIAL: Keyword schemas - https://docs.mystic.ai/docs/keyword-schemas
+    height: int | None = InputField(default=512, ge=64, le=1024)
+    width: int | None = InputField(default=512, ge=64, le=1024)
+    num_inference_steps: int | None = InputField(default=50)
+    num_images_per_prompt: int | None = InputField(default=1, ge=1, le=4)
+    guidance_scale: int | None = InputField(default=7.5)
 
-6. Install transformers
 
-```
-conda install -c huggingface transformers -y
-```
+@pipeline_model # TUTORIAL: Entity objects - https://docs.mystic.ai/docs/entity-objects
+class StableDiffusionModel:
+    @pipe(on_startup=True, run_once=True) # TUTORIAL: Cold start optimisations - https://docs.mystic.ai/docs/cold-start-optimisations
+    def load(self):
+        model_id = "runwayml/stable-diffusion-v1-5"
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.pipe = StableDiffusionPipeline.from_pretrained(
+            model_id,
+        )
+        self.pipe = self.pipe.to(device)
 
-7. Install pipeline
+    @pipe
+    def predict(self, prompt: str, kwargs: ModelKwargs) -> List[File]: # TUTORIAL: Input/output types - https://docs.mystic.ai/docs/typing
+        defaults = kwargs.to_dict()
+        images = self.pipe(prompt, **defaults).images
 
-```
-python -m pip install -U pipeline-ai
+        output_images = []
+        for i, image in enumerate(images):
+            path = Path(f"/tmp/sd/image-{i}.jpg")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            image.save(str(path))
+            output_images.append(File(path=path, allow_out_of_context_creation=True)) # TUTORIAL: Files - https://docs.mystic.ai/docs/files
+
+        return output_images
+
+
+with Pipeline() as builder: # TUTORIAL: Pipeline building - https://docs.mystic.ai/docs/pipeline-building
+    prompt = Variable(str)
+    kwargs = Variable(ModelKwargs)
+    model = StableDiffusionModel()
+    model.load()
+    output = model.predict(prompt, kwargs)
+    builder.output(output)
+
+my_pl = builder.get_pipeline()
+
+environments.create_environment( # TUTORIAL: Virtual environments - https://docs.mystic.ai/docs/virtual-environments
+    "stable-diffusion",
+    python_requirements=[
+        "torch==2.0.1",
+        "transformers==4.30.2",
+        "diffusers==0.19.3",
+        "accelerate==0.21.0",
+    ],
+)
+
+pipelines.upload_pipeline(
+    my_pl,
+    "stable-diffusion:latest",
+    environment_id_or_name="stable-diffusion",
+    required_gpu_vram_mb=10_000,
+    accelerators=[
+        compute_requirements.Accelerator.nvidia_l4, # TUTORIAL: GPUs and Accelerators - https://docs.mystic.ai/docs/virtual-environments
+    ],
+)
+
+output = pipelines.run_pipeline( # TUTORIAL: Runs - https://docs.mystic.ai/docs/runs
+    "stable-diffusion:latest",
+    prompt="A photo of a cat",
+    kwargs=dict(),
+)
+
 ```
 
 # Development
@@ -175,20 +120,20 @@ python -m pip install -U pipeline-ai
 This project is made with poetry, [so firstly setup poetry on your machine](https://python-poetry.org/docs/#installation).
 
 Once that is done, please run
-
-    sh setup.sh
-
+```shell
+./setup.sh
+```
 With this you should be good to go. This sets up dependencies, pre-commit hooks and
 pre-push hooks.
 
 You can manually run pre commit hooks with
-
-    pre-commit run --all-files
-
+```shell
+pre-commit run --all-files
+```
 To run tests manually please run
-
-    pytest
-
+```shell
+pytest
+```
 # License
 
 Pipeline is licensed under [Apache Software License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
