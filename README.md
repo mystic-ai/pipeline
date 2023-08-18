@@ -1,6 +1,6 @@
 # [Pipeline SDK](https://mystic.ai) [![Version](https://img.shields.io/pypi/v/pipeline-ai)](https://pypi.org/project/pipeline-ai) ![Size](https://img.shields.io/github/repo-size/neuro-ai-dev/pipeline) ![Downloads](https://img.shields.io/pypi/dm/pipeline-ai) [![License](https://img.shields.io/crates/l/ap)](https://www.apache.org/licenses/LICENSE-2.0) [![Discord](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/eJQRkBdEcs)
 
-Find loads of premade models in in production for free in Catalyst: [https://www.mystic.ai/explore](https://beta.mystic.ai/)
+Find loads of premade models in in production for free in Catalyst: [https://www.mystic.ai/explore](https://beta.mystic.ai/explore)
 
 # Table of Contents
 
