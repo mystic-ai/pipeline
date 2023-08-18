@@ -1,3 +1,4 @@
+import inspect
 import tempfile
 from pathlib import Path
 from types import NoneType, UnionType
@@ -97,7 +98,7 @@ class InputSchema:
 
         return new_input_schema
 
-    def parse_dict(self, input_dict: dict):
+    def parse_dict(self, input_dict: dict) -> None:
         for item, title in [
             (_field, item)
             for item in dir(self)
@@ -112,6 +113,9 @@ class InputSchema:
 
             print(f"Now {title}={entered_value}")
             setattr(self, title, entered_value)
+
+    def to_dict(self) -> dict:
+        return {key: getattr(self, key) for key in self.__annotations__.keys()}
 
 
 class InputField:
@@ -393,7 +397,10 @@ class Variable:
     def to_io_schema(self) -> IOVariable:
         return IOVariable(
             run_io_type=RunIOType.dictionary
-            if issubclass(self.type_class, InputSchema)
+            if (
+                inspect.isclass(self.type_class)
+                and issubclass(self.type_class, InputSchema)
+            )
             else RunIOType.from_object(self.type_class),
             title=self.title,
             description=self.description,

@@ -7,6 +7,15 @@ from diffusers import StableDiffusionPipeline
 from pipeline import Pipeline, Variable, pipe, pipeline_model
 from pipeline.cloud import compute_requirements, environments, pipelines
 from pipeline.objects import File
+from pipeline.objects.graph import InputField, InputSchema
+
+
+class ModelKwargs(InputSchema):
+    height: int | None = InputField(default=512, ge=64, le=1024)
+    width: int | None = InputField(default=512, ge=64, le=1024)
+    num_inference_steps: int | None = InputField(default=50)
+    num_images_per_prompt: int | None = InputField(default=1, ge=1, le=4)
+    guidance_scale: int | None = InputField(default=7.5)
 
 
 @pipeline_model
@@ -24,17 +33,8 @@ class StableDiffusionModel:
         self.pipe = self.pipe.to(device)
 
     @pipe
-    def predict(self, prompt: str, kwargs: dict) -> List[File]:
-        defaults = {
-            "height": 512,
-            "width": 512,
-            "num_inference_steps": 50,
-            "num_images_per_prompt": 1,
-            "guidance_scale": 7.5,
-        }
-
-        defaults.update(kwargs)
-        defaults["output_type"] = "pil"
+    def predict(self, prompt: str, kwargs: ModelKwargs) -> List[File]:
+        defaults = kwargs.to_dict()
         images = self.pipe(prompt, **defaults).images
 
         output_images = []
@@ -44,22 +44,12 @@ class StableDiffusionModel:
             image.save(str(path))
             output_images.append(File(path=path, allow_out_of_context_creation=True))
 
-        # import base64
-        # from io import BytesIO
-
-        # output_images = []
-        # for image in images:
-        #     buffered = BytesIO()
-        #     image.save(buffered, format="JPEG")
-        #     img_str = base64.b64encode(buffered.getvalue())
-        #     output_images.append(img_str.decode("utf-8"))
-
-        return output_images[0]
+        return output_images
 
 
 with Pipeline() as builder:
     prompt = Variable(str)
-    kwargs = Variable(dict)
+    kwargs = Variable(ModelKwargs)
 
     model = StableDiffusionModel()
 
