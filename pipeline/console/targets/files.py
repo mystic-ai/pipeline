@@ -1,6 +1,8 @@
+import os
 import typing as t
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from pathlib import Path
+from zipfile import ZipFile
 
 import requests
 from tabulate import tabulate
@@ -28,6 +30,13 @@ def create_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         "-n",
         help="Remote alias name of the file.",
         type=str,
+    )
+
+    create_parser.add_argument(
+        "--recursive",
+        "-r",
+        help="Recursively upload files in a directory (upload a directory).",
+        action="store_true",
     )
 
 
@@ -70,11 +79,52 @@ def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 def _create_file(args: Namespace) -> None:
     path: str = getattr(args, "path")
     name: str = getattr(args, "name", None)
+    recursive: bool = getattr(args, "recursive", False)
 
     local_path: Path = Path(path)
+    local_path = local_path.expanduser().resolve()
 
     if not local_path.exists():
         raise FileNotFoundError(f"File {local_path} does not exist.")
+
+    if local_path.is_dir() and not recursive:
+        raise FileNotFoundError(
+            f"File {local_path} is not a file. (Use --recursive to upload a directory.)"
+        )
+
+    if recursive:
+        tmp_path = Path("/tmp") / (str(local_path.name) + ".zip")
+        with ZipFile(str(tmp_path), "w") as zip_file:
+            for root, dirs, files in os.walk(str(local_path)):
+                for file in files:
+                    zip_file.write(
+                        os.path.join(root, file),
+                        os.path.relpath(os.path.join(root, file), str(local_path)),
+                    )
+        zip_path = tmp_path
+
+        zip_file = zip_path.open("rb")
+        try:
+            res = http.post_files(
+                "/v3/pipeline_files",
+                files=dict(pfile=zip_file),
+                progress=True,
+            )
+        finally:
+            zip_file.close()
+            print(str(zip_path))
+            os.remove(str(zip_path))
+        if res is None:
+            raise Exception("Failed uploading file")
+
+        if res.status_code != 201:
+            raise Exception(
+                f"Failed uploading file: {res.text} (code = {res.status_code})"
+            )
+
+        res_schema = res.json()
+        _print(f"Directory uploaded successfully with ID: {res_schema['id']}")
+        return
 
     query_params = dict()
     if name is not None:
