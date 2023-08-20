@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 from cloudpickle import dumps
 from dill import loads
 
+from pipeline.cloud import http
+from pipeline.cloud.schemas.files import FileGet
 from pipeline.cloud.schemas.pipelines import IOVariable
 from pipeline.cloud.schemas.runs import RunIOType
 from pipeline.objects.function import Function
@@ -441,6 +443,7 @@ class File(Variable):
         )
 
         self.path = path if isinstance(path, Path) else Path(path)
+        self.remote_id: str = None
 
     @classmethod
     def from_object(
@@ -458,6 +461,27 @@ class File(Variable):
             path=temp_file.name,
             title=temp_file.name,
         )
+
+    @classmethod
+    def from_remote(cls, *, id: str):
+        response = http.get(f"/v3/pipeline_files/{id}")
+
+        if response.status_code == 404:
+            raise Exception("File does not exist")
+
+        if response.status_code != 200:
+            raise Exception(
+                f"Something went wrong, status code: {response.status_code}"
+            )
+
+        file_schema = FileGet.parse_obj(response.json())
+
+        new_file = cls(
+            path=file_schema.path,
+        )
+        new_file.remote_id = file_schema.id
+
+        return new_file
 
 
 class FileURL:

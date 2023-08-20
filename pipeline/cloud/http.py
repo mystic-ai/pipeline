@@ -15,7 +15,7 @@ from pipeline.util.logging import PIPELINE_STR
 ACTIVE_IP = (
     active_remote.url
     if (active_remote := current_configuration.active_remote) is not None
-    else os.environ.get("PIPELINE_API_URL", None)
+    else os.environ.get("PIPELINE_API_URL", "https://www.mystic.ai/")
 )
 
 ACTIVE_TOKEN = (
@@ -150,6 +150,7 @@ def post_files(
                 "content-Type": monitor.content_type,
                 "Authorization": f"Bearer {current_configuration.active_remote.token}",
             },
+            params=params,
         )
     else:
         response = _client.post(
