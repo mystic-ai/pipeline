@@ -484,6 +484,54 @@ class File(Variable):
         return new_file
 
 
+class Directory(File):
+    def __init__(
+        self,
+        *,
+        path: str | Path = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            path=path,
+            **kwargs,
+        )
+
+        if not self.path.is_dir() and not str(self.path).endswith(".zip"):
+            raise Exception("Path is not a directory")
+
+    @classmethod
+    def from_object(
+        cls,
+        *args,
+        **kwargs,
+    ):
+        raise NotImplementedError("Directory.from_object is not implemented")
+
+    @classmethod
+    def from_remote(cls, *, id: str):
+        response = http.get(f"/v3/pipeline_files/{id}")
+
+        if response.status_code == 404:
+            raise Exception("File does not exist")
+
+        if response.status_code != 200:
+            raise Exception(
+                f"Something went wrong, status code: {response.status_code}"
+            )
+
+        file_schema = FileGet.parse_obj(response.json())
+
+        if not str(file_schema.path).endswith(".zip"):
+            raise Exception("Remote is not a directory.")
+
+        new_file = cls(
+            path=file_schema.path,
+        )
+        new_file.remote_id = file_schema.id
+
+        return new_file
+
+
 class FileURL:
     def __init__(self, url: str):
         self.url = url

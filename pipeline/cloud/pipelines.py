@@ -1,13 +1,16 @@
 import importlib
 import json
 import math
+import os
 import platform
 import time
 import typing as t
+import uuid
 from importlib.metadata import version
 from multiprocessing import Pool
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
+from zipfile import ZipFile
 
 import cloudpickle as cp
 import httpx
@@ -25,7 +28,7 @@ from pipeline.cloud.schemas.runs import (
     RunOutput,
     RunState,
 )
-from pipeline.objects import File, FileURL, Graph
+from pipeline.objects import Directory, File, FileURL, Graph
 from pipeline.util.logging import _print
 
 
@@ -67,7 +70,46 @@ def upload_pipeline(
             cp.register_pickle_by_value(module)
 
     for variable in graph.variables:
-        if isinstance(variable, File):
+        if isinstance(variable, Directory):
+            if variable.remote_id is not None:
+                continue
+            variable_path = Path(variable.path)
+
+            if not variable_path.exists():
+                raise FileNotFoundError(
+                    f"Directory not found for variable (path={variable.path}) "
+                )
+            if not variable_path.is_dir() and not str(variable_path).endswith(".zip"):
+                raise ValueError(
+                    f"Variable is not a directory or zip file (path={variable.path})"
+                )
+
+            zip_path = variable_path
+
+            if not str(variable_path).endswith(".zip"):
+                tmp_path = Path("/tmp") / (str(uuid.uuid4()) + ".zip")
+                with ZipFile(str(tmp_path), "w") as zip_file:
+                    for root, dirs, files in os.walk(str(variable_path)):
+                        for file in files:
+                            zip_file.write(
+                                os.path.join(root, file),
+                            )
+                zip_path = tmp_path
+
+            zip_file = zip_path.open("rb")
+            try:
+                res = http.post_files(
+                    "/v3/pipeline_files",
+                    files=dict(pfile=zip_file),
+                    progress=True,
+                )
+
+                new_path = res.json()["path"]
+                variable.path = Path(new_path)
+                variable.remote_id = res.json()["id"]
+            finally:
+                zip_file.close()
+        elif isinstance(variable, File):
             if variable.remote_id is not None:
                 continue
             variable_path = Path(variable.path)
