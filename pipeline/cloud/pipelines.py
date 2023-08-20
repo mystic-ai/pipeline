@@ -68,6 +68,8 @@ def upload_pipeline(
 
     for variable in graph.variables:
         if isinstance(variable, File):
+            if variable.remote_id is not None:
+                continue
             variable_path = Path(variable.path)
             if not variable_path.exists():
                 raise FileNotFoundError(
@@ -84,7 +86,7 @@ def upload_pipeline(
                 )
 
                 new_path = res.json()["path"]
-                variable.path = new_path
+                variable.path = Path(new_path)
                 variable.remote_id = res.json()["id"]
             finally:
                 variable_file.close()
