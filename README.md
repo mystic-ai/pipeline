@@ -49,11 +49,11 @@ Below are some popular models that have been premade by the community on Catalys
 | [Keyword schemas](https://docs.mystic.ai/docs/keyword-schemas)|Set default, min, max, and various other constraints on your inputs with schemas|
 | [Entity objects](https://docs.mystic.ai/docs/entity-objects)|Use entity objects to persist values and store things|
 | [Cold start optimisations](https://docs.mystic.ai/docs/cold-start-optimisations)|Premade functions to do heavy tasks seperately|
-| [Input/output types](https://docs.mystic.ai/docs/typing)|Defining what goes in and out of your pipes|
-| [Files](https://docs.mystic.ai/docs/files)|Inputing or outputing files from your runs|
+| [Input/output types](https://docs.mystic.ai/docs/inputoutpu-types)|Defining what goes in and out of your pipes|
+| [Files and directories](https://docs.mystic.ai/docs/files-and-directories)|Inputing or outputing files from your runs|
 | [Pipeline building](https://docs.mystic.ai/docs/pipeline-building)|Building pipelines - how it works|
 | [Virtual environments](https://docs.mystic.ai/docs/virtual-environments)|Creating a virtual environment for your pipeline to run in|
-| [GPUs and Accelerators](https://docs.mystic.ai/docs/accelerators)|Add hardware definitions to your pipelines|
+| [GPUs and Accelerators](https://docs.mystic.ai/docs/gpus-and-accelerators)|Add hardware definitions to your pipelines|
 | [Runs](https://docs.mystic.ai/docs/runs)|Running a pipeline remotely - how it works|
 
 
