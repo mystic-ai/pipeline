@@ -677,13 +677,16 @@ class Graph:
                 print("IN HERE")
                 input = target_type(**input)
             elif not isinstance(input, input_variables[i].type_class):
-                raise Exception(
-                    "Input type mismatch, expceted %s got %s"
-                    % (
-                        input_variables[i].type_class,
-                        input.__class__,
+                if isinstance(input, int) and input_variables[i].type_class == float:
+                    input = float(input)
+                else:
+                    raise Exception(
+                        "Input type mismatch, expceted %s got %s"
+                        % (
+                            input_variables[i].type_class,
+                            input.__class__,
+                        )
                     )
-                )
             running_variables[input_variables[i].local_id] = input
 
         for node in self.nodes:
