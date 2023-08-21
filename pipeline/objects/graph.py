@@ -323,9 +323,14 @@ class Variable:
         self.max_length = max_length
         self.choices = choices
         self.dict_schema = (
-            type_class.to_schema() if isinstance(type_class, InputSchema) else None
+            type_class.to_schema()
+            if inspect.isclass(type_class)
+            and (
+                issubclass(type_class, InputSchema)
+                or isinstance(type_class, InputSchema)
+            )
+            else None
         )
-
         if not Pipeline._pipeline_context_active and not allow_out_of_context_creation:
             raise Exception("Cant add a variable when not defining a pipeline")
 
