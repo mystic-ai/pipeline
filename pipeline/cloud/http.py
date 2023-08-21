@@ -17,6 +17,7 @@ ACTIVE_IP = (
     if (active_remote := current_configuration.active_remote) is not None
     else os.environ.get("PIPELINE_API_URL", "https://www.mystic.ai/")
 )
+print(f"ROSSLOG PIPELINE_API_URL = {os.environ.get('PIPELINE_API_URL')}")
 print(f"ROSSLOG ACTIVE_IP = {ACTIVE_IP}")
 
 ACTIVE_TOKEN = (
