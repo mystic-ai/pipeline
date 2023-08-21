@@ -12,25 +12,31 @@ from tqdm import tqdm
 from pipeline import current_configuration
 from pipeline.util.logging import PIPELINE_STR
 
-ACTIVE_IP = (
-    active_remote.url
-    if (active_remote := current_configuration.active_remote) is not None
-    else os.environ.get("PIPELINE_API_URL", "https://www.mystic.ai/")
-)
 
-ACTIVE_TOKEN = (
-    current_configuration.active_remote.token
-    if current_configuration.active_remote is not None
-    else os.environ.get("PIPELINE_API_TOKEN", None)
-)
+_client = None
 
-_client = httpx.Client(
-    base_url=ACTIVE_IP,
-    headers={
-        "Authorization": f"Bearer {ACTIVE_TOKEN}",
-    },
-    timeout=300,
-)
+
+def _get_client() -> httpx.Client:
+    global _client
+    if _client is None:
+        url = (
+            active_remote.url
+            if (active_remote := current_configuration.active_remote) is not None
+            else os.environ.get("PIPELINE_API_URL", "https://www.mystic.ai/")
+        )
+        token = (
+            current_configuration.active_remote.token
+            if current_configuration.active_remote is not None
+            else os.environ.get("PIPELINE_API_TOKEN", None)
+        )
+        _client = httpx.Client(
+            base_url=url,
+            headers={
+                "Authorization": f"Bearer {token}",
+            },
+            timeout=300,
+        )
+    return _client
 
 
 def post(
@@ -38,7 +44,8 @@ def post(
     json_data: dict = None,
     raise_for_status: bool = True,
 ) -> httpx.Response:
-    response = _client.post(
+    client = _get_client()
+    response = client.post(
         endpoint,
         json=json_data,
     )
@@ -53,7 +60,8 @@ def patch(
     json_data: dict = None,
     raise_for_status: bool = True,
 ) -> httpx.Response:
-    response = _client.patch(
+    client = _get_client()
+    response = client.patch(
         endpoint,
         json=json_data,
     )
@@ -67,7 +75,8 @@ def get(
     endpoint: str,
     **kwargs,
 ) -> httpx.Response:
-    response = _client.get(endpoint, **kwargs)
+    client = _get_client()
+    response = client.get(endpoint, **kwargs)
     response.raise_for_status()
 
     return response
@@ -77,7 +86,8 @@ def delete(
     endpoint: str,
     **kwargs,
 ) -> httpx.Response:
-    response = _client.delete(endpoint, **kwargs)
+    client = _get_client()
+    response = client.delete(endpoint, **kwargs)
     response.raise_for_status()
 
     return response
@@ -143,17 +153,28 @@ def post_files(
 ) -> httpx.Response:
     if progress:
         monitor = get_progress_bar_uploader(files=files, params=params)
+        url = (
+            active_remote.url
+            if (active_remote := current_configuration.active_remote) is not None
+            else os.environ.get("PIPELINE_API_URL", "https://www.mystic.ai/")
+        )
+        token = (
+            current_configuration.active_remote.token
+            if current_configuration.active_remote is not None
+            else os.environ.get("PIPELINE_API_TOKEN", None)
+        )
         response = requests.post(
-            f"{ACTIVE_IP}{endpoint}",
+            f"{url}{endpoint}",
             data=monitor,
             headers={
                 "content-Type": monitor.content_type,
-                "Authorization": f"Bearer {current_configuration.active_remote.token}",
+                "Authorization": f"Bearer {token}",
             },
             params=params,
         )
     else:
-        response = _client.post(
+        client = _get_client()
+        response = client.post(
             endpoint,
             files=files,
             data=data,
@@ -167,7 +188,8 @@ def stream_post(
     endpoint: str,
     json_data: dict = None,
 ) -> t.Iterator[httpx.Response]:
-    return _client.stream(
+    client = _get_client()
+    return client.stream(
         "POST",
         endpoint,
         json=json_data,
