@@ -20,9 +20,6 @@ class ModelKwargs(InputSchema):
 
 @entity
 class StableDiffusionModel:
-    def __init__(self):
-        ...
-
     @pipe(on_startup=True, run_once=True)
     def load(self):
         model_id = "runwayml/stable-diffusion-v1-5"
@@ -63,7 +60,7 @@ my_pl = builder.get_pipeline()
 
 try:
     environments.create_environment(
-        "stable-diffusion",
+        "runwayml/stable-diffusion",
         python_requirements=[
             "torch==2.0.1",
             "transformers==4.30.2",
@@ -77,18 +74,10 @@ except Exception:
 
 pipelines.upload_pipeline(
     my_pl,
-    "stable-diffusion:latest",
-    environment_id_or_name="stable-diffusion",
+    "runwayml/stable-diffusion-v1-5",
+    environment_id_or_name="runwayml/stable-diffusion",
     required_gpu_vram_mb=10_000,
     accelerators=[
-        compute_requirements.Accelerator.nvidia_a5000,
+        compute_requirements.Accelerator.nvidia_l4,
     ],
 )
-# print(
-#     my_pl.run(
-#         "A dog",
-#         {
-#             "num_images_per_prompt": 4,
-#         },
-#     )
-# )
