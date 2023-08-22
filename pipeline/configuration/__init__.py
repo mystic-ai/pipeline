@@ -68,7 +68,7 @@ class Configuration:
                     ),
                 )
         except Exception:
-            self._config = _ConfigurationModel()
+            raise Exception("Invalid configuration file at '~/.pipeline/config.yaml'")
 
     def save(self) -> None:
         path = PIPELINE_DIR / "config.yaml"
