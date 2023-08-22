@@ -12,7 +12,6 @@ from tqdm import tqdm
 from pipeline import current_configuration
 from pipeline.util.logging import PIPELINE_STR
 
-
 _client = None
 
 
