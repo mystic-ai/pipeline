@@ -1,4 +1,3 @@
-import typing as t
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from datetime import datetime
 
@@ -7,6 +6,7 @@ from tabulate import tabulate
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.schemas import pipelines as pipelines_schema
+from pipeline.cloud.schemas.pagination import Paginated
 from pipeline.util.logging import _print
 
 
@@ -80,7 +80,7 @@ def _get_pipeline(args: Namespace) -> None:
     params = dict()
     if name := getattr(args, "name", None):
         params["name"] = name
-    pipelines_raw: t.List[dict] = http.get(
+    paginated_raw_pipelines: Paginated[dict] = http.get(
         "/v3/pipelines",
         params=params,
     ).json()
@@ -121,7 +121,7 @@ def _get_pipeline(args: Namespace) -> None:
                 )
             ),
         ]
-        for pipeline_raw in pipelines_raw
+        for pipeline_raw in paginated_raw_pipelines["data"]
     ]
 
     table = tabulate(
