@@ -4,6 +4,7 @@ from datetime import datetime
 import humps
 from pydantic import BaseModel as _BaseModel
 from pydantic import Extra
+from pydantic.generics import GenericModel as _GenericModel
 
 CAMEL_CASE_ALIASES = bool(os.environ.get("CAMEL_CASE_ALIASES", False))
 
@@ -29,3 +30,10 @@ class BaseModel(_BaseModel):
 class Patchable(BaseModel):
     class Config:
         extra = Extra.forbid
+
+
+class GenericModel(_GenericModel):
+    """Base model for schemas with generic typing."""
+
+    class Config(BaseConfig):
+        pass
