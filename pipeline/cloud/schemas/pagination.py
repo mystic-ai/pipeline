@@ -1,4 +1,5 @@
 import typing as t
+from math import ceil
 
 from pydantic import conint
 
@@ -38,3 +39,19 @@ class Paginated(GenericModel, t.Generic[DataType]):
     @classmethod
     def of(cls, data: t.Sequence[DataType], pagination: Pagination, total: int):
         return Paginated(**pagination.dict(), total=total, data=data)
+
+
+def get_default_pagination():
+    return Pagination(skip=0, limit=20)
+
+
+class PagePosition(t.TypedDict):
+    current: int
+    total: int
+
+
+def to_page_position(skip: int, items_per_page: int, total_items: int) -> PagePosition:
+    """Converts cursor position into page position"""
+    current_page = skip // items_per_page + 1
+    total_pages = ceil(total_items / items_per_page)
+    return PagePosition(current=current_page, total=total_pages)
