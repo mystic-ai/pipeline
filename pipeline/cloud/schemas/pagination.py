@@ -53,5 +53,5 @@ class PagePosition(t.TypedDict):
 def to_page_position(skip: int, items_per_page: int, total_items: int) -> PagePosition:
     """Converts cursor position into page position"""
     current_page = skip // items_per_page + 1
-    total_pages = ceil(total_items / items_per_page)
+    total_pages = max(1, ceil(total_items / items_per_page))
     return PagePosition(current=current_page, total=total_pages)
