@@ -7,7 +7,8 @@ from . import BaseModel, GenericModel
 
 DataType = t.TypeVar("DataType")
 
-PAGINATION_LIMIT = 1000
+PAGINATION_LIMIT = 10_000
+DEFAULT_LIMIT = 1000
 
 
 class Pagination(BaseModel):
@@ -42,7 +43,7 @@ class Paginated(GenericModel, t.Generic[DataType]):
 
 
 def get_default_pagination():
-    return Pagination(skip=0, limit=20)
+    return Pagination(skip=0, limit=DEFAULT_LIMIT)
 
 
 class PagePosition(t.TypedDict):
