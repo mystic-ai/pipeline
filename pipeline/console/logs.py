@@ -32,7 +32,7 @@ def _run_logs(args: Namespace) -> None:
 
     url_info = urllib.parse.urlparse(current_configuration.active_remote.url)
     target_host = url_info.hostname
-    target_port = url_info.port
+    target_port = url_info.port if url_info.port is not None else 80
 
     connection_string = urllib.parse.urljoin(
         "ws://" + target_host + ":" + str(target_port),

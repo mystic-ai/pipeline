@@ -93,6 +93,7 @@ def upload_pipeline(
                         for file in files:
                             zip_file.write(
                                 os.path.join(root, file),
+                                file,
                             )
                 zip_path = tmp_path
 
