@@ -4,6 +4,7 @@ from pathlib import Path
 from types import NoneType, UnionType
 from typing import Any, Iterable, List, Optional, get_args
 from urllib.parse import urlparse
+import math
 
 from cloudpickle import dumps
 from dill import loads
@@ -229,10 +230,9 @@ class InputField:
                 raise VariableException(f"Value is not less than or equal to {self.le}")
 
         if self.multiple_of is not None:
-            if value % self.multiple_of != 0:
-                raise VariableException(
-                    f"Value is not a multiple of {self.multiple_of}"
-                )
+            remainder = value % self.multiple_of
+            if not math.isclose(remainder, 0, abs_tol=1e-1):
+                raise VariableException(f"Value is not a multiple of {self.multiple_of}")
 
         if self.allow_inf_nan is not None:
             if not self.allow_inf_nan and (
