@@ -69,7 +69,9 @@ def _login(namespace: Namespace) -> None:
     token = getattr(namespace, "token")
     active = getattr(namespace, "active", False)
 
-    if any([remote.alias == alias for remote in current_configuration.remotes]):
+    if current_configuration.remotes and any(
+        [remote.alias == alias for remote in current_configuration.remotes]
+    ):
         _print(f"Alias '{alias}' already exists", level="ERROR")
         return
 
@@ -96,6 +98,10 @@ def _login(namespace: Namespace) -> None:
 
 def _use(namespace: Namespace) -> None:
     alias = getattr(namespace, "alias")
+    if current_configuration.remotes is None:
+        _print("No remote configurations. Login first.", level="ERROR")
+        return
+
     if not any([remote.alias == alias for remote in current_configuration.remotes]):
         _print(f"Remote '{alias}' not found", level="ERROR")
         return
