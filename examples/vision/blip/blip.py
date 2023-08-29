@@ -42,7 +42,7 @@ with Pipeline() as builder:
 
 my_pl = builder.get_pipeline()
 
-env_name = "blip3"
+env_name = "blip"
 try:
     env_id = create_environment(
         name=env_name,
