@@ -38,6 +38,28 @@ def _get_client() -> httpx.Client:
     return _client
 
 
+def _get_async_client() -> httpx.AsyncClient:
+    global _client_async
+    if _client_async is None:
+        url = (
+            active_remote.url
+            if (active_remote := current_configuration.active_remote) is not None
+            else os.environ.get("PIPELINE_API_URL", "https://www.mystic.ai/")
+        )
+        token = (
+            current_configuration.active_remote.token
+            if current_configuration.active_remote is not None
+            else os.environ.get("PIPELINE_API_TOKEN", None)
+        )
+        _client_async = httpx.AsyncClient(
+            base_url=url,
+            headers={
+                "Authorization": f"Bearer {token}",
+            },
+            timeout=300,
+        )
+
+
 def post(
     endpoint: str,
     json_data: dict = None,
@@ -45,6 +67,22 @@ def post(
 ) -> httpx.Response:
     client = _get_client()
     response = client.post(
+        endpoint,
+        json=json_data,
+    )
+    if raise_for_status:
+        response.raise_for_status()
+
+    return response
+
+
+async def async_post(
+    endpoint: str,
+    json_data: dict = None,
+    raise_for_status: bool = True,
+) -> httpx.Response:
+    client = _get_async_client()
+    response = await client.post(
         endpoint,
         json=json_data,
     )
