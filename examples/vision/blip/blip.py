@@ -30,7 +30,7 @@ class BlipModel:
 
 
 with Pipeline() as builder:
-    image_url = Variable(str)
+    image_url = Variable(str, title="Image URL")
 
     model = BlipModel()
 
@@ -58,10 +58,10 @@ except Exception:
 
 pipelines.upload_pipeline(
     my_pl,
-    "blip:latest",
+    "blip",
     environment_id_or_name=env_name,
     required_gpu_vram_mb=10_000,
     accelerators=[
-        compute_requirements.Accelerator.nvidia_a5000,
+        compute_requirements.Accelerator.nvidia_l4,
     ],
 )
