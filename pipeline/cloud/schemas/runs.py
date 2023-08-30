@@ -112,6 +112,8 @@ class RunIOType(str, Enum):
     @classmethod
     def from_object(cls, obj: t.Any):
         # Get the enum type for the object.
+        from pipeline.objects.graph import File
+
         if isinstance(obj, int) or obj is int:
             return cls.integer
         elif isinstance(obj, float) or obj is float:
@@ -138,7 +140,7 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.array
-        elif isinstance(obj, io.BufferedIOBase):
+        elif isinstance(obj, io.BufferedIOBase) or obj is File:
             return cls.file
         else:
             return cls.pkl

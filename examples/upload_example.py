@@ -32,11 +32,6 @@ env_id = create_environment(
     python_requirements=["numpy==1.24.3"],
     allow_existing=True,
 )
-print(f"Environment ID = {env_id}")
-print(
-    "Environment will be pre-emptively cached on compute resources so please "
-    "wait a few mins before using..."
-)
 
 result = upload_pipeline(
     pl,
@@ -47,6 +42,3 @@ result = upload_pipeline(
         Accelerator.cpu,
     ],
 )
-
-pipeline_id = result.id
-print(f"New pipeline ID = {pipeline_id}")
