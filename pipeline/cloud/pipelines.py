@@ -14,6 +14,7 @@ from zipfile import ZipFile
 
 import cloudpickle as cp
 import httpx
+from httpx import HTTPStatusError
 from pydantic import ValidationError
 
 from pipeline.cloud import http
@@ -107,16 +108,23 @@ def upload_pipeline(
                 new_path = res.json()["path"]
                 variable.path = Path(new_path)
                 variable.remote_id = res.json()["id"]
+            except HTTPStatusError as e:
+                if e.response.status_code == 403:
+                    raise Exception(
+                        f"Permission denied uploading file (path={variable.path}, "
+                        f"variable={variable.title})"
+                    )
             finally:
                 zip_file.close()
         elif isinstance(variable, File):
             if variable.remote_id is not None:
                 continue
             variable_path = Path(variable.path)
+
             if not variable_path.exists():
                 raise FileNotFoundError(
                     f"File not found for variable (path={variable.path}, "
-                    f"variable={variable.name})"
+                    f"variable={variable.title})"
                 )
 
             variable_file = variable_path.open("rb")
@@ -130,6 +138,12 @@ def upload_pipeline(
                 new_path = res.json()["path"]
                 variable.path = Path(new_path)
                 variable.remote_id = res.json()["id"]
+            except HTTPStatusError as e:
+                if e.response.status_code == 403:
+                    raise Exception(
+                        f"Permission denied uploading file (path={variable.path}, "
+                        f"variable={variable.title})"
+                    )
             finally:
                 variable_file.close()
 
@@ -179,12 +193,29 @@ def upload_pipeline(
     graph_file = SpooledTemporaryFile()
     graph_file.write(cp.dumps(graph))
     graph_file.seek(0)
-
-    res = http.post_files(
-        "/v3/pipelines",
-        files=dict(graph=graph_file),
-        data=params,
-    )
+    try:
+        res = http.post_files(
+            "/v3/pipelines",
+            files=dict(graph=graph_file),
+            data=params,
+        )
+    except HTTPStatusError as e:
+        if e.response.status_code == 403:
+            raise Exception(
+                e.response.text,
+            )
+        elif e.response.status_code == 400:
+            raise Exception(
+                e.response.text,
+            )
+        elif e.response.status_code == 409:
+            raise Exception(
+                e.response.text,
+            )
+        else:
+            raise Exception(
+                f"Unknown exception (code={e.response.status_code}), {e.response.text}"
+            )
 
     if res.status_code != 200:
         print("Error uploading pipeline")

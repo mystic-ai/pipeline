@@ -1,6 +1,7 @@
 from httpx import HTTPStatusError
 
 from pipeline.cloud import http
+from pipeline.util.logging import _print
 
 
 def create_environment(
@@ -17,10 +18,27 @@ def create_environment(
         env_id = res.json()["id"]
     except HTTPStatusError as e:
         if e.response.status_code == 409 and allow_existing:
-            res = http.get(
-                f"/v3/environments/{name}",
-            )
-            env_id = res.json()["id"]
+            try:
+                res = http.get(
+                    f"/v3/environments/{name}",
+                )
+                env_id = res.json()["id"]
+            except HTTPStatusError as e2:
+                if e2.response.status_code == 404:
+                    raise Exception(f"Environment {name} does not exist")
+                elif e2.response.status_code == 401:
+                    # raise Exception(f"Environment {name} is not accessible to you.")
+                    _print(
+                        "Environment already exists and is not accessible to you.",
+                        level="WARNING",
+                    )
+                    env_id = name
+                else:
+                    raise Exception(
+                        f"Unknown error: {e2.response.status_code}, {e2.response.text}"
+                    )
         else:
             raise e
+
+    _print(f"Created environment {name} with ID= {env_id}", level="SUCCESS")
     return env_id
