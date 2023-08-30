@@ -13,6 +13,7 @@ from pipeline import current_configuration
 from pipeline.util.logging import PIPELINE_STR
 
 _client = None
+_client_async = None
 
 
 def _get_client() -> httpx.Client:
@@ -58,6 +59,7 @@ def _get_async_client() -> httpx.AsyncClient:
             },
             timeout=300,
         )
+    return _client_async
 
 
 def post(
