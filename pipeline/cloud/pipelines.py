@@ -226,6 +226,23 @@ def upload_pipeline(
 
     raw_json = res.json()
 
+    try:
+        pointers_request = http.get(
+            "/v3/pointers",
+            params=dict(
+                pipeline_name=name,
+            ),
+        )
+        pointer_array = pointers_request.json()["data"]
+        for item in pointer_array:
+            if item["pipeline_id"] == raw_json["id"]:
+                name = item["pointer"]
+
+                break
+    except HTTPStatusError:
+        ...
+
+    _print(f"Uploaded pipeline '{name}' with ID = {raw_json['id']}", level="SUCCESS")
     return pipeline_schemas.PipelineGet.parse_obj(raw_json)
 
 

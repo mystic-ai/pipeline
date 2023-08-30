@@ -16,6 +16,7 @@ def create_environment(
         )
 
         env_id = res.json()["id"]
+        _print(f"Created environment '{name}' with ID = {env_id}", level="SUCCESS")
     except HTTPStatusError as e:
         if e.response.status_code == 409 and allow_existing:
             try:
@@ -23,6 +24,10 @@ def create_environment(
                     f"/v3/environments/{name}",
                 )
                 env_id = res.json()["id"]
+                _print(
+                    f"Using existing environment {name} with ID = {env_id}",
+                    level="INFO",
+                )
             except HTTPStatusError as e2:
                 if e2.response.status_code == 404:
                     raise Exception(f"Environment {name} does not exist")
@@ -40,5 +45,4 @@ def create_environment(
         else:
             raise e
 
-    _print(f"Created environment {name} with ID= {env_id}", level="SUCCESS")
     return env_id
