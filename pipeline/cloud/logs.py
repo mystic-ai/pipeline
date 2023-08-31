@@ -2,7 +2,7 @@ import json
 import urllib.parse
 from typing import Generator
 
-from websockets.exceptions import ConnectionClosedError
+from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 from websockets.sync.client import connect
 
 from pipeline import current_configuration
@@ -43,7 +43,10 @@ def tail_run_logs(run_id: str) -> Generator[tuple, None, None]:
                         raise Exception("No values in stream")
                     for value in values:
                         yield value
-                message = websocket.recv()
+                try:
+                    message = websocket.recv()
+                except ConnectionClosedOK:
+                    return
     except ConnectionClosedError as e:
         if e.code == 4000:
             _print(f"Run {run_id} not found", level="ERROR")
