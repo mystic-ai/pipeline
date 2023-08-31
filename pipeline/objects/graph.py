@@ -674,7 +674,6 @@ class Graph:
             target_type = input_variables[i].type_class
 
             if issubclass(target_type, InputSchema) and isinstance(input, dict):
-                print("IN HERE")
                 input = target_type(**input)
             elif not isinstance(input, input_variables[i].type_class):
                 if isinstance(input, int) and input_variables[i].type_class == float:
