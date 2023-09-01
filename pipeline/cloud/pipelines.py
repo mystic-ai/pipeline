@@ -97,6 +97,7 @@ def upload_pipeline(
                         for file in files:
                             zip_file.write(
                                 os.path.join(root, file),
+                                arcname=file,
                             )
                 zip_path = tmp_path
 
@@ -107,6 +108,7 @@ def upload_pipeline(
                     files=dict(pfile=zip_file),
                     progress=True,
                 )
+                res.raise_for_status()
 
                 new_path = res.json()["path"]
                 variable.path = Path(new_path)
