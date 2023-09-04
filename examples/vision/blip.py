@@ -1,8 +1,7 @@
-import requests
 from PIL import Image
 from transformers import BlipForConditionalGeneration, BlipProcessor
 
-from pipeline import Pipeline, Variable, entity, pipe
+from pipeline import File, Pipeline, Variable, entity, pipe
 from pipeline.cloud import compute_requirements, pipelines
 from pipeline.cloud.environments import create_environment
 
@@ -22,21 +21,21 @@ class BlipModel:
         )
 
     @pipe
-    def predict(self, image_url: str) -> str:
-        raw_image = Image.open(requests.get(image_url, stream=True).raw).convert("RGB")
+    def predict(self, image: File) -> str:
+        raw_image = Image.open(image.path.read_bytes()).convert("RGB")
         inputs = self.processor(raw_image, return_tensors="pt")
         out = self.model.generate(**inputs)
         return str(self.processor.decode(out[0], skip_special_tokens=True))
 
 
 with Pipeline() as builder:
-    image_url = Variable(str, title="Image URL")
+    image = Variable(File, title="Image File")
 
     model = BlipModel()
 
     model.load()
 
-    output = model.predict(image_url)
+    output = model.predict(image)
 
     builder.output(output)
 
