@@ -34,15 +34,18 @@ class LlamaPipeline:
 
     @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
-        model_dir = "/tmp/llama2-13b-cache/"
+        model_dir = "/tmp/llama2-70b-cache/"
         snapshot_download(
-            "meta-llama/Llama-2-13b-hf",
+            "meta-llama/Llama-2-70b-hf",
             local_dir=model_dir,
             token="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",
+            ignore_patterns=["*.safetensors"],
         )
+
         self.llm = LLM(
             model_dir,
             dtype="bfloat16",
+            tensor_parallel_size=2,
         )
 
     @pipe
@@ -77,27 +80,29 @@ with Pipeline() as builder:
 my_pipeline = builder.get_pipeline()
 
 
-# environments.create_environment(
-#     "meta/llama2-vllm",
-#     python_requirements=[
-#         "torch==2.0.1",
-#         "transformers==4.30.2",
-#         "diffusers==0.19.3",
-#         "accelerate==0.21.0",
-#         "hf-transfer~=0.1",
-#         "vllm==0.1.4",
-#     ],
-# )
+my_env = environments.create_environment(
+    "meta/llama2-vllm-ray",
+    python_requirements=[
+        "torch==2.0.1",
+        "transformers",
+        "diffusers==0.19.3",
+        "accelerate==0.21.0",
+        "hf-transfer~=0.1",
+        "vllm==0.1.4",
+        "ray==2.6.3",
+        "pandas",  # for ray - will say ray is not installed otherwise
+    ],
+)
 
 # Upload
 result = upload_pipeline(
     my_pipeline,
-    "meta/llama2-13B",
-    "meta/llama2-vllm",
-    minimum_cache_number=1,
-    required_gpu_vram_mb=37_000,
+    "meta/llama2-70B",
+    "meta/llama2-vllm-ray",
+    required_gpu_vram_mb=140_000,
     accelerators=[
-        Accelerator.nvidia_a100,
+        Accelerator.nvidia_a100_80gb,
+        Accelerator.nvidia_a100_80gb,
     ],
 )
 
