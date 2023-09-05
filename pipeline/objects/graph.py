@@ -436,7 +436,7 @@ class File(Variable):
         path: str | Path = None,
         title: str = None,
         local_id: str = None,
-        allow_out_of_context_creation: bool = False,
+        allow_out_of_context_creation: bool = True,
     ) -> None:
         super().__init__(
             type_class=self.__class__,
@@ -455,6 +455,7 @@ class File(Variable):
         cls,
         obj: Any,
         modules: Optional[List[str]] = None,
+        allow_out_of_context_creation: bool = True,
     ):
         temp_file = tempfile.NamedTemporaryFile(delete=False)
 
@@ -465,6 +466,7 @@ class File(Variable):
         return cls(
             path=temp_file.name,
             title=temp_file.name,
+            allow_out_of_context_creation=allow_out_of_context_creation,
         )
 
     @classmethod
