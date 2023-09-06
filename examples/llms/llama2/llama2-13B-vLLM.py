@@ -37,7 +37,7 @@ class LlamaPipeline:
         snapshot_download(
             "meta-llama/Llama-2-13b-hf",
             local_dir=model_dir,
-            token="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",
+            token="",
         )
         self.llm = LLM(
             model_dir,
