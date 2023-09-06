@@ -1,4 +1,3 @@
-from threading import Thread
 from typing import List
 
 from huggingface_hub import snapshot_download
@@ -7,9 +6,9 @@ from vllm import LLM, SamplingParams
 from pipeline import Pipeline, entity, pipe
 from pipeline.cloud import environments
 from pipeline.cloud.compute_requirements import Accelerator
-from pipeline.cloud.pipelines import run_pipeline, upload_pipeline
+from pipeline.cloud.pipelines import upload_pipeline
 from pipeline.configuration import current_configuration
-from pipeline.objects.graph import InputField, InputSchema, Stream, Variable
+from pipeline.objects.graph import InputField, InputSchema, Variable
 
 current_configuration.set_debug_mode(True)
 
@@ -77,17 +76,17 @@ with Pipeline() as builder:
 my_pipeline = builder.get_pipeline()
 
 
-# environments.create_environment(
-#     "meta/llama2-vllm",
-#     python_requirements=[
-#         "torch==2.0.1",
-#         "transformers==4.30.2",
-#         "diffusers==0.19.3",
-#         "accelerate==0.21.0",
-#         "hf-transfer~=0.1",
-#         "vllm==0.1.4",
-#     ],
-# )
+environments.create_environment(
+    "meta/llama2-vllm",
+    python_requirements=[
+        "torch==2.0.1",
+        "transformers==4.30.2",
+        "diffusers==0.19.3",
+        "accelerate==0.21.0",
+        "hf-transfer~=0.1",
+        "vllm==0.1.4",
+    ],
+)
 
 # Upload
 result = upload_pipeline(
@@ -100,19 +99,3 @@ result = upload_pipeline(
         Accelerator.nvidia_a100,
     ],
 )
-
-run_pipeline(
-    result.id,
-    "Hello, how are you?",
-    {},
-)
-
-
-# print(f"Pipeline ID: {result.id}")
-# output = my_pipeline.run(
-#     "Hello, how are you?",
-#     ModelKwargs(),
-# )
-
-
-# print(output)
