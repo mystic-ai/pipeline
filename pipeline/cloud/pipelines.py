@@ -388,7 +388,7 @@ def run_pipeline(
             and "Tried to return a non-supported type from a pipeline" in exception
         ):
             raise Exception(
-                f"Remote Run '{run_get.id}' failed because an unsupported type was returned. Check your outputs.\n(More information -> https://docs.mystic.ai/docs/inputoutpu-types)"
+                f"Remote Run '{run_get.id}' failed because an unsupported type was returned. Check your outputs.\n(More information -> https://docs.mystic.ai/docs/inputoutpu-types)"  # noqa
             )
 
         raise Exception(
