@@ -24,10 +24,10 @@ class E5Model:
         self.model = AutoModel.from_pretrained("intfloat/e5-large-v2")
 
     @pipe
-    def predict(self, input_texts: str, kwargs: ModelKwargs) -> list:
+    def predict(self, input_texts: list[str], kwargs: ModelKwargs) -> list:
         defaults = kwargs.to_dict()
 
-        batch_dict = self.tokenizer(input_texts.split("\n"), **defaults)
+        batch_dict = self.tokenizer(input_texts, **defaults)
         outputs = self.model(**batch_dict)
         last_hidden_states = outputs.last_hidden_state
         attention_mask = batch_dict["attention_mask"]
@@ -38,12 +38,14 @@ class E5Model:
         # normalize embeddings
         embeddings = F.normalize(embeddings, p=2, dim=1)
 
-        return str(embeddings.tolist())
+        return embeddings.tolist()
 
 
 with Pipeline() as builder:
     # Define the inputs of the pipeline
-    input_texts = Variable(str, title="Input Texts")
+    input_texts = Variable(
+        list, title="Input Texts", description="Text to embed, as an array of strings"
+    )
     kwargs = Variable(ModelKwargs)
 
     model = E5Model()
@@ -69,7 +71,7 @@ except Exception:
 
 pipelines.upload_pipeline(
     my_pl,
-    "e5_large-v2",
+    "e5_large-v2:latest",
     environment_id_or_name=env_name,
     required_gpu_vram_mb=10_000,
     accelerators=[
