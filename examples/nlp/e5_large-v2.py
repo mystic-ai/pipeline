@@ -71,7 +71,7 @@ except Exception:
 
 pipelines.upload_pipeline(
     my_pl,
-    "e5_large-v2:latest",
+    "e5_large-v2",
     environment_id_or_name=env_name,
     required_gpu_vram_mb=10_000,
     accelerators=[
