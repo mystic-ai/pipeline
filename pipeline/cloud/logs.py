@@ -16,10 +16,8 @@ def tail_run_logs(run_id: str) -> Generator[tuple, None, None]:
     if target_port is None:
         target_port = 80 if url_info.scheme == "http" else 443
 
-    protocol = "ws" if url_info.scheme == "http" else "wss"
-
     connection_string = urllib.parse.urljoin(
-        protocol + "://" + str(target_host) + ":" + str(target_port),
+        "ws://" + str(target_host) + ":" + str(target_port),
         f"/v3/logs/run/{run_id}?follow=true",
     )
     try:
