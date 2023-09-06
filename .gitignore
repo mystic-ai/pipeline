@@ -147,3 +147,5 @@ examples/docker/requirements.txt
 *.jsonl
 
 *.tmp
+tmp/*
+tmp
