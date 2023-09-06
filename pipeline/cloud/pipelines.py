@@ -382,7 +382,6 @@ def run_pipeline(
 
         traceback = getattr(error, "traceback", None)
         exception = getattr(error, "exception", None)
-
         if (
             isinstance(exception, str)
             and "Tried to return a non-supported type from a pipeline" in exception
@@ -393,7 +392,7 @@ def run_pipeline(
 
         raise Exception(
             f"Remote Run '{run_get.id}' failed with exception: "
-            f"{traceback if traceback is not None else exception}"
+            f"{traceback if traceback is not None and traceback != '' else exception}"
         )
 
     return run_get
