@@ -368,7 +368,7 @@ def run_pipeline(
 
         run_get = poll_async_run(
             run_get.id,
-            interval=0.25,
+            interval=0.5,
             state_change_callback=activate_log_thread,
         )
 
@@ -378,9 +378,22 @@ def run_pipeline(
                 _print(f"Result array: {run_get.result.result_array()}")
 
     if RunState.is_terminal(run_get.state) and run_get.state != RunState.completed:
+        error = getattr(run_get, "error", None)
+
+        traceback = getattr(error, "traceback", None)
+        exception = getattr(error, "exception", None)
+
+        if (
+            isinstance(exception, str)
+            and "Tried to return a non-supported type from a pipeline" in exception
+        ):
+            raise Exception(
+                f"Remote Run '{run_get.id}' failed because an unsupported type was returned. Check your outputs.\n(More information -> https://docs.mystic.ai/docs/inputoutpu-types)"  # noqa
+            )
+
         raise Exception(
             f"Remote Run '{run_get.id}' failed with exception: "
-            f"{getattr(getattr(run_get, 'error', None), 'traceback', None)}"
+            f"{traceback if traceback is not None else exception}"
         )
 
     return run_get
