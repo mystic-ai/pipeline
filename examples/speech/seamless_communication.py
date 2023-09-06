@@ -102,7 +102,7 @@ LANG_MAP = {
 
 
 @entity
-class StableDiffusionModel:
+class SeamlessModel:
     def __init__(self):
         ...
 
@@ -133,7 +133,7 @@ with Pipeline() as builder:
     source_lang = Variable(str, title="Source Language", choices=list(LANG_MAP.keys()))
     target_lang = Variable(str, title="Target Language", choices=list(LANG_MAP.keys()))
 
-    model = StableDiffusionModel()
+    model = SeamlessModel()
 
     model.load()
 
