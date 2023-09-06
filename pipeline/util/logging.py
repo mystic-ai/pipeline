@@ -1,5 +1,8 @@
+import os
 import sys
 from datetime import datetime
+
+VERBOSE = bool(int(os.environ.get("VERBOSE", "1")))
 
 LOG_FILE = None
 
@@ -22,12 +25,15 @@ levels = {
     "INFO": bcolors.PURPLE,
     "ERROR": bcolors.FAIL,
     "REMOTE_LOG": bcolors.OKCYAN,
+    "SUCCESS": bcolors.OKGREEN,
 }
 PIPELINE_STR = f"{bcolors.OKBLUE}Pipeline{bcolors.ENDC}"
 PIPELINE_FILE_STR = f"{bcolors.OKBLUE}File{bcolors.ENDC}"
 
 
 def _print(val, level="INFO"):
+    if not VERBOSE:
+        return
     time_stamp = datetime.utcnow().strftime("%H:%M:%S")
 
     log_str = (

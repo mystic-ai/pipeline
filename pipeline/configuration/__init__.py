@@ -36,6 +36,7 @@ class Configuration:
 
         PIPELINE_DIR.mkdir(exist_ok=True)
         (PIPELINE_DIR / "files").mkdir(exist_ok=True)
+        self._debug_mode = os.environ.get("PIPELINE_DEBUG", "0") == "1"
 
     @property
     def active_remote(self) -> _RemoteModel:
@@ -44,6 +45,12 @@ class Configuration:
                 if remote.active:
                     return remote
         return None
+
+    def set_debug_mode(self, debug: bool) -> None:
+        self._debug_mode = debug
+
+    def is_debugging(self) -> bool:
+        return self._debug_mode
 
     @property
     def files_cache(self) -> str:

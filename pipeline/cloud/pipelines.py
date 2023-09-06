@@ -10,14 +10,17 @@ from importlib.metadata import version
 from multiprocessing import Pool
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
+from threading import Thread
 from zipfile import ZipFile
 
 import cloudpickle as cp
 import httpx
+from httpx import HTTPStatusError
 from pydantic import ValidationError
 
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
+from pipeline.cloud.logs import tail_run_logs
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas.runs import (
     Run,
@@ -28,8 +31,9 @@ from pipeline.cloud.schemas.runs import (
     RunOutput,
     RunState,
 )
+from pipeline.configuration import current_configuration
 from pipeline.objects import Directory, File, FileURL, Graph
-from pipeline.util.logging import _print
+from pipeline.util.logging import _print, _print_remote_log
 
 
 class PipelineRunError(Exception):
@@ -107,16 +111,23 @@ def upload_pipeline(
                 new_path = res.json()["path"]
                 variable.path = Path(new_path)
                 variable.remote_id = res.json()["id"]
+            except HTTPStatusError as e:
+                if e.response.status_code == 403:
+                    raise Exception(
+                        f"Permission denied uploading file (path={variable.path}, "
+                        f"variable={variable.title})"
+                    )
             finally:
                 zip_file.close()
         elif isinstance(variable, File):
             if variable.remote_id is not None:
                 continue
             variable_path = Path(variable.path)
+
             if not variable_path.exists():
                 raise FileNotFoundError(
                     f"File not found for variable (path={variable.path}, "
-                    f"variable={variable.name})"
+                    f"variable={variable.title})"
                 )
 
             variable_file = variable_path.open("rb")
@@ -130,6 +141,12 @@ def upload_pipeline(
                 new_path = res.json()["path"]
                 variable.path = Path(new_path)
                 variable.remote_id = res.json()["id"]
+            except HTTPStatusError as e:
+                if e.response.status_code == 403:
+                    raise Exception(
+                        f"Permission denied uploading file (path={variable.path}, "
+                        f"variable={variable.title})"
+                    )
             finally:
                 variable_file.close()
 
@@ -179,12 +196,29 @@ def upload_pipeline(
     graph_file = SpooledTemporaryFile()
     graph_file.write(cp.dumps(graph))
     graph_file.seek(0)
-
-    res = http.post_files(
-        "/v3/pipelines",
-        files=dict(graph=graph_file),
-        data=params,
-    )
+    try:
+        res = http.post_files(
+            "/v3/pipelines",
+            files=dict(graph=graph_file),
+            data=params,
+        )
+    except HTTPStatusError as e:
+        if e.response.status_code == 403:
+            raise Exception(
+                e.response.text,
+            )
+        elif e.response.status_code == 400:
+            raise Exception(
+                e.response.text,
+            )
+        elif e.response.status_code == 409:
+            raise Exception(
+                e.response.text,
+            )
+        else:
+            raise Exception(
+                f"Unknown exception (code={e.response.status_code}), {e.response.text}"
+            )
 
     if res.status_code != 200:
         print("Error uploading pipeline")
@@ -195,6 +229,23 @@ def upload_pipeline(
 
     raw_json = res.json()
 
+    try:
+        pointers_request = http.get(
+            "/v3/pointers",
+            params=dict(
+                pipeline_name=name,
+            ),
+        )
+        pointer_array = pointers_request.json()["data"]
+        for item in pointer_array:
+            if item["pipeline_id"] == raw_json["id"]:
+                name = item["pointer"]
+
+                break
+    except HTTPStatusError:
+        ...
+
+    _print(f"Uploaded pipeline '{name}' with ID = {raw_json['id']}", level="SUCCESS")
     return pipeline_schemas.PipelineGet.parse_obj(raw_json)
 
 
@@ -251,7 +302,7 @@ def run_pipeline(
     run_create_schema = RunCreate(
         pipeline_id_or_pointer=pipeline_id_or_pointer,
         input_data=_data_to_run_input(data),
-        async_run=async_run,
+        async_run=async_run if not current_configuration.is_debugging() else True,
     )
 
     res = http.post(
@@ -260,7 +311,7 @@ def run_pipeline(
         raise_for_status=False,
     )
 
-    if return_response:
+    if return_response and not current_configuration.is_debugging():
         return res
 
     if res.status_code == 500:
@@ -299,6 +350,32 @@ def run_pipeline(
         raise Exception("Gateway error", res.status_code)
 
     run_get = Run.parse_obj(res.json())
+
+    def _print_logs():
+        for log in tail_run_logs(run_get.id):
+            _print_remote_log(log)
+            # _print(log)
+
+    if current_configuration.is_debugging():
+        log_thread = Thread(target=_print_logs)
+
+        _print("Running in debug mode")
+        _print(f"Run ID: {run_get.id}")
+
+        def activate_log_thread(state: RunState):
+            if state == RunState.running:
+                log_thread.start()
+
+        run_get = poll_async_run(
+            run_get.id,
+            interval=0.25,
+            state_change_callback=activate_log_thread,
+        )
+
+        if run_get.state == RunState.completed:
+            _print("Run completed successfully", level="SUCCESS")
+            if run_get.result is not None:
+                _print(f"Result array: {run_get.result.result_array()}")
 
     if RunState.is_terminal(run_get.state) and run_get.state != RunState.completed:
         raise Exception(
@@ -361,11 +438,21 @@ def stream_pipeline(
 
 
 def poll_async_run(
-    run_id: str, *, timeout: int = None, interval: float | int = 1.0
+    run_id: str,
+    *,
+    timeout: int | None = None,
+    interval: float | int = 1.0,
+    state_change_callback: t.Callable[[RunState], None] | None = None,
 ) -> Run:
     start_time = time.time()
+    current_state = None
     while True:
         run_get = get_pipeline_run(run_id)
+        if current_state != run_get.state and current_configuration.is_debugging():
+            _print(f"Run state: {run_get.state.name}")
+            current_state = run_get.state
+            if state_change_callback is not None:
+                state_change_callback(run_get.state)
         if run_get.state in [
             RunState.completed,
             RunState.failed,

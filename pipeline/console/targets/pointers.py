@@ -7,6 +7,11 @@ from tabulate import tabulate
 
 from pipeline.cloud import http
 from pipeline.cloud.schemas import pointers as pointers_schema
+from pipeline.cloud.schemas.pagination import (
+    Paginated,
+    get_default_pagination,
+    to_page_position,
+)
 from pipeline.util.logging import _print
 
 VALID_TAG_NAME = re.compile(
@@ -98,6 +103,18 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         action="store_true",
         help="Show pointers to deleted pipelines.",
     )
+    get_parser.add_argument(
+        "--skip",
+        "-s",
+        help="Number of pointers to skip in paginated set.",
+        type=int,
+    )
+    get_parser.add_argument(
+        "--limit",
+        "-l",
+        help="Total number of pointer to fetch in paginated set.",
+        type=int,
+    )
 
 
 def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
@@ -122,18 +139,31 @@ def _get_pointer(namespace: Namespace) -> None:
     pipeline_name = getattr(namespace, "name", None)
     show_deleted = getattr(namespace, "show_deleted", False)
     query_params = dict()
+    pagination = get_default_pagination()
+    if skip := getattr(namespace, "skip", None):
+        pagination.skip = skip
+    if limit := getattr(namespace, "limit", None):
+        pagination.limit = limit
+
     query_params["show_deleted"] = show_deleted
     if pipeline_name:
         query_params["pipeline_name"] = pipeline_name
-    pointers_raw = http.get("/v3/pointers", params=query_params).json()
+    paginated_raw_pointers: Paginated[dict] = http.get(
+        "/v3/pointers", params=dict(**query_params, **pagination.dict())
+    ).json()
 
     pointers = [
         [
             pointer_raw["pointer"],
             pointer_raw["pipeline_id"],
         ]
-        for pointer_raw in pointers_raw
+        for pointer_raw in paginated_raw_pointers["data"]
     ]
+    page_position = to_page_position(
+        paginated_raw_pointers["skip"],
+        paginated_raw_pointers["limit"],
+        paginated_raw_pointers["total"],
+    )
 
     table = tabulate(
         pointers,
@@ -141,6 +171,7 @@ def _get_pointer(namespace: Namespace) -> None:
         tablefmt="psql",
     )
     print(table)
+    print(f"\nPage {page_position['current']} of {page_position['total']}\n")
 
 
 def _create_pointer(namespace: Namespace) -> None:
