@@ -1,6 +1,5 @@
 [tool.poetry]
 name = "pipeline-ai"
-
 version = "1.0.0"
 
 
