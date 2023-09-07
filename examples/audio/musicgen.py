@@ -38,8 +38,18 @@ class MusicgenModel:
 
 
 with Pipeline() as builder:
-    prompt = Variable(str, title="Prompt")
-    duration = Variable(int, title="Duration")
+    prompt = Variable(
+        str,
+        title="Prompt",
+        description='Describe the music to be generated, \
+        e.g. "rock song with a long guitar solo"',
+    )
+    duration = Variable(
+        int,
+        title="Duration",
+        description="Length of the music in seconds, \
+        generation can take long so keep numbers low",
+    )
 
     model = MusicgenModel()
 
