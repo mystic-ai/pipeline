@@ -145,3 +145,7 @@ examples/docker/*.graph
 examples/docker/requirements.txt
 .tmp_cache/
 *.jsonl
+
+*.tmp
+tmp/*
+tmp

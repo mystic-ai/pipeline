@@ -1,5 +1,8 @@
+import os
 import sys
 from datetime import datetime
+
+VERBOSE = bool(int(os.environ.get("VERBOSE", "1")))
 
 LOG_FILE = None
 
@@ -17,12 +20,20 @@ class bcolors:
     ORANGE = "\33[38;5;208m"
 
 
-levels = {"WARNING": bcolors.ORANGE, "INFO": bcolors.PURPLE, "ERROR": bcolors.FAIL}
+levels = {
+    "WARNING": bcolors.WARNING,
+    "INFO": bcolors.PURPLE,
+    "ERROR": bcolors.FAIL,
+    "REMOTE_LOG": bcolors.OKCYAN,
+    "SUCCESS": bcolors.OKGREEN,
+}
 PIPELINE_STR = f"{bcolors.OKBLUE}Pipeline{bcolors.ENDC}"
-PIPELINE_FILE_STR = f"{bcolors.OKBLUE}PipelineFile{bcolors.ENDC}"
+PIPELINE_FILE_STR = f"{bcolors.OKBLUE}File{bcolors.ENDC}"
 
 
 def _print(val, level="INFO"):
+    if not VERBOSE:
+        return
     time_stamp = datetime.utcnow().strftime("%H:%M:%S")
 
     log_str = (
@@ -31,8 +42,18 @@ def _print(val, level="INFO"):
     print(f"{log_str}")
 
 
-def set_print_to_file(path: str):
+def _print_remote_log(val: tuple):
+    time_stamp = datetime.fromtimestamp(float(val[0]) / 1e9).strftime("%H:%M:%S.%f")[
+        :-3
+    ]
+    text = val[1]
+    log_str = (
+        f"{PIPELINE_STR} - {bcolors.ORANGE}logs{bcolors.ENDC} {time_stamp}: {text}"
+    )
+    print(f"{log_str}")
 
+
+def set_print_to_file(path: str):
     global LOG_FILE
     if LOG_FILE is None:
         LOG_FILE = open(path, "w")
@@ -42,7 +63,6 @@ def set_print_to_file(path: str):
 
 
 def stop_print_to_file():
-
     global LOG_FILE
     if LOG_FILE is not None:
         LOG_FILE.close()

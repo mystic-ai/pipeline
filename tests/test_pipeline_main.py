@@ -1,110 +1,80 @@
-import pytest
-
-from pipeline.objects import (
-    Pipeline,
-    PipelineFile,
-    Variable,
-    pipeline_function,
-    pipeline_model,
-)
+from pipeline.objects import Pipeline, Variable, entity, pipe
 
 
 # Check if the decorator correctly uses __init__ and __enter__
 def test_with_decorator():
-    with Pipeline("test"):
-        assert Pipeline._current_pipeline is not None
-
-
-# Check naming
-def test_with_decorator_name():
-    with Pipeline("test"):
-        assert Pipeline._current_pipeline.name == "test"
-
-
-# Test exit
-def test_with_exit():
-    with Pipeline("test"):
-        Variable(str, is_input=True, is_output=True)
-    assert Pipeline.get_pipeline("test").name == "test"
+    with Pipeline() as builder:
+        assert builder._current_pipeline is not None
 
 
 # Test basic Pipeline
 def test_basic_pipeline():
-    @pipeline_function
+    @pipe
     def add(f_1: float, f_2: float) -> float:
         return f_1 + f_2
 
-    @pipeline_function
+    @pipe
     def square(f_1: float) -> float:
         return f_1**2
 
-    with Pipeline("test") as my_pipeline:
-        in_1 = Variable(float, is_input=True)
-        in_2 = Variable(float, is_input=True)
-
-        my_pipeline.add_variables(in_1, in_2)
+    with Pipeline() as builder:
+        in_1 = Variable(float)
+        in_2 = Variable(float)
 
         add_1 = add(in_1, in_2)
         sq_1 = square(add_1)
 
-        my_pipeline.output(sq_1, add_1)
+        builder.output(sq_1, add_1)
 
-    output_pipeline = Pipeline.get_pipeline("test")
+    output_pipeline = builder.get_pipeline()
 
     output = output_pipeline.run(2.0, 3.0)
     assert output == [25.0, 5.0]
-    assert Pipeline._current_pipeline is None
-
-
-def test_pipeline_with_compute_requirements(pipeline_graph_with_compute_requirements):
-    pipeline_graph = pipeline_graph_with_compute_requirements
-    assert pipeline_graph.compute_type == "gpu"
-    assert pipeline_graph.min_gpu_vram_mb == 4000
 
 
 def test_run_once():
-    @pipeline_model
+    @entity
     class simple_model:
         def __init__(self):
             self.test_number = 0
 
-        @pipeline_function(run_once=True)
+        @pipe(run_once=True)
         def run_once_func(self) -> int:
             self.test_number += 1
             return self.test_number
 
-        @pipeline_function
+        @pipe
         def get_number(self) -> int:
             return self.test_number
 
-    with Pipeline("test") as builder:
+    with Pipeline() as builder:
         my_simple_model = simple_model()
         my_simple_model.run_once_func()
         my_simple_model.run_once_func()
         output = my_simple_model.get_number()
         builder.output(output)
 
-    output_pipeline = Pipeline.get_pipeline("test")
+    output_pipeline = builder.get_pipeline()
     output_number = output_pipeline.run()
     assert output_number == [1]
 
 
 def test_run_startup():
-    @pipeline_model
+    @entity
     class simple_model:
         def __init__(self):
             self.test_number = 0
 
-        @pipeline_function(on_startup=True)
+        @pipe(on_startup=True)
         def run_startup_func(self) -> int:
             self.test_number += 1
             return self.test_number
 
-        @pipeline_function
+        @pipe
         def get_number(self) -> int:
             return self.test_number
 
-    with Pipeline("test") as builder:
+    with Pipeline() as builder:
         my_simple_model = simple_model()
         output = my_simple_model.get_number()
         # The run_startup_func is called after the get_number in the pipeline,
@@ -113,20 +83,18 @@ def test_run_startup():
         my_simple_model.run_startup_func()
         builder.output(output)
 
-    output_pipeline = Pipeline.get_pipeline("test")
+    output_pipeline = builder.get_pipeline()
     output_number = output_pipeline.run()
     assert output_number == [1]
 
 
-def test_remote_file_not_downloaded():
+# def test_remote_file_not_downloaded():
+#     with Pipeline() as builder:
+#         File()
 
-    with Pipeline("test") as builder:
-        test_file = PipelineFile(remote_id="test_file")
-        builder.add_variables(test_file)
-
-    test_pipeline = Pipeline.get_pipeline("test")
-    with pytest.raises(
-        Exception,
-        match="Must call PipelineCloud()",
-    ):
-        test_pipeline.run()
+#     test_pipeline = builder.get_pipeline()
+#     with pytest.raises(
+#         Exception,
+#         match="Must call PipelineCloud()",
+#     ):
+#         test_pipeline.run()

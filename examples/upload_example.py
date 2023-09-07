@@ -1,0 +1,44 @@
+from pipeline import Pipeline, Variable, pipe
+from pipeline.cloud.compute_requirements import Accelerator
+from pipeline.cloud.environments import create_environment
+from pipeline.cloud.pipelines import upload_pipeline
+
+
+@pipe
+def pi_sample(i: int) -> bool:
+    import numpy as np
+
+    x, y = np.random.rand(2)
+    return bool(x**2 + y**2 < 1.0)
+
+
+with Pipeline() as builder:
+    input_var = Variable(
+        int,
+        gt=0,
+        lt=100,
+        title="",
+    )
+
+    b = pi_sample(input_var)
+
+    builder.output(b)
+
+pl = builder.get_pipeline()
+
+
+env_id = create_environment(
+    name="numpy",
+    python_requirements=["numpy==1.24.3"],
+    allow_existing=True,
+)
+
+result = upload_pipeline(
+    pl,
+    "test",
+    environment_id_or_name="numpy",
+    minimum_cache_number=1,
+    accelerators=[
+        Accelerator.cpu,
+    ],
+)

@@ -1,9 +1,9 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from pipeline import pipeline_function, pipeline_model
+from pipeline import entity, pipe
 
 
-@pipeline_model
+@entity
 class TransformersModelForCausalLM:
     def __init__(
         self,
@@ -15,15 +15,14 @@ class TransformersModelForCausalLM:
         self.model = None
         self.tokenizer = None
 
-    @pipeline_function
+    @pipe
     def predict(self, input_data: str, model_kwargs: dict) -> str:
-
         input_ids = self.tokenizer(input_data, return_tensors="pt").input_ids
         gen_tokens = self.model.generate(input_ids, **model_kwargs)
         gen_text = self.tokenizer.batch_decode(gen_tokens)[0]
         return gen_text
 
-    @pipeline_function(on_startup=True, run_once=True)
+    @pipe(on_startup=True, run_once=True)
     def load(self) -> None:
         if self.model is None:
             self.model = AutoModelForCausalLM.from_pretrained(self.model_path)

@@ -1,14 +1,566 @@
-from typing import List
+import inspect
+import tempfile
+from pathlib import Path
+from types import NoneType, UnionType
+from typing import Any, Iterable, List, Optional, get_args
+from urllib.parse import urlparse
 
 from cloudpickle import dumps
 from dill import loads
 
+from pipeline.cloud import http
+from pipeline.cloud.schemas.files import FileGet
+from pipeline.cloud.schemas.pipelines import IOVariable
+from pipeline.cloud.schemas.runs import RunIOType
 from pipeline.objects.function import Function
-from pipeline.objects.graph_node import GraphNode
 from pipeline.objects.model import Model
-from pipeline.objects.variable import PipelineFile, Variable
-from pipeline.schemas.pipeline import PipelineGet
-from pipeline.util import generate_id
+from pipeline.util import dump_object, generate_id
+
+
+class InputSchema:
+    def __init__(self, **kwargs):
+        for key, value in self.__annotations__.items():
+            validation_field = getattr(self, key, None)
+            if not isinstance(validation_field, InputField):
+                raise Exception("Must be InputField")
+
+            if validation_field.default is ... and (
+                "typing.Optional" in str(value) or isinstance(value, UnionType)
+            ):
+                raise Exception("Must define default values for optional fields!")
+
+            if key not in kwargs and validation_field.default is not ...:
+                setattr(self, key, validation_field.default)
+                continue
+
+            if key not in kwargs and validation_field.default is ...:
+                raise Exception(f"Missing value for '{key}'")
+
+            validation_field.validate(kwargs[key])
+            setattr(self, key, kwargs[key])
+
+    def __repr__(self) -> str:
+        vars = ", ".join(
+            [f"{key}={getattr(self, key)}" for key in self.__annotations__.keys()]
+        )
+        return f"InputSchema({vars})"
+
+    @classmethod
+    def to_schema(cls) -> List[dict]:
+        output_list: List[IOVariable] = []
+
+        items = dir(cls)
+
+        for item, title in [
+            (_field, item)
+            for item in items
+            if (_field := getattr(cls, item, None)) and isinstance(_field, InputField)
+        ]:
+            var_type = cls.__annotations__[title]
+
+            if isinstance(var_type, UnionType) or "typing.Optional" in str(var_type):
+                var_union_types = list(get_args(var_type))
+                if len(var_union_types) > 2:
+                    raise Exception("Only support Union of 2 types")
+                if NoneType in var_union_types:
+                    if item.default is None:
+                        raise Exception(
+                            "Must define default values for optional fields!"
+                        )
+
+                    var_union_types.remove(NoneType)
+                else:
+                    raise Exception("Only support Union with None")
+                var_type = var_union_types[0]
+
+            output_list.append(
+                item._to_io_schema(
+                    _type=var_type,
+                    _title=title,
+                ).dict()
+            )
+        return output_list
+
+    @classmethod
+    def from_schema(cls, schemas: List[dict]) -> "InputSchema":
+        new_input_schema = cls()
+        new_input_schema.__annotations__ = {}
+        for schema in schemas:
+            input_field = InputField._from_io_schema(IOVariable(**schema))
+
+            setattr(
+                new_input_schema,
+                schema.get("title"),
+                input_field,
+            )
+
+            new_input_schema.__annotations__[schema.get("title")] = RunIOType.to_object(
+                schema.get("run_io_type")
+            )
+
+        return new_input_schema
+
+    def parse_dict(self, input_dict: dict) -> None:
+        for item, title in [
+            (_field, item)
+            for item in dir(self)
+            if (_field := getattr(self, item, None)) and isinstance(_field, InputField)
+        ]:
+            print(f"Assesing {title}")
+            entered_value = input_dict.get(title, None)
+            if item.default is None and entered_value is None:
+                raise Exception(f"Field {title} is not optional, no value entered")
+
+            item.validate(entered_value)
+
+            print(f"Now {title}={entered_value}")
+            setattr(self, title, entered_value)
+
+    def to_dict(self) -> dict:
+        return {key: getattr(self, key) for key in self.__annotations__.keys()}
+
+
+class InputField:
+    def __init__(
+        self,
+        default: Any | None = ...,
+        title: str | None = None,
+        description: str | None = None,
+        examples: list[Any] | None = None,
+        gt: int | None = None,
+        ge: int | None = None,
+        lt: int | None = None,
+        le: int | None = None,
+        multiple_of: int | None = None,
+        allow_inf_nan: bool | None = None,
+        max_digits: int | None = None,
+        decimal_places: int | None = None,
+        min_length: int | None = None,
+        max_length: int | None = None,
+        choices: list[Any] | None = None,
+    ):
+        self.default = default
+        self.title = title
+        self.description = description
+        self.examples = examples
+        self.gt = gt
+        self.ge = ge
+        self.lt = lt
+        self.le = le
+        self.multiple_of = multiple_of
+        self.allow_inf_nan = allow_inf_nan
+        self.max_digits = max_digits
+        self.decimal_places = decimal_places
+        self.min_length = min_length
+        self.max_length = max_length
+        self.choices = choices
+
+        if default is not ...:
+            try:
+                self.validate(self.default)
+            except VariableException as e:
+                raise VariableException(
+                    f"Default value {default} is invalid for field {self.title}"
+                ) from e
+
+    def _to_io_schema(self, _type: Any, _title: str) -> IOVariable:
+        return IOVariable(
+            run_io_type=RunIOType.from_object(_type),
+            title=_title,
+            description=self.description,
+            examples=self.examples,
+            gt=self.gt,
+            ge=self.ge,
+            lt=self.lt,
+            le=self.le,
+            multiple_of=self.multiple_of,
+            allow_inf_nan=self.allow_inf_nan,
+            max_digits=self.max_digits,
+            decimal_places=self.decimal_places,
+            min_length=self.min_length,
+            max_length=self.max_length,
+            choices=self.choices,
+            default=self.default,
+        )
+
+    @classmethod
+    def _from_io_schema(cls, schema: IOVariable):
+        return cls(
+            default=schema.default,
+            description=schema.description,
+            examples=schema.examples,
+            gt=schema.gt,
+            ge=schema.ge,
+            lt=schema.lt,
+            le=schema.le,
+            multiple_of=schema.multiple_of,
+            allow_inf_nan=schema.allow_inf_nan,
+            max_digits=schema.max_digits,
+            decimal_places=schema.decimal_places,
+            min_length=schema.min_length,
+            max_length=schema.max_length,
+            choices=schema.choices,
+            title=schema.title,
+        )
+
+    def validate(self, value: Any):
+        if self.choices is not None:
+            if value not in self.choices:
+                raise VariableException(
+                    f"Value is not in the choices of {self.choices}"
+                )
+
+        if self.gt is not None:
+            if value <= self.gt:
+                raise VariableException(f"Value is not greater than {self.gt}")
+
+        if self.ge is not None:
+            if value < self.ge:
+                raise VariableException(
+                    f"Value is not greater than or equal to {self.ge}"
+                )
+
+        if self.lt is not None:
+            if value >= self.lt:
+                raise VariableException(f"Value is not less than {self.lt}")
+
+        if self.le is not None:
+            if value > self.le:
+                raise VariableException(f"Value is not less than or equal to {self.le}")
+
+        if self.multiple_of is not None:
+            if value % self.multiple_of != 0:
+                raise VariableException(
+                    f"Value is not a multiple of {self.multiple_of}"
+                )
+
+        if self.allow_inf_nan is not None:
+            if not self.allow_inf_nan and (
+                value == float("inf") or value == float("-inf") or value == float("nan")
+            ):
+                raise VariableException("Value is not allowed to be infinity or nan")
+
+        if self.max_digits is not None:
+            if len(str(value)) > self.max_digits:
+                raise VariableException(f"Value has more than {self.max_digits} digits")
+
+        if self.decimal_places is not None:
+            if len(str(value).split(".")[1]) > self.decimal_places:
+                raise VariableException(
+                    f"Value has more than {self.decimal_places} decimal places"
+                )
+
+        if self.min_length is not None:
+            if len(str(value)) < self.min_length:
+                raise VariableException(
+                    f"Value has less than {self.min_length} characters"
+                )
+
+        if self.max_length is not None:
+            if len(str(value)) > self.max_length:
+                raise VariableException(
+                    f"Value has more than {self.max_length} characters"
+                )
+
+
+class VariableException(Exception):
+    ...
+
+
+class Variable:
+    local_id: str
+    remote_id: str
+
+    name: str
+
+    type_class: Any
+
+    is_input: bool
+    is_output: bool
+
+    def __init__(
+        self,
+        type_class: Any,
+        *,
+        is_input: bool = True,
+        is_output: bool = False,
+        local_id: str = None,
+        # default: Any | None = None, # TODO: Implement default values
+        title: str | None = None,
+        description: str | None = None,
+        examples: list[Any] | None = None,
+        gt: int | None = None,
+        ge: int | None = None,
+        lt: int | None = None,
+        le: int | None = None,
+        multiple_of: int | None = None,
+        allow_inf_nan: bool | None = None,
+        max_digits: int | None = None,
+        decimal_places: int | None = None,
+        min_length: int | None = None,
+        max_length: int | None = None,
+        choices: list[Any] | None = None,
+        allow_out_of_context_creation: bool = False,
+    ):
+        from pipeline.objects.pipeline import Pipeline
+
+        self.type_class = type_class
+        self.is_input = is_input
+        self.is_output = is_output
+
+        self.title = title
+        self.description = description
+        self.examples = examples
+        self.gt = gt
+        self.ge = ge
+        self.lt = lt
+        self.le = le
+        self.multiple_of = multiple_of
+        self.allow_inf_nan = allow_inf_nan
+        self.max_digits = max_digits
+        self.decimal_places = decimal_places
+        self.min_length = min_length
+        self.max_length = max_length
+        self.choices = choices
+        self.dict_schema = (
+            type_class.to_schema()
+            if inspect.isclass(type_class)
+            and (
+                issubclass(type_class, InputSchema)
+                or isinstance(type_class, InputSchema)
+            )
+            else None
+        )
+        if not Pipeline._pipeline_context_active and not allow_out_of_context_creation:
+            raise Exception("Cant add a variable when not defining a pipeline")
+
+        if Pipeline._pipeline_context_active:
+            Pipeline._current_pipeline.variables.append(self)
+
+        self.local_id = generate_id(10) if not local_id else local_id
+
+    def validate_variable(self, value: Any) -> None:
+        # if not isinstance(value, self.type_class):
+        #     return
+
+        if self.choices is not None:
+            if value not in self.choices:
+                raise VariableException(
+                    f"Value is not in the choices of {self.choices}"
+                )
+
+        if self.gt is not None:
+            if value <= self.gt:
+                raise VariableException(f"Value is not greater than {self.gt}")
+
+        if self.ge is not None:
+            if value < self.ge:
+                raise VariableException(
+                    f"Value is not greater than or equal to {self.ge}"
+                )
+
+        if self.lt is not None:
+            if value >= self.lt:
+                raise VariableException(f"Value is not less than {self.lt}")
+
+        if self.le is not None:
+            if value > self.le:
+                raise VariableException(f"Value is not less than or equal to {self.le}")
+
+        if self.multiple_of is not None:
+            if value % self.multiple_of != 0:
+                raise VariableException(
+                    f"Value is not a multiple of {self.multiple_of}"
+                )
+
+        if self.allow_inf_nan is not None:
+            if not self.allow_inf_nan and (
+                value == float("inf") or value == float("-inf") or value == float("nan")
+            ):
+                raise VariableException("Value is not allowed to be infinity or nan")
+
+        if self.max_digits is not None:
+            if len(str(value)) > self.max_digits:
+                raise VariableException(f"Value has more than {self.max_digits} digits")
+
+        if self.decimal_places is not None:
+            if len(str(value).split(".")[1]) > self.decimal_places:
+                raise VariableException(
+                    f"Value has more than {self.decimal_places} decimal places"
+                )
+
+        if self.min_length is not None:
+            if len(str(value)) < self.min_length:
+                raise VariableException(
+                    f"Value has less than {self.min_length} characters"
+                )
+
+        if self.max_length is not None:
+            if len(str(value)) > self.max_length:
+                raise VariableException(
+                    f"Value has more than {self.max_length} characters"
+                )
+
+    def to_io_schema(self) -> IOVariable:
+        return IOVariable(
+            run_io_type=RunIOType.dictionary
+            if (
+                inspect.isclass(self.type_class)
+                and issubclass(self.type_class, InputSchema)
+            )
+            else RunIOType.from_object(self.type_class),
+            title=self.title,
+            description=self.description,
+            examples=self.examples,
+            gt=self.gt,
+            ge=self.ge,
+            lt=self.lt,
+            le=self.le,
+            multiple_of=self.multiple_of,
+            allow_inf_nan=self.allow_inf_nan,
+            max_digits=self.max_digits,
+            decimal_places=self.decimal_places,
+            min_length=self.min_length,
+            max_length=self.max_length,
+            choices=self.choices,
+            dict_schema=self.dict_schema,
+        )
+
+
+class File(Variable):
+    path: Path
+
+    def __init__(
+        self,
+        *,
+        path: str | Path = None,
+        title: str = None,
+        local_id: str = None,
+        allow_out_of_context_creation: bool = True,
+    ) -> None:
+        super().__init__(
+            type_class=self.__class__,
+            is_input=False,
+            is_output=False,
+            title=title,
+            local_id=local_id,
+            allow_out_of_context_creation=allow_out_of_context_creation,
+        )
+
+        self.path = path if isinstance(path, Path) else Path(path)
+        self.remote_id: str = None
+
+    @classmethod
+    def from_object(
+        cls,
+        obj: Any,
+        modules: Optional[List[str]] = None,
+        allow_out_of_context_creation: bool = True,
+    ):
+        temp_file = tempfile.NamedTemporaryFile(delete=False)
+
+        bytes = dump_object(obj, modules=modules)
+        temp_file.write(bytes)
+        temp_file.seek(0)
+
+        return cls(
+            path=temp_file.name,
+            title=temp_file.name,
+            allow_out_of_context_creation=allow_out_of_context_creation,
+        )
+
+    @classmethod
+    def from_remote(cls, *, id: str):
+        response = http.get(f"/v3/pipeline_files/{id}")
+
+        if response.status_code == 404:
+            raise Exception("File does not exist")
+
+        if response.status_code != 200:
+            raise Exception(
+                f"Something went wrong, status code: {response.status_code}"
+            )
+
+        file_schema = FileGet.parse_obj(response.json())
+
+        new_file = cls(
+            path=file_schema.path,
+        )
+        new_file.remote_id = file_schema.id
+
+        return new_file
+
+
+class Directory(File):
+    def __init__(
+        self,
+        *,
+        path: str | Path = None,
+        **kwargs,
+    ) -> None:
+        super().__init__(
+            path=path,
+            **kwargs,
+        )
+
+        if not self.path.is_dir() and not str(self.path).endswith(".zip"):
+            raise Exception("Path is not a directory")
+
+    @classmethod
+    def from_object(
+        cls,
+        *args,
+        **kwargs,
+    ):
+        raise NotImplementedError("Directory.from_object is not implemented")
+
+    @classmethod
+    def from_remote(cls, *, id: str):
+        response = http.get(f"/v3/pipeline_files/{id}")
+
+        if response.status_code == 404:
+            raise Exception("File does not exist")
+
+        if response.status_code != 200:
+            raise Exception(
+                f"Something went wrong, status code: {response.status_code}"
+            )
+
+        file_schema = FileGet.parse_obj(response.json())
+
+        if not str(file_schema.path).endswith(".zip"):
+            raise Exception("Remote is not a directory.")
+
+        new_file = cls(
+            path=file_schema.path,
+        )
+        new_file.remote_id = file_schema.id
+
+        return new_file
+
+
+class FileURL:
+    def __init__(self, url: str):
+        self.url = url
+        urlparse(url)
+
+
+class Stream(Variable, Iterable):
+    ...
+
+
+class GraphNode:
+    local_id: str
+    function: Function
+    inputs: List[Variable] = []
+    outputs: List[Variable] = []
+
+    def __init__(self, function, inputs, outputs, *, local_id=None):
+        self.function = function
+        self.inputs = inputs
+        self.outputs = outputs
+
+        self.local_id = generate_id(10) if local_id is None else local_id
 
 
 class Graph:
@@ -26,11 +578,6 @@ class Graph:
 
     models: List[Model]
 
-    # TODO: Add generic objects (e.g. Model) to be included in the graph
-
-    compute_type: str
-    min_gpu_vram_mb: int
-
     def __init__(
         self,
         *,
@@ -40,8 +587,6 @@ class Graph:
         outputs: List[Variable] = None,
         nodes: List[GraphNode] = None,
         models: List[Model] = None,
-        compute_type: str = "gpu",
-        min_gpu_vram_mb: int = None,
     ):
         self.name = name
         self.local_id = generate_id(10)
@@ -53,8 +598,6 @@ class Graph:
         self.models = models if models is not None else []
         # Flag set when all functions with the on_startup field have run
         self._has_run_startup = False
-        self.compute_type = compute_type
-        self.min_gpu_vram_mb = min_gpu_vram_mb
 
     def _startup(self):
         if self._has_run_startup:
@@ -63,8 +606,8 @@ class Graph:
         startup_variables = {}
 
         for var in self.variables:
-            # At the moment only the PipelineFile variable can be used on startup
-            if isinstance(var, PipelineFile):
+            # At the moment only the File variable can be used on startup
+            if isinstance(var, File):
                 startup_variables[var.local_id] = var
 
         for node in self.nodes:
@@ -101,7 +644,7 @@ class Graph:
             else:
                 node_function.function(*function_inputs)
 
-            if getattr(node_function.function, "__has_run__", False):
+            if getattr(node_function.function, "__run_once__", False):
                 node_function.function.__has_run__ = True
 
         self._has_run_startup = True
@@ -121,26 +664,30 @@ class Graph:
 
         running_variables = {}
 
-        # Add all PipelineFile's to the running variables
+        # Add all File's to the running variables
         for var in self.variables:
-            if isinstance(var, PipelineFile):
-                if var.remote_id is not None and not var.path:
-                    raise Exception(
-                        "Must call PipelineCloud().download_remotes(...) on "
-                        "remote PipelineFiles"
-                    )
+            if isinstance(var, File):
+                if not var.path:
+                    raise Exception("Must define a path for a File")
 
                 running_variables[var.local_id] = var
 
         for i, input in enumerate(inputs):
-            if not isinstance(input, input_variables[i].type_class):
-                raise Exception(
-                    "Input type mismatch, expceted %s got %s"
-                    % (
-                        input_variables[i].type_class,
-                        input.__class__,
+            target_type = input_variables[i].type_class
+
+            if issubclass(target_type, InputSchema) and isinstance(input, dict):
+                input = target_type(**input)
+            elif not isinstance(input, input_variables[i].type_class):
+                if isinstance(input, int) and input_variables[i].type_class == float:
+                    input = float(input)
+                else:
+                    raise Exception(
+                        "Input type mismatch, expceted %s got %s"
+                        % (
+                            input_variables[i].type_class,
+                            input.__class__,
+                        )
                     )
-                )
             running_variables[input_variables[i].local_id] = input
 
         for node in self.nodes:
@@ -152,7 +699,6 @@ class Graph:
                 if function.local_id == node.function.local_id:
                     node_function = function
                     break
-
             if getattr(node_function.function, "__run_once__", False) and getattr(
                 node_function.function, "__has_run__", False
             ):
@@ -207,99 +753,6 @@ class Graph:
             return_variables.append(running_variables[output_variable.local_id])
 
         return return_variables
-
-    def _update_function_local_id(self, old_id: str, new_id: str) -> None:
-        for func in self.functions:
-            if func.local_id == old_id:
-                func.local_id = new_id
-                return
-        raise Exception("Function with local_id:%s not found" % old_id)
-
-    @classmethod
-    def from_schema(cls, schema: PipelineGet):
-        variables = [Variable.from_schema(_var) for _var in schema.variables]
-        functions = [Function.from_schema(_func) for _func in schema.functions]
-        models = [Model.from_schema(_model) for _model in schema.models]
-
-        # Rebind functions -> models
-        update_functions = []
-        for _func in functions:
-            if hasattr(_func.class_instance, "__pipeline_model__"):
-                model = _func.class_instance
-                is_bound = False
-                for _model in models:
-                    if _model.model.local_id == model.local_id:
-                        bound_method = _func.function.__get__(
-                            _model.model, _model.model.__class__
-                        )
-                        setattr(_model.model, _func.function.__name__, bound_method)
-                        is_bound = True
-                        _func.class_instance = _model.model
-                if not is_bound:
-                    raise Exception(
-                        "Did not find a class to bind for model (local_id:%s)"
-                        % model.local_id
-                    )
-            elif _func.class_instance is not None:
-                raise Exception(
-                    "Incorrect bound class:%s\ndir:%s"
-                    % (_func.class_instance, dir(_func.class_instance))
-                )
-            update_functions.append(_func)
-        functions = update_functions
-
-        outputs = []
-        for _output in schema.outputs:
-            for _var in variables:
-                if _var.local_id == _output:
-                    outputs.append(_var)
-
-        nodes = []
-
-        for _node in schema.graph_nodes:
-            node_inputs = []
-            for node_str in _node.inputs:
-                for _var in variables:
-                    if _var.local_id == node_str:
-                        node_inputs.append(_var)
-                        break
-
-            node_outputs = []
-            for node_str in _node.outputs:
-                for _var in variables:
-                    if _var.local_id == node_str:
-                        node_outputs.append(_var)
-                        break
-
-            function = None
-
-            for _func in functions:
-                if _func.local_id == _node.function:
-                    function = _func
-                    break
-
-            if function is None:
-                raise Exception("Function not found:%s" % _node.function)
-
-            nodes.append(
-                GraphNode(
-                    function=function,
-                    inputs=node_inputs,
-                    outputs=node_outputs,
-                    local_id=_node.local_id,
-                )
-            )
-
-        remade_graph = cls(
-            name=schema.name,
-            variables=variables,
-            functions=functions,
-            outputs=outputs,
-            nodes=nodes,
-            models=models,
-        )
-
-        return remade_graph
 
     def save(self, save_path):
         with open(save_path, "wb") as save_file:

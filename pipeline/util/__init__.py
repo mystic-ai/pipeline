@@ -1,13 +1,12 @@
+import importlib
 import importlib.metadata
 import io
 import random
 import string
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, List, Optional, Union
 
-from cloudpickle import dumps
+from cloudpickle import dumps, register_pickle_by_value
 from dill import loads
-
-from pipeline.schemas.file import FileCreate
 
 
 def package_version() -> str:
@@ -19,8 +18,11 @@ def generate_id(length: int) -> str:
     return "".join((random.choice(string.ascii_letters) for i in range(length)))
 
 
-def python_object_to_hex(obj: Any) -> str:
-    return dumps(obj).hex()
+def python_object_to_hex(
+    obj: Any,
+    modules: Optional[List[str]] = None,
+) -> str:
+    return dump_object(obj, modules=modules).hex()
 
 
 def hex_to_python_object(hex: str) -> Any:
@@ -28,8 +30,12 @@ def hex_to_python_object(hex: str) -> Any:
     return loads(h)
 
 
-def dump_object(obj: Any) -> bytes:
+def dump_object(obj: Any, modules: Optional[List[str]] = None) -> bytes:
     """Serialize `obj` as bytes."""
+    if modules is not None:
+        for module_name in modules:
+            module = importlib.import_module(module_name)
+            register_pickle_by_value(module)
     return dumps(obj)
 
 
@@ -48,11 +54,11 @@ def python_object_to_name(obj: Any) -> Optional[str]:
     return name
 
 
-def python_object_to_file_create(obj: Any, name: str = None):
-    if name is None:
-        name = generate_id(20)
+# def python_object_to_file_create(obj: Any, name: str = None):
+#     if name is None:
+#         name = generate_id(20)
 
-    return FileCreate(name=name, file_bytes=python_object_to_hex)
+#     return FileCreate(name=name, file_bytes=python_object_to_hex)
 
 
 class CallbackBytesIO(io.BytesIO):

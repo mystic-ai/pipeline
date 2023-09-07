@@ -3,8 +3,7 @@ import uuid
 from hashlib import sha256
 from typing import Any
 
-from pipeline.schemas.model import ModelGet
-from pipeline.util import generate_id, load_object
+from pipeline.util import generate_id
 
 
 class Model:
@@ -18,7 +17,6 @@ class Model:
     model: Any
 
     def __init__(self, model: Any, *, name: str = "", local_id: str = None):
-
         self.name = name
         self.model = model
         try:
@@ -30,15 +28,3 @@ class Model:
         self.local_id = generate_id(10) if local_id is None else local_id
         if not hasattr(self.model, "local_id"):
             setattr(self.model, "local_id", self.local_id)
-
-    @classmethod
-    def from_schema(cls, schema: ModelGet):
-        pickled_data = load_object(schema.hex_file.data)
-        if isinstance(pickled_data, Model):
-            pickled_data.local_id = schema.id
-            return pickled_data
-        return cls(
-            pickled_data,
-            name=schema.name,
-            local_id=schema.id,
-        )

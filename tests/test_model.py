@@ -1,32 +1,31 @@
-from pipeline.objects import Pipeline, Variable, pipeline_function, pipeline_model
+from pipeline.objects import Pipeline, Variable, entity, pipe
 
 
 # Test basic Pipeline
 def test_with_exit():
-    @pipeline_model()
+    @entity()
     class CustomModel:
         def __init__(self, model_path="", tokenizer_path=""):
             self.model_path = model_path
             self.tokenizer_path = tokenizer_path
 
-        @pipeline_function
+        @pipe
         def predict(self, input: str, **kwargs: dict) -> str:
             return input + " lol"
 
-        @pipeline_function
+        @pipe
         def load(self) -> None:
             print("load")
 
-    with Pipeline("test") as my_pipeline:
-        in_1 = Variable(str, is_input=True)
-        my_pipeline.add_variable(in_1)
+    with Pipeline() as builder:
+        in_1 = Variable(str)
 
         my_model = CustomModel()
         str_1 = my_model.predict(in_1)
 
-        my_pipeline.output(str_1)
+        builder.output(str_1)
 
-    test_pipeline = Pipeline.get_pipeline("test")
+    test_pipeline = builder.get_pipeline()
     output = test_pipeline.run("hey")
 
     assert output == ["hey lol"]
