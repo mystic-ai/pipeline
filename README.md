@@ -1,7 +1,8 @@
 # Pipeline SDK [![Version](https://img.shields.io/pypi/v/pipeline-ai)](https://pypi.org/project/pipeline-ai) ![Size](https://img.shields.io/github/repo-size/neuro-ai-dev/pipeline) ![Downloads](https://img.shields.io/pypi/dm/pipeline-ai) [![License](https://img.shields.io/crates/l/ap)](https://www.apache.org/licenses/LICENSE-2.0) [![Discord](https://img.shields.io/badge/discord-join-blue)](https://discord.gg/eJQRkBdEcs)
 _Created by [mystic.ai](https://www.mystic.ai/)_
 
-Find loads of premade models in in production for free in Catalyst: [https://www.mystic.ai/explore](https://beta.mystic.ai/explore)
+
+Find loads of premade models in in production for free in Catalyst: [https://www.mystic.ai/explore](https://www.mystic.ai/explore)
 
 # Table of Contents
 
@@ -29,17 +30,20 @@ python -m pip install pipeline-ai
 
 # Models
 
-Below are some popular models that have been premade by the community on Catalyst. You can find more models in the [explore](https://beta.mystic.ai/explore) section of Catalyst, and the source code for these models is also referenced in the table.
+
+Below are some popular models that have been premade by the community on Catalyst. You can find more models in the [explore](https://www.mystic.ai/explore) section of Catalyst, and the source code for these models is also referenced in the table.
 
 | Model | Category | Description | Source |
 | --- | --- | --- | --- |
-| [meta/llama2-7B](https://beta.mystic.ai/meta/llama2-70b) | LLM | A 7B parameter LLM created by Meta | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
-| [meta/llama2-13B](https://beta.mystic.ai/meta/llama2-70b) | LLM | A 13B parameter LLM created by Meta | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
-| [meta/llama2-70B](https://beta.mystic.ai/meta/llama2-70b) | LLM | A 70B parameter LLM created by Meta | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
-| [tiiuae/falcon-40B](https://beta.mystic.ai/meta/llama2-70b) | LLM | Falcon-40B is a 40B parameters causal decoder-only model built by TII and trained on 1T tokens of RefinedWeb enhanced with curated corpora. | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
-| [runwayml/stable-diffusion-1.5](https://beta.mystic.ai/meta/llama2-70b) | Vision | Text -> Image | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
-| [runwayml/stable-diffusion-2.0](https://beta.mystic.ai/meta/llama2-70b) | Vision | Text -> Image | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
-| [runwayml/stable-diffusion-2.1](https://beta.mystic.ai/meta/llama2-70b) | Vision | Text -> Image | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [meta/llama2-7B](https://www.mystic.ai/meta/llama2-70b) | LLM | A 7B parameter LLM created by Meta (vllm accelerated) | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [meta/llama2-13B](https://www.mystic.ai/meta/llama2-70b) | LLM | A 13B parameter LLM created by Meta (vllm accelerated) | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [meta/llama2-70B](https://www.mystic.ai/meta/llama2-70b) | LLM | A 70B parameter LLM created by Meta (vllm accelerated) | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [runwayml/stable-diffusion-1.5](https://www.mystic.ai/meta/llama2-70b) | Vision | Text -> Image | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [stabilityai/stable-diffusion-xl-refiner-1.0](https://www.mystic.ai/meta/llama2-70b) | Vision | SDXL Text -> Image | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [matthew/e5_large-v2](https://www.mystic.ai/matthew/e5_large-v2/play) | LLM | Text embedding | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [matthew/musicgen_large](https://www.mystic.ai/matthew/musicgen_large/play) | Audio | Music generation | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+| [matthew/blip](https://www.mystic.ai/matthew/blip/play) | Vision | Image captioning | [source](https://github.com/mystic-ai/pipeline/tree/main/examples/nlp)|
+
 
 
 # Example and tutorials
