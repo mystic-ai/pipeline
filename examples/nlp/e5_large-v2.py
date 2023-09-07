@@ -24,8 +24,8 @@ class E5Model:
         self.model = AutoModel.from_pretrained("intfloat/e5-large-v2")
 
     @pipe
-    def predict(self, input_texts: list[str], kwargs: ModelKwargs) -> list:
-        defaults = kwargs.to_dict()
+    def predict(self, input_texts: list[str]) -> list:
+        defaults = ModelKwargs().to_dict()
 
         batch_dict = self.tokenizer(input_texts, **defaults)
         outputs = self.model(**batch_dict)
@@ -42,7 +42,6 @@ class E5Model:
 
 
 with Pipeline() as builder:
-    # Define the inputs of the pipeline
     input_texts = Variable(
         list, title="Input Texts", description="Text to embed, as an array of strings"
     )
