@@ -129,9 +129,21 @@ class SeamlessModel:
 
 
 with Pipeline() as builder:
-    input_text = Variable(str, title="Prompt")
-    source_lang = Variable(str, title="Source Language", choices=list(LANG_MAP.keys()))
-    target_lang = Variable(str, title="Target Language", choices=list(LANG_MAP.keys()))
+    input_text = Variable(
+        str, title="Prompt", description="Text to be translated, in the source language"
+    )
+    source_lang = Variable(
+        str,
+        title="Source Language",
+        description="Language to translate from",
+        choices=list(LANG_MAP.keys()),
+    )
+    target_lang = Variable(
+        str,
+        title="Target Language",
+        description="Language to translate to",
+        choices=list(LANG_MAP.keys()),
+    )
 
     model = SeamlessModel()
 
