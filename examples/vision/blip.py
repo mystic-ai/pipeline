@@ -1,5 +1,6 @@
+from io import BytesIO
+
 from PIL import Image
-from transformers import BlipForConditionalGeneration, BlipProcessor
 
 from pipeline import File, Pipeline, Variable, entity, pipe
 from pipeline.cloud import compute_requirements, pipelines
@@ -13,6 +14,8 @@ class BlipModel:
 
     @pipe(on_startup=True, run_once=True)
     def load(self) -> None:
+        from transformers import BlipForConditionalGeneration, BlipProcessor
+
         self.processor = BlipProcessor.from_pretrained(
             "Salesforce/blip-image-captioning-large"
         )
@@ -22,14 +25,18 @@ class BlipModel:
 
     @pipe
     def predict(self, image: File) -> str:
-        raw_image = Image.open(image.path.read_bytes()).convert("RGB")
+        raw_image = Image.open(BytesIO(image.path.read_bytes())).convert("RGB")
         inputs = self.processor(raw_image, return_tensors="pt")
         out = self.model.generate(**inputs)
         return str(self.processor.decode(out[0], skip_special_tokens=True))
 
 
 with Pipeline() as builder:
-    image = Variable(File, title="Image File")
+    image = Variable(
+        File,
+        title="Image File",
+        description="Upload a .png, .jpg or other image file to be captioned",
+    )
 
     model = BlipModel()
 
