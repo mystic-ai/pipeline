@@ -45,12 +45,11 @@ with Pipeline() as builder:
     input_texts = Variable(
         list, title="Input Texts", description="Text to embed, as an array of strings"
     )
-    kwargs = Variable(ModelKwargs)
 
     model = E5Model()
     model.load()
 
-    output = model.predict(input_texts, kwargs)
+    output = model.predict(input_texts)
 
     builder.output(output)
 
