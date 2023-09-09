@@ -11,6 +11,7 @@ from multiprocessing import Pool
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from threading import Thread
+from urllib.parse import urlparse
 from zipfile import ZipFile
 
 import cloudpickle as cp
@@ -119,6 +120,13 @@ def upload_pipeline(
                     )
             finally:
                 zip_file.close()
+        elif isinstance(variable, FileURL):
+            try:
+                urlparse(variable.url)
+            except Exception:
+                raise Exception(
+                    f"Invalid URL for variable (url={variable.url})",
+                )
         elif isinstance(variable, File):
             if variable.remote_id is not None:
                 continue
