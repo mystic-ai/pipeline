@@ -42,15 +42,17 @@ class LlamaPipeline:
 
     @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
-        model_dir = "/tmp/llama2-13b-chat-cache/"
+        model_dir = "/tmp/llama2-70b-chat-cache/"
         snapshot_download(
-            "meta-llama/Llama-2-13b-chat-hf",
+            "meta-llama/Llama-2-70b-chat-hf",
             local_dir=model_dir,
             token="",
+            ignore_patterns=["*.safetensors"],
         )
         self.llm = LLM(
             model_dir,
             dtype="bfloat16",
+            tensor_parallel_size=2,
         )
         self.tokenizer = self.llm.get_tokenizer()
 
@@ -159,30 +161,33 @@ my_pipeline = builder.get_pipeline()
 
 
 environments.create_environment(
-    "meta/llama2-vllm",
+    "meta/llama2-vllm-ray",
     python_requirements=[
         "torch==2.0.1",
-        "transformers==4.30.2",
+        "transformers",
         "diffusers==0.19.3",
         "accelerate==0.21.0",
         "hf-transfer~=0.1",
         "vllm==0.1.4",
+        "ray==2.6.3",
+        "pandas",  # for ray - will say ray is not installed otherwise
     ],
 )
 
 # Upload
 result = upload_pipeline(
     my_pipeline,
-    "meta/llama2-13B-chat",
-    "meta/llama2-vllm",
-    required_gpu_vram_mb=35_000,
+    "meta/llama2-70B-chat",
+    "meta/llama2-vllm-ray",
+    required_gpu_vram_mb=150_000,
     accelerators=[
-        Accelerator.nvidia_a100,
+        Accelerator.nvidia_a100_80gb,
+        Accelerator.nvidia_a100_80gb,
     ],
 )
 
 run_pipeline(
-    "meta/llama2-13B-chat:v1",
+    result.id,
     [
         [
             {
