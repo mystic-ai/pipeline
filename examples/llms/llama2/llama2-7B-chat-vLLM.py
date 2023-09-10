@@ -42,7 +42,7 @@ class LlamaPipeline:
 
     @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
-        model_dir = "/tmp/llama2-7b-cache/"
+        model_dir = "/tmp/llama2-7b-chat-cache/"
         snapshot_download(
             "meta-llama/Llama-2-7b-chat-hf",
             local_dir=model_dir,
