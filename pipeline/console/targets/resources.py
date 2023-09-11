@@ -69,7 +69,7 @@ def list_resources() -> None:
         ]
         for resource in resource_information
     ]
-
+    resource_data = sorted(resource_data, key=lambda x: x[0])
     table = tabulate(
         resource_data,
         headers=[

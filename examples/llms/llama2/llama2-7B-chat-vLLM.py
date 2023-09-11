@@ -1,4 +1,5 @@
 # flake8: noqa
+import os
 from typing import List
 
 from huggingface_hub import snapshot_download
@@ -43,6 +44,7 @@ class LlamaPipeline:
     @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
         model_dir = "/tmp/llama2-7b-chat-cache/"
+        os.makedirs(model_dir, exist_ok=True)
         snapshot_download(
             "meta-llama/Llama-2-7b-chat-hf",
             local_dir=model_dir,
@@ -181,7 +183,7 @@ result = upload_pipeline(
     ],
 )
 run_pipeline(
-    "meta/llama2-7B-chat:v1",
+    result.id,
     [
         [
             {
