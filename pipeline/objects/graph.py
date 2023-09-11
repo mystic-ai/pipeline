@@ -539,10 +539,11 @@ class Directory(File):
         return new_file
 
 
-class FileURL:
+class FileURL(File):
     def __init__(self, url: str):
-        self.url = url
+        self.url: str = url
         urlparse(url)
+        super().__init__(path=url)
 
 
 class Stream(Variable, Iterable):

@@ -11,6 +11,7 @@ from multiprocessing import Pool
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from threading import Thread
+from urllib.parse import urlparse
 from zipfile import ZipFile
 
 import cloudpickle as cp
@@ -119,6 +120,13 @@ def upload_pipeline(
                     )
             finally:
                 zip_file.close()
+        elif isinstance(variable, FileURL):
+            try:
+                urlparse(variable.url)
+            except Exception:
+                raise Exception(
+                    f"Invalid URL for variable (url={variable.url})",
+                )
         elif isinstance(variable, File):
             if variable.remote_id is not None:
                 continue
@@ -255,38 +263,43 @@ def _data_to_run_input(data: t.Tuple) -> t.List[RunInput]:
     for item in data:
         input_type = RunIOType.from_object(item)
         if input_type == RunIOType.file or isinstance(item, File):
-            file_obj = open(item.path, "rb") if isinstance(item, File) else item
+            if isinstance(item, FileURL):
+                input_schema = RunInput(
+                    value=None,
+                    type=RunIOType.file,
+                    file_path=item.url,
+                    file_name=item.url.split("/")[-1],
+                )
+                input_array.append(input_schema)
+            else:
+                file_obj = open(item.path, "rb") if isinstance(item, File) else item
 
-            res = http.post_files(
-                "/v3/pipeline_files",
-                files=dict(pfile=file_obj),
-                progress=True,
-            )
-            file_path = res.json().get("path", None)
+                res = http.post_files(
+                    "/v3/pipeline_files",
+                    files=dict(pfile=file_obj),
+                    progress=True,
+                )
+                file_path = res.json().get("path", None)
 
-            if file_path is None:
-                raise Exception("Error uploading file")
+                if file_path is None:
+                    raise Exception("Error uploading file")
 
-            input_schema = RunInput(
-                type=input_type,
-                file_path=file_path,
-                file_name=file_path.split("/")[-1],
-            )
-            input_array.append(input_schema)
+                input_schema = RunInput(
+                    value=None,
+                    type=input_type,
+                    file_path=file_path,
+                    file_name=file_path.split("/")[-1],
+                )
+                input_array.append(input_schema)
             continue
-        elif isinstance(item, FileURL):
-            input_schema = RunInput(
-                type=RunIOType.file,
-                file_path=item.url,
-                file_name=item.url.split("/")[-1],
-            )
-            input_array.append(input_schema)
         elif input_type == RunIOType.pkl:
             raise NotImplementedError("Python object input not yet supported")
 
         input_schema = RunInput(
             type=input_type,
             value=item,
+            file_path=None,
+            file_name=None,
         )
         input_array.append(input_schema)
 
