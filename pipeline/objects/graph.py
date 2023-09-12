@@ -437,6 +437,7 @@ class File(Variable):
         title: str = None,
         local_id: str = None,
         allow_out_of_context_creation: bool = True,
+        remote_id: str | None = None,
     ) -> None:
         super().__init__(
             type_class=self.__class__,
@@ -448,7 +449,7 @@ class File(Variable):
         )
 
         self.path = path if isinstance(path, Path) else Path(path)
-        self.remote_id: str = None
+        self.remote_id: str = remote_id
 
     @classmethod
     def from_object(
@@ -534,8 +535,8 @@ class Directory(File):
 
         new_file = cls(
             path=file_schema.path,
+            remote_id=file_schema.id,
         )
-        new_file.remote_id = file_schema.id
 
         return new_file
 
