@@ -42,11 +42,16 @@ class LlamaPipeline:
 
     @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
-        model_dir = "/tmp/llama2-13b-chat-cache/"
+        from pathlib import Path
+
+        model_dir = Path("~/.cache/huggingface/llama2/13b-chat").expanduser()
+        model_dir.mkdir(parents=True, exist_ok=True)
+        model_dir = str(model_dir)
         snapshot_download(
             "meta-llama/Llama-2-13b-chat-hf",
             local_dir=model_dir,
             token="",
+            force_download=True,
         )
         self.llm = LLM(
             model_dir,
@@ -182,7 +187,7 @@ result = upload_pipeline(
 )
 
 run_pipeline(
-    "meta/llama2-13B-chat:v1",
+    result.id,
     [
         [
             {

@@ -1,4 +1,3 @@
-from threading import Thread
 from typing import List
 
 from huggingface_hub import snapshot_download
@@ -8,7 +7,7 @@ from pipeline import Pipeline, entity, pipe
 from pipeline.cloud import environments
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.pipelines import upload_pipeline
-from pipeline.objects.graph import InputField, InputSchema, Stream, Variable
+from pipeline.objects.graph import InputField, InputSchema, Variable
 
 
 class ModelKwargs(InputSchema):
@@ -31,11 +30,16 @@ class LlamaPipeline:
 
     @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
-        model_dir = "/tmp/llama2-7b-cache/"
+        from pathlib import Path
+
+        model_dir = Path("~/.cache/huggingface/llama2/7b").expanduser()
+        model_dir.mkdir(parents=True, exist_ok=True)
+        model_dir = str(model_dir)
         snapshot_download(
             "meta-llama/Llama-2-7b-hf",
             local_dir=model_dir,
             token="",
+            force_download=True,
         )
         self.llm = LLM(model_dir)
 
