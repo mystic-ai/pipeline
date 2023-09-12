@@ -33,11 +33,16 @@ class LlamaPipeline:
 
     @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
-        model_dir = "/tmp/llama2-70b-cache/"
+        from pathlib import Path
+
+        model_dir = Path("~/.cache/huggingface/llama2/70b").expanduser()
+        model_dir.mkdir(parents=True, exist_ok=True)
+        model_dir = str(model_dir)
         snapshot_download(
             "meta-llama/Llama-2-70b-hf",
             local_dir=model_dir,
             token="",
+            force_download=True,
             ignore_patterns=["*.safetensors"],
         )
 
