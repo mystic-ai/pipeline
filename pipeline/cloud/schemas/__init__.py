@@ -1,9 +1,9 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 import humps
 from pydantic import BaseModel as _BaseModel
-from pydantic import Extra
+from pydantic import Extra, validator
 from pydantic.generics import GenericModel as _GenericModel
 
 CAMEL_CASE_ALIASES = bool(os.environ.get("CAMEL_CASE_ALIASES", False))
@@ -22,14 +22,16 @@ class BaseConfig:
 
 
 class BaseModel(_BaseModel):
+    """Base model for schemas."""
+
     class Config(BaseConfig):
-        orm_mode = True
-        use_enum_values = True
+        pass
 
-
-class Patchable(BaseModel):
-    class Config:
-        extra = Extra.forbid
+    @validator("*", pre=True)
+    def convert_to_utc(cls, value):
+        if isinstance(value, datetime):
+            return value.astimezone(timezone.utc)
+        return value
 
 
 class GenericModel(_GenericModel):
@@ -37,3 +39,15 @@ class GenericModel(_GenericModel):
 
     class Config(BaseConfig):
         pass
+
+
+class Patchable(BaseModel):
+    """Tag type for marking schemas for patching.
+
+    A Patchable schema is one used for updating other schemas.
+    """
+
+    class Config:
+        # Forbid fields not specified in the model; this prevents silently
+        # failing updates to patch non-matching fields
+        extra = Extra.forbid

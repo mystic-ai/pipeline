@@ -4,7 +4,7 @@ import typing as t
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel
+from pipeline.cloud.schemas import BaseModel
 
 
 class RunState(int, Enum):
