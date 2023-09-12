@@ -528,9 +528,6 @@ class Directory(File):
 
         file_schema = FileGet.parse_obj(response.json())
 
-        if not str(file_schema.path).endswith(".zip"):
-            raise Exception("Remote is not a directory.")
-
         new_file = cls(
             path=file_schema.path,
         )
