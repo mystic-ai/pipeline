@@ -503,7 +503,11 @@ class Directory(File):
             **kwargs,
         )
 
-        if not self.path.is_dir() and not str(self.path).endswith(".zip"):
+        if (
+            not self.path.is_dir()
+            and not str(self.path).endswith(".zip")
+            and self.remote_id is None
+        ):
             raise Exception("Path is not a directory")
 
     @classmethod
