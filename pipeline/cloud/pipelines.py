@@ -368,7 +368,6 @@ def run_pipeline(
     def _print_logs():
         for log in tail_run_logs(run_get.id):
             _print_remote_log(log)
-            # _print(log)
 
     if current_configuration.is_debugging():
         log_thread = Thread(target=_print_logs)
@@ -377,8 +376,14 @@ def run_pipeline(
         _print(f"Run ID: {run_get.id}")
 
         def activate_log_thread(state: RunState):
-            if state == RunState.running:
-                log_thread.start()
+            if state in [
+                RunState.caching_graph,
+                RunState.running,
+                RunState.downloading_graph,
+                RunState.creating_environment,
+            ]:
+                if not log_thread.is_alive():
+                    log_thread.start()
 
         run_get = poll_async_run(
             run_get.id,
