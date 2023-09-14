@@ -49,9 +49,6 @@ def _print_remote_log(val: tuple):
     text = val[1]
     normal_string = text
 
-    normal_string = "".join([i if ord(i) < 128 else " " for i in normal_string])
-    normal_string = normal_string.rstrip("\n\r\x0b")
-
     log_str = f"{PIPELINE_STR} - {bcolors.ORANGE}logs{bcolors.ENDC} {time_stamp}: {normal_string}"  # noqa
     print(f"{log_str}")
 
