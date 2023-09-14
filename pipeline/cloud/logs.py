@@ -49,6 +49,14 @@ def tail_run_logs(run_id: str) -> Generator[tuple, None, None]:
                     message = websocket.recv()
                 except ConnectionClosedOK:
                     return
+    except ConnectionClosedOK as e:
+        if e.code == 1000:
+            _print("Log stream disconnected", level="WARNING")
+        else:
+            _print(
+                f"Log stream disconnected with code {e.code}, reason {e.reason}",
+                level="ERROR",
+            )
     except ConnectionClosedError as e:
         if e.code == 4000:
             _print(f"Run {run_id} not found", level="ERROR")

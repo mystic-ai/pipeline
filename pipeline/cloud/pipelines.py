@@ -370,49 +370,7 @@ def run_pipeline(
             _print_remote_log(log)
 
     if current_configuration.is_debugging():
-        log_thread = Thread(target=_print_logs)
-
-        _print("Running in debug mode")
-        _print(f"Run ID: {run_get.id}")
-
-        def activate_log_thread(state: RunState):
-            if state in [
-                RunState.caching_graph,
-                RunState.running,
-                RunState.downloading_graph,
-                RunState.creating_environment,
-            ]:
-                if not log_thread.is_alive():
-                    log_thread.start()
-
-        run_get = poll_async_run(
-            run_get.id,
-            interval=0.5,
-            state_change_callback=activate_log_thread,
-        )
-
-        if run_get.state == RunState.completed:
-            _print("Run completed successfully", level="SUCCESS")
-            if run_get.result is not None:
-                _print(f"Result array: {run_get.result.result_array()}")
-
-    if RunState.is_terminal(run_get.state) and run_get.state != RunState.completed:
-        error = getattr(run_get, "error", None)
-
-        traceback = getattr(error, "traceback", None)
-        exception = getattr(error, "exception", None)
-        if (
-            isinstance(exception, str)
-            and "Tried to return a non-supported type from a pipeline" in exception
-        ):
-            raise Exception(
-                f"Remote Run '{run_get.id}' failed because an unsupported type was returned. Check your outputs.\n(More information -> https://docs.mystic.ai/docs/inputoutpu-types)"  # noqa
-            )
-
-        raise Exception(
-            f"Remote Run '{run_get.id}' failed with exception: "
-            f"{traceback if traceback is not None and traceback != '' else exception}"
-        )
+        run_get = _run_logs_process(run_get.id)
 
     return run_get
 
@@ -473,7 +431,8 @@ def poll_async_run(
     *,
     timeout: int | None = None,
     interval: float | int = 1.0,
-    state_change_callback: t.Callable[[RunState], None] | None = None,
+    state_change_callback: t.Callable[[Run], None] | None = None,
+    poll_callback: t.Callable[[Run], None] | None = None,
 ) -> Run:
     start_time = time.time()
     current_state = None
@@ -483,7 +442,7 @@ def poll_async_run(
             _print(f"Run state: {run_get.state.name}")
             current_state = run_get.state
             if state_change_callback is not None:
-                state_change_callback(run_get.state)
+                state_change_callback(run_get)
         if run_get.state in [
             RunState.completed,
             RunState.failed,
@@ -496,4 +455,69 @@ def poll_async_run(
         if timeout is not None and time.time() - start_time > timeout:
             raise TimeoutError(f"Timeout waiting for run (run_id={run_id})")
 
+        if poll_callback is not None:
+            poll_callback(run_get)
         time.sleep(interval)
+
+
+log_thread: Thread | None = None
+
+
+def _run_logs_process(run_id: str) -> Run:
+    global log_thread
+
+    _print(f"Trailing run logs ({run_id})")
+
+    logging_states = [
+        RunState.caching_graph,
+        RunState.running,
+        RunState.downloading_graph,
+        RunState.creating_environment,
+    ]
+
+    def _print_logs():
+        for log in tail_run_logs(run_id):
+            _print_remote_log(log)
+
+    def poll_check(run_get: Run) -> None:
+        global log_thread
+        if log_thread is None:
+            log_thread = Thread(target=_print_logs)
+        if run_get.state in logging_states and not log_thread.is_alive():
+            try:
+                log_thread.start()
+            except Exception:
+                _print("Reconnecting to log stream", level="WARNING")
+                log_thread = Thread(target=_print_logs)
+                log_thread.start()
+
+    run_get = poll_async_run(
+        run_id,
+        interval=0.5,
+        poll_callback=poll_check,
+    )
+
+    if run_get.state == RunState.completed:
+        _print("Run completed successfully", level="SUCCESS")
+        if run_get.result is not None:
+            _print(f"Result array: {run_get.result.result_array()}")
+
+    if RunState.is_terminal(run_get.state) and run_get.state != RunState.completed:
+        error = getattr(run_get, "error", None)
+
+        traceback = getattr(error, "traceback", None)
+        exception = getattr(error, "exception", None)
+        if (
+            isinstance(exception, str)
+            and "Tried to return a non-supported type from a pipeline" in exception
+        ):
+            raise Exception(
+                f"Remote Run '{run_get.id}' failed because an unsupported type was returned. Check your outputs.\n(More information -> https://docs.mystic.ai/docs/inputoutpu-types)"  # noqa
+            )
+
+        raise Exception(
+            f"Remote Run '{run_get.id}' failed with exception: "
+            f"{traceback if traceback is not None and traceback != '' else exception}"
+        )
+
+    return run_get
