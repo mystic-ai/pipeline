@@ -438,11 +438,15 @@ def poll_async_run(
     current_state = None
     while True:
         run_get = get_pipeline_run(run_id)
+        if poll_callback is not None:
+            poll_callback(run_get)
+
         if current_state != run_get.state and current_configuration.is_debugging():
             _print(f"Run state: {run_get.state.name}")
             current_state = run_get.state
             if state_change_callback is not None:
                 state_change_callback(run_get)
+
         if run_get.state in [
             RunState.completed,
             RunState.failed,
@@ -454,9 +458,6 @@ def poll_async_run(
 
         if timeout is not None and time.time() - start_time > timeout:
             raise TimeoutError(f"Timeout waiting for run (run_id={run_id})")
-
-        if poll_callback is not None:
-            poll_callback(run_get)
         time.sleep(interval)
 
 
@@ -483,6 +484,9 @@ def _run_logs_process(run_id: str) -> Run:
         global log_thread
         if log_thread is None:
             log_thread = Thread(target=_print_logs)
+            if RunState.is_terminal(run_get.state):
+                log_thread.start()
+
         if run_get.state in logging_states and not log_thread.is_alive():
             try:
                 log_thread.start()
