@@ -24,16 +24,18 @@ class InputSchema:
             if not isinstance(validation_field, InputField):
                 raise Exception("Must be InputField")
 
-            if validation_field.default is ... and (
-                "typing.Optional" in str(value) or isinstance(value, UnionType)
-            ):
-                raise Exception("Must define default values for optional fields!")
+            # if validation_field.default is ... and (
+            #     "typing.Optional" in str(value) or isinstance(value, UnionType)
+            # ):
+            #     raise Exception("Must define default values for optional fields!")
 
-            if key not in kwargs and validation_field.default is not ...:
+            if key not in kwargs:
                 setattr(self, key, validation_field.default)
                 continue
 
-            if key not in kwargs and validation_field.default is ...:
+            if key not in kwargs and not (
+                "typing.Optional" in str(value) or isinstance(value, UnionType)
+            ):
                 raise Exception(f"Missing value for '{key}'")
 
             validation_field.validate(kwargs[key])
@@ -109,7 +111,7 @@ class InputSchema:
             print(f"Assesing {title}")
             entered_value = input_dict.get(title, None)
             if item.default is None and entered_value is None:
-                raise Exception(f"Field {title} is not optional, no value entered")
+                raise ValueError(f"Field {title} is not optional, no value entered")
 
             item.validate(entered_value)
 
@@ -123,7 +125,7 @@ class InputSchema:
 class InputField:
     def __init__(
         self,
-        default: Any | None = ...,
+        default: Any | None = None,
         title: str | None = None,
         description: str | None = None,
         examples: list[Any] | None = None,
@@ -158,8 +160,8 @@ class InputField:
         if default is not ...:
             try:
                 self.validate(self.default)
-            except VariableException as e:
-                raise VariableException(
+            except TypeError as e:
+                raise TypeError(
                     f"Default value {default} is invalid for field {self.title}"
                 ) from e
 
@@ -206,65 +208,51 @@ class InputField:
     def validate(self, value: Any):
         if self.choices is not None:
             if value not in self.choices:
-                raise VariableException(
-                    f"Value is not in the choices of {self.choices}"
-                )
+                raise TypeError(f"Value is not in the choices of {self.choices}")
 
         if self.gt is not None:
             if value <= self.gt:
-                raise VariableException(f"Value is not greater than {self.gt}")
+                raise TypeError(f"Value is not greater than {self.gt}")
 
         if self.ge is not None:
             if value < self.ge:
-                raise VariableException(
-                    f"Value is not greater than or equal to {self.ge}"
-                )
+                raise TypeError(f"Value is not greater than or equal to {self.ge}")
 
         if self.lt is not None:
             if value >= self.lt:
-                raise VariableException(f"Value is not less than {self.lt}")
+                raise TypeError(f"Value is not less than {self.lt}")
 
         if self.le is not None:
             if value > self.le:
-                raise VariableException(f"Value is not less than or equal to {self.le}")
+                raise TypeError(f"Value is not less than or equal to {self.le}")
 
         if self.multiple_of is not None:
             if value % self.multiple_of != 0:
-                raise VariableException(
-                    f"Value is not a multiple of {self.multiple_of}"
-                )
+                raise TypeError(f"Value is not a multiple of {self.multiple_of}")
 
         if self.allow_inf_nan is not None:
             if not self.allow_inf_nan and (
                 value == float("inf") or value == float("-inf") or value == float("nan")
             ):
-                raise VariableException("Value is not allowed to be infinity or nan")
+                raise TypeError("Value is not allowed to be infinity or nan")
 
         if self.max_digits is not None:
             if len(str(value)) > self.max_digits:
-                raise VariableException(f"Value has more than {self.max_digits} digits")
+                raise TypeError(f"Value has more than {self.max_digits} digits")
 
         if self.decimal_places is not None:
             if len(str(value).split(".")[1]) > self.decimal_places:
-                raise VariableException(
+                raise TypeError(
                     f"Value has more than {self.decimal_places} decimal places"
                 )
 
         if self.min_length is not None:
             if len(str(value)) < self.min_length:
-                raise VariableException(
-                    f"Value has less than {self.min_length} characters"
-                )
+                raise TypeError(f"Value has less than {self.min_length} characters")
 
         if self.max_length is not None:
             if len(str(value)) > self.max_length:
-                raise VariableException(
-                    f"Value has more than {self.max_length} characters"
-                )
-
-
-class VariableException(Exception):
-    ...
+                raise TypeError(f"Value has more than {self.max_length} characters")
 
 
 class Variable:
@@ -345,61 +333,51 @@ class Variable:
 
         if self.choices is not None:
             if value not in self.choices:
-                raise VariableException(
-                    f"Value is not in the choices of {self.choices}"
-                )
+                raise TypeError(f"Value is not in the choices of {self.choices}")
 
         if self.gt is not None:
             if value <= self.gt:
-                raise VariableException(f"Value is not greater than {self.gt}")
+                raise TypeError(f"Value is not greater than {self.gt}")
 
         if self.ge is not None:
             if value < self.ge:
-                raise VariableException(
-                    f"Value is not greater than or equal to {self.ge}"
-                )
+                raise TypeError(f"Value is not greater than or equal to {self.ge}")
 
         if self.lt is not None:
             if value >= self.lt:
-                raise VariableException(f"Value is not less than {self.lt}")
+                raise TypeError(f"Value is not less than {self.lt}")
 
         if self.le is not None:
             if value > self.le:
-                raise VariableException(f"Value is not less than or equal to {self.le}")
+                raise TypeError(f"Value is not less than or equal to {self.le}")
 
         if self.multiple_of is not None:
             if value % self.multiple_of != 0:
-                raise VariableException(
-                    f"Value is not a multiple of {self.multiple_of}"
-                )
+                raise TypeError(f"Value is not a multiple of {self.multiple_of}")
 
         if self.allow_inf_nan is not None:
             if not self.allow_inf_nan and (
                 value == float("inf") or value == float("-inf") or value == float("nan")
             ):
-                raise VariableException("Value is not allowed to be infinity or nan")
+                raise TypeError("Value is not allowed to be infinity or nan")
 
         if self.max_digits is not None:
             if len(str(value)) > self.max_digits:
-                raise VariableException(f"Value has more than {self.max_digits} digits")
+                raise TypeError(f"Value has more than {self.max_digits} digits")
 
         if self.decimal_places is not None:
             if len(str(value).split(".")[1]) > self.decimal_places:
-                raise VariableException(
+                raise TypeError(
                     f"Value has more than {self.decimal_places} decimal places"
                 )
 
         if self.min_length is not None:
             if len(str(value)) < self.min_length:
-                raise VariableException(
-                    f"Value has less than {self.min_length} characters"
-                )
+                raise TypeError(f"Value has less than {self.min_length} characters")
 
         if self.max_length is not None:
             if len(str(value)) > self.max_length:
-                raise VariableException(
-                    f"Value has more than {self.max_length} characters"
-                )
+                raise TypeError(f"Value has more than {self.max_length} characters")
 
     def to_io_schema(self) -> IOVariable:
         return IOVariable(
