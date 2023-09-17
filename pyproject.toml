@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pipeline-ai"
-version = "1.0.10"
+version = "1.0.11"
 description = "Pipelines for machine learning workloads."
 authors = [
   "Paul Hetherington <ph@mystic.ai>",
@@ -30,6 +30,7 @@ packaging = ">=21.0"
 requests = "^2.30.0"
 requests-toolbelt = "^1.0.0"
 websockets = ">=10.4"
+pip-requirements-parser = "^32.0.1"
 
 [tool.poetry.dev-dependencies]
 pydantic = "^1.8.2"
