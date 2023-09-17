@@ -24,11 +24,6 @@ class InputSchema:
             if not isinstance(validation_field, InputField):
                 raise Exception("Must be InputField")
 
-            # if validation_field.default is ... and (
-            #     "typing.Optional" in str(value) or isinstance(value, UnionType)
-            # ):
-            #     raise Exception("Must define default values for optional fields!")
-
             if key not in kwargs:
                 setattr(self, key, validation_field.default)
                 continue
