@@ -270,6 +270,7 @@ class Variable:
         self,
         type_class: Any,
         *,
+        default: Any | None = None,
         is_input: bool = True,
         is_output: bool = False,
         local_id: str = None,
@@ -310,6 +311,7 @@ class Variable:
         self.min_length = min_length
         self.max_length = max_length
         self.choices = choices
+        self.default = default
         self.dict_schema = (
             type_class.to_schema()
             if inspect.isclass(type_class)
@@ -402,6 +404,7 @@ class Variable:
             max_length=self.max_length,
             choices=self.choices,
             dict_schema=self.dict_schema,
+            default=self.default,
         )
 
 
