@@ -33,7 +33,9 @@ class InputSchema:
             if key not in kwargs and not (
                 "typing.Optional" in str(value) or isinstance(value, UnionType)
             ):
-                raise Exception(f"Missing value for '{key}'")
+                raise Exception(
+                    f"Missing value for '{key}', if you want to make it optional, use 'typing.Optional' or the pipe operator for example: 'int | None'"  # noqa
+                )
 
             validation_field.validate(kwargs[key])
             setattr(self, key, kwargs[key])
