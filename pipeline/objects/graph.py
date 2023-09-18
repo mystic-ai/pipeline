@@ -64,11 +64,6 @@ class InputSchema:
                 if len(var_union_types) > 2:
                     raise Exception("Only support Union of 2 types")
                 if NoneType in var_union_types:
-                    if item.default is None:
-                        raise Exception(
-                            "Must define default values for optional fields!"
-                        )
-
                     var_union_types.remove(NoneType)
                 else:
                     raise Exception("Only support Union with None")
@@ -156,7 +151,7 @@ class InputField:
         self.max_length = max_length
         self.choices = choices
 
-        if default is not ...:
+        if default is not None:
             try:
                 self.validate(self.default)
             except TypeError as e:
