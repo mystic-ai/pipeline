@@ -36,7 +36,7 @@ pl = builder.get_pipeline()
 env_id = create_environment(
     name="basic",
     python_requirements=[
-        "tqdm",
+        "tqdm==4.65.0",
     ],
     allow_existing=True,
 )
