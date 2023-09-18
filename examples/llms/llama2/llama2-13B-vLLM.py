@@ -19,7 +19,7 @@ class ModelKwargs(InputSchema):
     temperature: float | None = InputField(default=0.6)
     top_k: float | None = InputField(default=50)
     top_p: float | None = InputField(default=0.9)
-    max_new_tokens: int | None = InputField(default=100, ge=1, le=1000)
+    max_new_tokens: int | None = InputField(default=100, ge=1, le=4096)
     presence_penalty: float | None = InputField(default=1.0)
 
 
@@ -99,7 +99,7 @@ result = upload_pipeline(
     "meta/llama2-13B",
     "meta/llama2-vllm",
     minimum_cache_number=1,
-    required_gpu_vram_mb=37_000,
+    required_gpu_vram_mb=39_000,
     accelerators=[
         Accelerator.nvidia_a100,
     ],
