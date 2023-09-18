@@ -20,7 +20,7 @@ class ModelKwargs(InputSchema):
     temperature: float | None = InputField(default=0.6)
     top_k: float | None = InputField(default=50)
     top_p: float | None = InputField(default=0.9)
-    max_new_tokens: int | None = InputField(default=100, ge=1, le=1000)
+    max_new_tokens: int | None = InputField(default=100, ge=1, le=4096)
     presence_penalty: float | None = InputField(default=1.0)
     default_system_prompt: str | None = InputField(
         default="""You are a helpful, respectful and honest assistant.
@@ -169,13 +169,13 @@ environments.create_environment(
     "meta/llama2-vllm-ray",
     python_requirements=[
         "torch==2.0.1",
-        "transformers",
+        "transformers==4.32.0",
         "diffusers==0.19.3",
         "accelerate==0.21.0",
         "hf-transfer~=0.1",
         "vllm==0.1.4",
         "ray==2.6.3",
-        "pandas",  # for ray - will say ray is not installed otherwise
+        "pandas==2.1.0",  # for ray - will say ray is not installed otherwise
     ],
 )
 
