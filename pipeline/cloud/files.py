@@ -126,3 +126,12 @@ def _finalise_multipart_upload(
         json_data=finalise_upload_schema.dict(),
     )
     return s.FileGet.parse_obj(response.json())
+
+
+from pipeline.cloud import http
+from pipeline.cloud.schemas import files
+
+
+def get_path_from_id(file_id: str) -> str:
+    file_get_response = http.get(f"/v3/pipeline_files/{file_id}")
+    file_get_schema = files.FileGet.parse_obj(file_get_response.json())
