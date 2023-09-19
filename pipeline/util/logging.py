@@ -34,7 +34,7 @@ PIPELINE_FILE_STR = f"{bcolors.OKBLUE}File{bcolors.ENDC}"
 def _print(val, level="INFO"):
     if not VERBOSE:
         return
-    time_stamp = datetime.utcnow().strftime("%H:%M:%S")
+    time_stamp = datetime.now().strftime("%H:%M:%S")
 
     log_str = (
         f"{PIPELINE_STR} {time_stamp} - [{levels[level]}{level}{bcolors.ENDC}]: {val}"
