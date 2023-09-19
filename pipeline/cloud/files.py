@@ -1,8 +1,11 @@
 import io
 import os
+import uuid
 from pathlib import Path
+from zipfile import ZipFile
 
 import httpx
+from httpx import HTTPStatusError
 from tqdm import tqdm
 from tqdm.utils import CallbackIOWrapper
 
@@ -128,10 +131,43 @@ def _finalise_multipart_upload(
     return s.FileGet.parse_obj(response.json())
 
 
-from pipeline.cloud import http
-from pipeline.cloud.schemas import files
-
-
 def get_path_from_id(file_id: str) -> str:
     file_get_response = http.get(f"/v3/pipeline_files/{file_id}")
-    file_get_schema = files.FileGet.parse_obj(file_get_response.json())
+    if file_get_response is None:
+        raise ValueError(f"Received no response for file_id {file_id}")
+
+    file_get_schema = s.FileGet.parse_obj(file_get_response.json())
+
+    return file_get_schema.path
+
+
+def create_remote_directory(local_path: Path) -> s.FileGet:
+    local_path_str = str(local_path)
+    if not local_path.exists():
+        raise FileNotFoundError(f"Directory not found (path={local_path_str}) ")
+    if not local_path.is_dir() and not local_path_str.endswith(".zip"):
+        raise ValueError(f"Path is not a directory or zip file (path={local_path_str})")
+
+    zip_path = local_path
+
+    if not local_path_str.endswith(".zip"):
+        tmp_path = Path("/tmp") / (str(uuid.uuid4()) + ".zip")
+        with ZipFile(str(tmp_path), "w") as zip_file:
+            for root, dirs, files in os.walk(local_path_str):
+                for file in files:
+                    zip_file.write(
+                        os.path.join(root, file),
+                        arcname=file,
+                    )
+        zip_path = tmp_path
+
+    try:
+        file_get = upload_multipart_file(zip_path, progress=True)
+    except HTTPStatusError as e:
+        if e.response.status_code == 403:
+            raise Exception(
+                f"Permission denied uploading directory (path={local_path_str})"
+            )
+        raise Exception(f"Error uploading directory (path={local_path_str}): {e}")
+
+    return file_get
