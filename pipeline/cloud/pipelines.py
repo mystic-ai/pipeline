@@ -21,6 +21,7 @@ from pydantic import ValidationError
 
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
+from pipeline.cloud.files import upload_multipart_file
 from pipeline.cloud.logs import tail_run_logs
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas.runs import (
@@ -102,25 +103,17 @@ def upload_pipeline(
                             )
                 zip_path = tmp_path
 
-            zip_file = zip_path.open("rb")
             try:
-                res = http.post_files(
-                    "/v3/pipeline_files",
-                    files=dict(pfile=zip_file),
-                    progress=True,
-                )
-
-                new_path = res.json()["path"]
-                variable.path = Path(new_path)
-                variable.remote_id = res.json()["id"]
+                file_get = upload_multipart_file(zip_path, progress=True)
+                variable.path = Path(file_get.path)
+                variable.remote_id = file_get.id
             except HTTPStatusError as e:
                 if e.response.status_code == 403:
                     raise Exception(
                         f"Permission denied uploading file (path={variable.path}, "
                         f"variable={variable.title})"
                     )
-            finally:
-                zip_file.close()
+                raise Exception(f"Error uploading file (path={variable.path}): {e}")
         elif isinstance(variable, FileURL):
             try:
                 urlparse(variable.url)
@@ -139,25 +132,17 @@ def upload_pipeline(
                     f"variable={variable.title})"
                 )
 
-            variable_file = variable_path.open("rb")
             try:
-                res = http.post_files(
-                    "/v3/pipeline_files",
-                    files=dict(pfile=variable_file),
-                    progress=True,
-                )
-
-                new_path = res.json()["path"]
-                variable.path = Path(new_path)
-                variable.remote_id = res.json()["id"]
+                file_get = upload_multipart_file(variable_path, progress=True)
+                variable.path = Path(file_get.path)
+                variable.remote_id = file_get.id
             except HTTPStatusError as e:
                 if e.response.status_code == 403:
                     raise Exception(
                         f"Permission denied uploading file (path={variable.path}, "
                         f"variable={variable.title})"
                     )
-            finally:
-                variable_file.close()
+                raise Exception(f"Error uploading file (path={variable.path}): {e}")
 
     params = dict()
 

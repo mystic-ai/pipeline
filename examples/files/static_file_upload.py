@@ -1,21 +1,21 @@
 import time
 
-from tqdm import tqdm
-
 from pipeline import Pipeline, Variable, pipe
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.environments import create_environment
 from pipeline.cloud.pipelines import run_pipeline, upload_pipeline
 from pipeline.configuration import current_configuration
+from pipeline.objects.graph import File
 
 current_configuration.set_debug_mode(True)
 
 
 @pipe
-def test(i: int) -> str:
-    for i in tqdm(range(i)):
-        time.sleep(0.5)
-    print("I'm done now, goodbye!")
+def test(i: int, static_file: File) -> str:
+    time.sleep()
+
+    print(f"Got file with path content: {static_file.path.read_text()}")
+
     return "Done"
 
 
@@ -26,7 +26,8 @@ with Pipeline() as builder:
         lt=20,
     )
 
-    b = test(input_var)
+    local_file = File.from_object("I AM JUST A STRING")
+    b = test(input_var, local_file)
 
     builder.output(b)
 
