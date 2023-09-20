@@ -35,6 +35,7 @@ class RunState(int, Enum):
     rate_limited: int = 17
     lost: int = 18
     no_environment_installed: int = 19
+    cuda_out_of_memory: int = 23
 
     unknown: int = 20
 
@@ -46,6 +47,7 @@ class RunState(int, Enum):
             RunState.lost,
             RunState.no_environment_installed,
             RunState.rate_limited,
+            RunState.cuda_out_of_memory,
         ]
 
     @classmethod
@@ -77,14 +79,13 @@ class RunState(int, Enum):
             raise ValueError(f"Invalid value: {v}")
 
 
-class RunErrorType(Enum):
-    input_error = 1
-    unroutable = 2
-    graph_error = 3
-    runtime_error = 4
+class RunErrorType(str, Enum):
+    runtime_error = "runtime_error"
+    out_of_memory_error = "out_of_memory_error"
 
 
 class RunError(BaseModel):
+    error_type: RunErrorType
     exception: str
     traceback: t.Optional[str]
 

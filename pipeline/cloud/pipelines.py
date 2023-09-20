@@ -432,13 +432,7 @@ def poll_async_run(
             if state_change_callback is not None:
                 state_change_callback(run_get)
 
-        if run_get.state in [
-            RunState.completed,
-            RunState.failed,
-            RunState.rate_limited,
-            RunState.lost,
-            RunState.no_environment_installed,
-        ]:
+        if RunState.is_terminal(run_get.state):
             return run_get
 
         if timeout is not None and time.time() - start_time > timeout:
