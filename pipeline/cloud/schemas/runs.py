@@ -64,7 +64,10 @@ class RunState(int, Enum):
         if isinstance(v, str):
             return cls.lookup[v]
         elif isinstance(v, int):
-            return getattr(cls, cls.value_lookup[v])
+            print(f"ROSSLOG {v=}")
+            res = getattr(cls, cls.value_lookup[v])
+            print(f"ROSSLOG {res=}")
+            return res
         else:
             raise ValueError(f"Invalid value: {v}")
 
