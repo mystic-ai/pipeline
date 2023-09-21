@@ -57,3 +57,4 @@ output = run_pipeline(
     result.id,
     5,
 )
+print(output.outputs())
