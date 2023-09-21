@@ -11,6 +11,8 @@ from tqdm.utils import CallbackIOWrapper
 
 from pipeline.cloud import http
 from pipeline.cloud.schemas import files as s
+from pipeline.cloud.schemas.runs import RunInput, RunIOType
+from pipeline.objects import Directory, File
 from pipeline.util import CallbackBytesIO
 from pipeline.util.logging import PIPELINE_FILE_STR
 
@@ -101,8 +103,11 @@ def _upload_multipart_file_chunk(
         "/v3/pipeline_files/presigned-url",
         part_upload_schema.dict(),
     )
+
     part_upload_get = s.MultipartFileUploadPartGet.parse_obj(res.json())
     # upload file chunk
+
+    print(f"Uploading to: {part_upload_get.upload_url}")
     response = httpx.put(
         part_upload_get.upload_url,
         content=data,
@@ -171,3 +176,60 @@ def create_remote_directory(local_path: Path) -> s.FileGet:
         raise Exception(f"Error uploading directory (path={local_path_str}): {e}")
 
     return file_get
+
+
+def resolve_pipeline_file_object(obj: File | Directory) -> None:
+    # Handle from ID, URL, or local path
+    # Either URL or path has to be popluated, and on the remote
+
+    if obj.url is not None:
+        return
+    elif obj.remote_id is not None:
+        obj.path = Path(get_path_from_id(obj.remote_id))
+        return
+    if obj.path:
+        if isinstance(obj, File):
+            remote_file = upload_multipart_file(obj.path)
+            obj.path = Path(remote_file.path)
+            return
+        elif isinstance(obj, Directory):
+            remote_dir = create_remote_directory(obj.path)
+            obj.path = Path(remote_dir.path)
+            return
+
+
+def resolve_run_input_file_object(obj: File | Directory) -> RunInput:
+    if obj.url is not None:
+        return RunInput(
+            type=RunIOType.file,
+            value=None,
+            file_name=obj.url.geturl().split("/")[-1],
+            file_path=obj.url.geturl(),
+        )
+    elif obj.remote_id is not None:
+        path = get_path_from_id(obj.remote_id)
+        return RunInput(
+            type=RunIOType.file,
+            value=None,
+            file_name=path.split("/")[-1],
+            file_path=path,
+        )
+    elif obj.path is not None:
+        if isinstance(obj, File):
+            remote_file = upload_multipart_file(obj.path)
+            return RunInput(
+                type=RunIOType.file,
+                value=None,
+                file_name=remote_file.path.split("/")[-1],
+                file_path=remote_file.path,
+            )
+        elif isinstance(obj, Directory):
+            remote_dir = create_remote_directory(obj.path)
+            return RunInput(
+                type=RunIOType.file,
+                value=None,
+                file_name=remote_dir.path.split("/")[-1],
+                file_path=remote_dir.path,
+            )
+
+    raise Exception(f"Invalid file object: {obj}, must have remote_id, path, or URL")

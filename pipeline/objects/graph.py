@@ -3,7 +3,7 @@ import tempfile
 from pathlib import Path
 from types import NoneType, UnionType
 from typing import Any, Iterable, List, Optional, get_args
-from urllib.parse import urlparse
+from urllib.parse import ParseResult, urlparse
 
 from cloudpickle import dumps
 from dill import loads
@@ -250,10 +250,10 @@ class InputField:
 
 
 class Variable:
-    local_id: str
-    remote_id: str
+    local_id: str | None
+    remote_id: str | None
 
-    name: str
+    name: str | None
 
     type_class: Any
 
@@ -267,7 +267,7 @@ class Variable:
         default: Any | None = None,
         is_input: bool = True,
         is_output: bool = False,
-        local_id: str = None,
+        local_id: str | None = None,
         # default: Any | None = None, # TODO: Implement default values
         title: str | None = None,
         description: str | None = None,
@@ -403,16 +403,19 @@ class Variable:
 
 
 class File(Variable):
-    path: Path
+    path: Path | None
+    url: ParseResult | None
+    remote_id: str | None
 
     def __init__(
         self,
         *,
-        path: str | Path = None,
-        title: str = None,
-        local_id: str = None,
-        allow_out_of_context_creation: bool = True,
+        path: str | Path | None = None,
         remote_id: str | None = None,
+        url: str | None = None,
+        title: str | None = None,
+        allow_out_of_context_creation: bool = True,
+        local_id: str | None = None,
     ) -> None:
         super().__init__(
             type_class=self.__class__,
@@ -423,8 +426,13 @@ class File(Variable):
             allow_out_of_context_creation=allow_out_of_context_creation,
         )
 
-        self.path = path if isinstance(path, Path) else Path(path)
-        self.remote_id: str = remote_id
+        self.path = (
+            path
+            if isinstance(path, Path)
+            else (Path(path) if path is not None else None)
+        )
+        self.remote_id: str | None = remote_id
+        self.url = urlparse(url) if url is not None else None
 
     @classmethod
     def from_object(
@@ -445,33 +453,12 @@ class File(Variable):
             allow_out_of_context_creation=allow_out_of_context_creation,
         )
 
-    @classmethod
-    def from_remote(cls, *, id: str):
-        response = http.get(f"/v3/pipeline_files/{id}")
-
-        if response.status_code == 404:
-            raise Exception("File does not exist")
-
-        if response.status_code != 200:
-            raise Exception(
-                f"Something went wrong, status code: {response.status_code}"
-            )
-
-        file_schema = FileGet.parse_obj(response.json())
-
-        new_file = cls(
-            path=file_schema.path,
-        )
-        new_file.remote_id = file_schema.id
-
-        return new_file
-
 
 class Directory(File):
     def __init__(
         self,
         *,
-        path: str | Path = None,
+        path: str | Path | None = None,
         **kwargs,
     ) -> None:
         super().__init__(
@@ -480,7 +467,8 @@ class Directory(File):
         )
 
         if (
-            not self.path.is_dir()
+            self.path is not None
+            and not self.path.is_dir()
             and not str(self.path).endswith(".zip")
             and self.remote_id is None
         ):
@@ -493,34 +481,6 @@ class Directory(File):
         **kwargs,
     ):
         raise NotImplementedError("Directory.from_object is not implemented")
-
-    @classmethod
-    def from_remote(cls, *, id: str):
-        response = http.get(f"/v3/pipeline_files/{id}")
-
-        if response.status_code == 404:
-            raise Exception("File does not exist")
-
-        if response.status_code != 200:
-            raise Exception(
-                f"Something went wrong, status code: {response.status_code}"
-            )
-
-        file_schema = FileGet.parse_obj(response.json())
-
-        new_file = cls(
-            path=file_schema.path,
-            remote_id=file_schema.id,
-        )
-
-        return new_file
-
-
-class FileURL(File):
-    def __init__(self, url: str):
-        self.url: str = url
-        urlparse(url)
-        super().__init__(path=url)
 
 
 class Stream(Variable, Iterable):

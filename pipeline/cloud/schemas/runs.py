@@ -148,7 +148,7 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.array
-        elif isinstance(obj, io.BufferedIOBase) or obj is File:
+        elif isinstance(obj, io.BufferedIOBase) or obj is File or isinstance(obj, File):
             return cls.file
         else:
             return cls.pkl
