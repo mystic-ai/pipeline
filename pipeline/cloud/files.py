@@ -105,9 +105,7 @@ def _upload_multipart_file_chunk(
     )
 
     part_upload_get = s.MultipartFileUploadPartGet.parse_obj(res.json())
-    # upload file chunk
 
-    print(f"Uploading to: {part_upload_get.upload_url}")
     response = httpx.put(
         part_upload_get.upload_url,
         content=data,
