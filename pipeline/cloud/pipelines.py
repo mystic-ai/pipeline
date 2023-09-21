@@ -186,7 +186,7 @@ def _data_to_run_input(data: t.Tuple) -> t.List[RunInput]:
             input_schema = resolve_run_input_file_object(item)
             input_array.append(input_schema)
             continue
-        elif isinstance(item, InputSchema) or issubclass(item, InputSchema):
+        elif isinstance(item, InputSchema):
             item_dict = item.to_dict()
             output_dict = dict()
             output_dict.update(item_dict)
