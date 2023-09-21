@@ -10,9 +10,6 @@ class MyInputSchema(InputSchema):
     )
 
 
-breakpoint()
-
-
 @pipe
 def my_func(in_1: int, other_schema: MyInputSchema) -> int:
     return in_1 + other_schema.in_2 + other_schema.in_1

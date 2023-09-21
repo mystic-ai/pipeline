@@ -1,18 +1,13 @@
 import importlib
 import json
 import math
-import os
 import platform
 import time
 import typing as t
-import uuid
 from importlib.metadata import version
 from multiprocessing import Pool
-from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from threading import Thread
-from urllib.parse import urlparse
-from zipfile import ZipFile
 
 import cloudpickle as cp
 import httpx
@@ -24,7 +19,6 @@ from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.files import (
     resolve_pipeline_file_object,
     resolve_run_input_file_object,
-    upload_multipart_file,
 )
 from pipeline.cloud.logs import tail_run_logs
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
@@ -38,8 +32,8 @@ from pipeline.cloud.schemas.runs import (
     RunState,
 )
 from pipeline.configuration import current_configuration
-from pipeline.objects import Directory, File, Graph
-from pipeline.objects.graph import InputField, InputSchema
+from pipeline.objects import File, Graph
+from pipeline.objects.graph import InputSchema
 from pipeline.util.logging import _print, _print_remote_log
 
 
@@ -83,73 +77,6 @@ def upload_pipeline(
     for variable in graph.variables:
         if isinstance(variable, File):
             resolve_pipeline_file_object(variable)
-        # if isinstance(variable, Directory):
-        #     if variable.remote_id is not None:
-        #         continue
-        #     variable_path = Path(variable.path)
-
-        #     if not variable_path.exists():
-        #         raise FileNotFoundError(
-        #             f"Directory not found for variable (path={variable.path}) "
-        #         )
-        #     if not variable_path.is_dir() and not str(variable_path).endswith(".zip"):
-        #         raise ValueError(
-        #             f"Variable is not a directory or zip file (path={variable.path})"
-        #         )
-
-        #     zip_path = variable_path
-
-        #     if not str(variable_path).endswith(".zip"):
-        #         tmp_path = Path("/tmp") / (str(uuid.uuid4()) + ".zip")
-        #         with ZipFile(str(tmp_path), "w") as zip_file:
-        #             for root, dirs, files in os.walk(str(variable_path)):
-        #                 for file in files:
-        #                     zip_file.write(
-        #                         os.path.join(root, file),
-        #                         arcname=file,
-        #                     )
-        #         zip_path = tmp_path
-
-        #     try:
-        #         file_get = upload_multipart_file(zip_path, progress=True)
-        #         variable.path = Path(file_get.path)
-        #         variable.remote_id = file_get.id
-        #     except HTTPStatusError as e:
-        #         if e.response.status_code == 403:
-        #             raise Exception(
-        #                 f"Permission denied uploading file (path={variable.path}, "
-        #                 f"variable={variable.title})"
-        #             )
-        #         raise Exception(f"Error uploading file (path={variable.path}): {e}")
-        # elif isinstance(variable, FileURL):
-        #     try:
-        #         urlparse(variable.url)
-        #     except Exception:
-        #         raise Exception(
-        #             f"Invalid URL for variable (url={variable.url})",
-        #         )
-        # elif isinstance(variable, File):
-        #     if variable.remote_id is not None:
-        #         continue
-        #     variable_path = Path(variable.path)
-
-        #     if not variable_path.exists():
-        #         raise FileNotFoundError(
-        #             f"File not found for variable (path={variable.path}, "
-        #             f"variable={variable.title})"
-        #         )
-
-        #     try:
-        #         file_get = upload_multipart_file(variable_path, progress=True)
-        #         variable.path = Path(file_get.path)
-        #         variable.remote_id = file_get.id
-        #     except HTTPStatusError as e:
-        #         if e.response.status_code == 403:
-        #             raise Exception(
-        #                 f"Permission denied uploading file (path={variable.path}, "
-        #                 f"variable={variable.title})"
-        #             )
-        #         raise Exception(f"Error uploading file (path={variable.path}): {e}")
 
     params = dict()
 

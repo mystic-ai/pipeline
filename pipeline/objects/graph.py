@@ -5,11 +5,11 @@ from types import NoneType, UnionType
 from typing import Any, Iterable, List, Optional, get_args
 from urllib.parse import ParseResult, urlparse
 
+import httpx
 from cloudpickle import dumps
 from dill import loads
+from tqdm import tqdm
 
-from pipeline.cloud import http
-from pipeline.cloud.schemas.files import FileGet
 from pipeline.cloud.schemas.pipelines import IOVariable
 from pipeline.cloud.schemas.runs import RunIOType
 from pipeline.objects.function import Function
@@ -452,6 +452,35 @@ class File(Variable):
             title=temp_file.name,
             allow_out_of_context_creation=allow_out_of_context_creation,
         )
+
+    def save(self, path: str | Path) -> None:
+        if self.path is None and self.url is None:
+            raise Exception("Path and URL are None")
+
+        if isinstance(path, str):
+            path = Path(path)
+
+        if self.path is not None and self.path.is_dir():
+            raise Exception("Path is a directory")
+
+        if self.url is not None:
+            with path.open("wb") as f:
+                with httpx.stream("GET", self.url.geturl()) as response:
+                    total = int(response.headers["Content-Length"])
+
+                    with tqdm(
+                        total=total, unit_scale=True, unit_divisor=1024, unit="B"
+                    ) as progress:
+                        num_bytes_downloaded = response.num_bytes_downloaded
+                        for chunk in response.iter_bytes():
+                            f.write(chunk)
+                            progress.update(
+                                response.num_bytes_downloaded - num_bytes_downloaded
+                            )
+                            num_bytes_downloaded = response.num_bytes_downloaded
+
+        elif self.path is not None:
+            path.write_bytes(self.path.read_bytes())
 
 
 class Directory(File):
