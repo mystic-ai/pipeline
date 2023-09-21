@@ -62,9 +62,17 @@ class RunState(int, Enum):
             ...
 
         if isinstance(v, str):
-            return cls.lookup[v]
+            try:
+                state = cls.lookup[v]
+            except KeyError:
+                state = cls.unknown
+            return state
         elif isinstance(v, int):
-            return getattr(cls, cls.value_lookup[v])
+            try:
+                state = getattr(cls, cls.value_lookup[v])
+            except KeyError:
+                state = cls.unknown
+            return state
         else:
             raise ValueError(f"Invalid value: {v}")
 
