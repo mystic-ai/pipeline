@@ -1,5 +1,7 @@
 import time
 
+import cloudpickle as cp
+
 from pipeline import Pipeline, Variable, pipe
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.environments import create_environment
@@ -12,9 +14,9 @@ current_configuration.set_debug_mode(True)
 
 @pipe
 def test(i: int, static_file: File) -> str:
-    time.sleep()
+    time.sleep(1)
 
-    print(f"Got file with path content: {static_file.path.read_text()}")
+    print(f"Got file with path content: {cp.loads(static_file.path.read_bytes())}")
 
     return "Done"
 
@@ -35,9 +37,9 @@ pl = builder.get_pipeline()
 
 
 env_id = create_environment(
-    name="basic",
+    name="basic2",
     python_requirements=[
-        "tqdm==4.65.0",
+        "numpy==1.25.0",
     ],
     allow_existing=True,
 )
@@ -45,7 +47,7 @@ env_id = create_environment(
 result = upload_pipeline(
     pl,
     "debugging-pipeline:latest",
-    environment_id_or_name="basic",
+    environment_id_or_name="basic2",
     accelerators=[
         Accelerator.cpu,
     ],
@@ -55,3 +57,4 @@ output = run_pipeline(
     result.id,
     5,
 )
+print(output.outputs())

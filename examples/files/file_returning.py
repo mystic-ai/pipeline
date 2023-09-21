@@ -1,10 +1,5 @@
-from pathlib import Path
-from typing import List
-
 from pipeline import Pipeline, Variable, entity, pipe
-from pipeline.cloud import compute_requirements, environments, pipelines
 from pipeline.objects import File
-from pipeline.objects.graph import InputField, InputSchema
 
 
 @entity
@@ -14,7 +9,7 @@ class ReturnAFile:
         file_path = "/tmp/random.txt"
         with open("/tmp/random.txt", "w") as f:
             f.write(random_string)
-        output_image = File(path=file_path, allow_out_of_context_creation=True)
+        output_image = File(path=file_path)
 
         return output_image
 

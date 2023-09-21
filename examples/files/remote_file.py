@@ -1,5 +1,8 @@
 from pipeline import File, Pipeline, Variable, entity, pipe
-from pipeline.cloud.pipelines import upload_pipeline
+from pipeline.cloud.pipelines import run_pipeline, upload_pipeline
+from pipeline.configuration import current_configuration
+
+current_configuration.set_debug_mode(True)
 
 
 @entity
@@ -16,7 +19,7 @@ class MainClass:
 with Pipeline() as builder:
     rand = Variable(str)
 
-    my_file = File.from_remote(id="file_e5a7000de4564edb9678904f60e75c02")
+    my_file = File(remote_id="file_541488b627e04ab198ecb79b2e81b53a")
     en = MainClass()
 
     en.my_func(my_file)
@@ -27,3 +30,10 @@ my_pl = builder.get_pipeline()
 
 
 remote_pipeline = upload_pipeline(my_pl, "remote-file-test", "numpy")
+
+output = run_pipeline(
+    remote_pipeline.id,
+    "lol",
+)
+
+print(output.outputs())

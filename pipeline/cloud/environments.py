@@ -66,7 +66,7 @@ def _validate_requirements(requirements: list[str]) -> None:
         # Check for if the package exists locally
         if req.name is not None and not pkgutil.find_loader(req.name):
             _print(
-                f"Pacakge {req.name} not found locally, it is highly recommended to install it as this will likely cause serialisation issues when uploading Pipelines.",  # noqa
+                f"Package {req.name} not found locally, it is highly recommended to install it as this will likely cause serialisation issues when uploading Pipelines.",  # noqa
                 level="WARNING",
             )
 

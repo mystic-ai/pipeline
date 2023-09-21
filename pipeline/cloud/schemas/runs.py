@@ -148,7 +148,7 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.array
-        elif isinstance(obj, io.BufferedIOBase) or obj is File:
+        elif isinstance(obj, io.BufferedIOBase) or obj is File or isinstance(obj, File):
             return cls.file
         else:
             return cls.pkl
@@ -194,7 +194,20 @@ class RunResult(BaseModel):
     outputs: t.List[RunOutput]
 
     def result_array(self) -> t.List[t.Any]:
-        return [output.value for output in self.outputs]
+        # return [output.value for output in self.outputs]
+        output_array = []
+        for output in self.outputs:
+            if output.type == RunIOType.file:
+                # output_array.append(output.value)
+                from pipeline.objects.graph import File
+
+                if output.file is not None and output.file.url is not None:
+                    output_array.append(File(url=output.file.url))
+                else:
+                    raise Exception("Returned file missing information.")
+            else:
+                output_array.append(output.value)
+        return output_array
 
 
 class Run(BaseModel):
@@ -215,6 +228,11 @@ class Run(BaseModel):
     class Config:
         # use_enum_values = True
         orm_mode = True
+
+    def outputs(self) -> t.List[t.Any]:
+        if self.result is None:
+            return []
+        return self.result.result_array()
 
 
 class RunStateTransition(BaseModel):
