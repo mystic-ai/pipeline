@@ -242,6 +242,65 @@ def _retry(run_get: Run, retry: bool, retry_states: list[RunState], retry_delay:
     return False
 
 
+def _run_pipeline(
+    run_create_schema: RunCreate, return_response: bool, retry_states: list[RunState]
+) -> t.Union[Run, httpx.Response]:
+    res = http.post(
+        "/v3/runs",
+        json_data=run_create_schema.dict(),
+        raise_for_status=False,
+    )
+
+    if return_response and not current_configuration.is_debugging():
+        return res
+
+    if res.status_code == 500:
+        _print(
+            f"Failed run (status={res.status_code}, text={res.text}, "
+            f"headers={res.headers})",
+            level="ERROR",
+        )
+        raise Exception(f"Error: {res.status_code}, {res.text}", res.status_code)
+    elif res.status_code == 429:
+        _print(
+            f"Too many requests (status={res.status_code}, text={res.text})",
+            level="ERROR",
+        )
+        raise Exception(
+            "Too many requests, please try again later",
+            res.status_code,
+        )
+    elif res.status_code == 404:
+        _print(
+            f"Pipeline not found (status={res.status_code}, text={res.text})",
+            level="ERROR",
+        )
+        raise Exception("Pipeline not found", res.status_code)
+    elif res.status_code == 503:
+        _print(
+            f"Environment not cached (status={res.status_code}, text={res.text})",
+            level="ERROR",
+        )
+        raise Exception("Environment not cached", res.status_code)
+    elif res.status_code == 502:
+        _print(
+            "Gateway error",
+            level="ERROR",
+        )
+        raise Exception("Gateway error", res.status_code)
+
+    run_get = Run.parse_obj(res.json())
+
+    def _print_logs():
+        for log in tail_run_logs(run_get.id):
+            _print_remote_log(log)
+
+    if current_configuration.is_debugging():
+        run_get = _run_logs_process(run_get.id, retry_states)
+
+    return run_get
+
+
 def run_pipeline(
     pipeline_id_or_pointer: t.Union[str, int],
     *data,
@@ -262,58 +321,10 @@ def run_pipeline(
 
     run_get = None
     while _retry(run_get, retry, retry_states, retry_delay):
-        res = http.post(
-            "/v3/runs",
-            json_data=run_create_schema.dict(),
-            raise_for_status=False,
-        )
+        run_get = _run_pipeline(run_create_schema, return_response, retry_states)
 
         if return_response and not current_configuration.is_debugging():
-            return res
-
-        if res.status_code == 500:
-            _print(
-                f"Failed run (status={res.status_code}, text={res.text}, "
-                f"headers={res.headers})",
-                level="ERROR",
-            )
-            raise Exception(f"Error: {res.status_code}, {res.text}", res.status_code)
-        elif res.status_code == 429:
-            _print(
-                f"Too many requests (status={res.status_code}, text={res.text})",
-                level="ERROR",
-            )
-            raise Exception(
-                "Too many requests, please try again later",
-                res.status_code,
-            )
-        elif res.status_code == 404:
-            _print(
-                f"Pipeline not found (status={res.status_code}, text={res.text})",
-                level="ERROR",
-            )
-            raise Exception("Pipeline not found", res.status_code)
-        elif res.status_code == 503:
-            _print(
-                f"Environment not cached (status={res.status_code}, text={res.text})",
-                level="ERROR",
-            )
-            raise Exception("Environment not cached", res.status_code)
-        elif res.status_code == 502:
-            _print(
-                "Gateway error",
-                level="ERROR",
-            )
-            raise Exception("Gateway error", res.status_code)
-
-        run_get = Run.parse_obj(res.json())
-
-        def _print_logs():
-            for log in tail_run_logs(run_get.id):
-                _print_remote_log(log)
-
-        if current_configuration.is_debugging():
-            run_get = _run_logs_process(run_get.id, retry_states)
+            return run_get
 
     return run_get
 
