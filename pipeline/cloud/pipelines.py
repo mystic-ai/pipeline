@@ -260,8 +260,6 @@ def run_pipeline(
         async_run=async_run if not current_configuration.is_debugging() else True,
     )
 
-    # VALIDATE OPTIONS - cant return and have retries
-
     run_get = None
     while _retry(run_get, retry, retry_states, retry_delay):
         res = http.post(
