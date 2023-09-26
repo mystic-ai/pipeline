@@ -221,7 +221,7 @@ def _data_to_run_input(data: t.Tuple) -> t.List[RunInput]:
     return input_array
 
 
-def _retry(run_get, retry, retry_states, retry_delay):
+def _retry(run_get: Run, retry: bool, retry_states: list[RunState], retry_delay: float):
     if run_get is None:
         # First time, always run
         return True
@@ -231,7 +231,7 @@ def _retry(run_get, retry, retry_states, retry_delay):
         return False
 
     state = run_get.state
-    if state == retry_states or state in retry_states:
+    if state in retry_states:
         _print(
             f"Run state was {state.name}, "
             f"sleeping for {retry_delay} seconds before retrying"
