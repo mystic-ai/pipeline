@@ -186,13 +186,13 @@ def resolve_pipeline_file_object(obj: File | Directory) -> None:
         obj.path = Path(get_path_from_id(obj.remote_id))
         return
     if obj.path:
-        if isinstance(obj, File):
-            remote_file = upload_multipart_file(obj.path)
-            obj.path = Path(remote_file.path)
-            return
-        elif isinstance(obj, Directory):
+        if isinstance(obj, Directory):
             remote_dir = create_remote_directory(obj.path)
             obj.path = Path(remote_dir.path)
+            return
+        elif isinstance(obj, File):
+            remote_file = upload_multipart_file(obj.path)
+            obj.path = Path(remote_file.path)
             return
 
 
@@ -213,21 +213,21 @@ def resolve_run_input_file_object(obj: File | Directory) -> RunInput:
             file_path=path,
         )
     elif obj.path is not None:
-        if isinstance(obj, File):
-            remote_file = upload_multipart_file(obj.path)
-            return RunInput(
-                type=RunIOType.file,
-                value=None,
-                file_name=remote_file.path.split("/")[-1],
-                file_path=remote_file.path,
-            )
-        elif isinstance(obj, Directory):
+        if isinstance(obj, Directory):
             remote_dir = create_remote_directory(obj.path)
             return RunInput(
                 type=RunIOType.file,
                 value=None,
                 file_name=remote_dir.path.split("/")[-1],
                 file_path=remote_dir.path,
+            )
+        elif isinstance(obj, File):
+            remote_file = upload_multipart_file(obj.path)
+            return RunInput(
+                type=RunIOType.file,
+                value=None,
+                file_name=remote_file.path.split("/")[-1],
+                file_path=remote_file.path,
             )
 
     raise Exception(f"Invalid file object: {obj}, must have remote_id, path, or URL")
