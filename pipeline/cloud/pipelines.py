@@ -310,6 +310,9 @@ def run_pipeline(
     retry_delay: float = 2.0,
     retry_states: RunState | list[RunState] = RunState.rate_limited,
 ) -> t.Union[Run, httpx.Response]:
+    if retry and async_run and not current_configuration.is_debugging():
+        raise Exception("Can't retry on async run unless in debug mode")
+
     if isinstance(retry_states, RunState):
         retry_states = [retry_states]
 
