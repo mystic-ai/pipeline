@@ -19,7 +19,7 @@ class MainClass:
 with Pipeline() as builder:
     rand = Variable(str)
 
-    my_file = File(remote_id="file_541488b627e04ab198ecb79b2e81b53a")
+    my_file = File(remote_id="file_898b69a2c6294390913be218eca6944f")
     en = MainClass()
 
     en.my_func(my_file)
