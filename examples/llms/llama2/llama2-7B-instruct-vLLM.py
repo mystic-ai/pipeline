@@ -43,7 +43,7 @@ class LlamaPipeline:
         snapshot_download(
             "meta-llama/Llama-2-7b-chat-hf",
             local_dir=model_dir,
-            token="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",
+            token="",
             # force_download=True,
             ignore_patterns=["*.safetensors"],
         )
