@@ -36,5 +36,6 @@ output = pipelines.run_pipeline(
 )
 
 output.outputs()[0].save("./test.jpg")
+
 ...
 # output.result.outputs[0].save("./test.jpg")
