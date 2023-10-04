@@ -37,4 +37,8 @@ environments.create_environment(name="numpy", python_requirements=["numpy==1.25.
 
 remote_pipeline = pipelines.upload_pipeline(my_pl, "optional_file_test", "numpy")
 
-output = pipelines.run_pipeline(remote_pipeline.id, MyInputSchema())
+output = pipelines.run_pipeline(
+    remote_pipeline.id, MyInputSchema(in_1=File.from_object("H"))
+)
+
+print(output.result)
