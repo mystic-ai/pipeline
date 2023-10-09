@@ -84,11 +84,23 @@ def upload_pipeline(
     params["environment_id_or_name"] = environment_id_or_name
 
     if required_gpu_vram_mb is not None:
+        if accelerators is not None:
+            max_vram_mb = sum([acc.max_memory_mb() for acc in accelerators])
+            if required_gpu_vram_mb > max_vram_mb:
+                raise Exception(
+                    "Specified accelerators do not have enough VRAM. "
+                    f"Requested mb: {required_gpu_vram_mb}, available "
+                    f"with specified accelerators: {max_vram_mb}"
+                )
+
         params["gpu_memory_min"] = required_gpu_vram_mb
     if minimum_cache_number is not None:
         params["minimum_cache_number"] = minimum_cache_number
 
     if accelerators is not None:
+        if not Accelerator.valid_accelerator_config(accelerators):
+            raise Exception("Invalid accelerator configuration")
+
         params["accelerators"] = [
             acc.value for acc in accelerators if isinstance(acc, Accelerator)
         ]
