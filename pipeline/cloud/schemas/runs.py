@@ -241,6 +241,12 @@ class RunStateTransition(BaseModel):
     time: datetime
 
 
+class RunStateTransitions(BaseModel):
+    """View for all state transitions of a given run"""
+
+    data: t.List[RunStateTransition]
+
+
 class RunInput(BaseModel):
     type: RunIOType
     value: t.Any
