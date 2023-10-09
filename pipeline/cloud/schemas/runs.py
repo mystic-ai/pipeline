@@ -35,6 +35,7 @@ class RunState(int, Enum):
     rate_limited: int = 17
     lost: int = 18
     no_environment_installed: int = 19
+    no_resources_available: int = 23
 
     unknown: int = 20
 
@@ -46,6 +47,7 @@ class RunState(int, Enum):
             RunState.lost,
             RunState.no_environment_installed,
             RunState.rate_limited,
+            RunState.no_resources_available,
         ]
 
     @classmethod

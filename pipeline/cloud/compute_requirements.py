@@ -65,7 +65,7 @@ class Accelerator(str, Enum):
         return defaultdict(
             lambda: 16_000,
             {
-                Accelerator.nvidia_t4: 16_000,
+                Accelerator.nvidia_t4: 22_000,
                 Accelerator.nvidia_a100: 40_000,
                 Accelerator.nvidia_a100_80gb: 80_000,
                 Accelerator.nvidia_v100: 16_000,
