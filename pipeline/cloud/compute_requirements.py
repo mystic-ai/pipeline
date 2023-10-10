@@ -70,7 +70,7 @@ class Accelerator(str, Enum):
                 Accelerator.nvidia_a100_80gb: 80_000,
                 Accelerator.nvidia_v100: 16_000,
                 Accelerator.nvidia_v100_32gb: 32_000,
-                Accelerator.nvidia_l4: 24_000,
+                Accelerator.nvidia_l4: 22_000,
                 Accelerator.nvidia_a5000: 24_000,
             },
         )[self]
