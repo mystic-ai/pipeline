@@ -41,7 +41,7 @@ class RunState(int, Enum):
 
     @staticmethod
     def is_terminal(state: "RunState") -> bool:
-        return state in RunState.terminal_states
+        return state in RunState.terminal_states()
 
     @classmethod
     def terminal_states(cls) -> list["RunState"]:
