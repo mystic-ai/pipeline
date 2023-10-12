@@ -216,6 +216,14 @@ class RunResult(BaseModel):
         return output_array
 
 
+class RunInput(BaseModel):
+    type: RunIOType
+    value: t.Any
+
+    file_name: t.Optional[str]
+    file_path: t.Optional[str]
+
+
 class Run(BaseModel):
     id: str
 
@@ -230,6 +238,7 @@ class Run(BaseModel):
     error: t.Optional[RunError]
 
     result: t.Optional[RunResult]
+    input_data: t.Optional[t.List[RunInput]]
 
     class Config:
         # use_enum_values = True
@@ -251,14 +260,6 @@ class RunStateTransitions(BaseModel):
     """View for all state transitions of a given run"""
 
     data: t.List[RunStateTransition]
-
-
-class RunInput(BaseModel):
-    type: RunIOType
-    value: t.Any
-
-    file_name: t.Optional[str]
-    file_path: t.Optional[str]
 
 
 class RunCreate(BaseModel):
