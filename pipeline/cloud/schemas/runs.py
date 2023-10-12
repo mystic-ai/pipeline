@@ -35,17 +35,23 @@ class RunState(int, Enum):
     rate_limited: int = 17
     lost: int = 18
     no_environment_installed: int = 19
+    no_resources_available: int = 23
 
     unknown: int = 20
 
     @staticmethod
     def is_terminal(state: "RunState") -> bool:
-        return state in [
+        return state in RunState.terminal_states()
+
+    @classmethod
+    def terminal_states(cls) -> list["RunState"]:
+        return [
             RunState.completed,
             RunState.failed,
             RunState.lost,
             RunState.no_environment_installed,
             RunState.rate_limited,
+            RunState.no_resources_available,
         ]
 
     @classmethod
@@ -210,6 +216,17 @@ class RunResult(BaseModel):
         return output_array
 
 
+class RunInput(BaseModel):
+    type: RunIOType
+    value: t.Any
+
+    file_name: t.Optional[str]
+    file_path: t.Optional[str]
+    # The file URL is only populated when this schema is
+    # returned by the API, the user should never populate it
+    file_url: t.Optional[str]
+
+
 class Run(BaseModel):
     id: str
 
@@ -224,6 +241,7 @@ class Run(BaseModel):
     error: t.Optional[RunError]
 
     result: t.Optional[RunResult]
+    input_data: t.Optional[t.List[RunInput]]
 
     class Config:
         # use_enum_values = True
@@ -241,12 +259,10 @@ class RunStateTransition(BaseModel):
     time: datetime
 
 
-class RunInput(BaseModel):
-    type: RunIOType
-    value: t.Any
+class RunStateTransitions(BaseModel):
+    """View for all state transitions of a given run"""
 
-    file_name: t.Optional[str]
-    file_path: t.Optional[str]
+    data: t.List[RunStateTransition]
 
 
 class RunCreate(BaseModel):

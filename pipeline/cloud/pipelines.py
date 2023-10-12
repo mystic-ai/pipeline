@@ -84,11 +84,23 @@ def upload_pipeline(
     params["environment_id_or_name"] = environment_id_or_name
 
     if required_gpu_vram_mb is not None:
+        if accelerators is not None:
+            max_vram_mb = sum([acc.max_memory_mb() for acc in accelerators])
+            if required_gpu_vram_mb > max_vram_mb:
+                raise Exception(
+                    "Specified accelerators do not have enough VRAM. "
+                    f"Requested mb: {required_gpu_vram_mb}, available "
+                    f"with specified accelerators: {max_vram_mb}"
+                )
+
         params["gpu_memory_min"] = required_gpu_vram_mb
     if minimum_cache_number is not None:
         params["minimum_cache_number"] = minimum_cache_number
 
     if accelerators is not None:
+        if not Accelerator.valid_accelerator_config(accelerators):
+            raise Exception("Invalid accelerator configuration")
+
         params["accelerators"] = [
             acc.value for acc in accelerators if isinstance(acc, Accelerator)
         ]
@@ -221,18 +233,30 @@ def _data_to_run_input(data: t.Tuple) -> t.List[RunInput]:
     return input_array
 
 
-def run_pipeline(
-    pipeline_id_or_pointer: t.Union[str, int],
-    *data,
-    async_run: bool = False,
-    return_response: bool = False,
-) -> t.Union[Run, httpx.Response]:
-    run_create_schema = RunCreate(
-        pipeline_id_or_pointer=pipeline_id_or_pointer,
-        input_data=_data_to_run_input(data),
-        async_run=async_run if not current_configuration.is_debugging() else True,
-    )
+def _retry(run_get: Run, retry: bool, retry_states: list[RunState], retry_delay: float):
+    if run_get is None:
+        # First time, always run
+        return True
 
+    if not retry:
+        # Have a response and retry disabled
+        return False
+
+    state = run_get.state
+    if state in retry_states:
+        _print(
+            f"Run state was {state.name}, "
+            f"sleeping for {retry_delay} seconds before retrying"
+        )
+        time.sleep(retry_delay)
+        return True
+
+    return False
+
+
+def _run_pipeline(
+    run_create_schema: RunCreate, return_response: bool, retry_states: list[RunState]
+) -> t.Union[Run, httpx.Response]:
     res = http.post(
         "/v3/runs",
         json_data=run_create_schema.dict(),
@@ -284,7 +308,38 @@ def run_pipeline(
             _print_remote_log(log)
 
     if current_configuration.is_debugging():
-        run_get = _run_logs_process(run_get.id)
+        run_get = _run_logs_process(run_get.id, retry_states)
+
+    return run_get
+
+
+def run_pipeline(
+    pipeline_id_or_pointer: t.Union[str, int],
+    *data,
+    async_run: bool = False,
+    return_response: bool = False,
+    retry: bool = False,
+    retry_delay: float = 2.0,
+    retry_states: RunState | list[RunState] = RunState.rate_limited,
+) -> t.Union[Run, httpx.Response]:
+    if retry and async_run and not current_configuration.is_debugging():
+        raise Exception("Can't retry on async run unless in debug mode")
+
+    if isinstance(retry_states, RunState):
+        retry_states = [retry_states]
+
+    run_create_schema = RunCreate(
+        pipeline_id_or_pointer=pipeline_id_or_pointer,
+        input_data=_data_to_run_input(data),
+        async_run=async_run if not current_configuration.is_debugging() else True,
+    )
+
+    run_get = None
+    while _retry(run_get, retry, retry_states, retry_delay):
+        run_get = _run_pipeline(run_create_schema, return_response, retry_states)
+
+        if return_response and not current_configuration.is_debugging():
+            return run_get
 
     return run_get
 
@@ -361,13 +416,7 @@ def poll_async_run(
             if state_change_callback is not None:
                 state_change_callback(run_get)
 
-        if run_get.state in [
-            RunState.completed,
-            RunState.failed,
-            RunState.rate_limited,
-            RunState.lost,
-            RunState.no_environment_installed,
-        ]:
+        if RunState.is_terminal(run_get.state):
             return run_get
 
         if timeout is not None and time.time() - start_time > timeout:
@@ -378,7 +427,7 @@ def poll_async_run(
 log_thread: Thread | None = None
 
 
-def _run_logs_process(run_id: str) -> Run:
+def _run_logs_process(run_id: str, retry_states: list[RunState]) -> Run:
     global log_thread
 
     _print(f"Trailing run logs ({run_id})")
@@ -420,7 +469,11 @@ def _run_logs_process(run_id: str) -> Run:
         if run_get.result is not None:
             _print(f"Result array: {run_get.result.result_array()}")
 
-    if RunState.is_terminal(run_get.state) and run_get.state != RunState.completed:
+    if (
+        RunState.is_terminal(run_get.state)
+        and run_get.state != RunState.completed
+        and run_get.state not in retry_states  # Don't raise an exception
+    ):
         error = getattr(run_get, "error", None)
 
         traceback = getattr(error, "traceback", None)

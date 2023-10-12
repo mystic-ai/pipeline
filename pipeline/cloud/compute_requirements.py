@@ -1,3 +1,4 @@
+from collections import defaultdict
 from enum import Enum
 
 
@@ -43,6 +44,38 @@ class Accelerator(str, Enum):
             raise Exception(f"Unknown GPU name: {accelerator}")
 
         return accelerator_type
+
+    @classmethod
+    def valid_accelerator_config(cls, accelerators: list["Accelerator"]):
+        return accelerators in [
+            [Accelerator.nvidia_t4],
+            [Accelerator.nvidia_a100],
+            [Accelerator.nvidia_a100] * 2,
+            [Accelerator.nvidia_a100] * 4,
+            [Accelerator.nvidia_a100_80gb],
+            [Accelerator.nvidia_a100_80gb] * 2,
+            [Accelerator.nvidia_a100_80gb] * 4,
+            [Accelerator.nvidia_v100],
+            [Accelerator.nvidia_v100_32gb],
+            [Accelerator.nvidia_l4],
+            [Accelerator.nvidia_a5000],
+            [Accelerator.nvidia_all],
+            [Accelerator.cpu],
+        ]
+
+    def max_memory_mb(self) -> int:
+        return defaultdict(
+            lambda: 10_000,
+            {
+                Accelerator.nvidia_t4: 16_000,
+                Accelerator.nvidia_a100: 40_000,
+                Accelerator.nvidia_a100_80gb: 80_000,
+                Accelerator.nvidia_v100: 16_000,
+                Accelerator.nvidia_v100_32gb: 32_000,
+                Accelerator.nvidia_l4: 22_000,
+                Accelerator.nvidia_a5000: 24_000,
+            },
+        )[self]
 
 
 nvidia_gpus = [
