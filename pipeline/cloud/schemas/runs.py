@@ -222,6 +222,7 @@ class RunInput(BaseModel):
 
     file_name: t.Optional[str]
     file_path: t.Optional[str]
+    file_url: t.Optional[str]
 
 
 class Run(BaseModel):
