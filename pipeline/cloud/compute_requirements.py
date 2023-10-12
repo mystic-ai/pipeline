@@ -59,11 +59,13 @@ class Accelerator(str, Enum):
             [Accelerator.nvidia_v100_32gb],
             [Accelerator.nvidia_l4],
             [Accelerator.nvidia_a5000],
+            [Accelerator.nvidia_all],
+            [Accelerator.cpu],
         ]
 
     def max_memory_mb(self) -> int:
         return defaultdict(
-            lambda: 16_000,
+            lambda: 10_000,
             {
                 Accelerator.nvidia_t4: 16_000,
                 Accelerator.nvidia_a100: 40_000,
