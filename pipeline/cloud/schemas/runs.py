@@ -222,6 +222,9 @@ class RunInput(BaseModel):
 
     file_name: t.Optional[str]
     file_path: t.Optional[str]
+    # The file URL is only populated when this schema is
+    # returned by the API, the user should never populate it
+    file_url: t.Optional[str]
 
 
 class Run(BaseModel):
