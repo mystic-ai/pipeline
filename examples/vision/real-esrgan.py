@@ -1,3 +1,4 @@
+import math
 import os
 from pathlib import Path
 
@@ -21,11 +22,13 @@ class RealESRGAN:
     def __init__(
         self,
         scale: int = 4,
+        tile_pad: int = 10,
         pre_pad: int = 0,
         # use full precision by default
         half=False,
     ):
         self.scale = scale
+        self.tile_pad = tile_pad
         self.pre_pad = pre_pad
         self.mod_scale = None
         self.half = half
@@ -62,11 +65,11 @@ class RealESRGAN:
             self.model = self.model.half()
 
     def pre_process(self, img):
+        """Pre-process, such as pre-pad and mod pad, so that the images can be divisible"""
         import numpy as np
         import torch
         from torch.nn import functional as F
 
-        """Pre-process, such as pre-pad and mod pad, so that the images can be divisible"""
         img = torch.from_numpy(np.transpose(img, (2, 0, 1))).float()
         self.img = img.unsqueeze(0).to(self.device)
         if self.half:
@@ -95,6 +98,83 @@ class RealESRGAN:
         # model inference
         self.output = self.model(self.img)
 
+    def tile_process(self, tile_size: int):
+        """It will first crop input images to tiles, and then process each tile.
+        Finally, all the processed tiles are merged into one images.
+
+        Modified from: https://github.com/ata4/esrgan-launcher
+        """
+        import torch
+
+        batch, channel, height, width = self.img.shape
+        output_height = height * self.scale
+        output_width = width * self.scale
+        output_shape = (batch, channel, output_height, output_width)
+
+        # start with black image
+        self.output = self.img.new_zeros(output_shape)
+        tiles_x = math.ceil(width / tile_size)
+        tiles_y = math.ceil(height / tile_size)
+
+        # loop over all tiles
+        for y in range(tiles_y):
+            for x in range(tiles_x):
+                # extract tile from input image
+                ofs_x = x * tile_size
+                ofs_y = y * tile_size
+                # input tile area on total image
+                input_start_x = ofs_x
+                input_end_x = min(ofs_x + tile_size, width)
+                input_start_y = ofs_y
+                input_end_y = min(ofs_y + tile_size, height)
+
+                # input tile area on total image with padding
+                input_start_x_pad = max(input_start_x - self.tile_pad, 0)
+                input_end_x_pad = min(input_end_x + self.tile_pad, width)
+                input_start_y_pad = max(input_start_y - self.tile_pad, 0)
+                input_end_y_pad = min(input_end_y + self.tile_pad, height)
+
+                # input tile dimensions
+                input_tile_width = input_end_x - input_start_x
+                input_tile_height = input_end_y - input_start_y
+                tile_idx = y * tiles_x + x + 1
+                input_tile = self.img[
+                    :,
+                    :,
+                    input_start_y_pad:input_end_y_pad,
+                    input_start_x_pad:input_end_x_pad,
+                ]
+
+                # upscale tile
+                try:
+                    with torch.no_grad():
+                        output_tile = self.model(input_tile)
+                except RuntimeError as error:
+                    print("Error", error)
+                print(f"\tTile {tile_idx}/{tiles_x * tiles_y}")
+
+                # output tile area on total image
+                output_start_x = input_start_x * self.scale
+                output_end_x = input_end_x * self.scale
+                output_start_y = input_start_y * self.scale
+                output_end_y = input_end_y * self.scale
+
+                # output tile area without padding
+                output_start_x_tile = (input_start_x - input_start_x_pad) * self.scale
+                output_end_x_tile = output_start_x_tile + input_tile_width * self.scale
+                output_start_y_tile = (input_start_y - input_start_y_pad) * self.scale
+                output_end_y_tile = output_start_y_tile + input_tile_height * self.scale
+
+                # put tile into output image
+                self.output[
+                    :, :, output_start_y:output_end_y, output_start_x:output_end_x
+                ] = output_tile[
+                    :,
+                    :,
+                    output_start_y_tile:output_end_y_tile,
+                    output_start_x_tile:output_end_x_tile,
+                ]
+
     def post_process(self):
         # remove extra pad
         if self.mod_scale is not None:
@@ -116,7 +196,7 @@ class RealESRGAN:
             ]
         return self.output
 
-    def _enhance(self, img, outscale=None, alpha_upsampler="realesrgan"):
+    def _enhance(self, img, outscale, tile_size, alpha_upsampler="realesrgan"):
         import cv2
         import numpy as np
         import torch
@@ -147,7 +227,10 @@ class RealESRGAN:
 
             # ------------------- process image (without the alpha channel) ------------------- #
             self.pre_process(img)
-            self.process()
+            if tile_size > 0:
+                self.tile_process(tile_size=tile_size)
+            else:
+                self.process()
             output_img = self.post_process()
             output_img = output_img.data.squeeze().float().cpu().clamp_(0, 1).numpy()
             output_img = np.transpose(output_img[[2, 1, 0], :, :], (1, 2, 0))
@@ -158,7 +241,10 @@ class RealESRGAN:
             if img_mode == "RGBA":
                 if alpha_upsampler == "realesrgan":
                     self.pre_process(alpha)
-                    self.process()
+                    if tile_size > 0:
+                        self.tile_process(tile_size=tile_size)
+                    else:
+                        self.process()
                     output_alpha = self.post_process()
                     output_alpha = (
                         output_alpha.data.squeeze().float().cpu().clamp_(0, 1).numpy()
@@ -198,7 +284,7 @@ class RealESRGAN:
             return output, img_mode
 
     @pipe
-    def enhance(self, image: File, outscale: int) -> File:
+    def enhance(self, image: File, outscale: int, tile_size: int) -> File:
         import cv2
 
         # if args.face_enhance:  # Use GFPGAN for face enhancement
@@ -227,7 +313,7 @@ class RealESRGAN:
         #     )
         # else:
         #     output, _ = upsampler.enhance(img, outscale=args.outscale)
-        output, _ = self._enhance(img, outscale=outscale)
+        output, _ = self._enhance(img, outscale=outscale, tile_size=tile_size)
         extension = extension[1:]
         if img_mode == "RGBA":  # RGBA images should be saved in png format
             extension = "png"
@@ -252,12 +338,24 @@ with Pipeline() as builder:
         title="Output Scale",
         description="Factor to scale image by",
     )
+    tile_size = Variable(
+        int,
+        default=256,
+        ge=0,
+        title="Tile size",
+        description=(
+            "It is more memory efficient to process the input image by first "
+            "dividing it into tiles, processing each one, then merging into the "
+            "final output image. This option sets the size to use for the tiles. "
+            "If set to 0 then tiling will not be used"
+        ),
+    )
 
     model = RealESRGAN()
     model_file = File(path="RealESRGAN_x4plus.pth")
     model.load(model_file)
 
-    output = model.enhance(image, outscale)
+    output = model.enhance(image, outscale, tile_size)
     builder.output(output)
 
 my_pl = builder.get_pipeline()
@@ -286,6 +384,6 @@ pipelines.upload_pipeline(
     environment_id_or_name=env_name,
     required_gpu_vram_mb=16_000,
     accelerators=[
-        compute_requirements.Accelerator.nvidia_all,
+        compute_requirements.Accelerator.nvidia_a100,
     ],
 )
