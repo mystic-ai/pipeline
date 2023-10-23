@@ -4,6 +4,7 @@ import traceback
 from typing import List, Optional
 
 from pipeline.console.commands import (
+    build_parser,
     cluster_parser,
     create_parser,
     delete_parser,
@@ -35,6 +36,7 @@ def construct_cli() -> argparse.ArgumentParser:
     delete_parser(command_parser)
     cluster_parser(command_parser)
     logs_parser(command_parser)
+    build_parser(command_parser)
 
     return base_parser
 

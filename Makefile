@@ -1,0 +1,2 @@
+setup-dev:
+	@echo "Lol"

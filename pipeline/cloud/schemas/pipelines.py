@@ -51,3 +51,49 @@ class PipelinePatch(BaseModel):
     minimum_cache_number: t.Optional[int]
     gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
+
+
+########## v4 Schemas ##########
+
+
+class PipelineStartUpload(BaseModel):
+    pipeline_name: str
+    pipeline_tag: t.Optional[str]
+
+
+class PipelineStartUploadResponse(BaseModel):
+    bearer: str
+    upload_registry: t.Optional[str]
+
+
+class PipelineCompleteUpload(BaseModel):
+    name: str
+    container_hash: str
+
+    input_variables: t.List[IOVariable]
+    output_variables: t.List[IOVariable]
+
+    vram_mb: t.Optional[int]
+    minimum_cache_number: t.Optional[int]
+    accelerators: t.Optional[t.List[Accelerator]]
+
+    _metadata: t.Optional[dict]
+
+
+class PipelineContainerGet(BaseModel):
+    id: str
+
+    created_at: datetime
+    updated_at: datetime
+
+    name: str
+
+    minimum_cache_number: t.Optional[int]
+    gpu_memory_min: t.Optional[int]
+
+    accelerators: t.Optional[t.List[Accelerator]]
+
+    input_variables: t.List[IOVariable]
+    output_variables: t.List[IOVariable]
+
+    _metadata: t.Optional[dict]
