@@ -1,6 +1,8 @@
 import typing as t
 from datetime import datetime
 
+from pydantic import Field
+
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.schemas import BaseModel
 from pipeline.cloud.schemas.runs import RunIOType
@@ -45,7 +47,10 @@ class PipelineGet(BaseModel):
     input_variables: t.List[IOVariable]
     output_variables: t.List[IOVariable]
 
-    _metadata: t.Optional[dict]
+    metadata: t.Optional[dict] = Field(alias="_metadata")
+
+    class Config(BaseModel.Config):
+        allow_population_by_field_name = True
 
 
 class PipelinePatch(BaseModel):
