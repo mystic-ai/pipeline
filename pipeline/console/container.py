@@ -1,3 +1,5 @@
+import json
+import sys
 import typing as t
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from pathlib import Path
@@ -9,6 +11,7 @@ from pydantic import BaseModel
 
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
+from pipeline.cloud.schemas import pipelines as pipelines_schemas
 from pipeline.configuration import current_configuration
 from pipeline.container import docker_templates
 from pipeline.util.logging import _print
@@ -34,6 +37,7 @@ class RuntimeConfig(BaseModel):
 class PipelineConfig(BaseModel):
     runtime: RuntimeConfig
     accelerators: t.List[Accelerator]
+    accelerator_memory: int | None
     pipeline_graph: str
     pipeline_name: str = ""
 
@@ -124,9 +128,9 @@ def _build_container(namespace: Namespace):
     new_container.tag(pipeline_repo, tag=created_image_short_id)
     _print(f"Created tag {pipeline_repo}:{created_image_short_id}", "SUCCESS")
 
-    if pipeline_tag:
-        new_container.tag(pipeline_repo, tag=pipeline_tag)
-        _print(f"Created tag {pipeline_repo}:{pipeline_tag}", "SUCCESS")
+    # if pipeline_tag:
+    #     new_container.tag(pipeline_repo, tag=pipeline_tag)
+    #     _print(f"Created tag {pipeline_repo}:{pipeline_tag}", "SUCCESS")
 
 
 def _push_container(namespace: Namespace):
@@ -173,39 +177,99 @@ def _push_container(namespace: Namespace):
     if upload_token is None:
         raise ValueError("No upload token found")
 
+    # get list of tags for image
+
+    # Get image hash
+    image_hash = docker_client.images.get(pipeline_name).id.split(":")[1]
+    # print(image_hash)
+    # exit()
+
+    hash_tag = image_hash[:12]
+    image_to_push = pipeline_name + ":" + hash_tag
+    image_to_push_reg = upload_registry + "/" + image_to_push
+
     if upload_registry is None:
         _print("No upload registry found, not doing anything...", "WARNING")
     else:
-        # auth_dict = {
-        #     "auths": {
-        #         upload_registry: {"username": "pipeline", "password": upload_token}
-        #     }
-        # }
-        # auth_dict = dict(username="lol", password=upload_token)
-        # auth_dict = {
-        #     upload_registry: {
-        #         "username": "lol",
-        #         "password": upload_token,
-        #     }
-        # }
-
         _print(f"Pushing image to upload registry {upload_registry}", "INFO")
-        docker_client.images.get(pipeline_name).tag(
-            upload_registry + "/" + pipeline_name
-        )
+
+        docker_client.images.get(pipeline_name).tag(image_to_push_reg)
 
         # Login to upload registry
         docker_client.login(
             username="pipeline",
             password=upload_token,
-            registry=upload_registry,
+            registry="http://" + upload_registry,
         )
 
         resp = docker_client.images.push(
-            upload_registry + "/" + pipeline_name,
-            auth_config=upload_token,
+            image_to_push_reg,
+            auth_config=dict(username="pipeline", password=upload_token),
             stream=True,
             decode=True,
         )
+
+        all_ids = []
+
+        current_index = 0
+
         for line in resp:
-            print(line)
+            if "error" in line:
+                raise ValueError(line["error"])
+            elif "status" in line:
+                if not "id" in line or line["status"] != "Pushing":
+                    continue
+
+                if "id" in line and line["id"] not in all_ids:
+                    all_ids.append(line["id"])
+                    print("Adding")
+
+                index_difference = all_ids.index(line["id"]) - current_index
+                # print(index_difference)
+
+                print_string = (
+                    line["id"]
+                    + " "
+                    + line["progress"].replace("\n", "").replace("\r", "")
+                )
+
+                if index_difference > 0:
+                    print_string += "\n" * index_difference + "\r"
+                    # print("up")
+                elif index_difference < 0:
+                    print_string += "\033[A" * abs(index_difference) + "\r"
+                    # print("down")
+                else:
+                    print_string += "\r"
+                    # print("same")
+                current_index = all_ids.index(line["id"])
+
+                sys.stdout.write(print_string)
+                sys.stdout.flush()
+
+            # print(line)
+
+    new_deployment_request = http.post(
+        endpoint="/v4/pipelines/complete",
+        json_data=json.loads(
+            pipelines_schemas.PipelineCompleteUpload(
+                name=pipeline_name,
+                image=image_to_push,
+                input_variables=[],
+                output_variables=[],
+                minimum_cache_number=None,
+                gpu_memory_min=pipeline_config.accelerator_memory,
+                accelerators=pipeline_config.accelerators,
+                _metadata={},
+            ).json()
+        ),
+    )
+
+    new_deployment = pipelines_schemas.PipelineContainerGet.parse_obj(
+        new_deployment_request.json()
+    )
+
+    _print(
+        f"Created new pipeline deployment for {new_deployment.name} -> {new_deployment.id} (image={new_deployment.image})",  # noqa
+        "SUCCESS",
+    )

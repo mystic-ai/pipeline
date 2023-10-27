@@ -1,0 +1,20 @@
+runtime:
+  container_commands:
+    - "apt update -y"
+    - "apt install -y git"
+    - "apt-get update && \
+      apt-get -y install gcc mono-mcs && \
+      rm -rf /var/lib/apt/lists/*"
+  python:
+    python_version: "3.10"
+    python_requirements:
+      - "torch==2.0.1"
+      - "transformers"
+      - "accelerate==0.21.0"
+      - "vllm==0.2.0"
+      - "pandas"
+accelerators:
+  - nvidia_a100
+accelerator_memory: 10000
+pipeline_graph: "mistralvllm:my_pipeline"
+pipeline_name: paulcjh/mistralai-vllm

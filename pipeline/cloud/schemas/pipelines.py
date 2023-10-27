@@ -68,12 +68,13 @@ class PipelineStartUploadResponse(BaseModel):
 
 class PipelineCompleteUpload(BaseModel):
     name: str
-    container_hash: str
+    image: str
+    # container_hash: str
 
     input_variables: t.List[IOVariable]
     output_variables: t.List[IOVariable]
 
-    vram_mb: t.Optional[int]
+    gpu_memory_min: t.Optional[int]
     minimum_cache_number: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
@@ -87,6 +88,7 @@ class PipelineContainerGet(BaseModel):
     updated_at: datetime
 
     name: str
+    image: str
 
     minimum_cache_number: t.Optional[int]
     gpu_memory_min: t.Optional[int]
