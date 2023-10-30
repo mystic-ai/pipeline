@@ -3,14 +3,13 @@ import sys
 import traceback
 from typing import List, Optional
 
-from pipeline.console.commands import (
+from pipeline.console.commands import (  # logs_parser,
     build_parser,
     cluster_parser,
     create_parser,
     delete_parser,
     edit_parser,
     get_parser,
-    logs_parser,
 )
 
 
@@ -35,7 +34,7 @@ def construct_cli() -> argparse.ArgumentParser:
     edit_parser(command_parser)
     delete_parser(command_parser)
     cluster_parser(command_parser)
-    logs_parser(command_parser)
+    # logs_parser(command_parser)
     build_parser(command_parser)
 
     return base_parser

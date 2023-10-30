@@ -53,12 +53,12 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     get_parser.set_defaults(func=_get_pipeline)
 
     # get by name
-    get_parser.add_argument(
-        "--name",
-        "-n",
-        help="Pipeline name.",
-        type=str,
-    )
+    # get_parser.add_argument(
+    #     "--name",
+    #     "-n",
+    #     help="Pipeline name.",
+    #     type=str,
+    # )
     get_parser.add_argument(
         "--skip",
         "-s",
@@ -95,14 +95,14 @@ def _get_pipeline(args: Namespace) -> None:
 
     params = dict()
     pagination = get_default_pagination()
-    if name := getattr(args, "name", None):
-        params["name"] = name
+    # if name := getattr(args, "name", None):
+    #     params["name"] = name
     if skip := getattr(args, "skip", None):
         pagination.skip = skip
     if limit := getattr(args, "limit", None):
         pagination.limit = limit
     paginated_raw_pipelines: Paginated[dict] = http.get(
-        "/v3/pipelines",
+        "/v4/pipelines",
         params=dict(**params, **pagination.dict()),
     ).json()
     pipelines = [

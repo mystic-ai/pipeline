@@ -1,4 +1,5 @@
 import typing as t
+from enum import Enum
 from math import ceil
 
 from pydantic import conint
@@ -56,3 +57,8 @@ def to_page_position(skip: int, items_per_page: int, total_items: int) -> PagePo
     current_page = skip // items_per_page + 1
     total_pages = max(1, ceil(total_items / items_per_page))
     return PagePosition(current=current_page, total=total_pages)
+
+
+class Order(str, Enum):
+    descending = "descending"
+    ascending = "ascending"

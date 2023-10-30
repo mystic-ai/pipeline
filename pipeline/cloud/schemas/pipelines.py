@@ -1,8 +1,9 @@
 import typing as t
 from datetime import datetime
+from enum import Enum
 
 from pipeline.cloud.compute_requirements import Accelerator
-from pipeline.cloud.schemas import BaseModel
+from pipeline.cloud.schemas import BaseModel, pagination
 from pipeline.cloud.schemas.runs import RunIOType
 
 
@@ -27,35 +28,6 @@ class IOVariable(BaseModel):
     default: t.Any | None
 
 
-class PipelineGet(BaseModel):
-    id: str
-    created_at: datetime
-    updated_at: datetime
-
-    name: str
-    path: str
-
-    minimum_cache_number: t.Optional[int]
-    gpu_memory_min: t.Optional[int]
-    environment_id: str
-
-    accelerators: t.Optional[t.List[Accelerator]]
-
-    input_variables: t.List[IOVariable]
-    output_variables: t.List[IOVariable]
-
-    _metadata: t.Optional[dict]
-
-
-class PipelinePatch(BaseModel):
-    minimum_cache_number: t.Optional[int]
-    gpu_memory_min: t.Optional[int]
-    accelerators: t.Optional[t.List[Accelerator]]
-
-
-########## v4 Schemas ##########
-
-
 class PipelineStartUpload(BaseModel):
     pipeline_name: str
     pipeline_tag: t.Optional[str]
@@ -66,22 +38,23 @@ class PipelineStartUploadResponse(BaseModel):
     upload_registry: t.Optional[str]
 
 
-class PipelineCompleteUpload(BaseModel):
+class PipelineCreate(BaseModel):
     name: str
     image: str
-    # container_hash: str
 
     input_variables: t.List[IOVariable]
     output_variables: t.List[IOVariable]
 
-    gpu_memory_min: t.Optional[int]
     minimum_cache_number: t.Optional[int]
+    maximum_cache_number: t.Optional[int]
+
+    gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
-    _metadata: t.Optional[dict]
+    extras: t.Optional[dict]
 
 
-class PipelineContainerGet(BaseModel):
+class PipelineGet(BaseModel):
     id: str
 
     created_at: datetime
@@ -90,12 +63,52 @@ class PipelineContainerGet(BaseModel):
     name: str
     image: str
 
-    minimum_cache_number: t.Optional[int]
-    gpu_memory_min: t.Optional[int]
-
-    accelerators: t.Optional[t.List[Accelerator]]
-
     input_variables: t.List[IOVariable]
     output_variables: t.List[IOVariable]
 
-    _metadata: t.Optional[dict]
+    minimum_cache_number: t.Optional[int]
+    maximum_cache_number: t.Optional[int]
+
+    gpu_memory_min: t.Optional[int]
+    accelerators: t.Optional[t.List[Accelerator]]
+
+    extras: t.Optional[dict]
+
+
+class PipelinePatch(BaseModel):
+    input_variables: t.Optional[t.List[IOVariable]]
+    output_variables: t.Optional[t.List[IOVariable]]
+
+    minimum_cache_number: t.Optional[int]
+    maximum_cache_number: t.Optional[int]
+
+    gpu_memory_min: t.Optional[int]
+    accelerators: t.Optional[t.List[Accelerator]]
+
+    extras: t.Optional[dict]
+
+
+class PipelineListPagination(pagination.Pagination):
+    class OrderBy(str, Enum):
+        created_at = "created_at"
+        updated_at = "updated_at"
+
+        pipeline_name = "pipeline_name"
+        image = "image"
+
+        gpu_memory_min = "gpu_memory_min"
+
+        minimum_cache_number = "minimum_cache_number"
+        maximum_cache_number = "maximum_cache_number"
+
+    order_by: OrderBy
+    order: pagination.Order
+
+
+class PipelineDeploymentStatus(str, Enum):
+    not_deployed = "not_deployed"
+    deploying = "deploying"
+    deployed = "deployed"
+    failed = "failed"
+    deleting = "deleting"
+    deleted = "deleted"
