@@ -7,6 +7,7 @@ from pathlib import Path
 import docker
 import yaml
 from docker.errors import BuildError
+from docker.types import DeviceRequest, LogConfig
 from pydantic import BaseModel
 
 from pipeline.cloud import http
@@ -45,6 +46,54 @@ class PipelineConfig(BaseModel):
         extra = "forbid"
 
 
+def _up_container(namespace: Namespace):
+    _print("Starting container...", "INFO")
+    config_file = Path("./pipeline.yaml")
+
+    if not config_file.exists():
+        raise FileNotFoundError(f"Config file {config_file} not found")
+
+    config = config_file.read_text()
+    pipeline_config_yaml = yaml.load(config, Loader=yaml.FullLoader)
+
+    pipeline_config = PipelineConfig.parse_obj(pipeline_config_yaml)
+
+    pipeline_name = pipeline_config.pipeline_name
+    docker_client = docker.from_env()
+    lc = LogConfig(
+        type=LogConfig.types.JSON,
+        config={
+            "max-size": "1g",
+        },
+    )
+    # Stop container on python exit
+    container = docker_client.containers.run(
+        pipeline_name,
+        ports={"14300/tcp": 14300},
+        stderr=True,
+        stdout=True,
+        log_config=lc,
+        remove=True,
+        auto_remove=True,
+        detach=True,
+        device_requests=[DeviceRequest(device_ids=["0"], capabilities=[["gpu"]])],
+    )
+
+    _print(
+        "Container started on port 14300, view the live docs: http://localhost:14300/redoc",
+        "SUCCESS",
+    )
+    while True:
+        try:
+            for line in container.logs(stream=True):
+                print(line.decode("utf-8").strip())
+        except KeyboardInterrupt:
+            _print("Stopping container...", "WARNING")
+            container.stop()
+            # container.remove()
+            break
+
+
 def _build_container(namespace: Namespace):
     _print("Starting build service...", "INFO")
     template = docker_templates.template_1
@@ -80,6 +129,8 @@ def _build_container(namespace: Namespace):
         ),
         pipeline_path=pipeline_config.pipeline_graph,
         extra_paths=extra_paths,
+        pipeline_name=pipeline_config.pipeline_name,
+        pipeline_image=pipeline_config.pipeline_name,
     )
 
     dockerfile_path = Path("./pipeline.dockerfile")
@@ -163,7 +214,7 @@ def _push_container(namespace: Namespace):
 
     # docker_client.images.push(pipeline_name)
     start_upload_response = http.post(
-        endpoint="/v4/pipelines/start-upload",
+        endpoint="/v4/registry/start-upload",
         json_data={
             "pipeline_name": pipeline_name,
             "pipeline_tag": None,
@@ -250,22 +301,23 @@ def _push_container(namespace: Namespace):
             # print(line)
 
     new_deployment_request = http.post(
-        endpoint="/v4/pipelines/complete",
+        endpoint="/v4/pipelines",
         json_data=json.loads(
-            pipelines_schemas.PipelineCompleteUpload(
+            pipelines_schemas.PipelineCreate(
                 name=pipeline_name,
                 image=image_to_push,
                 input_variables=[],
                 output_variables=[],
                 minimum_cache_number=None,
+                maximum_cache_number=None,
                 gpu_memory_min=pipeline_config.accelerator_memory,
                 accelerators=pipeline_config.accelerators,
-                _metadata={},
+                extras={},
             ).json()
         ),
     )
 
-    new_deployment = pipelines_schemas.PipelineContainerGet.parse_obj(
+    new_deployment = pipelines_schemas.PipelineGet.parse_obj(
         new_deployment_request.json()
     )
 

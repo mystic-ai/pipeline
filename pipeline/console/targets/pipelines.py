@@ -105,6 +105,12 @@ def _get_pipeline(args: Namespace) -> None:
         "/v4/pipelines",
         params=dict(**params, **pagination.dict()),
     ).json()
+
+    pipelines_: Paginated[pipelines_schema.PipelineGet] = Paginated[
+        pipelines_schema.PipelineGet
+    ].parse_obj(paginated_raw_pipelines)
+    print(pipelines_)
+
     pipelines = [
         [
             pipeline_raw["id"],
@@ -130,16 +136,6 @@ def _get_pipeline(args: Namespace) -> None:
                         )
                     )
                 )
-            )
-            + (
-                " (" + str(val) + "MB VRAM)"
-                if (val := pipeline_raw.get("gpu_memory_min", "N/A"))
-                else (
-                    ""
-                    if (pl_accelerators := pipeline_raw.get("accelerators", [])) is None
-                    or Accelerator.cpu in pl_accelerators
-                    else "-"
-                )
             ),
         ]
         for pipeline_raw in paginated_raw_pipelines["data"]
@@ -157,7 +153,7 @@ def _get_pipeline(args: Namespace) -> None:
             "ID",
             "Name",
             "Created",
-            "Cache #",
+            "Cache # (min-max)",
             "Accelerators",
         ],
         tablefmt="psql",

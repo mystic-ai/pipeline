@@ -54,17 +54,19 @@ class PipelineCreate(BaseModel):
     extras: t.Optional[dict]
 
 
-class PipelineGet(BaseModel):
-    id: str
-
-    created_at: datetime
-    updated_at: datetime
-
+class Pipeline(BaseModel):
     name: str
     image: str
 
     input_variables: t.List[IOVariable]
     output_variables: t.List[IOVariable]
+
+
+class PipelineGet(Pipeline):
+    id: str
+
+    created_at: datetime
+    updated_at: datetime
 
     minimum_cache_number: t.Optional[int]
     maximum_cache_number: t.Optional[int]
@@ -112,3 +114,15 @@ class PipelineDeploymentStatus(str, Enum):
     failed = "failed"
     deleting = "deleting"
     deleted = "deleted"
+
+
+class PipelineState(str, Enum):
+    not_loaded = "not_loaded"
+    loading = "loading"
+    loaded = "loaded"
+    failed = "failed"
+
+
+class PipelineContainerState(BaseModel):
+    state: PipelineState
+    message: t.Optional[str]

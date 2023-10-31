@@ -111,17 +111,34 @@ def logs_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     logs.run_logs_parser(logs_sub_parser)
 
 
-def build_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
-    build_parser = command_parser.add_parser(
+def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
+    container_parser = command_parser.add_parser(
+        "container",
+        description="Manage pipeline containers.",
+        help="Manage pipeline containers.",
+    )
+    container_parser.set_defaults(func=lambda _: container_parser.print_help())
+    container_sub_parser = container_parser.add_subparsers(
+        dest="target",
+    )
+
+    build_parser = container_sub_parser.add_parser(
         "build",
         description="Build a pipeline container.",
         help="Build a pipeline container.",
     )
     build_parser.set_defaults(func=container._build_container)
 
-    push_parser = command_parser.add_parser(
+    push_parser = container_sub_parser.add_parser(
         "push",
         description="Push a pipeline container.",
         help="Push a pipeline container.",
     )
     push_parser.set_defaults(func=container._push_container)
+
+    up_parser = container_sub_parser.add_parser(
+        "up",
+        description="Start a pipeline container.",
+        help="Start a pipeline container.",
+    )
+    up_parser.set_defaults(func=container._up_container)

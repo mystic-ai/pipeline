@@ -1,6 +1,7 @@
 import hashlib
 import importlib
 import logging
+import os
 import typing as t
 import urllib.parse
 import zipfile
@@ -10,6 +11,7 @@ from urllib import request
 
 import validators
 
+from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputField, InputSchema
@@ -31,9 +33,14 @@ class Manager:
         self.pipeline_path = pipeline_path
         self.pipeline_module_str, self.pipeline_name_str = pipeline_path.split(":")
 
+        self.pipeline_state: pipeline_schemas.PipelineState = (
+            pipeline_schemas.PipelineState.not_loaded
+        )
+        self.pipeline_state_message: str | None = None
+
         try:
             self.pipeline_module = importlib.import_module(self.pipeline_module_str)
-            self.pipeline = getattr(self.pipeline_module, self.pipeline_name_str)
+            self.pipeline: Graph = getattr(self.pipeline_module, self.pipeline_name_str)
         except ModuleNotFoundError:
             raise ValueError(f"Could not find module {self.pipeline_module_str}")
         except AttributeError:
@@ -43,11 +50,23 @@ class Manager:
         except Exception as e:
             raise ValueError(f"Unexpected error: {e}")
 
+        self.pipeline_name = os.environ.get("PIPELINE_NAME", "unknown")
+        self.pipeline_image = os.environ.get("PIPELINE_IMAGE", "unknown")
+
         logger.info(f"Pipeline set to {self.pipeline_path}")
 
     async def startup(self):
         logger.info("Starting pipeline")
-        self.pipeline._startup()
+        self.pipeline_state = pipeline_schemas.PipelineState.loading
+        try:
+            self.pipeline._startup()
+        except Exception as e:
+            logger.exception(e)
+            self.pipeline_state = pipeline_schemas.PipelineState.failed
+            self.pipeline_state_message = str(e)
+            raise e
+
+        self.pipeline_state = pipeline_schemas.PipelineState.loaded
         logger.info("Pipeline started successfully")
 
     def _resolve_file_variable_to_local(

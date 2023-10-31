@@ -112,16 +112,15 @@ class RunFile(BaseModel):
 
 
 class RunIOType(str, Enum):
-    integer: str = "integer"
-    string: str = "string"
-    fp: str = "fp"
-    dictionary: str = "dictionary"
-    boolean: str = "boolean"
-    none: str = "none"
-    array: str = "array"
-
-    pkl: str = "pkl"
-    file: str = "file"
+    integer = "integer"
+    string = "string"
+    fp = "fp"
+    dictionary = "dictionary"
+    boolean = "boolean"
+    none = "none"
+    array = "array"
+    pkl = "pkl"
+    file = "file"
 
     @classmethod
     def from_object(cls, obj: t.Any):
@@ -227,6 +226,24 @@ class RunInput(BaseModel):
     file_url: t.Optional[str]
 
 
+class ContainerRunError(str, Enum):
+    input_error = "input_error"
+    cuda_oom = "cuda_oom"
+    cuda_error = "cuda_error"
+    oom = "oom"
+    unknown = "unknown"
+
+
+class ContainerRunCreate(BaseModel):
+    inputs: t.List[RunInput]
+
+
+class ContainerRunResult(BaseModel):
+    outputs: t.Optional[t.List[RunOutput]]
+    error: t.Optional[ContainerRunError]
+    error_message: t.Optional[str]
+
+
 class Run(BaseModel):
     id: str
 
@@ -265,7 +282,6 @@ class RunStateTransitions(BaseModel):
     data: t.List[RunStateTransition]
 
 
-class RunCreate(BaseModel):
+class RunCreate(ContainerRunCreate):
     pipeline_id_or_pointer: str
-    input_data: t.List[RunInput]
     async_run: bool = False

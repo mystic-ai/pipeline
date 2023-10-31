@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 from pipeline.cloud.schemas.pipelines import IOVariable
 from pipeline.cloud.schemas.runs import RunIOType
+from pipeline.exceptions import RunInputException
 from pipeline.objects.function import Function
 from pipeline.objects.model import Model
 from pipeline.util import dump_object, generate_id
@@ -622,7 +623,7 @@ class Graph:
         ]
 
         if len(inputs) != len(input_variables):
-            raise Exception(
+            raise RunInputException(
                 "Mismatch of number of inputs, expecting %u got %s"
                 % (len(input_variables), len(inputs))
             )
@@ -635,7 +636,7 @@ class Graph:
         for var in self.variables:
             if isinstance(var, File):
                 if not var.path:
-                    raise Exception("Must define a path for a File")
+                    raise RunInputException("Must define a path for a File")
 
                 running_variables[var.local_id] = var
 
@@ -648,7 +649,7 @@ class Graph:
                 if isinstance(input, int) and input_variables[i].type_class == float:
                     input = float(input)
                 else:
-                    raise Exception(
+                    raise RunInputException(
                         "Input type mismatch, expceted %s got %s"
                         % (
                             input_variables[i].type_class,

@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import os
+import threading
+import time
 import traceback
 import uuid
 
@@ -8,9 +10,9 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 
+from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.container.manager import Manager
-from pipeline.container.run import execution_handler
-from pipeline.container.run import router as run_router
+from pipeline.container.routes import router
 from pipeline.container.status import router as status_router
 
 logger = logging.getLogger("uvicorn")
@@ -33,12 +35,8 @@ def create_app() -> FastAPI:
     )
     asyncio.create_task(execution_handler(app.state.execution_queue, app.state.manager))
 
-    router = APIRouter(prefix="/v1")
-
-    router.include_router(status_router)
-    router.include_router(run_router)
-
     app.include_router(router)
+    app.include_router(status_router)
 
     return app
 
@@ -82,3 +80,44 @@ def setup_oapi(app: FastAPI) -> None:
         return app.openapi_schema
 
     app.openapi = custom_openapi
+
+
+async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) -> None:
+    threading.Thread(target=asyncio.run, args=(manager.startup(),)).start()
+
+    while True:
+        try:
+            args, response_queue = await execution_queue.get()
+
+            start_time = time.time()
+            timedout = False
+
+            logger.info("Got run request")
+            logger.info(f"Pipeline state: {manager.pipeline_state}")
+
+            while manager.pipeline_state == pipeline_schemas.PipelineState.loading:
+                if time.time() - start_time > 30:
+                    timedout = True
+                    break
+
+                await asyncio.sleep(0.1)
+
+            if timedout:
+                response_queue.put_nowait(Exception())
+                logger.info("Loading timedout")
+                continue
+
+            if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
+                response_queue.put_nowait(Exception())
+                logger.info("Pipeline failed to load")
+                continue
+
+            try:
+                output = await manager.run(args)
+            except Exception as e:
+                logger.exception(e)
+                response_queue.put_nowait(e)
+                continue
+            response_queue.put_nowait(output)
+        except Exception:
+            logger.exception("Got an error in the execution loop handler")
