@@ -9,7 +9,7 @@ router = APIRouter(prefix="/play", tags=["play"])
 
 
 @router.get("", response_class=HTMLResponse)
-async def get_pipeline_form():
+async def render_pipeline_play():
     with open(os.path.join("/app/pipeline/container/frontend", "app.tsx"), "r") as file:
         ts_code = file.read()
 
