@@ -42,6 +42,9 @@ flake8 = "^5.0.4"
 isort = "^5.10.1"
 pytest-httpserver = "^1.0.6"
 
+[tool.poetry.group.dev.dependencies]
+fastapi = "^0.104.1"
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

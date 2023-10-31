@@ -14,7 +14,7 @@ import validators
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
 from pipeline.objects import Directory, File, Graph
-from pipeline.objects.graph import InputField, InputSchema
+from pipeline.objects.graph import InputSchema
 
 logger = logging.getLogger("uvicorn")
 
@@ -45,7 +45,10 @@ class Manager:
             raise ValueError(f"Could not find module {self.pipeline_module_str}")
         except AttributeError:
             raise ValueError(
-                f"Could not find pipeline {self.pipeline_name_str} in module {self.pipeline_module_str}"
+                (
+                    f"Could not find pipeline {self.pipeline_name_str} in module"
+                    f" {self.pipeline_module_str}"
+                )
             )
         except Exception as e:
             raise ValueError(f"Unexpected error: {e}")
