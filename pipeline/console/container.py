@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 import typing as t
@@ -44,6 +45,13 @@ class PipelineConfig(BaseModel):
 
     class Config:
         extra = "forbid"
+
+
+def _init_container(namespace: Namespace):
+    _print("Creating a new pipeline container project...", "INFO")
+    path_attr = getattr(namespace, "path")
+    path = Path(path_attr)
+    os.makedirs(path, exist_ok=True)
 
 
 def _up_container(namespace: Namespace):

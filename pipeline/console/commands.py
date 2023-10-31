@@ -122,6 +122,18 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         dest="target",
     )
 
+    init_parser = container_sub_parser.add_parser(
+        "init",
+        description="Create a new pipeline container.",
+        help="Initialise a pipeline container.",
+    )
+    init_parser.set_defaults(func=container._init_container)
+
+    init_parser.add_argument(
+        "path",
+        help="The path to create the pipeline container project.",
+    )
+
     build_parser = container_sub_parser.add_parser(
         "build",
         description="Build a pipeline container.",
