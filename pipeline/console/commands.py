@@ -142,3 +142,9 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         help="Start a pipeline container.",
     )
     up_parser.set_defaults(func=container._up_container)
+    up_parser.add_argument(
+        "--debug",
+        "-d",
+        action="store_true",
+        help="Start the container in debug mode.",
+    )

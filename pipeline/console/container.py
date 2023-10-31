@@ -1,7 +1,8 @@
 import json
+import subprocess
 import sys
 import typing as t
-from argparse import ArgumentParser, Namespace, _SubParsersAction
+from argparse import Namespace
 from pathlib import Path
 
 import docker
@@ -13,7 +14,6 @@ from pydantic import BaseModel
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.schemas import pipelines as pipelines_schemas
-from pipeline.configuration import current_configuration
 from pipeline.container import docker_templates
 from pipeline.util.logging import _print
 
@@ -66,6 +66,48 @@ def _up_container(namespace: Namespace):
             "max-size": "1g",
         },
     )
+    volumes: list | None = None
+    run_command = [
+        "uvicorn",
+        "pipeline.container.startup:create_app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "14300",
+        "--factory",
+    ]
+
+    environment_variables = dict()
+
+    if getattr(namespace, "debug", False):
+        run_command.append("--reload")
+        current_path = Path("./").expanduser().resolve()
+        volumes = [f"{current_path}:/app/"]
+        environment_variables["DEBUG"] = "1"
+        environment_variables["LOG_LEVEL"] = "DEBUG"
+        environment_variables["FASTAPI_ENV"] = "development"
+
+    gpu_ids: list | None = None
+    try:
+        gpu_ids = [
+            f"{i}"
+            for i in range(
+                0,
+                len(
+                    subprocess.check_output(
+                        [
+                            "nvidia-smi",
+                            "-L",
+                        ]
+                    )
+                    .decode()
+                    .splitlines()
+                ),
+            )
+        ]
+    except Exception:
+        gpu_ids = None
+
     # Stop container on python exit
     container = docker_client.containers.run(
         pipeline_name,
@@ -76,13 +118,19 @@ def _up_container(namespace: Namespace):
         remove=True,
         auto_remove=True,
         detach=True,
-        device_requests=[DeviceRequest(device_ids=["0"], capabilities=[["gpu"]])],
+        device_requests=[DeviceRequest(device_ids=gpu_ids, capabilities=[["gpu"]])]
+        if gpu_ids
+        else None,
+        command=run_command,
+        volumes=volumes,
+        environment=environment_variables,
     )
 
     _print(
-        "Container started on port 14300, view the live docs: http://localhost:14300/redoc",
+        "Container started on port 14300, view the live docs: http://localhost:14300/redoc",  # noqa
         "SUCCESS",
     )
+
     while True:
         try:
             for line in container.logs(stream=True):
@@ -167,11 +215,11 @@ def _build_container(namespace: Namespace):
         if ":" in pipeline_config.pipeline_name
         else pipeline_config.pipeline_name
     )
-    pipeline_tag = (
-        pipeline_config.pipeline_name.split(":")[1]
-        if ":" in pipeline_config.pipeline_name
-        else None
-    )
+    # pipeline_tag = (
+    #     pipeline_config.pipeline_name.split(":")[1]
+    #     if ":" in pipeline_config.pipeline_name
+    #     else None
+    # )
 
     new_container.tag(pipeline_repo)
     _print(f"Created tag {pipeline_repo}", "SUCCESS")
@@ -268,7 +316,7 @@ def _push_container(namespace: Namespace):
             if "error" in line:
                 raise ValueError(line["error"])
             elif "status" in line:
-                if not "id" in line or line["status"] != "Pushing":
+                if "id" not in line or line["status"] != "Pushing":
                     continue
 
                 if "id" in line and line["id"] not in all_ids:
