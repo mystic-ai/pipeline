@@ -148,3 +148,11 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         action="store_true",
         help="Start the container in debug mode.",
     )
+    # Allow multiple volumes to be specified
+
+    up_parser.add_argument(
+        "--volume",
+        "-v",
+        action="append",
+        help="Mount a volume into the container.",
+    )

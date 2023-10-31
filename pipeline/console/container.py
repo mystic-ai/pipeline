@@ -82,10 +82,28 @@ def _up_container(namespace: Namespace):
     if getattr(namespace, "debug", False):
         run_command.append("--reload")
         current_path = Path("./").expanduser().resolve()
-        volumes = [f"{current_path}:/app/"]
+        if volumes is None:
+            volumes = []
+
+        volumes.append(f"{current_path}:/app/")
         environment_variables["DEBUG"] = "1"
         environment_variables["LOG_LEVEL"] = "DEBUG"
         environment_variables["FASTAPI_ENV"] = "development"
+
+    if extra_volumes := getattr(namespace, "volume", None):
+        if volumes is None:
+            volumes = []
+
+        for volume in extra_volumes:
+            if ":" not in volume:
+                raise ValueError(
+                    f"Invalid volume {volume}, must be in format host_path:container_path"  # noqa
+                )
+
+            local_path = Path(volume.split(":")[0]).expanduser().resolve()
+            container_path = Path(volume.split(":")[1])
+
+            volumes.append(f"{local_path}:{container_path}")
 
     gpu_ids: list | None = None
     try:
