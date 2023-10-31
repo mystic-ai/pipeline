@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import sys
 import typing as t
@@ -47,11 +48,67 @@ class PipelineConfig(BaseModel):
         extra = "forbid"
 
 
+# Define your data
+
+
+PIPELINE_MODULE_NAME = "my_pipeline"
+PIPELINE_GRAPH_NAME = "pipeline_graph"
+PIPELINE_MODULE_FILE = PIPELINE_MODULE_NAME + ".py"
+PIPELINE_YAML_FILE = "pipeline.yaml"
+
+TEMPLATE_CODE = f"""
+from pipeline import Pipeline, entity, pipe
+
+
+@entity
+class MyPipelineEntity:
+    @pipe(run_once=True, on_startup=True)
+    def load(self):
+        pass
+
+
+with Pipeline() as builder:
+    pass
+
+{PIPELINE_GRAPH_NAME} = builder.get_pipeline()
+"""
+
+YAML_DATA = {
+    "runtime": {
+        "container_commands": ["apt update -y", "apt install -y git"],
+        "python": {"python_version": "3.10", "python_requirements": []},
+    },
+    "accelerators": [],
+    "accelerator_memory": None,
+    "pipeline_graph": f"{PIPELINE_MODULE_NAME}:{PIPELINE_GRAPH_NAME}",
+    "pipeline_name": None,
+}
+
+
 def _init_container(namespace: Namespace):
     _print("Creating a new pipeline container project...", "INFO")
     path_attr = getattr(namespace, "path")
     path = Path(path_attr)
-    os.makedirs(path, exist_ok=True)
+    if len(path.parts) < 1:
+        _print("Specify a target directory the path.", "ERROR")
+        return
+
+    pipeline_module_path = os.path.join(path, PIPELINE_MODULE_FILE)
+    yaml_file_path = os.path.join(path, PIPELINE_YAML_FILE)
+
+    # Undo any actions in else clause
+    try:
+        os.makedirs(path)
+        with open(pipeline_module_path, "w") as file:
+            file.write(TEMPLATE_CODE)
+        with open(yaml_file_path, "w") as file:
+            yaml.dump(YAML_DATA, file, default_flow_style=False, sort_keys=False)
+        raise ValueError("Hey there")
+    except Exception as e:
+        _print("Error creating project, cleaning up...", "ERROR")
+        if os.path.exists(path):
+            shutil.rmtree(path)
+            raise e from e
 
 
 def _up_container(namespace: Namespace):
