@@ -4,7 +4,6 @@ import logging
 from fastapi import APIRouter, Request, Response
 
 from pipeline.cloud.schemas import runs as run_schemas
-from pipeline.container.manager import Manager
 from pipeline.exceptions import RunInputException
 
 logger = logging.getLogger("uvicorn")
