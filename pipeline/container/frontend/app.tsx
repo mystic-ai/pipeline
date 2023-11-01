@@ -4,6 +4,7 @@ const App = () => {
     <div className="flex flex-col gap-3">
       <Inner title="Hello React!" />
       <Inner title="Hello from me too?" />
+      <Image />
     </div>
   );
 };
