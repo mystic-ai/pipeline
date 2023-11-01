@@ -40,7 +40,7 @@ def create_app() -> FastAPI:
     app.include_router(status_router)
     app.mount(
         "/static",
-        StaticFiles(directory="/app/container/frontend/static"),
+        StaticFiles(directory="/app/pipeline/container/frontend/static"),
         name="static",
     )
 
