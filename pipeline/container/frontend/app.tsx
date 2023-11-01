@@ -14,3 +14,7 @@ interface InnerProps {
 const Inner = ({ title }: InnerProps) => {
   return <div>{title}</div>;
 };
+
+const Image = () => {
+  return <img src="/static/image.jpeg" />;
+};
