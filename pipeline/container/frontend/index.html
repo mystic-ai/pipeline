@@ -665,13 +665,13 @@
         });
       }
 
-      function generateObjectFromDynamicFields(dynamicFields) {
+      function generateInputDataArrayFromDynamicFields(dynamicFields) {
         const array = [];
         dynamicFields.forEach((item) => {
           if (item.dicts && item.dicts.length) {
             const newObj = {};
             for (const key in item.dicts) {
-              newObj[key] = item.dicts;
+              newObj[item.dicts[key].label] = item.dicts[key].defaultValue;
             }
 
             array.push({
@@ -691,9 +691,8 @@
           generateDynamicFieldsFromIOVariables(mockIOVariables);
 
         const [inputData, setInputData] = React.useState(
-          generateObjectFromDynamicFields(dynamicFields)
+          generateInputDataArrayFromDynamicFields(dynamicFields)
         );
-
         const [pipeline, setPipeline] = React.useState(null);
 
         React.useEffect(() => {
@@ -703,6 +702,69 @@
             .catch((err) => console.log(err));
         }, []);
         console.log(pipeline);
+        function handleNonParentedField(fieldId, newValue) {
+          const field = dynamicFields.find(
+            (item) => item.fieldName === fieldId
+          );
+          const fieldIndex = dynamicFields.findIndex(
+            (item) => item.fieldName === fieldId
+          );
+
+          const newDynamicFields = [...dynamicFields];
+          const newField = {
+            ...field,
+            defaultValue: newValue,
+          };
+          newDynamicFields[fieldIndex] = newField;
+
+          setInputData(
+            generateInputDataArrayFromDynamicFields(newDynamicFields)
+          );
+        }
+        function handleParentedField(fieldId, newValue, parentId) {
+          {
+            const parentFieldIndex = dynamicFields.findIndex(
+              (item) => item.fieldName === parentId
+            );
+            const parentField = dynamicFields.find(
+              (item) => item.fieldName === parentId
+            );
+
+            console.log("Parent field :>> ", parentField);
+
+            const fieldIndex = parentField.dicts.findIndex(
+              (item) => item.fieldName === fieldId
+            );
+            const field = parentField.dicts.find(
+              (item) => item.fieldName === fieldId
+            );
+
+            console.log("field :>> ", field);
+            console.log("new value :>> ", newValue);
+            console.log("dynamicFields :>> ", dynamicFields);
+            if (!field) return;
+
+            // update the child field
+            const newChildField = { ...field, defaultValue: newValue };
+            const newDicts = [...parentField.dicts];
+            newDicts[fieldIndex] = newChildField;
+
+            // The field is a dictionary, we need to update the state of the parent
+            const newParentField = {
+              ...parentField,
+              dicts: newDicts,
+            };
+
+            console.log("New parent field :>> ", newParentField);
+
+            const newDynamicFields = [...dynamicFields];
+            newDynamicFields[parentFieldIndex] = newParentField;
+
+            setInputData(
+              generateInputDataArrayFromDynamicFields(newDynamicFields)
+            );
+          }
+        }
 
         function handleSetDynamicState(fieldId, newValue, parentId) {
           console.log(
@@ -711,46 +773,14 @@
             newValue,
             parentId
           );
-          // Match the fieldId to the dynamicFields
-          const field = dynamicFields.find((item) => item.id === fieldId);
-
-          console.log("field :>> ", field);
-          if (!field) return;
-
-          // // If the field is a dictionary, we need to update the state of the parent
-          // if (field.subType === "dictionary") {
-          //   const parentField = dynamicFields.find(
-          //     (item) => item.fieldName === parentId
-          //   );
-          //   if (!parentField) return;
-
-          //   const parentFieldIndex = dynamicFields.findIndex(
-          //     (item) => item.fieldName === parentId
-          //   );
-
-          //   const newParentField = {
-          //     ...parentField,
-          //     defaultValue: {
-          //       ...parentField.defaultValue,
-          //       [field.fieldName]: newValue,
-          //     },
-          //   };
-
-          //   const newDynamicFields = [...dynamicFields];
-          //   newDynamicFields[parentFieldIndex] = newParentField;
-
-          //   setInputData(generateObjectFromDynamicFields(newDynamicFields));
-          //   return;
-          // }
+          if (!parentId) handleNonParentedField(fieldId, newValue);
+          else handleParentedField(fieldId, newValue, parentId);
         }
 
         function handleSubmit(e) {
           e.preventDefault();
           const jsonObject = {};
-          state.forEach((item) => {
-            jsonObject[item.id] = item.value;
-          });
-          const jsonString = JSON.stringify(jsonObject, null, 2);
+          console.log(e);
         }
 
         React.useEffect(() => {
