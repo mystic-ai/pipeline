@@ -188,7 +188,7 @@ def _delete_pipeline(args: Namespace) -> None:
     pipeline_id = getattr(args, "pipeline_id")
 
     http.delete(
-        f"/v3/pipelines/{pipeline_id}",
+        f"/v4/pipelines/{pipeline_id}",
     )
 
     _print("Pipeline deleted!")

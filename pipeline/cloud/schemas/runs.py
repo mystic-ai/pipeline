@@ -243,31 +243,33 @@ class ContainerRunResult(BaseModel):
     error: t.Optional[ContainerRunError]
     error_message: t.Optional[str]
 
+    def outputs_formatted(self) -> t.List[t.Any]:
+        # return [output.value for output in self.outputs]
+        output_array = []
+        for output in self.outputs:
+            if output.type == RunIOType.file:
+                # output_array.append(output.value)
+                from pipeline.objects.graph import File
 
-class Run(BaseModel):
+                if output.file is not None and output.file.url is not None:
+                    output_array.append(File(url=output.file.url))
+                else:
+                    raise Exception("Returned file missing information.")
+            else:
+                output_array.append(output.value)
+        return output_array
+
+
+class ClusterRunResult(ContainerRunResult):
     id: str
 
     created_at: datetime
+    updated_at: datetime
 
     pipeline_id: str
-    environment_id: str
-    environment_hash: str
-
-    state: RunState
-
-    error: t.Optional[RunError]
-
-    result: t.Optional[RunResult]
-    input_data: t.Optional[t.List[RunInput]]
 
     class Config:
-        # use_enum_values = True
         orm_mode = True
-
-    def outputs(self) -> t.List[t.Any]:
-        if self.result is None:
-            return []
-        return self.result.result_array()
 
 
 class RunStateTransition(BaseModel):
