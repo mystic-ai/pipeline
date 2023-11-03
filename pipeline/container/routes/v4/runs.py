@@ -18,11 +18,11 @@ router = APIRouter(prefix="/runs")
     responses={
         500: {
             "description": "Pipeline failed",
-            "model": run_schemas.Run,
+            "model": run_schemas.ContainerRunResult,
         },
         400: {
             "description": "Invalid input data",
-            "model": run_schemas.Run,
+            "model": run_schemas.ContainerRunResult,
         },
     },
 )
