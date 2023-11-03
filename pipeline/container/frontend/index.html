@@ -20,6 +20,7 @@
 
     <script type="text/babel" data-presets="env,react">
       const fileRunIOTypes = ["pkl", "file"];
+      const host = "http://localhost:14300";
 
       function isNullOrUndefined(value) {
         return value === null || value === undefined;
@@ -692,6 +693,16 @@
         const [inputData, setInputData] = React.useState(
           generateObjectFromDynamicFields(dynamicFields)
         );
+
+        const [pipeline, setPipeline] = React.useState(null);
+
+        React.useEffect(() => {
+          fetch(`${host}/v4/container/pipeline`)
+            .then((res) => res.json())
+            .then((data) => setPipeline(data))
+            .catch((err) => console.log(err));
+        }, []);
+        console.log(pipeline);
 
         function handleSetDynamicState(fieldId, newValue, parentId) {
           console.log(
