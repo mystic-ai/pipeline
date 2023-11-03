@@ -103,12 +103,11 @@ def _init_container(namespace: Namespace):
             file.write(TEMPLATE_CODE)
         with open(yaml_file_path, "w") as file:
             yaml.dump(YAML_DATA, file, default_flow_style=False, sort_keys=False)
-        raise ValueError("Hey there")
     except Exception as e:
         _print("Error creating project, cleaning up...", "ERROR")
         if os.path.exists(path):
             shutil.rmtree(path)
-            raise e from e
+        raise e from e
 
 
 def _up_container(namespace: Namespace):
