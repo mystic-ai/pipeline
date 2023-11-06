@@ -12,14 +12,11 @@ RUN pip install -U fastapi==0.103.2 uvicorn==0.15.0 validators==0.22.0
 {container_commands}
 
 # Install python dependencies
+
 RUN pip install {python_requirements}
 
 # Copy in files
 COPY ./ ./
-{extra_paths}
-
-# Remove eventually
-RUN pip install ./
 
 ENV PIPELINE_PATH={pipeline_path}
 ENV PIPELINE_NAME={pipeline_name}
