@@ -169,6 +169,19 @@ To run tests manually please run
 pytest
 ```
 
+For developing v4, i.e. containerized pipelines, you need to override the installed pipeline-ai python package on the container.
+This can be done by bind mounting your target pipeline directory, e.g. using raw docker
+
+```shell
+docker run -p 14300:14300 -v ./pipeline:/usr/local/lib/python3.10/site-packages/pipeline plutopulp/add-lol
+```
+
+or using the CLI if you are working in the directory containing the `pipeline.yaml`:
+
+```shell
+pipeline container up -v "../../../pipeline:/usr/local/lib/python3.10/site-packages/pipeline"
+```
+
 # License
 
 Pipeline is licensed under [Apache Software License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
