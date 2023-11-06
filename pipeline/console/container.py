@@ -368,7 +368,7 @@ def _push_container(namespace: Namespace):
         json_data=json.loads(
             pipelines_schemas.PipelineCreate(
                 name=pipeline_name,
-                image=image_to_push,
+                image=image_to_push_reg,
                 input_variables=[],
                 output_variables=[],
                 minimum_cache_number=None,
