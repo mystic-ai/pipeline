@@ -1,0 +1,43 @@
+:root {
+  --gray-50: #f9fafb;
+  --gray-100: #f2f4f7;
+  --gray-300: #d0d5dd;
+}
+
+body {
+  background-color: white;
+  font-size: 13px;
+}
+
+.input,
+.button {
+  height: 35px;
+  border-radius: 4px;
+}
+.input {
+  background: #fff;
+}
+
+.button {
+  appearance: none;
+  background: #000;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.bg-alternate {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-100);
+}
+div:empty {
+  display: none;
+}
+.bg-alternate .bg-alternate {
+  background: white;
+}
+.bg-alternate .bg-alternate .bg-alternate {
+  background: var(--gray-100);
+}
+.bg-alternate .bg-alternate .bg-alternate .bg-alternate {
+  background: white;
+}

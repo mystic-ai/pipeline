@@ -6,9 +6,11 @@ import time
 import traceback
 import uuid
 
+import pkg_resources
 from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.container.manager import Manager
@@ -37,6 +39,15 @@ def create_app() -> FastAPI:
 
     app.include_router(router)
     app.include_router(status_router)
+    static_dir = pkg_resources.resource_filename(
+        "pipeline", "container/frontend/static"
+    )
+
+    app.mount(
+        "/static",
+        StaticFiles(directory=static_dir),
+        name="static",
+    )
 
     return app
 
