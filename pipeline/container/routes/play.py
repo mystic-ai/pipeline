@@ -1,6 +1,6 @@
 import logging
-import os
 
+import pkg_resources
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
@@ -10,8 +10,9 @@ router = APIRouter(prefix="/play", tags=["play"])
 
 @router.get("", response_class=HTMLResponse)
 async def render_pipeline_play():
-    with open(os.path.join("/app/pipeline/container/frontend", "app.tsx"), "r") as file:
-        ts_code = file.read()
+    ts_code = pkg_resources.resource_string(
+        "pipeline", "container/frontend/app.tsx"
+    ).decode("utf-8")
 
     return f"""
     <!-- Your code that needs compiling goes in a type="text/babel" `script` tag -->
