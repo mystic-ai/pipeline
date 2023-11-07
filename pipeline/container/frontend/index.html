@@ -689,21 +689,25 @@
       }
 
       function App() {
-        const dynamicFields =
-          generateDynamicFieldsFromIOVariables(mockIOVariables);
-
-        const [inputData, setInputData] = React.useState(
-          generateInputDataArrayFromDynamicFields(dynamicFields)
-        );
+        const [dynamicFields, setDynamicFields] = React.useState([]);
+        const [inputData, setInputData] = React.useState([]);
         const [pipeline, setPipeline] = React.useState(null);
 
         React.useEffect(() => {
           fetch(`${host}/v4/container/pipeline`)
             .then((res) => res.json())
-            .then((data) => setPipeline(data))
+            .then((data) => {
+              setPipeline(data);
+              setDynamicFields(
+                generateDynamicFieldsFromIOVariables(data.input_variables)
+              );
+            })
             .catch((err) => console.log(err));
         }, []);
         console.log(pipeline);
+        React.useEffect(() => {
+          setInputData(generateInputDataArrayFromDynamicFields(dynamicFields));
+        }, [dynamicFields]);
         function handleNonParentedField(fieldId, newValue) {
           const field = dynamicFields.find(
             (item) => item.fieldName === fieldId
@@ -719,9 +723,7 @@
           };
           newDynamicFields[fieldIndex] = newField;
 
-          setInputData(
-            generateInputDataArrayFromDynamicFields(newDynamicFields)
-          );
+          setDynamicFields(newDynamicFields);
         }
         function handleParentedField(fieldId, newValue, parentId) {
           {
@@ -762,9 +764,7 @@
             const newDynamicFields = [...dynamicFields];
             newDynamicFields[parentFieldIndex] = newParentField;
 
-            setInputData(
-              generateInputDataArrayFromDynamicFields(newDynamicFields)
-            );
+            setDynamicFields(newDynamicFields);
           }
         }
 
@@ -781,8 +781,12 @@
 
         function handleSubmit(e) {
           e.preventDefault();
-          const jsonObject = {};
-          console.log(e);
+          fetch(`${host}/v4/runs`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+
+            body: JSON.stringify({ inputs: inputData }),
+          });
         }
 
         React.useEffect(() => {
