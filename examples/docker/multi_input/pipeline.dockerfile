@@ -21,7 +21,7 @@ RUN pip install pipeline-ai==1.0.26
 COPY ./ ./
 
 ENV PIPELINE_PATH=my_pipeline:pipeline_graph
-ENV PIPELINE_NAME=plutopulp/add-lol
-ENV PIPELINE_IMAGE=plutopulp/add-lol
+ENV PIPELINE_NAME=plutopulp/multi-input
+ENV PIPELINE_IMAGE=plutopulp/multi-input
 
-CMD ["uvicorn", "pipeline.container.startup:create_app", "--host", "0.0.0.0", "--port", "14300"]
+CMD ["uvicorn", "pipeline.container.startup:create_app", "--host", "0.0.0.0", "--port", "14300", "--reload"]
