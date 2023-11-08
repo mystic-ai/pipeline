@@ -279,51 +279,51 @@
             },
           ],
         },
-        {
-          run_io_type: "array",
-          title: "super_array",
-          description: null,
-          examples: null,
-          gt: null,
-          ge: null,
-          lt: null,
-          le: null,
-          multiple_of: null,
-          allow_inf_nan: null,
-          max_digits: null,
-          decimal_places: null,
-          min_length: null,
-          max_length: null,
-          choices: null,
-          dict_schema: null,
-          default: [
-            0.011444582603871822, -0.05315866321325302, 0.021406110376119614,
-            -0.026900190860033035, -0.015447557903826237, 0.043529216200113297,
-            -0.03459615632891655, 0.00029987774905748665, -0.03525491803884506,
-            0.03108358569443226, 0.01344769261777401, -0.0125086959451437,
-            0.0056375423446297646, 0.046820446848869324, 0.029219090938568115,
-            -0.03583495318889618, 0.043436795473098755, 0.031827159225940704,
-          ],
-        },
-        {
-          run_io_type: "string",
-          title: "choices_1",
-          description: null,
-          examples: null,
-          gt: null,
-          ge: null,
-          lt: null,
-          le: null,
-          multiple_of: null,
-          allow_inf_nan: null,
-          max_digits: null,
-          decimal_places: null,
-          min_length: null,
-          max_length: null,
-          choices: ["choice1", "choice2", "choice3"],
-          dict_schema: null,
-          default: "choice3",
-        },
+        // {
+        //   run_io_type: "array",
+        //   title: "super_array",
+        //   description: null,
+        //   examples: null,
+        //   gt: null,
+        //   ge: null,
+        //   lt: null,
+        //   le: null,
+        //   multiple_of: null,
+        //   allow_inf_nan: null,
+        //   max_digits: null,
+        //   decimal_places: null,
+        //   min_length: null,
+        //   max_length: null,
+        //   choices: null,
+        //   dict_schema: null,
+        //   default: [
+        //     0.011444582603871822, -0.05315866321325302, 0.021406110376119614,
+        //     -0.026900190860033035, -0.015447557903826237, 0.043529216200113297,
+        //     -0.03459615632891655, 0.00029987774905748665, -0.03525491803884506,
+        //     0.03108358569443226, 0.01344769261777401, -0.0125086959451437,
+        //     0.0056375423446297646, 0.046820446848869324, 0.029219090938568115,
+        //     -0.03583495318889618, 0.043436795473098755, 0.031827159225940704,
+        //   ],
+        // },
+        // {
+        //   run_io_type: "string",
+        //   title: "choices_1",
+        //   description: null,
+        //   examples: null,
+        //   gt: null,
+        //   ge: null,
+        //   lt: null,
+        //   le: null,
+        //   multiple_of: null,
+        //   allow_inf_nan: null,
+        //   max_digits: null,
+        //   decimal_places: null,
+        //   min_length: null,
+        //   max_length: null,
+        //   choices: ["choice1", "choice2", "choice3"],
+        //   dict_schema: null,
+        //   default: "choice3",
+        // },
         // {
         //   run_io_type: "fp",
         //   title: "fp",
@@ -438,121 +438,121 @@
         //   dict_schema: null,
         //   default: true,
         // },
-        {
-          run_io_type: "dictionary",
-          title: "dictionary_test",
-          description: null,
-          examples: null,
-          gt: null,
-          ge: null,
-          lt: null,
-          le: null,
-          multiple_of: null,
-          allow_inf_nan: null,
-          max_digits: null,
-          decimal_places: null,
-          min_length: null,
-          max_length: null,
-          choices: null,
-          dict_schema: [
-            {
-              run_io_type: "integer",
-              title: "guidance_scale",
-              description: null,
-              examples: null,
-              gt: null,
-              ge: null,
-              lt: null,
-              le: null,
-              multiple_of: null,
-              allow_inf_nan: null,
-              max_digits: null,
-              decimal_places: null,
-              min_length: null,
-              max_length: null,
-              choices: null,
-              dict_schema: null,
-              default: 7.5,
-            },
-            {
-              run_io_type: "integer",
-              title: "height",
-              description: null,
-              examples: null,
-              gt: null,
-              ge: 64,
-              lt: null,
-              le: 1024,
-              multiple_of: null,
-              allow_inf_nan: null,
-              max_digits: null,
-              decimal_places: null,
-              min_length: null,
-              max_length: null,
-              choices: null,
-              dict_schema: null,
-              default: 512,
-            },
-            {
-              run_io_type: "integer",
-              title: "num_images_per_prompt",
-              description: null,
-              examples: null,
-              gt: null,
-              ge: 1,
-              lt: null,
-              le: 4,
-              multiple_of: null,
-              allow_inf_nan: null,
-              max_digits: null,
-              decimal_places: null,
-              min_length: null,
-              max_length: null,
-              choices: null,
-              dict_schema: null,
-              default: 1,
-            },
-            {
-              run_io_type: "integer",
-              title: "num_inference_steps",
-              description: null,
-              examples: null,
-              gt: null,
-              ge: null,
-              lt: null,
-              le: null,
-              multiple_of: null,
-              allow_inf_nan: null,
-              max_digits: null,
-              decimal_places: null,
-              min_length: null,
-              max_length: null,
-              choices: null,
-              dict_schema: null,
-              default: 50,
-            },
-            {
-              run_io_type: "integer",
-              title: "width",
-              description: null,
-              examples: null,
-              gt: null,
-              ge: 64,
-              lt: null,
-              le: 1024,
-              multiple_of: null,
-              allow_inf_nan: null,
-              max_digits: null,
-              decimal_places: null,
-              min_length: null,
-              max_length: null,
-              choices: null,
-              dict_schema: null,
-              default: 512,
-            },
-          ],
-          default: null,
-        },
+        // {
+        //   run_io_type: "dictionary",
+        //   title: "dictionary_test",
+        //   description: null,
+        //   examples: null,
+        //   gt: null,
+        //   ge: null,
+        //   lt: null,
+        //   le: null,
+        //   multiple_of: null,
+        //   allow_inf_nan: null,
+        //   max_digits: null,
+        //   decimal_places: null,
+        //   min_length: null,
+        //   max_length: null,
+        //   choices: null,
+        //   dict_schema: [
+        //     {
+        //       run_io_type: "integer",
+        //       title: "guidance_scale",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: null,
+        //       lt: null,
+        //       le: null,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 7.5,
+        //     },
+        //     {
+        //       run_io_type: "integer",
+        //       title: "height",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: 64,
+        //       lt: null,
+        //       le: 1024,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 512,
+        //     },
+        //     {
+        //       run_io_type: "integer",
+        //       title: "num_images_per_prompt",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: 1,
+        //       lt: null,
+        //       le: 4,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 1,
+        //     },
+        //     {
+        //       run_io_type: "integer",
+        //       title: "num_inference_steps",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: null,
+        //       lt: null,
+        //       le: null,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 50,
+        //     },
+        //     {
+        //       run_io_type: "integer",
+        //       title: "width",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: 64,
+        //       lt: null,
+        //       le: 1024,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 512,
+        //     },
+        //   ],
+        //   default: null,
+        // },
       ];
 
       // Header component
@@ -798,35 +798,40 @@
         function handleTextAreaKeyDown(e) {
           if (event.key === "Tab") {
             event.preventDefault();
+            const thisEl = e.currentTarget;
 
-            // Get the current selection
-            // const selection = window.getSelection();
-            // const range = selection.getRangeAt(0);
-
-            // Tab: Indent by adding a tab character at the beginning
-            document.execCommand("insertText", false, "\t");
+            thisEl.setRangeText(
+              "\t",
+              thisEl.selectionStart,
+              thisEl.selectionStart,
+              "end"
+            );
           }
         }
 
         const handleTextAreaChange = (e) => {
           let error = false;
           const thisEl = e.currentTarget;
-          console.log("thisEl :>> ", thisEl);
+          const value = e.target.value;
 
           // Validate that the input valid json
           try {
-            const parsed = JSON.parse(thisEl.textContent);
+            const parsed = JSON.parse(value);
             thisEl.classList.remove("error");
+            handleChange(id, parsed, parentId);
           } catch (error) {
             thisEl.classList.add("error");
           }
+        };
 
-          // console.log("handleTextAreaChange :>> ", e.currentTarget.textContent);
-          // handleChange(id, e.target.checked, parentId)
+        const handleTextAreaAutoHeight = (e) => {
+          const thisEl = e.currentTarget;
+          const value = e.target.value;
+          thisEl.style.height = "";
+          thisEl.style.height = thisEl.scrollHeight + "px";
         };
 
         if (subType === "array") {
-          console.log("props", props);
           // Validate that the input valid json
           // we send it along parsed to the backend
           return (
@@ -835,16 +840,13 @@
                 array
               </DynamicControlLabel>
 
-              <div
+              <textarea
                 class="textarea whitespace-pre"
-                contentEditable="true"
-                onInput={handleTextAreaChange}
+                defaultValue={JSON.stringify(defaultValue, null, 4)}
+                onChange={(e) => handleTextAreaChange(e)}
                 onKeyDown={(e) => handleTextAreaKeyDown(e)}
-                // id={id}
-                // defaultValue={JSON.stringify(defaultValue, null, 4)}
-              >
-                {JSON.stringify(defaultValue, null, 4)}
-              </div>
+                onInput={(e) => handleTextAreaAutoHeight(e)}
+              />
             </div>
           );
         }
@@ -999,7 +1001,6 @@
           })
             .then((res) => res.json())
             .then((data) => {
-              console.log("data -------- :>> ", data);
               if (data.error !== null) {
                 setErrorOutputData(data);
               } else {
@@ -1089,7 +1090,7 @@
           // => string
           const renderString = (value) => {
             return (
-              <pre class="bg-gray-900 text-white rounded p-2 overflow-auto">
+              <pre class="bg-gray-700 text-white rounded p-2 overflow-auto">
                 {value}
               </pre>
             );
@@ -1106,7 +1107,7 @@
             // If array of other types, print full array
             return (
               <ul className="flex flex-col gap-6">
-                <pre class="bg-gray-900 text-white rounded p-2 overflow-auto">
+                <pre class="bg-gray-700 text-white rounded p-2 overflow-auto">
                   {JSON.stringify(value, null, 2)}
                 </pre>
               </ul>
@@ -1116,7 +1117,7 @@
           // Render Object function
           const renderObject = (value) => (
             <ul className="flex flex-col gap-4">
-              <pre class="bg-gray-900 text-white rounded p-2 overflow-auto">
+              <pre class="bg-gray-700 text-white rounded p-2 overflow-auto">
                 {JSON.stringify(value, null, 2)}
               </pre>
             </ul>
@@ -1147,11 +1148,6 @@
           return null;
         }
 
-        // // Log the input data
-        // React.useEffect(() => {
-        //   console.log("updated inputData :>> ", inputData);
-        // }, [inputData]);
-
         // GET pipeline
         React.useEffect(() => {
           fetch(`${host}/v4/container/pipeline`)
@@ -1176,6 +1172,10 @@
 
         // Watch for input changes
         React.useEffect(() => {
+          console.log(
+            "generateInputDataArrayFromDynamicFields(dynamicFields) :>> ",
+            generateInputDataArrayFromDynamicFields(dynamicFields)
+          );
           setInputData(generateInputDataArrayFromDynamicFields(dynamicFields));
         }, [dynamicFields]);
 
