@@ -7,7 +7,6 @@ from pathlib import Path
 
 import docker
 import yaml
-from docker.errors import BuildError
 from docker.types import DeviceRequest, LogConfig
 from pydantic import BaseModel
 
@@ -198,27 +197,33 @@ def _build_container(namespace: Namespace):
 
     dockerfile_path = Path("./pipeline.dockerfile")
     dockerfile_path.write_text(dockerfile_str)
+    docker_client = docker.APIClient(base_url="unix://var/run/docker.sock")
+    generator = docker_client.build(
+        # fileobj=dockerfile_path.open("rb"),
+        path="./",
+        # custom_context=True,
+        dockerfile=dockerfile_path.absolute(),
+        # tag="test",
+        rm=True,
+        decode=True,
+        platform="linux/amd64",
+    )
+    docker_image_id = None
+    while True:
+        try:
+            output = generator.__next__()
+            if "aux" in output:
+                docker_image_id = output["aux"]["ID"]
+            if "stream" in output:
+                _print(output["stream"].strip("\n"))
+            if "errorDetail" in output:
+                raise Exception(output["errorDetail"])
+        except StopIteration:
+            _print("Docker image build complete.")
+            break
+
     docker_client = docker.from_env()
-    try:
-        new_container, build_logs = docker_client.images.build(
-            # fileobj=dockerfile_path.open("rb"),
-            path="./",
-            quiet=True,
-            # custom_context=True,
-            dockerfile=dockerfile_path.absolute(),
-            # tag="test",
-            rm=True,
-        )
-    except BuildError as e:
-        for info in e.build_log:
-            if "stream" in info:
-                for line in info["stream"].splitlines():
-                    print(line)
-            elif "errorDetail" in info:
-                print(info["errorDetail"]["message"])
-            else:
-                print(info)
-        raise e
+    new_container = docker_client.images.get(docker_image_id)
 
     created_image_full_id = new_container.id.split(":")[1]
     created_image_short_id = created_image_full_id[:12]
