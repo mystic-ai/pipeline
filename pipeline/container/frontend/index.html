@@ -1162,20 +1162,12 @@
               //   generateDynamicFieldsFromIOVariables(mockInputIOVariables);
 
               setDynamicFields(dynamicFields);
-
-              const inputData =
-                generateInputDataArrayFromDynamicFields(dynamicFields);
-              setInputData(inputData);
             })
             .catch((err) => console.log(err));
         }, []);
 
         // Watch for input changes
         React.useEffect(() => {
-          console.log(
-            "generateInputDataArrayFromDynamicFields(dynamicFields) :>> ",
-            generateInputDataArrayFromDynamicFields(dynamicFields)
-          );
           setInputData(generateInputDataArrayFromDynamicFields(dynamicFields));
         }, [dynamicFields]);
 
