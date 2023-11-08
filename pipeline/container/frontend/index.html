@@ -133,6 +133,30 @@
           dict_schema: null,
           default: "chat_completion",
         },
+        {
+          run_io_type: "array",
+          title: "array_dict",
+          description: null,
+          examples: null,
+          gt: null,
+          ge: null,
+          lt: null,
+          le: null,
+          multiple_of: null,
+          allow_inf_nan: null,
+          max_digits: null,
+          decimal_places: null,
+          min_length: null,
+          max_length: null,
+          choices: null,
+          dict_schema: null,
+          default: [
+            {
+              test: true,
+              array_length: 1,
+            },
+          ],
+        },
         // {
         //   run_io_type: "string",
         //   title: "choices_1",
@@ -433,11 +457,11 @@
       function DynamicControlLabel({ id, label, children }) {
         return (
           <label htmlFor={id} className="flex gap-1">
-            <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+            <span className="text-xs font-medium text-gray-700 whitespace-nowrap">
               {label}
             </span>
-            <span className="text-sm font-medium text-gray-500">:</span>
-            <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+            <span className="text-xs font-medium text-gray-500">:</span>
+            <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
               {children}
             </span>
           </label>
@@ -463,6 +487,7 @@
           handleChange,
           parentId,
         } = props;
+
         if (subType === "string" && options.length === 0) {
           return (
             <div className="flex flex-col gap-1.5">
@@ -472,7 +497,7 @@
 
               <input
                 type="text"
-                className="input border border-gray-300 p-2"
+                className="input"
                 name={name}
                 id={id}
                 step={step}
@@ -495,7 +520,7 @@
                 id={id}
                 onChange={(e) => handleChange(id, e.target.value, parentId)}
                 defaultValue={defaultValue}
-                className="input border border-gray-300 p-2"
+                className="input"
               >
                 {options.map((o, index) => (
                   <option value={o.value} key={o.label}>
@@ -533,7 +558,7 @@
                 <InputNumberLabel />
                 <input
                   type="number"
-                  className="input border border-gray-300 p-2"
+                  className="input"
                   name={name}
                   id={id}
                   step={!isNullOrUndefined(step) ? step : undefined}
@@ -621,6 +646,60 @@
 
         //   return ArbitraryInputs;
         // }
+
+        function handleTextAreaKeyDown(e) {
+          if (event.key === "Tab") {
+            event.preventDefault();
+
+            // Get the current selection
+            // const selection = window.getSelection();
+            // const range = selection.getRangeAt(0);
+
+            // Tab: Indent by adding a tab character at the beginning
+            document.execCommand("insertText", false, "\t");
+          }
+        }
+
+        const handleTextAreaChange = (e) => {
+          let error = false;
+          const thisEl = e.currentTarget;
+          console.log("thisEl :>> ", thisEl);
+
+          // Validate that the input valid json
+          try {
+            const parsed = JSON.parse(thisEl.textContent);
+            thisEl.classList.remove("error");
+          } catch (error) {
+            thisEl.classList.add("error");
+          }
+
+          // console.log("handleTextAreaChange :>> ", e.currentTarget.textContent);
+          // handleChange(id, e.target.checked, parentId)
+        };
+
+        if (subType === "array") {
+          console.log("props", props);
+          // Validate that the input valid json
+          // we send it along parsed to the backend
+          return (
+            <div className="flex flex-col gap-1.5">
+              <DynamicControlLabel id={id} label={label}>
+                array
+              </DynamicControlLabel>
+
+              <div
+                class="textarea whitespace-pre"
+                contentEditable="true"
+                onInput={handleTextAreaChange}
+                onKeyDown={(e) => handleTextAreaKeyDown(e)}
+                // id={id}
+                // defaultValue={JSON.stringify(defaultValue, null, 4)}
+              >
+                {JSON.stringify(defaultValue, null, 4)}
+              </div>
+            </div>
+          );
+        }
       }
 
       // Form component
@@ -653,7 +732,7 @@
                   >
                     dictionary
                   </DynamicControlLabel>
-                  <div className="flex flex-col gap-5 bg-alternate md:p-6 rounded-lg">
+                  <div className="flex flex-col gap-5 bg-alternate p-2 md:p-6 rounded-lg">
                     {DynamicControls({
                       dynamicFields: dynamicField.dicts,
                       handleInputChange: handleInputChange,
@@ -692,22 +771,9 @@
         const [dynamicFields, setDynamicFields] = React.useState([]);
         const [inputData, setInputData] = React.useState([]);
         const [pipeline, setPipeline] = React.useState(null);
+        const [outputData, setOutputData] = React.useState(null);
 
-        React.useEffect(() => {
-          fetch(`${host}/v4/container/pipeline`)
-            .then((res) => res.json())
-            .then((data) => {
-              setPipeline(data);
-              setDynamicFields(
-                generateDynamicFieldsFromIOVariables(data.input_variables)
-              );
-            })
-            .catch((err) => console.log(err));
-        }, []);
-        console.log(pipeline);
-        React.useEffect(() => {
-          setInputData(generateInputDataArrayFromDynamicFields(dynamicFields));
-        }, [dynamicFields]);
+        // Build child (dict) input data object
         function handleNonParentedField(fieldId, newValue) {
           const field = dynamicFields.find(
             (item) => item.fieldName === fieldId
@@ -725,6 +791,8 @@
 
           setDynamicFields(newDynamicFields);
         }
+
+        // Build root input data object
         function handleParentedField(fieldId, newValue, parentId) {
           {
             const parentFieldIndex = dynamicFields.findIndex(
@@ -768,6 +836,7 @@
           }
         }
 
+        // Handle input change from form
         function handleSetDynamicState(fieldId, newValue, parentId) {
           console.log(
             "fieldId, newValue, parentId :>> ",
@@ -779,37 +848,89 @@
           else handleParentedField(fieldId, newValue, parentId);
         }
 
+        // POST data
         function handleSubmit(e) {
           e.preventDefault();
+
           fetch(`${host}/v4/runs`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
 
             body: JSON.stringify({ inputs: inputData }),
-          });
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              setOutputData(data);
+            })
+            .catch((err) => console.log(err));
         }
 
+        // Log the input data
         React.useEffect(() => {
           console.log("updated inputData :>> ", inputData);
         }, [inputData]);
 
+        // GET pipeline
+        React.useEffect(() => {
+          fetch(`${host}/v4/container/pipeline`)
+            .then((res) => res.json())
+            .then((data) => {
+              setPipeline(data);
+              console.log("HERE....");
+
+              // const dynamicFields = generateDynamicFieldsFromIOVariables(
+              //   data.input_variables
+              // );
+              const dynamicFields =
+                generateDynamicFieldsFromIOVariables(mockIOVariables);
+
+              setDynamicFields(dynamicFields);
+
+              const inputData =
+                generateInputDataArrayFromDynamicFields(dynamicFields);
+              setInputData(inputData);
+            })
+            .catch((err) => console.log(err));
+        }, []);
+
         return (
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-8 pb-12">
             <Header />
-            <form
-              onSubmit={(e) => handleSubmit(e)}
-              class="flex flex-col min-w-xl mx-auto gap-5"
-            >
-              <DynamicControls
-                dynamicFields={dynamicFields}
-                handleInputChange={(fieldId, text, parentId) =>
-                  handleSetDynamicState(fieldId, text, parentId)
-                }
-              />
-              <button className="button" type="submit">
-                Run
-              </button>
-            </form>
+
+            <div class="flex justify-center">
+              <div class="flex border border-gray-300 rounded">
+                {/* input */}
+                <form
+                  onSubmit={(e) => handleSubmit(e)}
+                  class="flex flex-col gap-5 md:w-96 p-6 border-r border-gray-300"
+                >
+                  <h2 className="text-2xl font-bold">Input</h2>
+                  <DynamicControls
+                    dynamicFields={dynamicFields}
+                    handleInputChange={(fieldId, text, parentId) =>
+                      handleSetDynamicState(fieldId, text, parentId)
+                    }
+                  />
+                  <div class="sticky bottom-8">
+                    <button className="button w-full" type="submit">
+                      Run
+                    </button>
+                  </div>
+                </form>
+
+                {/* output */}
+                <div class="md:w-96 p-6">
+                  <div className="flex flex-col gap-5">
+                    <h2 className="text-2xl font-bold">Output</h2>
+                    {outputData ? (
+                      <pre class="bg-gray-100 rounded p-2 overflow-auto">
+                        {JSON.stringify(outputData, null, 2)}
+                      </pre>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         );
       }

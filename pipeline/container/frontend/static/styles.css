@@ -10,12 +10,28 @@ body {
 }
 
 .input,
-.button {
-  height: 35px;
+.button,
+.textarea {
   border-radius: 4px;
 }
-.input {
+.input.error .input.error:focus-visible,
+.button.error,
+.button.error:focus-visible,
+.textarea.error,
+.textarea.error:focus-visible {
+  box-shadow: 0 0 0 2px red !important;
+  outline: 0;
+}
+
+.input,
+.button {
+  height: 35px;
+}
+.input,
+.textarea {
   background: #fff;
+  padding: 8px;
+  border: 1px solid var(--gray-300);
 }
 
 .button {
