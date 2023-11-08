@@ -22,6 +22,28 @@
       const fileRunIOTypes = ["pkl", "file"];
       const host = "http://localhost:14300";
 
+      // => boolean
+      const isObject = (value) => {
+        try {
+          return (
+            typeof value === "object" &&
+            value !== null &&
+            !(value instanceof Array)
+          );
+        } catch (e) {
+          return false;
+        }
+      };
+
+      // => boolean
+      const isArray = (value) => {
+        try {
+          return Array.isArray(value);
+        } catch (e) {
+          return false;
+        }
+      };
+
       function isNullOrUndefined(value) {
         return value === null || value === undefined;
       }
@@ -113,7 +135,107 @@
         });
       };
 
-      const mockIOVariables = [
+      const mockOutputIOVariables = [
+        // {
+        //   type: "string",
+        //   value: "Hello, my name is Paul.",
+        //   file: null,
+        // },
+        // {
+        //   type: "array",
+        //   value: [
+        //     {
+        //       timestamp: [0.0, 4.0],
+        //       text: " Hello, my name is Paul.",
+        //     },
+        //   ],
+        //   file: null,
+        // },
+        // {
+        //   type: "dictionary",
+        //   value: {
+        //     some_array: [0.0, 4.0],
+        //     some_nested_obj: {
+        //       super_nested_object: {
+        //         in_french: " Bonjour, mon nom c'est Paul.",
+        //       },
+        //     },
+        //     another_value: " Hello, my name is Paul.",
+        //   },
+        //   file: null,
+        // },
+        // {
+        //   type: "array",
+        //   value: ["value1", "value2", "value3", "value4"],
+        //   file: null,
+        // },
+        // {
+        //   type: "array",
+        //   value: [
+        //     {
+        //       type: "file",
+        //       file: {
+        //         name: "test2.png",
+        //         path: "test.png",
+        //         size: 123,
+        //         url: "https://picsum.photos/200",
+        //       },
+        //     },
+        //     {
+        //       type: "file",
+        //       file: {
+        //         name: "test3.png",
+        //         path: "test.png",
+        //         size: 123,
+        //         url: "https://picsum.photos/200",
+        //       },
+        //     },
+        //   ],
+        // },
+        // {
+        //   type: "file",
+        //   file: {
+        //     name: "test.png",
+        //     path: "test.png",
+        //     size: 123,
+        //     url: "https://picsum.photos/200",
+        //   },
+        // },
+        // {
+        //   type: "array",
+        //   value: [
+        //     [
+        //       0.011444582603871822, -0.05315866321325302, 0.021406110376119614,
+        //       -0.026900190860033035, -0.015447557903826237, 0.043529216200113297,
+        //       -0.03459615632891655, 0.00029987774905748665, -0.03525491803884506,
+        //       0.03108358569443226, 0.01344769261777401, -0.0125086959451437,
+        //       0.0056375423446297646, 0.046820446848869324, 0.029219090938568115,
+        //       -0.03583495318889618, 0.043436795473098755, 0.031827159225940704,
+        //     ],
+        //   ],
+        // },
+        // {
+        //   type: "file",
+        //   value: null,
+        //   file: {
+        //     name: "0.wav",
+        //     path: "run_files/7f/4d/7f4ddf85-6ea8-49ac-a77d-b53a06dface7/0.wav",
+        //     url: "https://storage.mystic.ai/run_files/7f/4d/7f4ddf85-6ea8-49ac-a77d-b53a06dface7/0.wav",
+        //     size: 256044,
+        //   },
+        // },
+        // {
+        //   type: "file",
+        //   value: null,
+        //   file: {
+        //     name: "0.mp4",
+        //     path: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm",
+        //     url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm",
+        //     size: 256044,
+        //   },
+        // },
+      ];
+      const mockInputIOVariables = [
         {
           run_io_type: "string",
           title: "string_1",
@@ -772,6 +894,7 @@
         const [inputData, setInputData] = React.useState([]);
         const [pipeline, setPipeline] = React.useState(null);
         const [outputData, setOutputData] = React.useState(null);
+        const [outputErrorData, setErrorOutputData] = React.useState(null);
 
         // Build child (dict) input data object
         function handleNonParentedField(fieldId, newValue) {
@@ -802,18 +925,12 @@
               (item) => item.fieldName === parentId
             );
 
-            console.log("Parent field :>> ", parentField);
-
             const fieldIndex = parentField.dicts.findIndex(
               (item) => item.fieldName === fieldId
             );
             const field = parentField.dicts.find(
               (item) => item.fieldName === fieldId
             );
-
-            console.log("field :>> ", field);
-            console.log("new value :>> ", newValue);
-            console.log("dynamicFields :>> ", dynamicFields);
             if (!field) return;
 
             // update the child field
@@ -827,8 +944,6 @@
               dicts: newDicts,
             };
 
-            console.log("New parent field :>> ", newParentField);
-
             const newDynamicFields = [...dynamicFields];
             newDynamicFields[parentFieldIndex] = newParentField;
 
@@ -838,12 +953,6 @@
 
         // Handle input change from form
         function handleSetDynamicState(fieldId, newValue, parentId) {
-          console.log(
-            "fieldId, newValue, parentId :>> ",
-            fieldId,
-            newValue,
-            parentId
-          );
           if (!parentId) handleNonParentedField(fieldId, newValue);
           else handleParentedField(fieldId, newValue, parentId);
         }
@@ -851,6 +960,10 @@
         // POST data
         function handleSubmit(e) {
           e.preventDefault();
+
+          // Reset outputs
+          setOutputData(null);
+          setErrorOutputData(null);
 
           fetch(`${host}/v4/runs`, {
             method: "POST",
@@ -860,15 +973,157 @@
           })
             .then((res) => res.json())
             .then((data) => {
-              setOutputData(data);
+              if (data.error !== null) {
+                setErrorOutputData(data);
+              } else {
+                setOutputData(data);
+                // setOutputData(mockOutputIOVariables);
+              }
             })
             .catch((err) => console.log(err));
         }
 
-        // Log the input data
-        React.useEffect(() => {
-          console.log("updated inputData :>> ", inputData);
-        }, [inputData]);
+        // => { file: RunOutputFile }
+        function PipelineFileResponse({ file }) {
+          if (
+            file.path.includes("png") ||
+            file.path.includes("jpg") ||
+            file.path.includes("jpeg")
+          ) {
+            return (
+              <img src={file.url} alt={file.name} className="w-full max-w-lg" />
+            );
+          } else if (
+            file.path.includes("wav") ||
+            file.path.includes("mp3") ||
+            file.path.includes("ogg") ||
+            file.path.includes("flac") ||
+            file.path.includes("m4a") ||
+            file.path.includes("aac") ||
+            file.path.includes("opus") ||
+            file.path.includes("wma")
+          ) {
+            return (
+              <audio controls src={file.url} className="w-full">
+                <a href={file.url}> Download audio </a>
+                Your browser does not support the audio element.
+              </audio>
+            );
+          } else if (
+            file.path.includes("ogg") ||
+            file.path.includes("mp4") ||
+            file.path.includes("mov") ||
+            file.path.includes("wmv") ||
+            file.path.includes("flv") ||
+            file.path.includes("avi") ||
+            file.path.includes("avchd") ||
+            file.path.includes("webm") ||
+            file.path.includes("mkv")
+          ) {
+            return (
+              <div className="aspect-video">
+                <video controls>
+                  {/* Provide a fallback for browsers that don't support this format */}
+                  <source src={file.url} type="video/ogg" />
+                  <source src={file.url} type="video/mp4" />
+                  <source src={file.url} type="video/mov" />
+                  <source src={file.url} type="video/wmv" />
+                  <source src={file.url} type="video/flv" />
+                  <source src={file.url} type="video/avi" />
+                  <source src={file.url} type="video/avchd" />
+                  <source src={file.url} type="video/webm" />
+                  <source src={file.url} type="video/mkv" />
+                </video>
+              </div>
+            );
+          } else {
+            return <></>;
+          }
+        }
+
+        function RenderOutput({ output }) {
+          // => RunOutput[]
+          const renderFiles = (value) => {
+            // => RunOutput
+            const renderedFiles = value.map((file, idx) => {
+              return <li key={idx}>{renderFile(file.file)}</li>;
+            });
+            return <ul className="flex flex-col gap-6">{renderedFiles}</ul>;
+          };
+
+          // => RunOutputFile
+          const renderFile = (file) => {
+            return (
+              // TODO: Add a tab for the file contents, and it's raw response
+              <PipelineFileResponse file={file} />
+            );
+          };
+
+          // => string
+          const renderString = (value) => {
+            return (
+              <pre class="bg-gray-900 text-white rounded p-2 overflow-auto">
+                {value}
+              </pre>
+            );
+          };
+
+          // => any[]
+          const renderArray = (value) => {
+            // If array of files
+            let isArrayOfFiles = value.find((x) => x.type == "file");
+            if (isArrayOfFiles) {
+              return renderFiles(value);
+            }
+
+            // If array of other types, print full array
+            return (
+              <ul className="flex flex-col gap-6">
+                <pre class="bg-gray-900 text-white rounded p-2 overflow-auto">
+                  {JSON.stringify(value, null, 2)}
+                </pre>
+              </ul>
+            );
+          };
+
+          // Render Object function
+          const renderObject = (value) => (
+            <ul className="flex flex-col gap-4">
+              <pre class="bg-gray-900 text-white rounded p-2 overflow-auto">
+                {JSON.stringify(value, null, 2)}
+              </pre>
+            </ul>
+          );
+
+          switch (output.type) {
+            case "file":
+              return renderFile(output.file);
+
+            case "dictionary":
+              return renderObject(output.value);
+
+            case "string":
+              return renderString(output.value);
+
+            case "array":
+              return renderArray(output.value);
+          }
+
+          // Edge cases: If not known type, continue to render special cases
+          if (isObject(output)) {
+            return renderObject(output);
+          }
+          if (isArray(output)) {
+            return renderArray(output);
+          }
+
+          return null;
+        }
+
+        // // Log the input data
+        // React.useEffect(() => {
+        //   console.log("updated inputData :>> ", inputData);
+        // }, [inputData]);
 
         // GET pipeline
         React.useEffect(() => {
@@ -876,13 +1131,12 @@
             .then((res) => res.json())
             .then((data) => {
               setPipeline(data);
-              console.log("HERE....");
 
-              // const dynamicFields = generateDynamicFieldsFromIOVariables(
-              //   data.input_variables
-              // );
-              const dynamicFields =
-                generateDynamicFieldsFromIOVariables(mockIOVariables);
+              const dynamicFields = generateDynamicFieldsFromIOVariables(
+                data.input_variables
+              );
+              // const dynamicFields =
+              //   generateDynamicFieldsFromIOVariables(mockInputIOVariables);
 
               setDynamicFields(dynamicFields);
 
@@ -894,40 +1148,54 @@
         }, []);
 
         return (
-          <div className="flex flex-col gap-8 pb-12">
+          <div className="flex flex-col pb-12">
             <Header />
 
             <div class="flex justify-center">
-              <div class="flex border border-gray-300 rounded">
-                {/* input */}
-                <form
-                  onSubmit={(e) => handleSubmit(e)}
-                  class="flex flex-col gap-5 md:w-96 p-6 border-r border-gray-300"
-                >
-                  <h2 className="text-2xl font-bold">Input</h2>
-                  <DynamicControls
-                    dynamicFields={dynamicFields}
-                    handleInputChange={(fieldId, text, parentId) =>
-                      handleSetDynamicState(fieldId, text, parentId)
-                    }
-                  />
-                  <div class="sticky bottom-8">
-                    <button className="button w-full" type="submit">
-                      Run
-                    </button>
-                  </div>
-                </form>
+              {/* input */}
+              <form
+                onSubmit={(e) => handleSubmit(e)}
+                class="flex flex-col gap-5 md:w-96 p-6 border-r border-gray-300"
+              >
+                <h2 className="text-2xl font-bold">Input</h2>
+                <DynamicControls
+                  dynamicFields={dynamicFields}
+                  handleInputChange={(fieldId, text, parentId) =>
+                    handleSetDynamicState(fieldId, text, parentId)
+                  }
+                />
+                <div class="sticky bottom-8">
+                  <button className="button w-full" type="submit">
+                    Run
+                  </button>
+                </div>
+              </form>
 
-                {/* output */}
-                <div class="md:w-96 p-6">
-                  <div className="flex flex-col gap-5">
-                    <h2 className="text-2xl font-bold">Output</h2>
-                    {outputData ? (
-                      <pre class="bg-gray-100 rounded p-2 overflow-auto">
-                        {JSON.stringify(outputData, null, 2)}
-                      </pre>
-                    ) : null}
-                  </div>
+              {/* output */}
+              <div class="md:w-96 p-6 h-screen">
+                <div className="flex flex-col gap-5">
+                  <h2 className="text-2xl font-bold">Output</h2>
+                  {outputErrorData ? (
+                    <pre class="bg-red-50 rounded p-2 overflow-auto">
+                      {JSON.stringify(outputErrorData, null, 2)}
+                    </pre>
+                  ) : null}
+
+                  {/* Raw output */}
+                  {outputData ? (
+                    <pre class="bg-gray-100 rounded p-2 overflow-auto">
+                      {JSON.stringify(outputData, null, 2)}
+                    </pre>
+                  ) : null}
+
+                  {/* Rendered output */}
+                  {outputData
+                    ? outputData.map((output, idx) => (
+                        <div key={idx}>
+                          <RenderOutput output={output} />
+                        </div>
+                      ))
+                    : null}
                 </div>
               </div>
             </div>
