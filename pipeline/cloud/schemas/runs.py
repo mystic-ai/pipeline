@@ -235,10 +235,12 @@ class ContainerRunError(str, Enum):
 
 
 class ContainerRunCreate(BaseModel):
+    id: t.Optional[str]
     inputs: t.List[RunInput]
 
 
 class ContainerRunResult(BaseModel):
+    id: str
     outputs: t.Optional[t.List[RunOutput]]
     error: t.Optional[ContainerRunError]
     error_message: t.Optional[str]
