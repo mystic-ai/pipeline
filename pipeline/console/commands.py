@@ -156,3 +156,18 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         action="append",
         help="Mount a volume into the container.",
     )
+
+    # Init
+    init_parser = container_sub_parser.add_parser(
+        "init",
+        description="Initialize a directory for a new pipeline.",
+        help="Initialize a directory for a new pipeline.",
+    )
+
+    init_parser.add_argument(
+        "--name",
+        "-n",
+        type=str,
+        help="Name of the pipeline.",
+    )
+    init_parser.set_defaults(func=container._init_dir)

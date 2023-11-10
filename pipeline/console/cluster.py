@@ -111,9 +111,15 @@ def _use(namespace: Namespace) -> None:
 
 
 def _get(namespace: Namespace) -> None:
+    if current_configuration.remotes is None:
+        _print("No remote configurations. Login first.", level="ERROR")
+
     remotes = [
-        f"{_remote} (active)" if _remote.active else f"{_remote}"
+        f"{_remote} (active)"
+        if _remote is current_configuration.active_remote
+        else f"{_remote}"
         for _remote in current_configuration.remotes
     ]
+
     _print("Authenticated remotes:")
     [print(_remote) for _remote in remotes]

@@ -14,15 +14,11 @@ RUN apt install -y git
 
 
 # Install python dependencies
-RUN pip install torch==2.0.1 transformers
+
+RUN pip install torch==2.0.1 transformers pipeline-ai git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes
 
 # Copy in files
 COPY ./ ./
-COPY ./examples/docker/ ./
-
-
-# Remove eventually
-RUN pip install ./
 
 ENV PIPELINE_PATH=my_pipeline:gpt_neo_pipeline
 ENV PIPELINE_NAME=paulcjh/gptneo

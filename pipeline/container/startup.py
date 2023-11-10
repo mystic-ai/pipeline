@@ -103,9 +103,6 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
             start_time = time.time()
             timedout = False
 
-            logger.info("Got run request")
-            logger.info(f"Pipeline state: {manager.pipeline_state}")
-
             while manager.pipeline_state == pipeline_schemas.PipelineState.loading:
                 if time.time() - start_time > 30:
                     timedout = True
@@ -115,12 +112,10 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
 
             if timedout:
                 response_queue.put_nowait(Exception())
-                logger.info("Loading timedout")
                 continue
 
             if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
                 response_queue.put_nowait(Exception())
-                logger.info("Pipeline failed to load")
                 continue
 
             try:
