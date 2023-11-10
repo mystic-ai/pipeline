@@ -98,9 +98,6 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
         try:
             args, response_queue = await execution_queue.get()
 
-            logger.info("Got run request")
-            logger.info(f"Pipeline state: {manager.pipeline_state}")
-
             try:
                 output = await run_in_threadpool(manager.run, input_data=args)
             except Exception as e:

@@ -68,7 +68,7 @@ async def run(
         response_schema = run_schemas.ContainerRunResult(
             outputs=None,
             error=run_schemas.ContainerRunError.pipeline_error,
-            error_message=str(run_output),
+            error_message=repr(run_output.exception),
             error_traceback=run_output.traceback,
         )
     elif isinstance(run_output, Exception):
