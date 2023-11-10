@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>React without build steps</title>
+    <title>Pipeline container — Mystic.ai</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
@@ -21,6 +21,28 @@
     <script type="text/babel" data-presets="env,react">
       const fileRunIOTypes = ["pkl", "file"];
       const host = "http://localhost:14300";
+
+      // => boolean
+      const isObject = (value) => {
+        try {
+          return (
+            typeof value === "object" &&
+            value !== null &&
+            !(value instanceof Array)
+          );
+        } catch (e) {
+          return false;
+        }
+      };
+
+      // => boolean
+      const isArray = (value) => {
+        try {
+          return Array.isArray(value);
+        } catch (e) {
+          return false;
+        }
+      };
 
       function isNullOrUndefined(value) {
         return value === null || value === undefined;
@@ -113,7 +135,107 @@
         });
       };
 
-      const mockIOVariables = [
+      const mockOutputIOVariables = [
+        // {
+        //   type: "string",
+        //   value: "Hello, my name is Paul.",
+        //   file: null,
+        // },
+        // {
+        //   type: "array",
+        //   value: [
+        //     {
+        //       timestamp: [0.0, 4.0],
+        //       text: " Hello, my name is Paul.",
+        //     },
+        //   ],
+        //   file: null,
+        // },
+        // {
+        //   type: "dictionary",
+        //   value: {
+        //     some_array: [0.0, 4.0],
+        //     some_nested_obj: {
+        //       super_nested_object: {
+        //         in_french: " Bonjour, mon nom c'est Paul.",
+        //       },
+        //     },
+        //     another_value: " Hello, my name is Paul.",
+        //   },
+        //   file: null,
+        // },
+        // {
+        //   type: "array",
+        //   value: ["value1", "value2", "value3", "value4"],
+        //   file: null,
+        // },
+        // {
+        //   type: "array",
+        //   value: [
+        //     {
+        //       type: "file",
+        //       file: {
+        //         name: "test2.png",
+        //         path: "test.png",
+        //         size: 123,
+        //         url: "https://picsum.photos/200",
+        //       },
+        //     },
+        //     {
+        //       type: "file",
+        //       file: {
+        //         name: "test3.png",
+        //         path: "test.png",
+        //         size: 123,
+        //         url: "https://picsum.photos/200",
+        //       },
+        //     },
+        //   ],
+        // },
+        // {
+        //   type: "file",
+        //   file: {
+        //     name: "test.png",
+        //     path: "test.png",
+        //     size: 123,
+        //     url: "https://picsum.photos/200",
+        //   },
+        // },
+        // {
+        //   type: "array",
+        //   value: [
+        //     [
+        //       0.011444582603871822, -0.05315866321325302, 0.021406110376119614,
+        //       -0.026900190860033035, -0.015447557903826237, 0.043529216200113297,
+        //       -0.03459615632891655, 0.00029987774905748665, -0.03525491803884506,
+        //       0.03108358569443226, 0.01344769261777401, -0.0125086959451437,
+        //       0.0056375423446297646, 0.046820446848869324, 0.029219090938568115,
+        //       -0.03583495318889618, 0.043436795473098755, 0.031827159225940704,
+        //     ],
+        //   ],
+        // },
+        // {
+        //   type: "file",
+        //   value: null,
+        //   file: {
+        //     name: "0.wav",
+        //     path: "run_files/7f/4d/7f4ddf85-6ea8-49ac-a77d-b53a06dface7/0.wav",
+        //     url: "https://storage.mystic.ai/run_files/7f/4d/7f4ddf85-6ea8-49ac-a77d-b53a06dface7/0.wav",
+        //     size: 256044,
+        //   },
+        // },
+        // {
+        //   type: "file",
+        //   value: null,
+        //   file: {
+        //     name: "0.mp4",
+        //     path: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm",
+        //     url: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm",
+        //     size: 256044,
+        //   },
+        // },
+      ];
+      const mockInputIOVariables = [
         {
           run_io_type: "string",
           title: "string_1",
@@ -133,6 +255,56 @@
           dict_schema: null,
           default: "chat_completion",
         },
+        // {
+        //   run_io_type: "array",
+        //   title: "array_dict",
+        //   description: null,
+        //   examples: null,
+        //   gt: null,
+        //   ge: null,
+        //   lt: null,
+        //   le: null,
+        //   multiple_of: null,
+        //   allow_inf_nan: null,
+        //   max_digits: null,
+        //   decimal_places: null,
+        //   min_length: null,
+        //   max_length: null,
+        //   choices: null,
+        //   dict_schema: null,
+        //   default: [
+        //     {
+        //       test: true,
+        //       array_length: 1,
+        //     },
+        //   ],
+        // },
+        // {
+        //   run_io_type: "array",
+        //   title: "super_array",
+        //   description: null,
+        //   examples: null,
+        //   gt: null,
+        //   ge: null,
+        //   lt: null,
+        //   le: null,
+        //   multiple_of: null,
+        //   allow_inf_nan: null,
+        //   max_digits: null,
+        //   decimal_places: null,
+        //   min_length: null,
+        //   max_length: null,
+        //   choices: null,
+        //   dict_schema: null,
+        //   default: [
+        //     0.011444582603871822, -0.05315866321325302, 0.021406110376119614,
+        //     -0.026900190860033035, -0.015447557903826237, 0.043529216200113297,
+        //     -0.03459615632891655, 0.00029987774905748665, -0.03525491803884506,
+        //     0.03108358569443226, 0.01344769261777401, -0.0125086959451437,
+        //     0.0056375423446297646, 0.046820446848869324, 0.029219090938568115,
+        //     -0.03583495318889618, 0.043436795473098755, 0.031827159225940704,
+        //   ],
+        // },
         // {
         //   run_io_type: "string",
         //   title: "choices_1",
@@ -266,9 +438,125 @@
         //   dict_schema: null,
         //   default: true,
         // },
+        // {
+        //   run_io_type: "dictionary",
+        //   title: "dictionary_test",
+        //   description: null,
+        //   examples: null,
+        //   gt: null,
+        //   ge: null,
+        //   lt: null,
+        //   le: null,
+        //   multiple_of: null,
+        //   allow_inf_nan: null,
+        //   max_digits: null,
+        //   decimal_places: null,
+        //   min_length: null,
+        //   max_length: null,
+        //   choices: null,
+        //   dict_schema: [
+        //     {
+        //       run_io_type: "integer",
+        //       title: "guidance_scale",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: null,
+        //       lt: null,
+        //       le: null,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 7.5,
+        //     },
+        //     {
+        //       run_io_type: "integer",
+        //       title: "height",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: 64,
+        //       lt: null,
+        //       le: 1024,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 512,
+        //     },
+        //     {
+        //       run_io_type: "integer",
+        //       title: "num_images_per_prompt",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: 1,
+        //       lt: null,
+        //       le: 4,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 1,
+        //     },
+        //     {
+        //       run_io_type: "integer",
+        //       title: "num_inference_steps",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: null,
+        //       lt: null,
+        //       le: null,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 50,
+        //     },
+        //     {
+        //       run_io_type: "integer",
+        //       title: "width",
+        //       description: null,
+        //       examples: null,
+        //       gt: null,
+        //       ge: 64,
+        //       lt: null,
+        //       le: 1024,
+        //       multiple_of: null,
+        //       allow_inf_nan: null,
+        //       max_digits: null,
+        //       decimal_places: null,
+        //       min_length: null,
+        //       max_length: null,
+        //       choices: null,
+        //       dict_schema: null,
+        //       default: 512,
+        //     },
+        //   ],
+        //   default: null,
+        // },
+
         {
           run_io_type: "dictionary",
-          title: "dictionary_test",
+          title: "some_object",
           description: null,
           examples: null,
           gt: null,
@@ -284,8 +572,8 @@
           choices: null,
           dict_schema: [
             {
-              run_io_type: "integer",
-              title: "guidance_scale",
+              run_io_type: "dictionary",
+              title: "nested_arbitrary_dict",
               description: null,
               examples: null,
               gt: null,
@@ -300,49 +588,30 @@
               max_length: null,
               choices: null,
               dict_schema: null,
-              default: 7.5,
+              default: { in_1: 3 },
             },
             {
-              run_io_type: "integer",
-              title: "height",
+              run_io_type: "string",
+              title: "choices_1",
               description: null,
               examples: null,
               gt: null,
-              ge: 64,
+              ge: null,
               lt: null,
-              le: 1024,
+              le: null,
               multiple_of: null,
               allow_inf_nan: null,
               max_digits: null,
               decimal_places: null,
               min_length: null,
               max_length: null,
-              choices: null,
+              choices: ["choice1", "choice2", "choice3"],
               dict_schema: null,
-              default: 512,
+              default: "choice3",
             },
             {
-              run_io_type: "integer",
-              title: "num_images_per_prompt",
-              description: null,
-              examples: null,
-              gt: null,
-              ge: 1,
-              lt: null,
-              le: 4,
-              multiple_of: null,
-              allow_inf_nan: null,
-              max_digits: null,
-              decimal_places: null,
-              min_length: null,
-              max_length: null,
-              choices: null,
-              dict_schema: null,
-              default: 1,
-            },
-            {
-              run_io_type: "integer",
-              title: "num_inference_steps",
+              run_io_type: "array",
+              title: "super_array",
               description: null,
               examples: null,
               gt: null,
@@ -357,27 +626,59 @@
               max_length: null,
               choices: null,
               dict_schema: null,
-              default: 50,
+              default: [
+                0.011444582603871822, -0.05315866321325302,
+                0.021406110376119614, -0.026900190860033035,
+                -0.015447557903826237, 0.043529216200113297,
+                -0.03459615632891655, 0.00029987774905748665,
+                -0.03525491803884506, 0.03108358569443226, 0.01344769261777401,
+                -0.0125086959451437, 0.0056375423446297646,
+                0.046820446848869324, 0.029219090938568115,
+                -0.03583495318889618, 0.043436795473098755,
+                0.031827159225940704,
+              ],
             },
-            {
-              run_io_type: "integer",
-              title: "width",
-              description: null,
-              examples: null,
-              gt: null,
-              ge: 64,
-              lt: null,
-              le: 1024,
-              multiple_of: null,
-              allow_inf_nan: null,
-              max_digits: null,
-              decimal_places: null,
-              min_length: null,
-              max_length: null,
-              choices: null,
-              dict_schema: null,
-              default: 512,
-            },
+
+            // THIS WILL NOT WORK
+            // {
+            //   run_io_type: "dictionary",
+            //   title: "some_nested_dict",
+            //   description: null,
+            //   examples: null,
+            //   gt: null,
+            //   ge: null,
+            //   lt: null,
+            //   le: null,
+            //   multiple_of: null,
+            //   allow_inf_nan: null,
+            //   max_digits: null,
+            //   decimal_places: null,
+            //   min_length: null,
+            //   max_length: 1,
+            //   choices: null,
+            //   dict_schema: [
+            //     {
+            //       run_io_type: "dictionary",
+            //       title: "nested_arbitrary_dict",
+            //       description: null,
+            //       examples: null,
+            //       gt: null,
+            //       ge: null,
+            //       lt: null,
+            //       le: null,
+            //       multiple_of: null,
+            //       allow_inf_nan: null,
+            //       max_digits: null,
+            //       decimal_places: null,
+            //       min_length: null,
+            //       max_length: null,
+            //       choices: null,
+            //       dict_schema: null,
+            //       default: { in_1: 3 },
+            //     },
+            //   ],
+            //   default: null,
+            // },
           ],
           default: null,
         },
@@ -433,11 +734,11 @@
       function DynamicControlLabel({ id, label, children }) {
         return (
           <label htmlFor={id} className="flex gap-1">
-            <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
+            <span className="text-xs font-medium text-gray-700 whitespace-nowrap">
               {label}
             </span>
-            <span className="text-sm font-medium text-gray-500">:</span>
-            <span className="text-sm font-medium text-gray-500 whitespace-nowrap">
+            <span className="text-xs font-medium text-gray-500">:</span>
+            <span className="text-xs font-medium text-gray-500 whitespace-nowrap">
               {children}
             </span>
           </label>
@@ -463,6 +764,7 @@
           handleChange,
           parentId,
         } = props;
+
         if (subType === "string" && options.length === 0) {
           return (
             <div className="flex flex-col gap-1.5">
@@ -472,7 +774,7 @@
 
               <input
                 type="text"
-                className="input border border-gray-300 p-2"
+                className="input"
                 name={name}
                 id={id}
                 step={step}
@@ -495,7 +797,7 @@
                 id={id}
                 onChange={(e) => handleChange(id, e.target.value, parentId)}
                 defaultValue={defaultValue}
-                className="input border border-gray-300 p-2"
+                className="input"
               >
                 {options.map((o, index) => (
                   <option value={o.value} key={o.label}>
@@ -533,7 +835,7 @@
                 <InputNumberLabel />
                 <input
                   type="number"
-                  className="input border border-gray-300 p-2"
+                  className="input"
                   name={name}
                   id={id}
                   step={!isNullOrUndefined(step) ? step : undefined}
@@ -592,35 +894,89 @@
           );
         }
 
-        // If nested arbitrary dictionary
-        // if (
-        //   subType === "dictionary" &&
-        //   typeof defaultValue === "object" &&
-        //   !Array.isArray(defaultValue) &&
-        //   defaultValue !== null
-        // ) {
-        //   const ArbitraryInputs = [];
-        //   for (const [key, value] of Object.entries(defaultValue)) {
-        //     ArbitraryInputs.push(
-        //       <div className="flex flex-col gap-1.5" key={key}>
-        //         <DynamicControlLabel id={id} label={label}>
-        //           Dictionary
-        //         </DynamicControlLabel>
-        //         <textarea
-        //           // ref={ref}
-        //           // onChange={handleTextAreaChange}
-        //           id={id}
-        //           // label={fieldName}
-        //           // invalidText={errorMessage}
-        //           // hintText={fieldDescription}
-        //           defaultValue={JSON.stringify(value, null, 4)}
-        //         />
-        //       </div>
-        //     );
-        //   }
+        function handleTextAreaKeyDown(e) {
+          if (event.key === "Tab") {
+            event.preventDefault();
+            const thisEl = e.currentTarget;
 
-        //   return ArbitraryInputs;
-        // }
+            thisEl.setRangeText(
+              "\t",
+              thisEl.selectionStart,
+              thisEl.selectionStart,
+              "end"
+            );
+          }
+        }
+
+        const handleTextAreaChange = (e) => {
+          let error = false;
+          const thisEl = e.currentTarget;
+          const value = e.target.value;
+
+          // Validate that the input valid json
+          try {
+            const parsed = JSON.parse(value);
+            thisEl.classList.remove("error");
+            handleChange(id, parsed, parentId);
+          } catch (error) {
+            thisEl.classList.add("error");
+          }
+        };
+
+        const handleTextAreaAutoHeight = (e) => {
+          const thisEl = e.currentTarget;
+          const value = e.target.value;
+          thisEl.style.height = "";
+          thisEl.style.height = thisEl.scrollHeight + "px";
+        };
+
+        if (subType === "array") {
+          // Validate that the input valid json
+          // we send it along parsed to the backend
+          return (
+            <div className="flex flex-col gap-1.5">
+              <DynamicControlLabel id={id} label={label}>
+                array
+              </DynamicControlLabel>
+
+              <textarea
+                class="textarea whitespace-pre"
+                defaultValue={JSON.stringify(defaultValue, null, 4)}
+                onChange={(e) => handleTextAreaChange(e)}
+                onKeyDown={(e) => handleTextAreaKeyDown(e)}
+                onInput={(e) => handleTextAreaAutoHeight(e)}
+              />
+            </div>
+          );
+        }
+
+        // If nested arbitrary dictionary
+        if (
+          subType === "dictionary" &&
+          typeof defaultValue === "object" &&
+          !Array.isArray(defaultValue) &&
+          defaultValue !== null
+        ) {
+          const ArbitraryInputs = [];
+          for (const [key, value] of Object.entries(defaultValue)) {
+            ArbitraryInputs.push(
+              <div className="flex flex-col gap-1.5" key={key}>
+                <DynamicControlLabel id={id} label={label}>
+                  Dictionary
+                </DynamicControlLabel>
+                <textarea
+                  class="textarea whitespace-pre"
+                  defaultValue={JSON.stringify(defaultValue, null, 4)}
+                  onChange={(e) => handleTextAreaChange(e)}
+                  onKeyDown={(e) => handleTextAreaKeyDown(e)}
+                  onInput={(e) => handleTextAreaAutoHeight(e)}
+                />
+              </div>
+            );
+          }
+
+          return ArbitraryInputs;
+        }
       }
 
       // Form component
@@ -653,7 +1009,7 @@
                   >
                     dictionary
                   </DynamicControlLabel>
-                  <div className="flex flex-col gap-5 bg-alternate md:p-6 rounded-lg">
+                  <div className="flex flex-col gap-5 bg-alternate p-2 md:p-6 rounded-lg">
                     {DynamicControls({
                       dynamicFields: dynamicField.dicts,
                       handleInputChange: handleInputChange,
@@ -692,22 +1048,10 @@
         const [dynamicFields, setDynamicFields] = React.useState([]);
         const [inputData, setInputData] = React.useState([]);
         const [pipeline, setPipeline] = React.useState(null);
+        const [outputData, setOutputData] = React.useState(null);
+        const [outputErrorData, setErrorOutputData] = React.useState(null);
 
-        React.useEffect(() => {
-          fetch(`${host}/v4/container/pipeline`)
-            .then((res) => res.json())
-            .then((data) => {
-              setPipeline(data);
-              setDynamicFields(
-                generateDynamicFieldsFromIOVariables(data.input_variables)
-              );
-            })
-            .catch((err) => console.log(err));
-        }, []);
-        console.log(pipeline);
-        React.useEffect(() => {
-          setInputData(generateInputDataArrayFromDynamicFields(dynamicFields));
-        }, [dynamicFields]);
+        // Build child (dict) input data object
         function handleNonParentedField(fieldId, newValue) {
           const field = dynamicFields.find(
             (item) => item.fieldName === fieldId
@@ -725,6 +1069,8 @@
 
           setDynamicFields(newDynamicFields);
         }
+
+        // Build root input data object
         function handleParentedField(fieldId, newValue, parentId) {
           {
             const parentFieldIndex = dynamicFields.findIndex(
@@ -734,18 +1080,12 @@
               (item) => item.fieldName === parentId
             );
 
-            console.log("Parent field :>> ", parentField);
-
             const fieldIndex = parentField.dicts.findIndex(
               (item) => item.fieldName === fieldId
             );
             const field = parentField.dicts.find(
               (item) => item.fieldName === fieldId
             );
-
-            console.log("field :>> ", field);
-            console.log("new value :>> ", newValue);
-            console.log("dynamicFields :>> ", dynamicFields);
             if (!field) return;
 
             // update the child field
@@ -759,8 +1099,6 @@
               dicts: newDicts,
             };
 
-            console.log("New parent field :>> ", newParentField);
-
             const newDynamicFields = [...dynamicFields];
             newDynamicFields[parentFieldIndex] = newParentField;
 
@@ -768,48 +1106,250 @@
           }
         }
 
+        // Handle input change from form
         function handleSetDynamicState(fieldId, newValue, parentId) {
-          console.log(
-            "fieldId, newValue, parentId :>> ",
-            fieldId,
-            newValue,
-            parentId
-          );
           if (!parentId) handleNonParentedField(fieldId, newValue);
           else handleParentedField(fieldId, newValue, parentId);
         }
 
+        // POST data
         function handleSubmit(e) {
           e.preventDefault();
+
+          // Reset outputs
+          setOutputData(null);
+          setErrorOutputData(null);
+
           fetch(`${host}/v4/runs`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
 
             body: JSON.stringify({ inputs: inputData }),
-          });
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.error !== null) {
+                setErrorOutputData(data);
+              } else {
+                setOutputData(data.outputs);
+                // setOutputData(mockOutputIOVariables);
+              }
+            })
+            .catch((err) => console.log(err));
         }
 
+        // => { file: RunOutputFile }
+        function PipelineFileResponse({ file }) {
+          if (
+            file.path.includes("png") ||
+            file.path.includes("jpg") ||
+            file.path.includes("jpeg")
+          ) {
+            return (
+              <img src={file.url} alt={file.name} className="w-full max-w-lg" />
+            );
+          } else if (
+            file.path.includes("wav") ||
+            file.path.includes("mp3") ||
+            file.path.includes("ogg") ||
+            file.path.includes("flac") ||
+            file.path.includes("m4a") ||
+            file.path.includes("aac") ||
+            file.path.includes("opus") ||
+            file.path.includes("wma")
+          ) {
+            return (
+              <audio controls src={file.url} className="w-full">
+                <a href={file.url}> Download audio </a>
+                Your browser does not support the audio element.
+              </audio>
+            );
+          } else if (
+            file.path.includes("ogg") ||
+            file.path.includes("mp4") ||
+            file.path.includes("mov") ||
+            file.path.includes("wmv") ||
+            file.path.includes("flv") ||
+            file.path.includes("avi") ||
+            file.path.includes("avchd") ||
+            file.path.includes("webm") ||
+            file.path.includes("mkv")
+          ) {
+            return (
+              <div className="aspect-video">
+                <video controls>
+                  {/* Provide a fallback for browsers that don't support this format */}
+                  <source src={file.url} type="video/ogg" />
+                  <source src={file.url} type="video/mp4" />
+                  <source src={file.url} type="video/mov" />
+                  <source src={file.url} type="video/wmv" />
+                  <source src={file.url} type="video/flv" />
+                  <source src={file.url} type="video/avi" />
+                  <source src={file.url} type="video/avchd" />
+                  <source src={file.url} type="video/webm" />
+                  <source src={file.url} type="video/mkv" />
+                </video>
+              </div>
+            );
+          } else {
+            return <></>;
+          }
+        }
+
+        function RenderOutput({ output }) {
+          // => RunOutput[]
+          const renderFiles = (value) => {
+            // => RunOutput
+            const renderedFiles = value.map((file, idx) => {
+              return <li key={idx}>{renderFile(file.file)}</li>;
+            });
+            return <ul className="flex flex-col gap-6">{renderedFiles}</ul>;
+          };
+
+          // => RunOutputFile
+          const renderFile = (file) => {
+            return (
+              // TODO: Add a tab for the file contents, and it's raw response
+              <PipelineFileResponse file={file} />
+            );
+          };
+
+          // => string
+          const renderString = (value) => {
+            return (
+              <pre class="bg-gray-700 text-white rounded p-2 overflow-auto">
+                {value}
+              </pre>
+            );
+          };
+
+          // => any[]
+          const renderArray = (value) => {
+            // If array of files
+            let isArrayOfFiles = value.find((x) => x.type == "file");
+            if (isArrayOfFiles) {
+              return renderFiles(value);
+            }
+
+            // If array of other types, print full array
+            return (
+              <ul className="flex flex-col gap-6">
+                <pre class="bg-gray-700 text-white rounded p-2 overflow-auto">
+                  {JSON.stringify(value, null, 2)}
+                </pre>
+              </ul>
+            );
+          };
+
+          // Render Object function
+          const renderObject = (value) => (
+            <ul className="flex flex-col gap-4">
+              <pre class="bg-gray-700 text-white rounded p-2 overflow-auto">
+                {JSON.stringify(value, null, 2)}
+              </pre>
+            </ul>
+          );
+
+          switch (output.type) {
+            case "file":
+              return renderFile(output.file);
+
+            case "dictionary":
+              return renderObject(output.value);
+
+            case "string":
+              return renderString(output.value);
+
+            case "array":
+              return renderArray(output.value);
+          }
+
+          // Edge cases: If not known type, continue to render special cases
+          if (isObject(output)) {
+            return renderObject(output);
+          }
+          if (isArray(output)) {
+            return renderArray(output);
+          }
+
+          return null;
+        }
+
+        // GET pipeline
         React.useEffect(() => {
-          console.log("updated inputData :>> ", inputData);
-        }, [inputData]);
+          fetch(`${host}/v4/container/pipeline`)
+            .then((res) => res.json())
+            .then((data) => {
+              setPipeline(data);
+
+              const dynamicFields = generateDynamicFieldsFromIOVariables(
+                data.input_variables
+              );
+              // const dynamicFields =
+              //   generateDynamicFieldsFromIOVariables(mockInputIOVariables);
+
+              setDynamicFields(dynamicFields);
+            })
+            .catch((err) => console.log(err));
+        }, []);
+
+        // Watch for input changes
+        React.useEffect(() => {
+          setInputData(generateInputDataArrayFromDynamicFields(dynamicFields));
+        }, [dynamicFields]);
 
         return (
-          <div className="flex flex-col gap-8">
+          <div className="flex flex-col pb-12">
             <Header />
-            <form
-              onSubmit={(e) => handleSubmit(e)}
-              class="flex flex-col min-w-xl mx-auto gap-5"
-            >
-              <DynamicControls
-                dynamicFields={dynamicFields}
-                handleInputChange={(fieldId, text, parentId) =>
-                  handleSetDynamicState(fieldId, text, parentId)
-                }
-              />
-              <button className="button" type="submit">
-                Run
-              </button>
-            </form>
+
+            <div class="flex justify-center">
+              {/* input */}
+              <form
+                onSubmit={(e) => handleSubmit(e)}
+                class="flex flex-col gap-5 md:w-96 p-6 border-r border-gray-300"
+              >
+                <h2 className="text-2xl font-bold">Input</h2>
+                <DynamicControls
+                  dynamicFields={dynamicFields}
+                  handleInputChange={(fieldId, text, parentId) =>
+                    handleSetDynamicState(fieldId, text, parentId)
+                  }
+                />
+                <div class="sticky bottom-8">
+                  <button className="button w-full" type="submit">
+                    Run
+                  </button>
+                </div>
+              </form>
+
+              {/* output */}
+              <div class="md:w-96 p-6 h-screen">
+                <div className="flex flex-col gap-5">
+                  <h2 className="text-2xl font-bold">Output</h2>
+                  {outputErrorData ? (
+                    <pre class="bg-red-50 rounded p-2 overflow-auto">
+                      {JSON.stringify(outputErrorData, null, 2)}
+                    </pre>
+                  ) : null}
+
+                  {/* Raw output */}
+                  {outputData ? (
+                    <pre class="bg-gray-100 rounded p-2 overflow-auto">
+                      {JSON.stringify(outputData, null, 2)}
+                    </pre>
+                  ) : null}
+
+                  {/* Rendered output */}
+                  {outputData
+                    ? outputData.map((output, idx) => (
+                        <div key={idx}>
+                          <RenderOutput output={output} />
+                        </div>
+                      ))
+                    : null}
+                </div>
+              </div>
+            </div>
           </div>
         );
       }
