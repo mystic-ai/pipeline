@@ -1,8 +1,6 @@
 import asyncio
 import logging
 import os
-import threading
-import time
 import traceback
 import uuid
 
@@ -13,11 +11,9 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.container.manager import Manager
 from pipeline.container.routes import router
 from pipeline.container.status import router as status_router
-from pipeline.exceptions import RunnableError
 
 logger = logging.getLogger("uvicorn")
 
@@ -96,29 +92,17 @@ def setup_oapi(app: FastAPI) -> None:
 
 
 async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) -> None:
-    threading.Thread(target=manager.startup).start()
+    try:
+        await run_in_threadpool(manager.startup)
+    except Exception:
+        logger.exception("Exception raised during pipeline startup")
 
     while True:
         try:
             args, response_queue = await execution_queue.get()
 
-            start_time = time.time()
-            timedout = False
-
-            while manager.pipeline_state == pipeline_schemas.PipelineState.loading:
-                if time.time() - start_time > 30:
-                    timedout = True
-                    break
-
-                await asyncio.sleep(0.1)
-
-            if timedout:
-                response_queue.put_nowait(Exception())
-                continue
-
-            if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
-                response_queue.put_nowait(Exception())
-                continue
+            logger.info("Got run request")
+            logger.info(f"Pipeline state: {manager.pipeline_state}")
 
             try:
                 output = await run_in_threadpool(manager.run, input_data=args)

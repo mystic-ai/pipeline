@@ -3,7 +3,9 @@ import logging
 
 from fastapi import APIRouter, Request, Response
 
+from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
+from pipeline.container.manager import Manager
 from pipeline.exceptions import RunInputException, RunnableError
 
 logger = logging.getLogger("uvicorn")
@@ -31,9 +33,22 @@ async def run(
     request: Request,
     response: Response,
 ):
-    # run_manager: Manager = request.app.state.manager
-    # outputs = await run_manager.run(run_create.inputs)
-    # return outputs
+    manager: Manager = request.app.state.manager
+    if manager.pipeline_state == pipeline_schemas.PipelineState.loading:
+        logger.info("Pipeline loading")
+        return run_schemas.ContainerRunResult(
+            outputs=None,
+            error=run_schemas.ContainerRunError.pipeline_loading,
+            error_message="Pipeline is still loading",
+        )
+
+    if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
+        logger.info("Pipeline failed to load")
+        return run_schemas.ContainerRunResult(
+            outputs=None,
+            error=run_schemas.ContainerRunError.startup_error,
+            error_message=manager.pipeline_state_message,
+        )
 
     execution_queue: asyncio.Queue = request.app.state.execution_queue
 
