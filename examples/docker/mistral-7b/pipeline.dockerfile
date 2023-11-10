@@ -9,8 +9,7 @@ RUN pip install -U pip
 RUN pip install -U fastapi==0.103.2 uvicorn==0.15.0 validators==0.22.0
 
 # Container commands
-RUN apt-get update
-RUN apt-get install -y git
+RUN apt-get update && apt-get install -y git
 RUN apt-get install -y gcc
 
 

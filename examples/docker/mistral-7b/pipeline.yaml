@@ -1,7 +1,6 @@
 runtime:
   container_commands:
-    - apt-get update
-    - apt-get install -y git
+    - apt-get update && apt-get install -y git
     - apt-get install -y gcc
   python:
     python_version: "3.10"

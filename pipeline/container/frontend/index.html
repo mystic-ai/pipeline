@@ -862,7 +862,7 @@
                     step={!isNullOrUndefined(step) ? step : undefined}
                     defaultValue={defaultValue}
                     onChange={(e) => {
-                      handleChange(id, e.target.value, parentId);
+                      handleChange(id, Number(e.target.value), parentId);
                       setValue(Number(e.target.value));
                     }}
                   />
