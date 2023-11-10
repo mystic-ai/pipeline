@@ -53,6 +53,7 @@ async def run(
             outputs=None,
             error=run_schemas.ContainerRunError.pipeline_error,
             error_message=str(run_output),
+            error_traceback=run_output.traceback,
         )
     elif isinstance(run_output, Exception):
         response.status_code = 500

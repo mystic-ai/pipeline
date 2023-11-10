@@ -218,6 +218,7 @@ class ContainerRunResult(BaseModel):
     outputs: t.Optional[t.List[RunOutput]]
     error: t.Optional[ContainerRunError]
     error_message: t.Optional[str]
+    error_traceback: t.Optional[str]
 
     def outputs_formatted(self) -> t.List[t.Any]:
         # return [output.value for output in self.outputs]
