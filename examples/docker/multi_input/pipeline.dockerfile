@@ -9,8 +9,8 @@ RUN pip install -U pip
 RUN pip install -U fastapi==0.103.2 uvicorn==0.15.0 validators==0.22.0
 
 # Container commands
-RUN apt update -y
-RUN apt install -y git
+RUN apt update -y 
+RUN apt install -y git 
 
 
 # Install python dependencies

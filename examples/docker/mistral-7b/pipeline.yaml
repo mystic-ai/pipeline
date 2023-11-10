@@ -1,0 +1,19 @@
+runtime:
+  container_commands:
+    - apt-get update
+    - apt-get install -y git
+    - apt-get install -y gcc
+  python:
+    python_version: "3.10"
+    python_requirements:
+      - git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes
+      - "torch==2.0.1"
+      - "transformers"
+      - "diffusers==0.19.3"
+      - "accelerate==0.21.0"
+      - "vllm==0.2.1.post1"
+    cuda_version: "11.4"
+accelerators: []
+accelerator_memory: null
+pipeline_graph: new_pipeline:my_pipeline
+pipeline_name: paulcjh/mistral-7b

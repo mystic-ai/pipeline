@@ -393,3 +393,41 @@ def _push_container(namespace: Namespace):
         f"Created new pipeline deployment for {new_deployment.name} -> {new_deployment.id} (image={new_deployment.image})",  # noqa
         "SUCCESS",
     )
+
+
+def _init_dir(namespace: Namespace) -> None:
+    _print("Initializing directory...", "INFO")
+
+    pipeline_name = getattr(namespace, "name", None)
+
+    if not pipeline_name:
+        pipeline_name = input("Enter a name for your pipeline: ")
+
+    python_template = docker_templates.pipeline_template_python_1
+
+    default_config = PipelineConfig(
+        runtime=RuntimeConfig(
+            container_commands=[
+                "apt-get update",
+                "apt-get install -y git",
+            ],
+            python=PythonRuntime(
+                python_version="3.10",
+                python_requirements=[
+                    "git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes",  # noqa
+                ],
+            ),
+        ),
+        accelerators=[],
+        pipeline_graph=f"new_pipeline:my_new_pipeline",
+        pipeline_name=pipeline_name,
+        accelerator_memory=None,
+    )
+
+    with open("./pipeline.yaml", "w") as f:
+        f.write(yaml.dump(json.loads(default_config.json()), sort_keys=False))
+
+    with open("./new_pipeline.py", "w") as f:
+        f.write(python_template)
+
+    _print("Initialized directory.", "SUCCESS")
