@@ -255,30 +255,30 @@
           dict_schema: null,
           default: "chat_completion",
         },
-        {
-          run_io_type: "array",
-          title: "array_dict",
-          description: null,
-          examples: null,
-          gt: null,
-          ge: null,
-          lt: null,
-          le: null,
-          multiple_of: null,
-          allow_inf_nan: null,
-          max_digits: null,
-          decimal_places: null,
-          min_length: null,
-          max_length: null,
-          choices: null,
-          dict_schema: null,
-          default: [
-            {
-              test: true,
-              array_length: 1,
-            },
-          ],
-        },
+        // {
+        //   run_io_type: "array",
+        //   title: "array_dict",
+        //   description: null,
+        //   examples: null,
+        //   gt: null,
+        //   ge: null,
+        //   lt: null,
+        //   le: null,
+        //   multiple_of: null,
+        //   allow_inf_nan: null,
+        //   max_digits: null,
+        //   decimal_places: null,
+        //   min_length: null,
+        //   max_length: null,
+        //   choices: null,
+        //   dict_schema: null,
+        //   default: [
+        //     {
+        //       test: true,
+        //       array_length: 1,
+        //     },
+        //   ],
+        // },
         // {
         //   run_io_type: "array",
         //   title: "super_array",
@@ -553,6 +553,135 @@
         //   ],
         //   default: null,
         // },
+
+        {
+          run_io_type: "dictionary",
+          title: "some_object",
+          description: null,
+          examples: null,
+          gt: null,
+          ge: null,
+          lt: null,
+          le: null,
+          multiple_of: null,
+          allow_inf_nan: null,
+          max_digits: null,
+          decimal_places: null,
+          min_length: null,
+          max_length: null,
+          choices: null,
+          dict_schema: [
+            {
+              run_io_type: "dictionary",
+              title: "nested_arbitrary_dict",
+              description: null,
+              examples: null,
+              gt: null,
+              ge: null,
+              lt: null,
+              le: null,
+              multiple_of: null,
+              allow_inf_nan: null,
+              max_digits: null,
+              decimal_places: null,
+              min_length: null,
+              max_length: null,
+              choices: null,
+              dict_schema: null,
+              default: { in_1: 3 },
+            },
+            {
+              run_io_type: "string",
+              title: "choices_1",
+              description: null,
+              examples: null,
+              gt: null,
+              ge: null,
+              lt: null,
+              le: null,
+              multiple_of: null,
+              allow_inf_nan: null,
+              max_digits: null,
+              decimal_places: null,
+              min_length: null,
+              max_length: null,
+              choices: ["choice1", "choice2", "choice3"],
+              dict_schema: null,
+              default: "choice3",
+            },
+            {
+              run_io_type: "array",
+              title: "super_array",
+              description: null,
+              examples: null,
+              gt: null,
+              ge: null,
+              lt: null,
+              le: null,
+              multiple_of: null,
+              allow_inf_nan: null,
+              max_digits: null,
+              decimal_places: null,
+              min_length: null,
+              max_length: null,
+              choices: null,
+              dict_schema: null,
+              default: [
+                0.011444582603871822, -0.05315866321325302,
+                0.021406110376119614, -0.026900190860033035,
+                -0.015447557903826237, 0.043529216200113297,
+                -0.03459615632891655, 0.00029987774905748665,
+                -0.03525491803884506, 0.03108358569443226, 0.01344769261777401,
+                -0.0125086959451437, 0.0056375423446297646,
+                0.046820446848869324, 0.029219090938568115,
+                -0.03583495318889618, 0.043436795473098755,
+                0.031827159225940704,
+              ],
+            },
+
+            // THIS WILL NOT WORK
+            // {
+            //   run_io_type: "dictionary",
+            //   title: "some_nested_dict",
+            //   description: null,
+            //   examples: null,
+            //   gt: null,
+            //   ge: null,
+            //   lt: null,
+            //   le: null,
+            //   multiple_of: null,
+            //   allow_inf_nan: null,
+            //   max_digits: null,
+            //   decimal_places: null,
+            //   min_length: null,
+            //   max_length: 1,
+            //   choices: null,
+            //   dict_schema: [
+            //     {
+            //       run_io_type: "dictionary",
+            //       title: "nested_arbitrary_dict",
+            //       description: null,
+            //       examples: null,
+            //       gt: null,
+            //       ge: null,
+            //       lt: null,
+            //       le: null,
+            //       multiple_of: null,
+            //       allow_inf_nan: null,
+            //       max_digits: null,
+            //       decimal_places: null,
+            //       min_length: null,
+            //       max_length: null,
+            //       choices: null,
+            //       dict_schema: null,
+            //       default: { in_1: 3 },
+            //     },
+            //   ],
+            //   default: null,
+            // },
+          ],
+          default: null,
+        },
       ];
 
       // Header component
@@ -765,36 +894,6 @@
           );
         }
 
-        // If nested arbitrary dictionary
-        // if (
-        //   subType === "dictionary" &&
-        //   typeof defaultValue === "object" &&
-        //   !Array.isArray(defaultValue) &&
-        //   defaultValue !== null
-        // ) {
-        //   const ArbitraryInputs = [];
-        //   for (const [key, value] of Object.entries(defaultValue)) {
-        //     ArbitraryInputs.push(
-        //       <div className="flex flex-col gap-1.5" key={key}>
-        //         <DynamicControlLabel id={id} label={label}>
-        //           Dictionary
-        //         </DynamicControlLabel>
-        //         <textarea
-        //           // ref={ref}
-        //           // onChange={handleTextAreaChange}
-        //           id={id}
-        //           // label={fieldName}
-        //           // invalidText={errorMessage}
-        //           // hintText={fieldDescription}
-        //           defaultValue={JSON.stringify(value, null, 4)}
-        //         />
-        //       </div>
-        //     );
-        //   }
-
-        //   return ArbitraryInputs;
-        // }
-
         function handleTextAreaKeyDown(e) {
           if (event.key === "Tab") {
             event.preventDefault();
@@ -849,6 +948,34 @@
               />
             </div>
           );
+        }
+
+        // If nested arbitrary dictionary
+        if (
+          subType === "dictionary" &&
+          typeof defaultValue === "object" &&
+          !Array.isArray(defaultValue) &&
+          defaultValue !== null
+        ) {
+          const ArbitraryInputs = [];
+          for (const [key, value] of Object.entries(defaultValue)) {
+            ArbitraryInputs.push(
+              <div className="flex flex-col gap-1.5" key={key}>
+                <DynamicControlLabel id={id} label={label}>
+                  Dictionary
+                </DynamicControlLabel>
+                <textarea
+                  class="textarea whitespace-pre"
+                  defaultValue={JSON.stringify(defaultValue, null, 4)}
+                  onChange={(e) => handleTextAreaChange(e)}
+                  onKeyDown={(e) => handleTextAreaKeyDown(e)}
+                  onInput={(e) => handleTextAreaAutoHeight(e)}
+                />
+              </div>
+            );
+          }
+
+          return ArbitraryInputs;
         }
       }
 
