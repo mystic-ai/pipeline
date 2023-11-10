@@ -9,6 +9,8 @@ from pipeline.cloud.schemas import BaseModel
 
 class RunState(str, Enum):
     created = "created"
+    routing = "routing"
+    running = "running"
     completed = "completed"
     failed = "failed"
     no_resources_available = "no_resources_available"
