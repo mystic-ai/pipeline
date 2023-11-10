@@ -2,12 +2,12 @@
 
 _Created by [mystic.ai](https://www.mystic.ai/)_
 
-Find loads of premade models in in production for free in Catalyst: [https://www.mystic.ai/explore](https://www.mystic.ai/explore)
+Try premade models for free that have been made using this library: [https://www.mystic.ai/explore](https://www.mystic.ai/explore)
 
 # Table of Contents
 
 - [About](#about)
-- [Installation](#installation)
+- [Installation](#installation-and-quickstart)
 - [Models](#models)
 - [Example and tutorials](#example-and-tutorials)
 - [Development](#development)
@@ -15,22 +15,32 @@ Find loads of premade models in in production for free in Catalyst: [https://www
 
 # About
 
-Pipeline is a python library that provides a simple way to construct computational graphs for AI/ML. The library is suitable for both development and production environments supporting inference and training/finetuning. This library is also a direct interface to [Catalyst](https://www.mystic.ai/pipeline-catalyst) which provides a compute engine to run pipelines at scale and on enterprise GPUs. Along with Catalyst,
-this SDK can also be used with [Pipeline Core](https://www.mystic.ai/pipeline-core) on a private hosted cluster.
+Pipeline is a python library that provides a simple way to construct computational flows for AI/ML models. The library is suitable for both development and production environments supporting inference and training/finetuning. This library is also a direct interface to [Mystic](https://www.mystic.ai/) which provides a compute engine to run pipelines at scale and on enterprise GPUs. This SDK can also be used with [Pipeline Core](https://www.mystic.ai/pipeline-core) on a private hosted cluster.
 
 The syntax used for defining AI/ML pipelines shares some similarities in syntax to sessions in [Tensorflow v1](https://www.tensorflow.org/api_docs/python/tf/compat/v1/InteractiveSession), and Flows found in [Prefect](https://github.com/PrefectHQ/prefect).
 
-This library provides tools for you to wrap your code into a format that can be run on Catalyst or Pipeline Core. This library also provides a way to run your code locally, and then run it on Catalyst or Pipeline Core without any changes to your code.
+# Installation and quickstart
 
-# Installation
+To install pipeline run:
 
 ```shell
-python -m pip install pipeline-ai
+pip install pipeline-ai
 ```
+
+To create a new pipeline navigate to the directory you want to create the pipeline in and run:
+
+```shell
+pipeline container init -n paulcjh/quickstart
+```
+
+This will create two files in the directory:
+
+- `pipeline.yaml` - The configuration file for the container to run the pipeline.
+- `new_pipeline.py` - The python file to populate with your pipeline.
 
 # Models
 
-Below are some popular models that have been premade by the community on Catalyst. You can find more models in the [explore](https://www.mystic.ai/explore) section of Catalyst, and the source code for these models is also referenced in the table.
+Below are some popular models that have been premade by the community on Mystic. You can find more models in the [explore](https://www.mystic.ai/explore) section of Mystic, and the source code for these models is also referenced in the table.
 
 | Model                                                                                | Category | Description                                            | Source                                                                 |
 | ------------------------------------------------------------------------------------ | -------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
@@ -53,11 +63,9 @@ Below are some popular models that have been premade by the community on Catalys
 | [Input/output types](https://docs.mystic.ai/docs/inputoutpu-types)               | Defining what goes in and out of your pipes                                      |
 | [Files and directories](https://docs.mystic.ai/docs/files-and-directories)       | Inputing or outputing files from your runs                                       |
 | [Pipeline building](https://docs.mystic.ai/docs/pipeline-building)               | Building pipelines - how it works                                                |
-| [Virtual environments](https://docs.mystic.ai/docs/virtual-environments)         | Creating a virtual environment for your pipeline to run in                       |
-| [GPUs and Accelerators](https://docs.mystic.ai/docs/gpus-and-accelerators)       | Add hardware definitions to your pipelines                                       |
 | [Runs](https://docs.mystic.ai/docs/runs)                                         | Running a pipeline remotely - how it works                                       |
 
-Below is some sample python that demonstrates various features and how to use the Pipeline SDK to create a simple pipeline that can be run locally or on Catalyst.
+Below is some sample python that demonstrates various features and how to use the Pipeline SDK to create a simple pipeline that can be run locally or on Mystic.
 
 ```python
 from pathlib import Path
@@ -67,7 +75,7 @@ import torch
 from diffusers import StableDiffusionPipeline
 
 from pipeline import Pipeline, Variable, pipe, entity
-from pipeline.cloud import compute_requirements, environments, pipelines
+from pipeline.cloud import compute_requirements
 from pipeline.objects import File
 from pipeline.objects.graph import InputField, InputSchema
 
@@ -116,32 +124,6 @@ with Pipeline() as builder: # TUTORIAL: Pipeline building
 
 my_pl = builder.get_pipeline()
 
-environments.create_environment( # TUTORIAL: Virtual environments
-    "stable-diffusion",
-    python_requirements=[
-        "torch==2.0.1",
-        "transformers==4.30.2",
-        "diffusers==0.19.3",
-        "accelerate==0.21.0",
-    ],
-)
-
-pipelines.upload_pipeline(
-    my_pl,
-    "stable-diffusion:latest",
-    environment_id_or_name="stable-diffusion",
-    required_gpu_vram_mb=10_000,
-    accelerators=[
-        compute_requirements.Accelerator.nvidia_l4, # TUTORIAL: GPUs and Accelerators
-    ],
-)
-
-output = pipelines.run_pipeline( # TUTORIAL: Runs
-    "stable-diffusion:latest",
-    prompt="A photo of a cat",
-    kwargs=dict(),
-)
-
 ```
 
 # Development
@@ -171,16 +153,6 @@ pytest
 
 For developing v4, i.e. containerized pipelines, you need to override the installed pipeline-ai python package on the container.
 This can be done by bind mounting your target pipeline directory, e.g. using raw docker
-
-```shell
-docker run -p 14300:14300 -v ./pipeline:/usr/local/lib/python3.10/site-packages/pipeline plutopulp/add-lol
-```
-
-or using the CLI if you are working in the directory containing the `pipeline.yaml`:
-
-```shell
-pipeline container up -v "../../../pipeline:/usr/local/lib/python3.10/site-packages/pipeline"
-```
 
 # License
 

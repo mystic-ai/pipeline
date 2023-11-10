@@ -7,7 +7,6 @@ from pathlib import Path
 
 import docker
 import yaml
-from docker.errors import BuildError
 from docker.types import DeviceRequest, LogConfig
 from pydantic import BaseModel
 
@@ -37,7 +36,7 @@ class RuntimeConfig(BaseModel):
 
 class PipelineConfig(BaseModel):
     runtime: RuntimeConfig
-    accelerators: t.List[Accelerator]
+    accelerators: t.List[Accelerator] = []
     accelerator_memory: int | None
     pipeline_graph: str
     pipeline_name: str = ""
@@ -198,27 +197,33 @@ def _build_container(namespace: Namespace):
 
     dockerfile_path = Path("./pipeline.dockerfile")
     dockerfile_path.write_text(dockerfile_str)
+    docker_client = docker.APIClient(base_url="unix://var/run/docker.sock")
+    generator = docker_client.build(
+        # fileobj=dockerfile_path.open("rb"),
+        path="./",
+        # custom_context=True,
+        dockerfile=dockerfile_path.absolute(),
+        # tag="test",
+        rm=True,
+        decode=True,
+        platform="linux/amd64",
+    )
+    docker_image_id = None
+    while True:
+        try:
+            output = generator.__next__()
+            if "aux" in output:
+                docker_image_id = output["aux"]["ID"]
+            if "stream" in output:
+                _print(output["stream"].strip("\n"))
+            if "errorDetail" in output:
+                raise Exception(output["errorDetail"])
+        except StopIteration:
+            _print("Docker image build complete.")
+            break
+
     docker_client = docker.from_env()
-    try:
-        new_container, build_logs = docker_client.images.build(
-            # fileobj=dockerfile_path.open("rb"),
-            path="./",
-            quiet=True,
-            # custom_context=True,
-            dockerfile=dockerfile_path.absolute(),
-            # tag="test",
-            rm=True,
-        )
-    except BuildError as e:
-        for info in e.build_log:
-            if "stream" in info:
-                for line in info["stream"].splitlines():
-                    print(line)
-            elif "errorDetail" in info:
-                print(info["errorDetail"]["message"])
-            else:
-                print(info)
-        raise e
+    new_container = docker_client.images.get(docker_image_id)
 
     created_image_full_id = new_container.id.split(":")[1]
     created_image_short_id = created_image_full_id[:12]
@@ -388,3 +393,41 @@ def _push_container(namespace: Namespace):
         f"Created new pipeline deployment for {new_deployment.name} -> {new_deployment.id} (image={new_deployment.image})",  # noqa
         "SUCCESS",
     )
+
+
+def _init_dir(namespace: Namespace) -> None:
+    _print("Initializing directory...", "INFO")
+
+    pipeline_name = getattr(namespace, "name", None)
+
+    if not pipeline_name:
+        pipeline_name = input("Enter a name for your pipeline: ")
+
+    python_template = docker_templates.pipeline_template_python_1
+
+    default_config = PipelineConfig(
+        runtime=RuntimeConfig(
+            container_commands=[
+                "apt-get update",
+                "apt-get install -y git",
+            ],
+            python=PythonRuntime(
+                python_version="3.10",
+                python_requirements=[
+                    "git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes",  # noqa
+                ],
+            ),
+        ),
+        accelerators=[],
+        pipeline_graph=f"new_pipeline:my_new_pipeline",
+        pipeline_name=pipeline_name,
+        accelerator_memory=None,
+    )
+
+    with open("./pipeline.yaml", "w") as f:
+        f.write(yaml.dump(json.loads(default_config.json()), sort_keys=False))
+
+    with open("./new_pipeline.py", "w") as f:
+        f.write(python_template)
+
+    _print("Initialized directory.", "SUCCESS")

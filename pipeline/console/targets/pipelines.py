@@ -109,7 +109,6 @@ def _get_pipeline(args: Namespace) -> None:
     pipelines_: Paginated[pipelines_schema.PipelineGet] = Paginated[
         pipelines_schema.PipelineGet
     ].parse_obj(paginated_raw_pipelines)
-    print(pipelines_)
 
     pipelines = [
         [

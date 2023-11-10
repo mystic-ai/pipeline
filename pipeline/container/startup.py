@@ -1,13 +1,13 @@
 import asyncio
 import logging
 import os
-import threading
 import time
 import traceback
 import uuid
 
 import pkg_resources
 from fastapi import FastAPI, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -94,7 +94,7 @@ def setup_oapi(app: FastAPI) -> None:
 
 
 async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) -> None:
-    threading.Thread(target=asyncio.run, args=(manager.startup(),)).start()
+    await run_in_threadpool(manager.startup)
 
     while True:
         try:
@@ -102,9 +102,6 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
 
             start_time = time.time()
             timedout = False
-
-            logger.info("Got run request")
-            logger.info(f"Pipeline state: {manager.pipeline_state}")
 
             while manager.pipeline_state == pipeline_schemas.PipelineState.loading:
                 if time.time() - start_time > 30:
@@ -115,16 +112,14 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
 
             if timedout:
                 response_queue.put_nowait(Exception())
-                logger.info("Loading timedout")
                 continue
 
             if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
                 response_queue.put_nowait(Exception())
-                logger.info("Pipeline failed to load")
                 continue
 
             try:
-                output = await manager.run(args)
+                output = await run_in_threadpool(manager.run, input_data=args)
             except Exception as e:
                 logger.exception(e)
                 response_queue.put_nowait(e)

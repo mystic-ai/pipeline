@@ -149,3 +149,8 @@ examples/docker/requirements.txt
 *.tmp
 tmp/*
 tmp
+
+migrate_pipelines/pipeline.dockerfile
+migrate_pipelines/pipeline.graph
+migrate_pipelines/pipeline.yaml
+migrate_pipelines/pipelines.csv

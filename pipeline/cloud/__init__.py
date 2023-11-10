@@ -4,7 +4,7 @@ import httpx
 
 
 def authenticate(token: str, url: str) -> bool:
-    auth_url = urllib.parse.urljoin(url, "/v3/validate")
+    auth_url = urllib.parse.urljoin(url, "/v4/tokens/validate")
     response = httpx.get(
         auth_url,
         headers={

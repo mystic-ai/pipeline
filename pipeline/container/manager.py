@@ -58,7 +58,7 @@ class Manager:
 
         logger.info(f"Pipeline set to {self.pipeline_path}")
 
-    async def startup(self):
+    def startup(self):
         logger.info("Starting pipeline")
         self.pipeline_state = pipeline_schemas.PipelineState.loading
         try:
@@ -206,6 +206,6 @@ class Manager:
             final_inputs.append(user_input)
         return final_inputs
 
-    async def run(self, input_data: t.List[run_schemas.RunInput] | None) -> t.Any:
+    def run(self, input_data: t.List[run_schemas.RunInput] | None) -> t.Any:
         args = self._parse_inputs(input_data, self.pipeline)
         return self.pipeline.run(*args)

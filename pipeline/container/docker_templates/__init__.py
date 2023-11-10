@@ -11,3 +11,4 @@ def _read_template(template_name: str) -> str:
 
 
 template_1 = _read_template("template_1.txt")
+pipeline_template_python_1 = _read_template("pipeline_template.py")
