@@ -92,10 +92,7 @@ def setup_oapi(app: FastAPI) -> None:
 
 
 async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) -> None:
-    try:
-        await run_in_threadpool(manager.startup)
-    except Exception:
-        logger.exception("Exception raised during pipeline startup")
+    await run_in_threadpool(manager.startup)
 
     while True:
         try:
