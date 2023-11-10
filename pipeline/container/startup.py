@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import threading
 import time
 import traceback
 import uuid
@@ -95,7 +96,7 @@ def setup_oapi(app: FastAPI) -> None:
 
 
 async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) -> None:
-    run_in_threadpool(manager.startup)
+    threading.Thread(target=manager.startup).start()
 
     while True:
         try:
