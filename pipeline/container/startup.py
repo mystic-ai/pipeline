@@ -16,6 +16,7 @@ from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.container.manager import Manager
 from pipeline.container.routes import router
 from pipeline.container.status import router as status_router
+from pipeline.exceptions import RunnableError
 
 logger = logging.getLogger("uvicorn")
 
@@ -94,7 +95,7 @@ def setup_oapi(app: FastAPI) -> None:
 
 
 async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) -> None:
-    await run_in_threadpool(manager.startup)
+    run_in_threadpool(manager.startup)
 
     while True:
         try:
@@ -121,7 +122,7 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
             try:
                 output = await run_in_threadpool(manager.run, input_data=args)
             except Exception as e:
-                logger.exception(e)
+                logger.exception("Exception raised during pipeline execution")
                 response_queue.put_nowait(e)
                 continue
             response_queue.put_nowait(output)

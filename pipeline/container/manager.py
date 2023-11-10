@@ -65,10 +65,11 @@ class Manager:
         try:
             self.pipeline._startup()
         except Exception as e:
-            logger.exception(e)
+            tb = traceback.format_exc()
+            logger.exception("Exception raised during pipeline execution")
             self.pipeline_state = pipeline_schemas.PipelineState.failed
-            self.pipeline_state_message = str(e)
-            raise e
+            self.pipeline_state_message = tb
+            raise RunnableError(exception=e, traceback=tb)
 
         self.pipeline_state = pipeline_schemas.PipelineState.loaded
         logger.info("Pipeline started successfully")
