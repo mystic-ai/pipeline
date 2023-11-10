@@ -47,7 +47,8 @@ async def run(
         return run_schemas.ContainerRunResult(
             outputs=None,
             error=run_schemas.ContainerRunError.startup_error,
-            error_message=manager.pipeline_state_message,
+            error_message="Pipeline failed to load",
+            error_traceback=manager.pipeline_state_message,
         )
 
     execution_queue: asyncio.Queue = request.app.state.execution_queue
