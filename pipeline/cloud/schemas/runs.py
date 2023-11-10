@@ -7,37 +7,12 @@ from enum import Enum
 from pipeline.cloud.schemas import BaseModel
 
 
-class RunState(int, Enum):
-    created: int = 0
-    routing: int = 1
-    resource_accepted: int = 2
-    # this includes creating a virtual environment and installing
-    # packages
-    creating_environment: int = 3
-    # starting subrprocess running worker in custom environment
-    starting_worker: int = 4
-    downloading_graph: int = 5
-    caching_graph: int = 6
-    running: int = 7
-    resource_returning: int = 8
-    api_received: int = 9
-    celery_worker_received: int = 22
-
-    in_queue: int = 16
-    denied: int = 11
-    resource_rejected: int = 14
-    resource_died: int = 15
-    retrying: int = 13
-    rerouting: int = 21
-
-    completed: int = 10
-    failed: int = 12
-    rate_limited: int = 17
-    lost: int = 18
-    no_environment_installed: int = 19
-    no_resources_available: int = 23
-
-    unknown: int = 20
+class RunState(str, Enum):
+    created = "created"
+    completed = "completed"
+    failed = "failed"
+    no_resources_available = "no_resources_available"
+    unknown = "unknown"
 
     @staticmethod
     def is_terminal(state: "RunState") -> bool:
@@ -48,9 +23,6 @@ class RunState(int, Enum):
         return [
             RunState.completed,
             RunState.failed,
-            RunState.lost,
-            RunState.no_environment_installed,
-            RunState.rate_limited,
             RunState.no_resources_available,
         ]
 
@@ -73,7 +45,7 @@ class RunState(int, Enum):
             except KeyError:
                 state = cls.unknown
             return state
-        elif isinstance(v, int):
+        elif isinstance(v, str):
             try:
                 state = getattr(cls, cls.value_lookup[v])
             except KeyError:

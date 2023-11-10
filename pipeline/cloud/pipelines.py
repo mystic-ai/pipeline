@@ -320,7 +320,7 @@ def run_pipeline(
     return_response: bool = False,
     retry: bool = False,
     retry_delay: float = 2.0,
-    retry_states: RunState | list[RunState] = RunState.rate_limited,
+    retry_states: RunState | list[RunState] = RunState.failed,
 ) -> t.Union[Run, httpx.Response]:
     if retry and async_run and not current_configuration.is_debugging():
         raise Exception("Can't retry on async run unless in debug mode")
@@ -433,10 +433,7 @@ def _run_logs_process(run_id: str, retry_states: list[RunState]) -> Run:
     _print(f"Trailing run logs ({run_id})")
 
     logging_states = [
-        RunState.caching_graph,
-        RunState.running,
-        RunState.downloading_graph,
-        RunState.creating_environment,
+        RunState.created,
     ]
 
     def _print_logs():
