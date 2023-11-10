@@ -1046,6 +1046,7 @@
 
       function App() {
         const [dynamicFields, setDynamicFields] = React.useState([]);
+        const [isLoading, setIsLoading] = React.useState(false);
         const [inputData, setInputData] = React.useState([]);
         const [pipeline, setPipeline] = React.useState(null);
         const [outputData, setOutputData] = React.useState(null);
@@ -1110,32 +1111,6 @@
         function handleSetDynamicState(fieldId, newValue, parentId) {
           if (!parentId) handleNonParentedField(fieldId, newValue);
           else handleParentedField(fieldId, newValue, parentId);
-        }
-
-        // POST data
-        function handleSubmit(e) {
-          e.preventDefault();
-
-          // Reset outputs
-          setOutputData(null);
-          setErrorOutputData(null);
-
-          fetch(`${host}/v4/runs`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-
-            body: JSON.stringify({ inputs: inputData }),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.error !== null) {
-                setErrorOutputData(data);
-              } else {
-                setOutputData(data.outputs);
-                // setOutputData(mockOutputIOVariables);
-              }
-            })
-            .catch((err) => console.log(err));
         }
 
         // => { file: RunOutputFile }
@@ -1275,6 +1250,36 @@
           return null;
         }
 
+        // POST data
+        function handleSubmit(e) {
+          e.preventDefault();
+
+          // Set loading
+          setIsLoading(true);
+
+          // Reset outputs
+          setOutputData(null);
+          setErrorOutputData(null);
+
+          fetch(`${host}/v4/runs`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+
+            body: JSON.stringify({ inputs: inputData }),
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.error !== null) {
+                setErrorOutputData(data);
+              } else {
+                setOutputData(data.outputs);
+                // setOutputData(mockOutputIOVariables);
+              }
+              setIsLoading(false);
+            })
+            .catch((err) => console.log(err));
+        }
+
         // GET pipeline
         React.useEffect(() => {
           fetch(`${host}/v4/container/pipeline`)
@@ -1317,7 +1322,7 @@
                 />
                 <div class="sticky bottom-8">
                   <button className="button w-full" type="submit">
-                    Run
+                    {isLoading ? "Loading..." : "Run"}
                   </button>
                 </div>
               </form>
@@ -1339,14 +1344,22 @@
                     </pre>
                   ) : null}
 
-                  {/* Rendered output */}
-                  {outputData
-                    ? outputData.map((output, idx) => (
-                        <div key={idx}>
-                          <RenderOutput output={output} />
-                        </div>
-                      ))
-                    : null}
+                  {isLoading ? (
+                    <pre class="bg-gray-100 rounded p-2 overflow-auto h-36 w-full animate-pulse ">
+                      loading...
+                    </pre>
+                  ) : (
+                    <>
+                      {/* Rendered output */}
+                      {outputData
+                        ? outputData.map((output, idx) => (
+                            <div key={idx}>
+                              <RenderOutput output={output} />
+                            </div>
+                          ))
+                        : null}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
