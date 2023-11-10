@@ -2,6 +2,7 @@ import hashlib
 import importlib
 import logging
 import os
+import traceback
 import typing as t
 import urllib.parse
 from pathlib import Path
@@ -12,6 +13,7 @@ import validators
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
+from pipeline.exceptions import RunnableError
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputSchema
 
@@ -197,4 +199,8 @@ class Manager:
 
     def run(self, input_data: t.List[run_schemas.RunInput] | None) -> t.Any:
         args = self._parse_inputs(input_data, self.pipeline)
-        return self.pipeline.run(*args)
+        try:
+            result = self.pipeline.run(*args)
+        except Exception as exc:
+            raise RunnableError(exception=exc, traceback=traceback.format_exc())
+        return result

@@ -206,6 +206,7 @@ class ContainerRunError(str, Enum):
     cuda_oom = "cuda_oom"
     cuda_error = "cuda_error"
     oom = "oom"
+    pipeline_error = "pipeline_error"
     unknown = "unknown"
 
 

@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter, Request, Response
 
 from pipeline.cloud.schemas import runs as run_schemas
-from pipeline.exceptions import RunInputException
+from pipeline.exceptions import RunInputException, RunnableError
 
 logger = logging.getLogger("uvicorn")
 router = APIRouter(prefix="/runs")
@@ -47,7 +47,13 @@ async def run(
             error=run_schemas.ContainerRunError.input_error,
             error_message=run_output.message,
         )
-
+    elif isinstance(run_output, RunnableError):
+        # response.status_code = 200
+        response_schema = run_schemas.ContainerRunResult(
+            outputs=None,
+            error=run_schemas.ContainerRunError.pipeline_error,
+            error_message=str(run_output),
+        )
     elif isinstance(run_output, Exception):
         response.status_code = 500
         response_schema = run_schemas.ContainerRunResult(
