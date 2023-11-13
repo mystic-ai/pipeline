@@ -1,0 +1,15 @@
+runtime:
+  container_commands:
+    - "apt update -y"
+    - "apt install -y git"
+    # - "apt-get update && \
+    #   apt-get -y install gcc mono-mcs && \
+    #   rm -rf /var/lib/apt/lists/*"
+  python:
+    python_version: "3.10"
+    python_requirements:
+      - "pipeline-ai==1.0.26"
+accelerators:
+  - cpu
+pipeline_graph: "my_pipeline:pipeline_graph"
+pipeline_name: plutopulp/file-size-pipeline:latest
