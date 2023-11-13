@@ -419,7 +419,7 @@ def _init_dir(namespace: Namespace) -> None:
             ),
         ),
         accelerators=[],
-        pipeline_graph=f"new_pipeline:my_new_pipeline",
+        pipeline_graph="new_pipeline:my_new_pipeline",
         pipeline_name=pipeline_name,
         accelerator_memory=None,
     )
