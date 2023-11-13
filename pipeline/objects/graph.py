@@ -1,11 +1,14 @@
 import inspect
-import tempfile
 from pathlib import Path
 from types import NoneType, UnionType
-from typing import Any, Iterable, List, Optional, get_args
+from typing import Any, Iterable, List, get_args
 from urllib.parse import ParseResult, urlparse
 
 import httpx
+
+# Have tmp added this because loads/dumps import
+# did not exist
+from cloudpickle import dumps, loads
 from tqdm import tqdm
 
 from pipeline.cloud.schemas.pipelines import IOVariable

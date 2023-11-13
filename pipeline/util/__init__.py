@@ -3,7 +3,7 @@ import importlib.metadata
 import io
 import random
 import string
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Optional
 
 
 def package_version() -> str:

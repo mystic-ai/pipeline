@@ -106,9 +106,9 @@ def _get_pipeline(args: Namespace) -> None:
         params=dict(**params, **pagination.dict()),
     ).json()
 
-    pipelines_: Paginated[pipelines_schema.PipelineGet] = Paginated[
-        pipelines_schema.PipelineGet
-    ].parse_obj(paginated_raw_pipelines)
+    # pipelines_: Paginated[pipelines_schema.PipelineGet] = Paginated[
+    #     pipelines_schema.PipelineGet
+    # ].parse_obj(paginated_raw_pipelines)
 
     pipelines = [
         [
