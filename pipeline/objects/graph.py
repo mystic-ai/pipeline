@@ -15,7 +15,7 @@ from pipeline.cloud.schemas.runs import RunIOType
 from pipeline.exceptions import RunInputException
 from pipeline.objects.function import Function
 from pipeline.objects.model import Model
-from pipeline.util import dump_object, generate_id
+from pipeline.util import dump_object, generate_id, is_valid_url
 
 
 class InputSchema:
@@ -404,16 +404,21 @@ class Variable:
 
 
 class File(Variable):
-    path: Path | None
-    url: ParseResult | None
+    path: Path | ParseResult | None
     remote_id: str | None
+
+    def _parse_path(self):
+        if not getattr(self, "path") or self.path is None:
+            return None
+        if is_valid_url(str(self.path)):
+            return urlparse(str(self.path))
+        return Path(self.path)
 
     def __init__(
         self,
         *,
         path: str | Path | None = None,
         remote_id: str | None = None,
-        url: str | None = None,
         title: str | None = None,
         allow_out_of_context_creation: bool = True,
         local_id: str | None = None,
@@ -427,13 +432,8 @@ class File(Variable):
             allow_out_of_context_creation=allow_out_of_context_creation,
         )
 
-        self.path = (
-            path
-            if isinstance(path, Path)
-            else (Path(path) if path is not None else None)
-        )
+        self.path = self._parse_path()
         self.remote_id: str | None = remote_id
-        self.url = urlparse(url) if url is not None else None
 
     @classmethod
     def from_object(
@@ -454,19 +454,25 @@ class File(Variable):
             allow_out_of_context_creation=allow_out_of_context_creation,
         )
 
-    def save(self, path: str | Path) -> None:
-        if self.path is None and self.url is None:
-            raise Exception("Path and URL are None")
+    def is_path_url(self) -> bool:
+        return self.path is not None and is_valid_url(str(self.path))
 
-        if isinstance(path, str):
+    def save(self, path: str | Path) -> None:
+        if self.path is None:
+            raise Exception("File must have a path before saving")
+
+        if isinstance(path, str) and not self.is_path_url():
             path = Path(path)
 
-        if self.path is not None and self.path.is_dir():
-            raise Exception("Path is a directory")
+        if self.path is not None and not self.is_path_url():
+            path = Path(str(self.path))
+            if path.is_dir():
+                raise Exception("Path is a directory")
 
-        if self.url is not None:
+        if self.path is not None and self.is_path_url():
             with path.open("wb") as f:
-                with httpx.stream("GET", self.url.geturl()) as response:
+                parsed_url = urlparse(str(self.path))
+                with httpx.stream("GET", parsed_url.geturl()) as response:
                     total = int(response.headers["Content-Length"])
 
                     with tqdm(

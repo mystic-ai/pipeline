@@ -15,6 +15,7 @@ from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputSchema
+from pipeline.util import is_valid_url
 
 logger = logging.getLogger("uvicorn")
 
@@ -78,29 +79,30 @@ class Manager:
         *,
         use_tmp: bool = False,
     ) -> None:
-        local_host_dir = "/tmp" if use_tmp else "/cache"
+        local_host_dir = "/tmp"
+        if not hasattr(file, "path") or file.path is None:
+            raise Exception("No file path provide. File must have a path property.")
 
-        if hasattr(file, "url") and file.url is not None:
-            cache_name = hashlib.md5(file.url.geturl().encode()).hexdigest()
+        if is_valid_url(str(file.path)):
+            cache_name = hashlib.md5(file.path.geturl().encode()).hexdigest()
 
-            file_name = file.url.geturl().split("/")[-1]
+            file_name = file.path.geturl().split("/")[-1]
             local_path = f"{local_host_dir}/{cache_name}/{file_name}"
             file_path = Path(local_path)
             file_path.parent.mkdir(parents=True, exist_ok=True)
 
-            request.urlretrieve(file.url.geturl(), local_path)
+            request.urlretrieve(file.path.geturl(), local_path)
+
         elif file.remote_id is not None or file.path is not None:
-            raise NotImplementedError("Remote ID not implemented yet")
             cache_name = (
                 file.remote_id
                 if file.remote_id
                 else hashlib.md5(str(file.path).encode()).hexdigest()
             )
-            file_name = file.path.name
-            local_path = f"{local_host_dir}/{cache_name}/{file_name}"
+            file_name = file.path
+            local_path = f"{file_name}"
             file_path = Path(local_path)
             file_path.parent.mkdir(parents=True, exist_ok=True)
-            self._progress_download(str(file.path), local_path)
         else:
             raise Exception("File not found, must pass in URL, Path, or Remote ID.")
 
@@ -134,9 +136,9 @@ class Manager:
         variable: File | Directory | None = None
 
         if is_directory:
-            variable = Directory(path=path, url=url)
+            variable = Directory(path=path)
         else:
-            variable = File(path=path, url=url)
+            variable = File(path=path)
 
         self._resolve_file_variable_to_local(variable, use_tmp=use_tmp)
         return variable

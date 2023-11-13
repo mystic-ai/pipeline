@@ -12,4 +12,4 @@ runtime:
 accelerators:
   - cpu
 pipeline_graph: "my_pipeline:pipeline_graph"
-pipeline_name: plutopulp/multi-input-3:latest
+pipeline_name: plutopulp/file-size-pipeline:latest

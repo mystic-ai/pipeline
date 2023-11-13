@@ -4,6 +4,7 @@ import io
 import random
 import string
 from typing import Any, Callable, List, Optional, Union
+from urllib.parse import urlparse
 
 from cloudpickle import dumps, register_pickle_by_value
 from dill import loads
@@ -77,3 +78,11 @@ class CallbackBytesIO(io.BytesIO):
         data = super().read(size)
         self._callback(len(data))
         return data
+
+
+def is_valid_url(url: str) -> bool:
+    try:
+        result = urlparse(url)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
