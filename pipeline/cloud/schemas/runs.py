@@ -10,6 +10,7 @@ from pipeline.cloud.schemas import BaseModel
 class RunState(str, Enum):
     created = "created"
     routing = "routing"
+    queued = "queued"
     running = "running"
     completed = "completed"
     failed = "failed"
