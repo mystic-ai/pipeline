@@ -4,7 +4,6 @@ import logging
 import os
 import typing as t
 import urllib.parse
-import zipfile
 from pathlib import Path
 from types import NoneType, UnionType
 from urllib import request
@@ -78,7 +77,7 @@ class Manager:
         *,
         use_tmp: bool = False,
     ) -> None:
-        local_host_dir = "/tmp" if use_tmp else "/cache"
+        local_host_dir = "/tmp"
 
         if hasattr(file, "url") and file.url is not None:
             cache_name = hashlib.md5(file.url.geturl().encode()).hexdigest()
@@ -90,26 +89,19 @@ class Manager:
 
             request.urlretrieve(file.url.geturl(), local_path)
         elif file.remote_id is not None or file.path is not None:
-            raise NotImplementedError("Remote ID not implemented yet")
-            cache_name = (
-                file.remote_id
-                if file.remote_id
-                else hashlib.md5(str(file.path).encode()).hexdigest()
-            )
-            file_name = file.path.name
-            local_path = f"{local_host_dir}/{cache_name}/{file_name}"
-            file_path = Path(local_path)
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            self._progress_download(str(file.path), local_path)
+            local_path = Path(file.path)
+            local_path.parent.mkdir(parents=True, exist_ok=True)
         else:
             raise Exception("File not found, must pass in URL, Path, or Remote ID.")
 
         if isinstance(file, Directory):
-            file.path = Path(f"{local_host_dir}/{cache_name}_dir")
+            raise NotImplementedError("Remote ID not implemented yet")
 
-            with zipfile.ZipFile(local_path, "r") as zip_ref:
-                zip_ref.extractall(str(file.path))
-            return
+            # file.path = Path(f"{local_host_dir}/{cache_name}_dir")
+
+            # with zipfile.ZipFile(local_path, "r") as zip_ref:
+            #     zip_ref.extractall(str(file.path))
+            # return
 
         file.path = Path(local_path)
 
