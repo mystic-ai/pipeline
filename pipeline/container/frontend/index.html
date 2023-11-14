@@ -1061,9 +1061,13 @@
         const array = [];
         for (const item of dynamicFields) {
           if (item.dicts && item.dicts.length) {
+            console.log("ITEM", item.dicts);
             const newObj = {};
-            for (const key in item.dicts) {
-              newObj[item.dicts[key].label] = item.dicts[key].defaultValue;
+            for (const key of item.dicts) {
+              if (item.subType === "file") {
+                const fileData = await handlePostFile(item.defaultValue);
+                console.log("fileData >> ", fileData);
+              }
             }
             array.push({
               type: item.subType,
@@ -1077,6 +1081,7 @@
               array[array.length - 1].file_path = fileData.path;
             }
           }
+          console.log("INPUT DATA >> ", array);
         }
 
         return array;
@@ -1085,7 +1090,6 @@
       function App() {
         const [dynamicFields, setDynamicFields] = React.useState([]);
         const [isLoading, setIsLoading] = React.useState(false);
-        const [inputData, setInputData] = React.useState([]);
         const [pipeline, setPipeline] = React.useState(null);
         const [outputData, setOutputData] = React.useState(null);
         const [outputErrorData, setErrorOutputData] = React.useState(null);
@@ -1295,28 +1299,31 @@
 
           // Set loading
           setIsLoading(true);
+          generateInputDataArrayFromDynamicFields(dynamicFields).then(
+            (inputData) => {
+              // Reset outputs
+              setOutputData(null);
+              setErrorOutputData(null);
 
-          // Reset outputs
-          setOutputData(null);
-          setErrorOutputData(null);
+              fetch(`${host}/v4/runs`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
 
-          fetch(`${host}/v4/runs`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-
-            body: JSON.stringify({ inputs: await inputData }),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.error !== null) {
-                setErrorOutputData(data);
-              } else {
-                setOutputData(data.outputs);
-                // setOutputData(mockOutputIOVariables);
-              }
-              setIsLoading(false);
-            })
-            .catch((err) => console.log(err));
+                body: JSON.stringify({ inputs: inputData }),
+              })
+                .then((res) => res.json())
+                .then((data) => {
+                  if (data.error !== null) {
+                    setErrorOutputData(data);
+                  } else {
+                    setOutputData(data.outputs);
+                    // setOutputData(mockOutputIOVariables);
+                  }
+                  setIsLoading(false);
+                })
+                .catch((err) => console.log(err));
+            }
+          );
         }
 
         // GET pipeline
@@ -1336,14 +1343,6 @@
             })
             .catch((err) => console.log(err));
         }, []);
-
-        // Watch for input changes
-        React.useEffect(() => {
-          setInputData(
-            async () =>
-              await generateInputDataArrayFromDynamicFields(dynamicFields)
-          );
-        }, [dynamicFields]);
 
         return (
           <div className="flex flex-col pb-12">
