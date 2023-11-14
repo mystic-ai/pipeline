@@ -1098,7 +1098,7 @@
         const [outputErrorData, setErrorOutputData] = React.useState(null);
 
         // Build child (dict) input data object
-        async function handleNonParentedField(fieldId, newValue) {
+        function handleNonParentedField(fieldId, newValue) {
           const field = dynamicFields.find(
             (item) => item.fieldName === fieldId
           );
@@ -1297,7 +1297,7 @@
         }
 
         // POST data
-        async function handleSubmit(e) {
+        function handleSubmit(e) {
           e.preventDefault();
 
           // Set loading
