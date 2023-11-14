@@ -862,7 +862,7 @@
                     step={!isNullOrUndefined(step) ? step : undefined}
                     defaultValue={defaultValue}
                     onChange={(e) => {
-                      handleChange(id, e.target.value, parentId);
+                      handleChange(id, Number(e.target.value), parentId);
                       setValue(Number(e.target.value));
                     }}
                   />
@@ -882,12 +882,34 @@
                 bool
               </DynamicControlLabel>
 
-              <div class="flex">
+              <div className="flex">
                 <input
                   type="checkbox"
                   id={id}
                   onChange={(e) => handleChange(id, e.target.checked, parentId)}
                   defaultValue={defaultValue}
+                />
+              </div>
+            </div>
+          );
+        }
+        // File upload for file and pkl types
+        if (fileRunIOTypes.includes(subType)) {
+          // 250 MB limit
+          const fileSizeLimit = 250 * 1024 * 1024;
+
+          return (
+            <div className="flex flex-col gap-1.5">
+              <DynamicControlLabel id={id} label={fieldName}>
+                {inputType}
+              </DynamicControlLabel>
+              <div className="flex">
+                <input
+                  type="file"
+                  id={id}
+                  onChange={(e) =>
+                    handleChange(id, e.target.files[0], parentId)
+                  }
                 />
               </div>
             </div>
@@ -1022,24 +1044,48 @@
           );
         });
       }
+      async function handlePostFile(file) {
+        const formData = new FormData();
+        formData.append("pfile", file);
+        const fileData = await fetch(`${host}/v4/files`, {
+          method: "POST",
+          headers: {
+            Accept: "/*",
+          },
+          body: formData,
+        }).then((res) => res.json());
+        return fileData;
+      }
 
-      function generateInputDataArrayFromDynamicFields(dynamicFields) {
+      async function generateInputDataArrayFromDynamicFields(dynamicFields) {
         const array = [];
-        dynamicFields.forEach((item) => {
+        for (const item of dynamicFields) {
           if (item.dicts && item.dicts.length) {
             const newObj = {};
-            for (const key in item.dicts) {
-              newObj[item.dicts[key].label] = item.dicts[key].defaultValue;
+            for (const dict of item.dicts) {
+              newObj[dict.label] = dict.defaultValue;
+              if (dict.subType === "file") {
+                const fileData = await handlePostFile(dict.defaultValue);
+                newObj[dict.label] = {
+                  type: "file",
+                  value: null,
+                  file_path: fileData.path,
+                };
+              }
             }
-
             array.push({
               type: item.subType,
               value: newObj,
             });
           } else {
             array.push({ type: item.subType, value: item.defaultValue });
+            if (item.subType === "file") {
+              const fileData = await handlePostFile(item.defaultValue);
+              array[array.length - 1].value = null;
+              array[array.length - 1].file_path = fileData.path;
+            }
           }
-        });
+        }
 
         return array;
       }
@@ -1047,7 +1093,6 @@
       function App() {
         const [dynamicFields, setDynamicFields] = React.useState([]);
         const [isLoading, setIsLoading] = React.useState(false);
-        const [inputData, setInputData] = React.useState([]);
         const [pipeline, setPipeline] = React.useState(null);
         const [outputData, setOutputData] = React.useState(null);
         const [outputErrorData, setErrorOutputData] = React.useState(null);
@@ -1066,6 +1111,7 @@
             ...field,
             defaultValue: newValue,
           };
+
           newDynamicFields[fieldIndex] = newField;
 
           setDynamicFields(newDynamicFields);
@@ -1256,28 +1302,31 @@
 
           // Set loading
           setIsLoading(true);
+          generateInputDataArrayFromDynamicFields(dynamicFields).then(
+            (inputData) => {
+              // Reset outputs
+              setOutputData(null);
+              setErrorOutputData(null);
 
-          // Reset outputs
-          setOutputData(null);
-          setErrorOutputData(null);
+              fetch(`${host}/v4/runs`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
 
-          fetch(`${host}/v4/runs`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-
-            body: JSON.stringify({ inputs: inputData }),
-          })
-            .then((res) => res.json())
-            .then((data) => {
-              if (data.error !== null) {
-                setErrorOutputData(data);
-              } else {
-                setOutputData(data.outputs);
-                // setOutputData(mockOutputIOVariables);
-              }
-              setIsLoading(false);
-            })
-            .catch((err) => console.log(err));
+                body: JSON.stringify({ inputs: inputData }),
+              })
+                .then((res) => res.json())
+                .then((data) => {
+                  if (data.error !== null) {
+                    setErrorOutputData(data);
+                  } else {
+                    setOutputData(data.outputs);
+                    // setOutputData(mockOutputIOVariables);
+                  }
+                  setIsLoading(false);
+                })
+                .catch((err) => console.log(err));
+            }
+          );
         }
 
         // GET pipeline
@@ -1297,11 +1346,6 @@
             })
             .catch((err) => console.log(err));
         }, []);
-
-        // Watch for input changes
-        React.useEffect(() => {
-          setInputData(generateInputDataArrayFromDynamicFields(dynamicFields));
-        }, [dynamicFields]);
 
         return (
           <div className="flex flex-col pb-12">
