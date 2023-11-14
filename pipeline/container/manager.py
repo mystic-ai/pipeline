@@ -182,13 +182,10 @@ class Manager:
                         var_type = value
 
                     if var_type == File:
-                        io_schema = run_schemas.RunInput.parse_obj(user_input)
-                        if io_schema.value[key] is None:
+                        if user_input.get(key) is None:
                             continue
+                        file_schema = run_schemas.RunInput.parse_obj(user_input[key])
 
-                        file_schema = run_schemas.RunInput.parse_obj(
-                            io_schema.value[key]
-                        )
                         variable = self._create_file_variable(
                             path_or_url=file_schema.file_path,
                             use_tmp=True,
