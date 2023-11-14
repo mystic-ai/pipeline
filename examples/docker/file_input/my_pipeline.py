@@ -11,8 +11,9 @@ class FileSchema(InputSchema):
 @pipe
 def get_file_size(my_file: File, file_schema: FileSchema) -> int:
     file_size = os.path.getsize(my_file.path)
-    if file_schema.file_1 is not None:
-        return file_size + os.path.getsize(file_schema.file_1.path)
+    if file_schema.file_1 is None:
+        return file_size
+    return file_size + os.path.getsize(file_schema.file_1.path)
 
 
 with Pipeline() as builder:
