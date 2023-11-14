@@ -1061,13 +1061,11 @@
         const array = [];
         for (const item of dynamicFields) {
           if (item.dicts && item.dicts.length) {
-            console.log("ITEM >> ", item.dicts);
             const newObj = {};
             for (const dict of item.dicts) {
               newObj[dict.label] = dict.defaultValue;
               if (dict.subType === "file") {
                 const fileData = await handlePostFile(dict.defaultValue);
-                console.log("fileData >> ", fileData);
                 newObj[dict.label] = {
                   type: "file",
                   value: null,
@@ -1087,7 +1085,6 @@
               array[array.length - 1].file_path = fileData.path;
             }
           }
-          console.log("INPUT DATA >> ", array);
         }
 
         return array;
