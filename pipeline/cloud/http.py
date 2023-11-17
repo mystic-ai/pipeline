@@ -221,15 +221,3 @@ def post_files(
         )
 
     return response
-
-
-def stream_post(
-    endpoint: str,
-    json_data: dict = None,
-) -> t.Iterator[httpx.Response]:
-    client = _get_client()
-    return client.stream(
-        "POST",
-        endpoint,
-        json=json_data,
-    )
