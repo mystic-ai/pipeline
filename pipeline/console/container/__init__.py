@@ -66,13 +66,16 @@ def _up_container(namespace: Namespace):
         },
     )
     volumes: list | None = None
+
+    port = int(getattr(namespace, "port", "14300"))
+
     run_command = [
         "uvicorn",
         "pipeline.container.startup:create_app",
         "--host",
         "0.0.0.0",
         "--port",
-        "14300",
+        str(port),
         "--factory",
     ]
 
@@ -128,7 +131,7 @@ def _up_container(namespace: Namespace):
     # Stop container on python exit
     container = docker_client.containers.run(
         pipeline_name,
-        ports={"14300/tcp": 14300},
+        ports={f"{port}/tcp": int(port)},
         stderr=True,
         stdout=True,
         log_config=lc,
@@ -144,7 +147,7 @@ def _up_container(namespace: Namespace):
     )
 
     _print(
-        "Container started on port 14300, view the live docs: http://localhost:14300/redoc",  # noqa
+        f"Container started on port {port}.\n\n\t\tView the live docs:\n\n\t\t\t http://localhost:{port}/redoc\n\n\t\tor live play:\n\n\t\t\t http://localhost:{port}/play\n",  # noqa
         "SUCCESS",
     )
 
@@ -359,8 +362,6 @@ def _push_container(namespace: Namespace):
 
                 sys.stdout.write(print_string)
                 sys.stdout.flush()
-
-            # print(line)
 
     new_deployment_request = http.post(
         endpoint="/v4/pipelines",
