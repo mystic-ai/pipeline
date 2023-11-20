@@ -136,6 +136,7 @@ class InputField:
         min_length: int | None = None,
         max_length: int | None = None,
         choices: list[Any] | None = None,
+        optional: bool | None = False,
     ):
         self.default = default
         self.title = title
@@ -152,6 +153,7 @@ class InputField:
         self.min_length = min_length
         self.max_length = max_length
         self.choices = choices
+        self.optional = optional
 
         if default is not None:
             try:
@@ -179,6 +181,7 @@ class InputField:
             max_length=self.max_length,
             choices=self.choices,
             default=self.default,
+            optional=self.optional,
         )
 
     @classmethod
@@ -199,6 +202,7 @@ class InputField:
             max_length=schema.max_length,
             choices=schema.choices,
             title=schema.title,
+            optional=schema.optional,
         )
 
     def validate(self, value: Any):

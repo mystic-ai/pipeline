@@ -20,7 +20,6 @@
 
     <script type="text/babel" data-presets="env,react">
       const fileRunIOTypes = ["pkl", "file"];
-      const host = "http://localhost:14300";
 
       // => boolean
       const isObject = (value) => {
@@ -1047,7 +1046,7 @@
       async function handlePostFile(file) {
         const formData = new FormData();
         formData.append("pfile", file);
-        const fileData = await fetch(`${host}/v4/files`, {
+        const fileData = await fetch(`/v4/files`, {
           method: "POST",
           headers: {
             Accept: "/*",
@@ -1308,7 +1307,7 @@
               setOutputData(null);
               setErrorOutputData(null);
 
-              fetch(`${host}/v4/runs`, {
+              fetch(`/v4/runs`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
 
@@ -1331,7 +1330,7 @@
 
         // GET pipeline
         React.useEffect(() => {
-          fetch(`${host}/v4/container/pipeline`)
+          fetch(`/v4/container/pipeline`)
             .then((res) => res.json())
             .then((data) => {
               setPipeline(data);
