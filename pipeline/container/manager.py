@@ -2,6 +2,7 @@ import hashlib
 import importlib
 import logging
 import os
+import traceback
 import typing as t
 import urllib.parse
 from pathlib import Path
@@ -12,6 +13,7 @@ import validators
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
+from pipeline.exceptions import RunnableError
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputSchema
 
@@ -62,14 +64,14 @@ class Manager:
         self.pipeline_state = pipeline_schemas.PipelineState.loading
         try:
             self.pipeline._startup()
-        except Exception as e:
-            logger.exception(e)
+        except Exception:
+            tb = traceback.format_exc()
+            logger.exception("Exception raised during pipeline execution")
             self.pipeline_state = pipeline_schemas.PipelineState.failed
-            self.pipeline_state_message = str(e)
-            raise e
-
-        self.pipeline_state = pipeline_schemas.PipelineState.loaded
-        logger.info("Pipeline started successfully")
+            self.pipeline_state_message = tb
+        else:
+            self.pipeline_state = pipeline_schemas.PipelineState.loaded
+            logger.info("Pipeline started successfully")
 
     def _resolve_file_variable_to_local(
         self,
@@ -197,4 +199,8 @@ class Manager:
 
     def run(self, input_data: t.List[run_schemas.RunInput] | None) -> t.Any:
         args = self._parse_inputs(input_data, self.pipeline)
-        return self.pipeline.run(*args)
+        try:
+            result = self.pipeline.run(*args)
+        except Exception as exc:
+            raise RunnableError(exception=exc, traceback=traceback.format_exc())
+        return result
