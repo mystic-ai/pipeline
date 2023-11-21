@@ -201,7 +201,7 @@ class RunInput(BaseModel):
     file_url: t.Optional[str]
 
 
-class ContainerRunError(str, Enum):
+class ContainerRunErrorType(str, Enum):
     input_error = "input_error"
     cuda_oom = "cuda_oom"
     cuda_error = "cuda_error"
@@ -212,6 +212,12 @@ class ContainerRunError(str, Enum):
     unknown = "unknown"
 
 
+class ContainerRunError(BaseModel):
+    type: ContainerRunErrorType
+    message: str
+    traceback: t.Optional[str]
+
+
 class ContainerRunCreate(BaseModel):
     inputs: t.List[RunInput]
 
@@ -219,8 +225,6 @@ class ContainerRunCreate(BaseModel):
 class ContainerRunResult(BaseModel):
     outputs: t.Optional[t.List[RunOutput]]
     error: t.Optional[ContainerRunError]
-    error_message: t.Optional[str]
-    error_traceback: t.Optional[str]
 
     def outputs_formatted(self) -> t.List[t.Any]:
         # return [output.value for output in self.outputs]

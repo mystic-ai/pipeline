@@ -38,17 +38,21 @@ async def run(
         logger.info("Pipeline loading")
         return run_schemas.ContainerRunResult(
             outputs=None,
-            error=run_schemas.ContainerRunError.pipeline_loading,
-            error_message="Pipeline is still loading",
+            error=run_schemas.ContainerRunError(
+                type=run_schemas.ContainerRunErrorType.pipeline_loading,
+                message="Pipeline is still loading",
+            ),
         )
 
     if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
         logger.info("Pipeline failed to load")
         return run_schemas.ContainerRunResult(
             outputs=None,
-            error=run_schemas.ContainerRunError.startup_error,
-            error_message="Pipeline failed to load",
-            error_traceback=manager.pipeline_state_message,
+            error=run_schemas.ContainerRunError(
+                type=run_schemas.ContainerRunErrorType.startup_error,
+                message="Pipeline failed to load",
+                traceback=manager.pipeline_state_message,
+            ),
         )
 
     execution_queue: asyncio.Queue = request.app.state.execution_queue
@@ -60,23 +64,29 @@ async def run(
         response.status_code = 400
         response_schema = run_schemas.ContainerRunResult(
             outputs=None,
-            error=run_schemas.ContainerRunError.input_error,
-            error_message=run_output.message,
+            error=run_schemas.ContainerRunError(
+                type=run_schemas.ContainerRunErrorType.input_error,
+                message=run_output.message,
+            ),
         )
     elif isinstance(run_output, RunnableError):
         # response.status_code = 200
         response_schema = run_schemas.ContainerRunResult(
             outputs=None,
-            error=run_schemas.ContainerRunError.pipeline_error,
-            error_message=repr(run_output.exception),
-            error_traceback=run_output.traceback,
+            error=run_schemas.ContainerRunError(
+                type=run_schemas.ContainerRunErrorType.pipeline_error,
+                message=repr(run_output.exception),
+                traceback=run_output.traceback,
+            ),
         )
     elif isinstance(run_output, Exception):
         response.status_code = 500
         response_schema = run_schemas.ContainerRunResult(
             outputs=None,
-            error=run_schemas.ContainerRunError.unknown,
-            error_message=str(run_output),
+            error=run_schemas.ContainerRunError(
+                type=run_schemas.ContainerRunErrorType.unknown,
+                message=str(run_output),
+            ),
         )
     else:
         outputs = [
@@ -90,7 +100,6 @@ async def run(
         response_schema = run_schemas.ContainerRunResult(
             outputs=outputs,
             error=None,
-            error_message=None,
         )
 
     return response_schema
