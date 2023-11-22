@@ -159,7 +159,7 @@ class RunIOType(str, Enum):
 class RunOutputFile(BaseModel):
     name: str
     path: str
-    url: str
+    url: t.Optional[str]
     size: int
 
 

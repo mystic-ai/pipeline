@@ -3,7 +3,7 @@ FROM python:{python_version}-slim
 WORKDIR /app
 
 RUN apt update -y
-RUN pip install -U pip
+RUN pip install -U pip setuptools wheel
 
 # Install serving packages
 RUN pip install -U fastapi==0.103.2 uvicorn==0.15.0 \
