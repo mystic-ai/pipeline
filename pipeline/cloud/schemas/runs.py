@@ -250,7 +250,7 @@ class ClusterRunResult(ContainerRunResult):
 
     pipeline_id: str
 
-    state = RunState
+    state: RunState
 
     class Config:
         orm_mode = True
