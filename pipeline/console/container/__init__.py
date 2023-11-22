@@ -289,91 +289,110 @@ def _push_container(namespace: Namespace):
 
     upload_registry = registry_info.url
 
+    if upload_registry is None:
+        raise ValueError("No upload registry found")
+
+    image_hash = docker_client.images.get(pipeline_name).id.split(":")[1]
+
+    hash_tag = image_hash[:12]
+    image_to_push = pipeline_name + ":" + hash_tag
+    image_to_push_reg = upload_registry + "/" + image_to_push
+
+    upload_token = None
     if registry_info.special_auth:
-        raise NotImplementedError()
-    else:
-        image_hash = docker_client.images.get(pipeline_name).id.split(":")[1]
+        start_upload_response = http.post(
+            endpoint="/v4/registry/start-upload",
+            json_data={
+                "pipeline_name": pipeline_name,
+                "pipeline_tag": None,
+            },
+        )
+        start_upload_dict = start_upload_response.json()
+        upload_token = start_upload_dict.get("bearer", None)
 
-        hash_tag = image_hash[:12]
-        image_to_push = pipeline_name + ":" + hash_tag
-        image_to_push_reg = upload_registry + "/" + image_to_push
+        if upload_token is None:
+            raise ValueError("No upload token found")
 
-        if upload_registry is None:
-            _print("No upload registry found, not doing anything...", "WARNING")
-        else:
-            _print(f"Pushing image to upload registry {upload_registry}", "INFO")
+        # Login to upload registry
+        docker_client.login(
+            username="pipeline",
+            password=upload_token,
+            registry="http://" + upload_registry,
+        )
 
-            docker_client.images.get(pipeline_name).tag(image_to_push_reg)
+    _print(f"Pushing image to upload registry {upload_registry}", "INFO")
 
-            resp = docker_client.images.push(
-                image_to_push_reg,
-                stream=True,
-                decode=True,
+    docker_client.images.get(pipeline_name).tag(image_to_push_reg)
+
+    resp = docker_client.images.push(
+        image_to_push_reg,
+        stream=True,
+        decode=True,
+        auth_config=dict(username="pipeline", password=upload_token)
+        if upload_token
+        else None,
+    )
+
+    all_ids = []
+
+    current_index = 0
+
+    for line in resp:
+        if "error" in line:
+            raise ValueError(line["error"])
+        elif "status" in line:
+            if "id" not in line or line["status"] != "Pushing":
+                continue
+
+            if "id" in line and line["id"] not in all_ids:
+                all_ids.append(line["id"])
+                print("Adding")
+
+            index_difference = all_ids.index(line["id"]) - current_index
+
+            print_string = (
+                line["id"] + " " + line["progress"].replace("\n", "").replace("\r", "")
             )
 
-            all_ids = []
+            if index_difference > 0:
+                print_string += "\n" * index_difference + "\r"
+                # print("up")
+            elif index_difference < 0:
+                print_string += "\033[A" * abs(index_difference) + "\r"
+                # print("down")
+            else:
+                print_string += "\r"
+                # print("same")
+            current_index = all_ids.index(line["id"])
 
-            current_index = 0
+            sys.stdout.write(print_string)
+            sys.stdout.flush()
 
-            for line in resp:
-                if "error" in line:
-                    raise ValueError(line["error"])
-                elif "status" in line:
-                    if "id" not in line or line["status"] != "Pushing":
-                        continue
+    new_deployment_request = http.post(
+        endpoint="/v4/pipelines",
+        json_data=json.loads(
+            pipelines_schemas.PipelineCreate(
+                name=pipeline_name,
+                image=image_to_push_reg,
+                input_variables=[],
+                output_variables=[],
+                minimum_cache_number=None,
+                maximum_cache_number=None,
+                gpu_memory_min=pipeline_config.accelerator_memory,
+                accelerators=pipeline_config.accelerators,
+                extras={},
+            ).json()
+        ),
+    )
 
-                    if "id" in line and line["id"] not in all_ids:
-                        all_ids.append(line["id"])
-                        print("Adding")
+    new_deployment = pipelines_schemas.PipelineGet.parse_obj(
+        new_deployment_request.json()
+    )
 
-                    index_difference = all_ids.index(line["id"]) - current_index
-                    # print(index_difference)
-
-                    print_string = (
-                        line["id"]
-                        + " "
-                        + line["progress"].replace("\n", "").replace("\r", "")
-                    )
-
-                    if index_difference > 0:
-                        print_string += "\n" * index_difference + "\r"
-                        # print("up")
-                    elif index_difference < 0:
-                        print_string += "\033[A" * abs(index_difference) + "\r"
-                        # print("down")
-                    else:
-                        print_string += "\r"
-                        # print("same")
-                    current_index = all_ids.index(line["id"])
-
-                    sys.stdout.write(print_string)
-                    sys.stdout.flush()
-
-        new_deployment_request = http.post(
-            endpoint="/v4/pipelines",
-            json_data=json.loads(
-                pipelines_schemas.PipelineCreate(
-                    name=pipeline_name,
-                    image=image_to_push_reg,
-                    input_variables=[],
-                    output_variables=[],
-                    minimum_cache_number=None,
-                    maximum_cache_number=None,
-                    gpu_memory_min=pipeline_config.accelerator_memory,
-                    accelerators=pipeline_config.accelerators,
-                    extras={},
-                ).json()
-            ),
-        )
-
-        new_deployment = pipelines_schemas.PipelineGet.parse_obj(
-            new_deployment_request.json()
-        )
-
-        _print(
-            f"Created new pipeline deployment for {new_deployment.name} -> {new_deployment.id} (image={new_deployment.image})",  # noqa
-            "SUCCESS",
-        )
+    _print(
+        f"Created new pipeline deployment for {new_deployment.name} -> {new_deployment.id} (image={new_deployment.image})",  # noqa
+        "SUCCESS",
+    )
 
 
 def _init_dir(namespace: Namespace) -> None:
