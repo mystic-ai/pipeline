@@ -269,5 +269,6 @@ class RunStateTransitions(BaseModel):
 
 
 class RunCreate(ContainerRunCreate):
-    pipeline_id_or_pointer: str
+    # pipeline id or pointer
+    pipeline: str
     async_run: bool = False

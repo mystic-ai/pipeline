@@ -9,19 +9,19 @@ from pipeline.util.logging import _print
 
 
 async def run_pipeline(
-    pipeline_id_or_pointer: t.Union[str, int],
+    pipeline: str,
     *data,
     async_run: bool = False,
     return_response: bool = False,
 ) -> t.Union[Run, httpx.Response]:
     run_create_schema = RunCreate(
-        pipeline_id_or_pointer=pipeline_id_or_pointer,
-        input_data=_data_to_run_input(data),
+        pipeline=pipeline,
+        inputs=_data_to_run_input(data),
         async_run=async_run,
     )
 
     res = await http.async_post(
-        "/v3/runs",
+        "/v4/runs",
         json_data=run_create_schema.dict(),
         raise_for_status=False,
     )
