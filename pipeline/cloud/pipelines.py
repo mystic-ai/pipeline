@@ -119,11 +119,11 @@ def _run_pipeline(run_create_schema: RunCreate):
 
 
 def run_pipeline(
-    pipeline_id_or_pointer: str,
+    pipeline: str,
     *data,
 ):
     run_create_schema = RunCreate(
-        pipeline_id_or_pointer=pipeline_id_or_pointer,
+        pipeline=pipeline,
         inputs=_data_to_run_input(data),
         async_run=False,
     )

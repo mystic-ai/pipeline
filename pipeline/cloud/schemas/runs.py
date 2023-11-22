@@ -227,11 +227,10 @@ class ContainerRunResult(BaseModel):
     error: t.Optional[ContainerRunError]
 
     def outputs_formatted(self) -> t.List[t.Any]:
-        # return [output.value for output in self.outputs]
+        outputs = self.outputs or []
         output_array = []
-        for output in self.outputs:
+        for output in outputs:
             if output.type == RunIOType.file:
-                # output_array.append(output.value)
                 from pipeline.objects.graph import File
 
                 if output.file is not None and output.file.url is not None:
@@ -251,6 +250,8 @@ class ClusterRunResult(ContainerRunResult):
 
     pipeline_id: str
 
+    state: RunState
+
     class Config:
         orm_mode = True
 
@@ -268,5 +269,6 @@ class RunStateTransitions(BaseModel):
 
 
 class RunCreate(ContainerRunCreate):
-    pipeline_id_or_pointer: str
+    # pipeline id or pointer
+    pipeline: str
     async_run: bool = False
