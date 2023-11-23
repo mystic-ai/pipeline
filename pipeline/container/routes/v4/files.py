@@ -1,8 +1,12 @@
+import asyncio
 import logging
 from pathlib import Path
 from uuid import uuid4
 
+import httpx
 from fastapi import APIRouter, UploadFile, status
+
+from pipeline.cloud.schemas import files as files_schemas
 
 logger = logging.getLogger("uvicorn")
 router = APIRouter(prefix="/files", tags=["Files"])
@@ -29,3 +33,28 @@ async def file_upload(
         f.write(data)
 
     return dict(path=str(pfile_path))
+
+
+@router.post(
+    "/upload-to-storage",
+    status_code=status.HTTP_201_CREATED,
+)
+async def upload_local_file_to_storage(
+    payload: files_schemas.UploadFilesToRemoteStorageCreate,
+):
+    """For list of files in the request, upload the file from local storage to
+    remote storage, using presigned URL.
+    """
+    async with httpx.AsyncClient() as client:
+        await asyncio.gather(
+            *[_upload_file_using_presigned_url(client, file) for file in payload.files]
+        )
+
+
+async def _upload_file_using_presigned_url(
+    client: httpx.AsyncClient,
+    file: files_schemas.UploadFileUsingPresignedUrl,
+):
+    logger.info(f"Uploading {file.local_file_path} to {file.upload_url}")
+    with open(file.local_file_path, "rb") as f:
+        await client.post(file.upload_url, files={"upload-file": f})
