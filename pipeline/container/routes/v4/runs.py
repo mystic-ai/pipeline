@@ -121,6 +121,8 @@ def _parse_run_outputs(run_outputs):
     outputs = []
     for output in run_outputs:
         output_type = run_schemas.RunIOType.from_object(output)
+        print(f"ROSSLOG {output=}")
+        print(f"ROSSLOG {output_type=}")
         if output_type == run_schemas.RunIOType.file:
             file_schema = _save_run_file(output)
             outputs.append(
