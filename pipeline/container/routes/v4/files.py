@@ -57,4 +57,6 @@ async def _upload_file_using_presigned_url(
 ):
     logger.info(f"Uploading {file.local_file_path} to {file.upload_url}")
     with open(file.local_file_path, "rb") as f:
-        await client.post(file.upload_url, files={"upload-file": f})
+        await client.post(
+            file.upload_url, files={"upload-file": f}, data=file.upload_fields
+        )

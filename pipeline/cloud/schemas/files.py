@@ -52,6 +52,7 @@ class MultipartFileUploadFinaliseCreate(BaseModel):
 class UploadFileUsingPresignedUrl(BaseModel):
     local_file_path: str
     upload_url: str
+    upload_fields: dict[str, str]
 
 
 class UploadFilesToRemoteStorageCreate(BaseModel):
