@@ -121,12 +121,34 @@ def _parse_run_outputs(run_outputs):
     outputs = []
     for output in run_outputs:
         output_type = run_schemas.RunIOType.from_object(output)
-        print(f"ROSSLOG {output=}")
-        print(f"ROSSLOG {output_type=}")
+        # if single file
         if output_type == run_schemas.RunIOType.file:
             file_schema = _save_run_file(output)
             outputs.append(
                 run_schemas.RunOutput(type=output_type, value=None, file=file_schema)
+            )
+        # else if list of files
+        elif (
+            output_type == run_schemas.RunIOType.pkl
+            and isinstance(output, list)
+            and all([isinstance(item, (File, io.BufferedIOBase)) for item in output])
+        ):
+            file_list = []
+            for file in output:
+                file_schema = _save_run_file(file)
+                file_list.append(
+                    run_schemas.RunOutput(
+                        type=run_schemas.RunIOType.file,
+                        value=None,
+                        file=file_schema,
+                    )
+                )
+            outputs.append(
+                run_schemas.RunOutput(
+                    type=run_schemas.RunIOType.array,
+                    value=file_list,
+                    file=None,
+                )
             )
         else:
             outputs.append(
