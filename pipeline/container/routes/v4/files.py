@@ -39,11 +39,12 @@ async def file_upload(
     "/upload-to-storage",
     status_code=status.HTTP_201_CREATED,
 )
-async def upload_local_file_to_storage(
+async def upload_local_files_to_storage(
     payload: files_schemas.UploadFilesToRemoteStorageCreate,
 ):
     """For list of files in the request, upload the file from local storage to
-    remote storage, using presigned URL.
+    remote storage, using presigned URL. Files are uploaded in parallel for
+    efficiency.
     """
     async with httpx.AsyncClient() as client:
         await asyncio.gather(
