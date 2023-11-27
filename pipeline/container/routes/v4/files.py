@@ -58,6 +58,10 @@ async def _upload_file_using_presigned_url(
 ):
     logger.info(f"Uploading {file.local_file_path} to {file.upload_url}")
     with open(file.local_file_path, "rb") as f:
-        await client.post(
-            file.upload_url, files={"upload-file": f}, data=file.upload_fields
+        response = await client.post(
+            file.upload_url, files={"file": f}, data=file.upload_fields
         )
+        if response.status_code >= 300:
+            raise Exception(
+                f"Error uploading file using presigned URL: {response.text}"
+            )
