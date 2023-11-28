@@ -219,6 +219,7 @@ class ContainerRunError(BaseModel):
 
 
 class ContainerRunCreate(BaseModel):
+    run_id: t.Optional[str]
     inputs: t.List[RunInput]
 
 

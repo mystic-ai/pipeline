@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 import traceback
 import uuid
@@ -10,18 +9,21 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from loguru import logger
 
+from pipeline.cloud.schemas import runs as run_schemas
+from pipeline.container.logging import redirect_stdout, setup_logging
 from pipeline.container.manager import Manager
 from pipeline.container.routes import router
 from pipeline.container.status import router as status_router
-
-logger = logging.getLogger("uvicorn")
 
 
 def create_app() -> FastAPI:
     app = FastAPI(
         title="pipeline-container",
     )
+
+    setup_logging()
 
     setup_oapi(app)
     setup_middlewares(app)
@@ -92,18 +94,24 @@ def setup_oapi(app: FastAPI) -> None:
 
 
 async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) -> None:
-    await run_in_threadpool(manager.startup)
+    with redirect_stdout():
+        await run_in_threadpool(manager.startup)
 
-    while True:
-        try:
-            args, response_queue = await execution_queue.get()
-
+        while True:
             try:
-                output = await run_in_threadpool(manager.run, input_data=args)
-            except Exception as e:
-                logger.exception("Exception raised during pipeline execution")
-                response_queue.put_nowait(e)
-                continue
-            response_queue.put_nowait(output)
-        except Exception:
-            logger.exception("Got an error in the execution loop handler")
+                args, response_queue = await execution_queue.get()
+                args: run_schemas.ContainerRunCreate
+                input_data = args.inputs
+                run_id = args.run_id
+
+                try:
+                    output = await run_in_threadpool(
+                        manager.run, run_id=run_id, input_data=input_data
+                    )
+                except Exception as e:
+                    logger.exception("Exception raised during pipeline execution")
+                    response_queue.put_nowait(e)
+                    continue
+                response_queue.put_nowait(output)
+            except Exception:
+                logger.exception("Got an error in the execution loop handler")
