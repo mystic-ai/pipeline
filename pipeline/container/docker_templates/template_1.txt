@@ -7,14 +7,12 @@ RUN pip install -U pip setuptools wheel
 
 # Install serving packages
 RUN pip install -U fastapi==0.103.2 uvicorn==0.15.0 \
-    validators==0.22.0 python-multipart==0.0.6
-
+    validators==0.22.0 python-multipart==0.0.6 loguru==0.7.2
 
 # Container commands
 {container_commands}
 
 # Install python dependencies
-
 RUN pip install {python_requirements}
 
 # Copy in files

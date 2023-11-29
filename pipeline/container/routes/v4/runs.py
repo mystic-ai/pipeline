@@ -1,12 +1,12 @@
 import asyncio
 import io
-import logging
 import os
 import shutil
 import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Request, Response
+from loguru import logger
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
@@ -14,7 +14,6 @@ from pipeline.container.manager import Manager
 from pipeline.exceptions import RunInputException, RunnableError
 from pipeline.objects.graph import File
 
-logger = logging.getLogger("uvicorn")
 router = APIRouter(prefix="/runs")
 
 
@@ -39,36 +38,38 @@ async def run(
     request: Request,
     response: Response,
 ):
-    manager: Manager = request.app.state.manager
-    if manager.pipeline_state == pipeline_schemas.PipelineState.loading:
-        logger.info("Pipeline loading")
-        return run_schemas.ContainerRunResult(
-            outputs=None,
-            error=run_schemas.ContainerRunError(
-                type=run_schemas.ContainerRunErrorType.pipeline_loading,
-                message="Pipeline is still loading",
-            ),
-        )
+    run_id = run_create.run_id
+    with logger.contextualize(run_id=run_id):
+        manager: Manager = request.app.state.manager
+        if manager.pipeline_state == pipeline_schemas.PipelineState.loading:
+            logger.info("Pipeline loading")
+            return run_schemas.ContainerRunResult(
+                outputs=None,
+                error=run_schemas.ContainerRunError(
+                    type=run_schemas.ContainerRunErrorType.pipeline_loading,
+                    message="Pipeline is still loading",
+                ),
+            )
 
-    if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
-        logger.info("Pipeline failed to load")
-        return run_schemas.ContainerRunResult(
-            outputs=None,
-            error=run_schemas.ContainerRunError(
-                type=run_schemas.ContainerRunErrorType.startup_error,
-                message="Pipeline failed to load",
-                traceback=manager.pipeline_state_message,
-            ),
-        )
+        if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
+            logger.info("Pipeline failed to load")
+            return run_schemas.ContainerRunResult(
+                outputs=None,
+                error=run_schemas.ContainerRunError(
+                    type=run_schemas.ContainerRunErrorType.startup_error,
+                    message="Pipeline failed to load",
+                    traceback=manager.pipeline_state_message,
+                ),
+            )
 
-    execution_queue: asyncio.Queue = request.app.state.execution_queue
+        execution_queue: asyncio.Queue = request.app.state.execution_queue
 
-    response_queue: asyncio.Queue = asyncio.Queue()
-    execution_queue.put_nowait((run_create.inputs, response_queue))
-    run_output = await response_queue.get()
+        response_queue: asyncio.Queue = asyncio.Queue()
+        execution_queue.put_nowait((run_create, response_queue))
+        run_output = await response_queue.get()
 
-    response_schema, response.status_code = _generate_run_result(run_output)
-    return response_schema
+        response_schema, response.status_code = _generate_run_result(run_output)
+        return response_schema
 
 
 def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, int]:

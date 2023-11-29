@@ -1,6 +1,5 @@
 import hashlib
 import importlib
-import logging
 import os
 import traceback
 import typing as t
@@ -10,14 +9,13 @@ from types import NoneType, UnionType
 from urllib import request
 
 import validators
+from loguru import logger
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
 from pipeline.exceptions import RunnableError
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputSchema
-
-logger = logging.getLogger("uvicorn")
 
 
 class Manager:
@@ -197,10 +195,14 @@ class Manager:
             final_inputs.append(user_input)
         return final_inputs
 
-    def run(self, input_data: t.List[run_schemas.RunInput] | None) -> t.Any:
-        args = self._parse_inputs(input_data, self.pipeline)
-        try:
-            result = self.pipeline.run(*args)
-        except Exception as exc:
-            raise RunnableError(exception=exc, traceback=traceback.format_exc())
-        return result
+    def run(
+        self, run_id: str | None, input_data: t.List[run_schemas.RunInput] | None
+    ) -> t.Any:
+        with logger.contextualize(run_id=run_id):
+            logger.info("Running pipeline")
+            args = self._parse_inputs(input_data, self.pipeline)
+            try:
+                result = self.pipeline.run(*args)
+            except Exception as exc:
+                raise RunnableError(exception=exc, traceback=traceback.format_exc())
+            return result

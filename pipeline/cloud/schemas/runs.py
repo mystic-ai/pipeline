@@ -219,6 +219,8 @@ class ContainerRunError(BaseModel):
 
 
 class ContainerRunCreate(BaseModel):
+    # run_id is optional since it's just used for attaching logs to a run
+    run_id: t.Optional[str]
     inputs: t.List[RunInput]
 
 

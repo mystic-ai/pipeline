@@ -33,6 +33,7 @@ websockets = ">=10.4"
 pip-requirements-parser = "^32.0.1"
 docker = "^6.1.3"
 boto3 = "^1.28.80"
+loguru = "^0.7.2"
 
 [tool.poetry.dev-dependencies]
 pydantic = "^1.8.2"
