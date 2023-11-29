@@ -61,7 +61,7 @@ def json_log_handler(message, file=sys.stderr):
         payload["exception.type"] = repr(ex.type)
         payload["exception.value"] = repr(ex.value)
         payload["exception.traceback"] = traceback.format_tb(ex.traceback)
-    print(json.dumps(payload), file=file)
+    print(json.dumps(payload, default=str, ensure_ascii=False), file=file)
 
 
 def setup_logging():
