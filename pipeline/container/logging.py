@@ -21,7 +21,24 @@ class StreamToLogger:
         pass
 
 
+@contextlib.contextmanager
+def redirect_stdout():
+    """Contextmanager for redirecting stdout to core logger.
+
+    For more info see:
+    https://loguru.readthedocs.io/en/stable/resources/recipes.html#capturing-standard-stdout-stderr-and-warnings
+    """
+    stream = StreamToLogger()
+    with contextlib.redirect_stdout(stream):
+        yield
+
+
 class InterceptHandler(logging.Handler):
+    """
+    Ensure standard logging calls get forwarded to core Loguru logger
+    https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging
+    """
+
     def emit(self, record: logging.LogRecord) -> None:
         # Get corresponding Loguru level if it exists.
         level: str | int
@@ -65,10 +82,19 @@ def json_log_handler(message, file=sys.stderr):
 
 
 def setup_logging():
+    """Setup logging:
+    - Suppress uvicorn logs
+    - Use loguru as default logging library
+    - If USE_JSON_LOGGING is set, write JSON logs (these can then be queried and
+        returned by main API), otherwise use default log format
+    - Use InterceptHandler to forward all logs to loguru
+    """
+    # suppress uvicorn logs
     logging.getLogger("uvicorn").setLevel(logging.CRITICAL)
     logging.getLogger("uvicorn.error").setLevel(logging.CRITICAL)
     logging.getLogger("uvicorn.access").handlers.clear()
     logger.remove()
+    # if
     use_json_logging = os.environ.get("USE_JSON_LOGGING", False)
     if use_json_logging:
         handler = dict(
@@ -82,10 +108,3 @@ def setup_logging():
         )
     logger.configure(handlers=[handler])
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
-
-
-@contextlib.contextmanager
-def redirect_stdout():
-    stream = StreamToLogger()
-    with contextlib.redirect_stdout(stream):
-        yield
