@@ -103,15 +103,15 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
                 args: run_schemas.ContainerRunCreate
                 input_data = args.inputs
                 run_id = args.run_id
-
-                try:
-                    output = await run_in_threadpool(
-                        manager.run, run_id=run_id, input_data=input_data
-                    )
-                except Exception as e:
-                    logger.exception("Exception raised during pipeline execution")
-                    response_queue.put_nowait(e)
-                    continue
-                response_queue.put_nowait(output)
+                with logger.contextualize(run_id=run_id):
+                    try:
+                        output = await run_in_threadpool(
+                            manager.run, run_id=run_id, input_data=input_data
+                        )
+                    except Exception as e:
+                        logger.exception("Exception raised during pipeline execution")
+                        response_queue.put_nowait(e)
+                        continue
+                    response_queue.put_nowait(output)
             except Exception:
                 logger.exception("Got an error in the execution loop handler")
