@@ -1,10 +1,7 @@
-import logging
-
 import pkg_resources
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
-logger = logging.getLogger("uvicorn")
 router = APIRouter(prefix="/play", tags=["play"])
 
 

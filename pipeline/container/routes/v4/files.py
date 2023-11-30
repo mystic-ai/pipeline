@@ -1,14 +1,13 @@
 import asyncio
-import logging
 from pathlib import Path
 from uuid import uuid4
 
 import httpx
 from fastapi import APIRouter, UploadFile, status
+from loguru import logger
 
 from pipeline.cloud.schemas import files as files_schemas
 
-logger = logging.getLogger("uvicorn")
 router = APIRouter(prefix="/files", tags=["Files"])
 
 
