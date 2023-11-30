@@ -404,7 +404,7 @@ class Variable:
             max_length=self.max_length,
             choices=self.choices,
             dict_schema=self.dict_schema,
-            default=self.default,
+            # default=self.default,
         )
 
 
@@ -655,7 +655,7 @@ class Graph:
                     input = float(input)
                 else:
                     raise RunInputException(
-                        "Input type mismatch, expceted %s got %s"
+                        "Input type mismatch, expected %s, got %s"
                         % (
                             input_variables[i].type_class,
                             input.__class__,

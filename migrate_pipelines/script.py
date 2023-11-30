@@ -7,26 +7,28 @@ from boto3.session import Session
 from botocore.client import Config
 from botocore.handlers import set_list_objects_encoding_type_url
 
+from pipeline.console.container import _build_container, _push_container
+
 # Get these from the k8s catalyst secrets of the same name
 ACCESS_KEY = base64.b64decode(os.getenv("AWS_ACCESS_KEY_ID")).decode("utf8")
 SECRET_KEY = base64.b64decode(os.getenv("AWS_SECRET_ACCESS_KEY")).decode("utf8")
 
 PIPELINE_DATA = """
 SELECT pipeline.name, pipeline.path, pipeline.accelerators, pipeline.gpu_memory_min,
-environment.python_requirements, count(*) as run_count
+environment.python_requirements, count(*) as run_count, pipeline.id
 FROM pipeline
 JOIN environment ON pipeline.environment_id = environment.id
 JOIN run ON run.pipeline_id = pipeline.id
 GROUP BY pipeline.name, pipeline.path, pipeline.accelerators, pipeline.gpu_memory_min,
-environment.python_requirements
-ORDER BY run_count DESC
+environment.python_requirements, pipeline.id
+ORDER BY run_count DESC LIMIT 10
 """
 
 YAML_TEMPLATE = """
 runtime:
   container_commands:
     - "apt update -y"
-    - "apt install -y git"
+    - "apt install -y git libgl1-mesa-glx ffmpeg gcc"
   python:
     python_version: "3.10"
     python_requirements:
@@ -36,26 +38,53 @@ accelerators:
 {accelerators}
 accelerator_memory: {vram_req}
 pipeline_graph: "ported_pipeline:ported_pipeline"
-pipeline_name: matthew/port
+pipeline_name: {pipeline_name}
 
 """
 
 
-def parse_csv():
+def parse_pipeline_csv():
     pipelines = []
-    with open("./migrate_pipelines/pipelines.csv") as csvfile:
-        spamreader = csv.reader(csvfile)
+    with open("./old_csvs/pipelines.csv") as csvfile:
+        spamreader = csv.DictReader(csvfile)
         for row in spamreader:
-            pipelines.append(
-                {
-                    "name": row[0],
-                    "path": row[1],
-                    "accelerators": json.loads(row[2]),
-                    "vram_req": row[3],
-                    "env_req": row[4][1:-1].split(","),
-                }
-            )
+            pl = {k: v for k, v in row.items()}
+            pl["accelerators"] = json.loads(pl["accelerators"])
+            pipelines.append(pl)
     return pipelines
+
+
+def parse_environments_csv():
+    environments = {}
+    with open("./old_csvs/environment.csv") as csvfile:
+        spamreader = csv.DictReader(csvfile)
+        for row in spamreader:
+            en = {k: v for k, v in row.items()}
+            environments[en["id"]] = en
+    return environments
+
+
+def parse_meta_csv():
+    pipeline_metas = {}
+    with open("./old_csvs/pipeline_meta.csv") as csvfile:
+        spamreader = csv.reader(csvfile)
+        headers = spamreader.__next__()  # skip header
+        for row in spamreader:
+            pipeline_metas[row[0]] = row
+    return pipeline_metas, headers
+
+
+def parse_pointer_csv():
+    pointers = {}
+    with open("./old_csvs/pointer.csv") as csvfile:
+        spamreader = csv.reader(csvfile)
+        headers = spamreader.__next__()  # skip header
+        for row in spamreader:
+            if row[0] in pointers:
+                pointers[row[0]].append(row)
+            else:
+                pointers[row[0]] = [row]
+    return pointers, headers
 
 
 def get_bucket():
@@ -80,20 +109,62 @@ def download_file(bucket, path, dst):
     bucket.download_file(path, dst)
 
 
-def generate_yaml(env_req, accelerators, vram_req):
+def generate_yaml(name, env_req, accelerators, vram_req):
     yaml_content = YAML_TEMPLATE.format(
         env_req="\n".join(["      - " + env for env in env_req]),
         accelerators="\n".join(["  - " + accelerator for accelerator in accelerators]),
         vram_req=vram_req,
+        pipeline_name=name,
     )
-    with open("./migrate_pipelines/pipeline.yaml", "w") as f:
+    with open("./pipeline.yaml", "w") as f:
         f.write(yaml_content)
 
 
 if __name__ == "__main__":
-    pipelines = parse_csv()
-    bucket = get_bucket()
-    download_file(bucket, pipelines[0]["path"], "./migrate_pipelines/pipeline.graph")
-    generate_yaml(
-        pipelines[0]["env_req"], pipelines[0]["accelerators"], pipelines[0]["vram_req"]
-    )
+    pipelines = parse_pipeline_csv()
+    pipeline_metas, headers = parse_meta_csv()
+    pointers, pointer_headers = parse_pointer_csv()
+    envs = parse_environments_csv()
+
+    with open("./new_csvs/pipeline_meta.csv", "w") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(headers)
+    with open("./new_csvs/pointer.csv", "w") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(pointer_headers)
+
+    for pipeline in pipelines:
+        env = envs[pipeline["environment_id"]]
+        reqs = env["python_requirements"][1:-1].split(
+            ","
+        )  # replace {} with [] for json parsing
+        print(reqs)
+
+        bucket = get_bucket()
+        download_file(bucket, pipeline["path"], "./pipeline.graph")
+        generate_yaml(
+            pipeline["name"].lower(),
+            reqs,
+            pipeline["accelerators"],
+            pipeline["gpu_memory_min"],
+        )
+        _build_container(None)
+        new_id = _push_container(None)
+        print(new_id)
+
+        meta = pipeline_metas[pipeline["id"]]
+        meta[0] = new_id
+
+        with open("./new_csvs/pipeline_meta.csv", "a") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(meta)
+
+        pointers_for_pipeline = pointers[pipeline["id"]]
+        for pt in pointers_for_pipeline:
+            pt[0] = new_id
+            pt[2] = pt[2].lower()
+
+        with open("./new_csvs/pointer.csv", "a") as csvfile:
+            writer = csv.writer(csvfile)
+            for pt in pointers_for_pipeline:
+                writer.writerow(pt)

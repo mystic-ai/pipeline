@@ -285,6 +285,7 @@ def _push_container(namespace: Namespace):
     docker_client = docker.from_env()
 
     registry_info = http.get(endpoint="/v4/registry")
+    print(registry_info.text)
     registry_info = registry_schemas.RegistryInformation.parse_raw(registry_info.text)
 
     upload_registry = registry_info.url
@@ -299,6 +300,7 @@ def _push_container(namespace: Namespace):
     image_to_push_reg = upload_registry + "/" + image_to_push
 
     upload_token = None
+
     if registry_info.special_auth:
         start_upload_response = http.post(
             endpoint="/v4/registry/start-upload",
@@ -393,6 +395,7 @@ def _push_container(namespace: Namespace):
         f"Created new pipeline deployment for {new_deployment.name} -> {new_deployment.id} (image={new_deployment.image})",  # noqa
         "SUCCESS",
     )
+    return new_deployment.id
 
 
 def _init_dir(namespace: Namespace) -> None:
