@@ -78,7 +78,7 @@ def json_log_handler(message, file=sys.stderr):
         payload["exception.type"] = repr(ex.type)
         payload["exception.value"] = repr(ex.value)
         payload["exception.traceback"] = "".join(
-            traceback.format_exception(ex.type, ex.value, ex.traceback, limit=100)
+            traceback.format_exception(ex.type, ex.value, ex.traceback, limit=200)
         )
     print(json.dumps(payload, default=str, ensure_ascii=False), file=file)
 
