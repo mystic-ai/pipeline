@@ -404,7 +404,8 @@ class Variable:
             max_length=self.max_length,
             choices=self.choices,
             dict_schema=self.dict_schema,
-            default=self.default,
+            # Backwards compatible with older pipelines
+            default=self.default if hasattr(self, "default") else None,
         )
 
 
