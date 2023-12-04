@@ -10,5 +10,5 @@ def _read_template(template_name: str) -> str:
     return template_path.read_text()
 
 
-template_1 = _read_template("template_1.txt")
-pipeline_template_python_1 = _read_template("pipeline_template.py")
+dockerfile_template = _read_template("dockerfile_template.txt")
+pipeline_template_python = _read_template("pipeline_template.py")
