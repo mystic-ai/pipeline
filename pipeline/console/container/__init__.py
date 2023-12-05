@@ -19,8 +19,8 @@ from pipeline.util.logging import _print
 
 
 class PythonRuntime(BaseModel):
-    python_version: str
-    python_requirements: t.List[str] | None
+    version: str
+    requirements: t.List[str] | None
     cuda_version: str | None = "11.4"
 
     class Config:
@@ -166,7 +166,7 @@ def _up_container(namespace: Namespace):
 
 def _build_container(namespace: Namespace):
     _print("Starting build service...", "INFO")
-    template = docker_templates.template_1
+    template = docker_templates.dockerfile_template
 
     config_file = Path("./pipeline.yaml")
 
@@ -185,9 +185,9 @@ def _build_container(namespace: Namespace):
 
     python_runtime = pipeline_config.runtime.python
     dockerfile_str = template.format(
-        python_version=python_runtime.python_version,
-        python_requirements=" ".join(python_runtime.python_requirements)
-        if python_runtime.python_requirements
+        python_version=python_runtime.version,
+        python_requirements=" ".join(python_runtime.requirements)
+        if python_runtime.requirements
         else "",
         container_commands="".join(
             [
@@ -404,7 +404,7 @@ def _init_dir(namespace: Namespace) -> None:
     if not pipeline_name:
         pipeline_name = input("Enter a name for your pipeline: ")
 
-    python_template = docker_templates.pipeline_template_python_1
+    python_template = docker_templates.pipeline_template_python
 
     default_config = PipelineConfig(
         runtime=RuntimeConfig(
@@ -413,8 +413,8 @@ def _init_dir(namespace: Namespace) -> None:
                 "apt-get install -y git",
             ],
             python=PythonRuntime(
-                python_version="3.10",
-                python_requirements=[
+                version="3.10",
+                requirements=[
                     "git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes",  # noqa
                 ],
             ),

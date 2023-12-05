@@ -6,8 +6,8 @@ runtime:
     #   apt-get -y install gcc mono-mcs && \
     #   rm -rf /var/lib/apt/lists/*"
   python:
-    python_version: "3.10"
-    python_requirements:
+    version: "3.10"
+    requirements:
       - "pipeline-ai==1.0.26"
 accelerators:
   - cpu

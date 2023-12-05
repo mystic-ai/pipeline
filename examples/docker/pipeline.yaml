@@ -6,8 +6,8 @@ runtime:
     #   apt-get -y install gcc mono-mcs && \
     #   rm -rf /var/lib/apt/lists/*"
   python:
-    python_version: "3.10"
-    python_requirements:
+    version: "3.10"
+    requirements:
       - "torch==2.0.1"
       - "transformers"
       - "pipeline-ai"

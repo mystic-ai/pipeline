@@ -28,8 +28,8 @@ runtime:
     - "apt update -y"
     - "apt install -y git"
   python:
-    python_version: "3.10"
-    python_requirements:
+    version: "3.10"
+    requirements:
       - "git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes"
 {env_req}
 accelerators:
