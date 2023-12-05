@@ -41,6 +41,7 @@ class PipelineConfig(BaseModel):
     accelerator_memory: int | None
     pipeline_graph: str
     pipeline_name: str = ""
+    extras: t.Dict[str, t.Any] | None
 
     class Config:
         extra = "forbid"
@@ -380,7 +381,7 @@ def _push_container(namespace: Namespace):
                 maximum_cache_number=None,
                 gpu_memory_min=pipeline_config.accelerator_memory,
                 accelerators=pipeline_config.accelerators,
-                extras={},
+                extras=pipeline_config.extras,
             ).json()
         ),
     )
@@ -422,6 +423,7 @@ def _init_dir(namespace: Namespace) -> None:
         pipeline_graph="new_pipeline:my_new_pipeline",
         pipeline_name=pipeline_name,
         accelerator_memory=None,
+        extras={},
     )
 
     with open("./pipeline.yaml", "w") as f:
