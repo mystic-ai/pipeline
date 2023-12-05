@@ -91,6 +91,11 @@ class PipelinePatch(BaseModel):
     extras: t.Optional[dict]
 
 
+# Used by the resource monitor to report pipeline info
+class PipelinePatchInternal(PipelinePatch):
+    pipeline: str
+
+
 class PipelineListPagination(pagination.Pagination):
     class OrderBy(str, Enum):
         created_at = "created_at"
