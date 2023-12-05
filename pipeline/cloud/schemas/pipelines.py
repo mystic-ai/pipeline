@@ -91,6 +91,10 @@ class PipelinePatch(BaseModel):
     extras: t.Optional[dict]
 
 
+class PipelinePatchContainer(PipelinePatch):
+    pipeline: str
+
+
 class PipelineListPagination(pagination.Pagination):
     class OrderBy(str, Enum):
         created_at = "created_at"

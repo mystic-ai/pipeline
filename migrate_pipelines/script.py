@@ -148,23 +148,23 @@ if __name__ == "__main__":
             pipeline["accelerators"],
             pipeline["gpu_memory_min"],
         )
-        _build_container(None)
-        new_id = _push_container(None)
-        print(new_id)
+        # _build_container(None)
+        # new_id = _push_container(None)
+        # print(new_id)
 
-        meta = pipeline_metas[pipeline["id"]]
-        meta[0] = new_id
+        # meta = pipeline_metas[pipeline["id"]]
+        # meta[0] = new_id
 
-        with open("./new_csvs/pipeline_meta.csv", "a") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(meta)
+        # with open("./new_csvs/pipeline_meta.csv", "a") as csvfile:
+        #     writer = csv.writer(csvfile)
+        #     writer.writerow(meta)
 
-        pointers_for_pipeline = pointers[pipeline["id"]]
-        for pt in pointers_for_pipeline:
-            pt[0] = new_id
-            pt[2] = pt[2].lower()
+        # pointers_for_pipeline = pointers[pipeline["id"]]
+        # for pt in pointers_for_pipeline:
+        #     pt[0] = new_id
+        #     pt[2] = pt[2].lower()
 
-        with open("./new_csvs/pointer.csv", "a") as csvfile:
-            writer = csv.writer(csvfile)
-            for pt in pointers_for_pipeline:
-                writer.writerow(pt)
+        # with open("./new_csvs/pointer.csv", "a") as csvfile:
+        #     writer = csv.writer(csvfile)
+        #     for pt in pointers_for_pipeline:
+        #         writer.writerow(pt)
