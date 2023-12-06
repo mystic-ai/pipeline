@@ -310,7 +310,7 @@ def _push_container(namespace: Namespace):
                 },
             )
         except httpx.HTTPStatusError as e:
-            msg = json.loads(e.response.text)
+            msg = e.response.json()
             print("Error received from API: " + msg["detail"]["message"])
             return
         start_upload_dict = start_upload_response.json()
