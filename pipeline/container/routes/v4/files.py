@@ -3,12 +3,22 @@ from pathlib import Path
 from uuid import uuid4
 
 import httpx
-from fastapi import APIRouter, UploadFile, status
+from fastapi import APIRouter, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from loguru import logger
 
 from pipeline.cloud.schemas import files as files_schemas
 
 router = APIRouter(prefix="/files", tags=["Files"])
+
+
+@router.get("/download/{path:path}", status_code=status.HTTP_200_OK)
+async def read_file(path: str):
+    """Download the contents of a file stored on the container."""
+    file_path = Path(path)
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(path)
 
 
 @router.post(
