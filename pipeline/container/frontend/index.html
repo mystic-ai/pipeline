@@ -1159,14 +1159,25 @@
         }
 
         // => { file: RunOutputFile }
-        function PipelineFileResponse({ file }) {
+        async function PipelineFileResponse({ file }) {
+          console.log("HHHEE");
+          const response = await fetch(`/v4/files/download/${file.path}`, {
+            method: "GET",
+            headers: {
+              Accept: "/*",
+            },
+          });
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          console.log(blob);
+
           if (
             file.path.includes("png") ||
             file.path.includes("jpg") ||
             file.path.includes("jpeg")
           ) {
             return (
-              <img src={file.url} alt={file.name} className="w-full max-w-lg" />
+              <img src={blobUrl} alt={file.name} className="w-full max-w-lg" />
             );
           } else if (
             file.path.includes("wav") ||
@@ -1179,7 +1190,7 @@
             file.path.includes("wma")
           ) {
             return (
-              <audio controls src={file.url} className="w-full">
+              <audio controls src={blobUrl} className="w-full">
                 <a href={file.url}> Download audio </a>
                 Your browser does not support the audio element.
               </audio>
@@ -1199,15 +1210,15 @@
               <div className="aspect-video">
                 <video controls>
                   {/* Provide a fallback for browsers that don't support this format */}
-                  <source src={file.url} type="video/ogg" />
-                  <source src={file.url} type="video/mp4" />
-                  <source src={file.url} type="video/mov" />
-                  <source src={file.url} type="video/wmv" />
-                  <source src={file.url} type="video/flv" />
-                  <source src={file.url} type="video/avi" />
-                  <source src={file.url} type="video/avchd" />
-                  <source src={file.url} type="video/webm" />
-                  <source src={file.url} type="video/mkv" />
+                  <source src={blobUrl} type="video/ogg" />
+                  <source src={blobUrl} type="video/mp4" />
+                  <source src={blobUrl} type="video/mov" />
+                  <source src={blobUrl} type="video/wmv" />
+                  <source src={blobUrl} type="video/flv" />
+                  <source src={blobUrl} type="video/avi" />
+                  <source src={blobUrl} type="video/avchd" />
+                  <source src={blobUrl} type="video/webm" />
+                  <source src={blobUrl} type="video/mkv" />
                 </video>
               </div>
             );
@@ -1216,18 +1227,19 @@
           }
         }
 
-        function RenderOutput({ output }) {
+        async function RenderOutput({ output }) {
           // => RunOutput[]
           const renderFiles = (value) => {
             // => RunOutput
             const renderedFiles = value.map((file, idx) => {
               return <li key={idx}>{renderFile(file.file)}</li>;
             });
-            return <ul className="flex flex-col gap-6">{renderedFiles}</ul>;
+            return <ul className="flex flex-col gap-6"></ul>;
           };
 
           // => RunOutputFile
           const renderFile = (file) => {
+            console.log(file);
             return (
               // TODO: Add a tab for the file contents, and it's raw response
               <PipelineFileResponse file={file} />
