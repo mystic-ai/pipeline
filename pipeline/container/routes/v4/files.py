@@ -12,7 +12,7 @@ from pipeline.cloud.schemas import files as files_schemas
 router = APIRouter(prefix="/files", tags=["Files"])
 
 
-@router.get("/download/{path}", status_code=status.HTTP_200_OK)
+@router.get("/download/{path:path}", status_code=status.HTTP_200_OK)
 async def read_file(path: str):
     """Download the contents of a file stored on the container."""
     file_path = Path(path)
