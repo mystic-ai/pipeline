@@ -113,6 +113,7 @@ def _use(namespace: Namespace) -> None:
 def _get(namespace: Namespace) -> None:
     if current_configuration.remotes is None:
         _print("No remote configurations. Login first.", level="ERROR")
+        return
 
     remotes = [
         f"{_remote} (active)"
