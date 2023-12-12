@@ -159,7 +159,7 @@ class RunIOType(str, Enum):
 class RunOutputFile(BaseModel):
     name: str
     path: str
-    url: str
+    url: t.Optional[str]
     size: int
 
 
@@ -201,29 +201,38 @@ class RunInput(BaseModel):
     file_url: t.Optional[str]
 
 
-class ContainerRunError(str, Enum):
+class ContainerRunErrorType(str, Enum):
     input_error = "input_error"
     cuda_oom = "cuda_oom"
     cuda_error = "cuda_error"
     oom = "oom"
+    pipeline_error = "pipeline_error"
+    startup_error = "startup_error"
+    pipeline_loading = "pipeline_loading"
     unknown = "unknown"
 
 
+class ContainerRunError(BaseModel):
+    type: ContainerRunErrorType
+    message: str
+    traceback: t.Optional[str]
+
+
 class ContainerRunCreate(BaseModel):
+    # run_id is optional since it's just used for attaching logs to a run
+    run_id: t.Optional[str]
     inputs: t.List[RunInput]
 
 
 class ContainerRunResult(BaseModel):
     outputs: t.Optional[t.List[RunOutput]]
     error: t.Optional[ContainerRunError]
-    error_message: t.Optional[str]
 
     def outputs_formatted(self) -> t.List[t.Any]:
-        # return [output.value for output in self.outputs]
+        outputs = self.outputs or []
         output_array = []
-        for output in self.outputs:
+        for output in outputs:
             if output.type == RunIOType.file:
-                # output_array.append(output.value)
                 from pipeline.objects.graph import File
 
                 if output.file is not None and output.file.url is not None:
@@ -243,6 +252,8 @@ class ClusterRunResult(ContainerRunResult):
 
     pipeline_id: str
 
+    state: RunState
+
     class Config:
         orm_mode = True
 
@@ -260,5 +271,6 @@ class RunStateTransitions(BaseModel):
 
 
 class RunCreate(ContainerRunCreate):
-    pipeline_id_or_pointer: str
+    # pipeline id or pointer
+    pipeline: str
     async_run: bool = False

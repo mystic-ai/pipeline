@@ -25,6 +25,7 @@ def create_pointer(
                 f"/v3/pointers/{pointer}",
                 json_data=pointer_schemas.PointerPatch(
                     pointer_or_pipeline_id=target_pipeline_id_or_pointer,
+                    locked=locked,
                 ).dict(),
             )
         elif e.response.status_code == 404:

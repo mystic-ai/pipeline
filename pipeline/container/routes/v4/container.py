@@ -1,4 +1,3 @@
-import logging
 import typing as t
 
 from fastapi import APIRouter, Request, Response
@@ -7,7 +6,6 @@ from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.container.manager import Manager
 from pipeline.objects import Graph
 
-logger = logging.getLogger("uvicorn")
 router = APIRouter(prefix="/container")
 
 

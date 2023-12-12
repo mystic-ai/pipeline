@@ -4,8 +4,8 @@ runtime:
     - apt-get install -y git
     - apt-get install -y gcc && echo ""
   python:
-    python_version: "3.10"
-    python_requirements:
+    version: "3.10"
+    requirements:
       - git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes
       - "torch==2.0.1"
       - "transformers"

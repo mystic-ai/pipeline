@@ -6,7 +6,9 @@ RUN apt update -y
 RUN pip install -U pip
 
 # Install serving packages
-RUN pip install -U fastapi==0.103.2 uvicorn==0.15.0 validators==0.22.0
+RUN pip install -U fastapi==0.103.2 uvicorn==0.15.0 \
+    validators==0.22.0 python-multipart==0.0.6
+
 
 # Container commands
 RUN apt-get update
