@@ -225,6 +225,7 @@ class ContainerRunCreate(BaseModel):
 
 
 class ContainerRunResult(BaseModel):
+    inputs: t.Optional[t.List[RunInput]]
     outputs: t.Optional[t.List[RunOutput]]
     error: t.Optional[ContainerRunError]
 
