@@ -1,3 +1,4 @@
+import functools
 import io
 import os
 import typing as t
@@ -10,10 +11,31 @@ from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from tqdm import tqdm
 
 from pipeline import current_configuration
-from pipeline.util.logging import PIPELINE_STR
+from pipeline.util.logging import PIPELINE_STR, _print
 
 _client = None
 _client_async = None
+
+
+def handle_http_status_error(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        response = func(*args, **kwargs)
+        if kwargs.pop("raise_for_status", True):
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                _print(
+                    {
+                        **e.response.json()["detail"],
+                        "x-correlation-id": e.response.headers["x-correlation-id"],
+                    },
+                    level="ERROR",
+                )
+                raise
+        return response
+
+    return wrapper
 
 
 def _get_client() -> httpx.Client:
@@ -62,20 +84,12 @@ def _get_async_client() -> httpx.AsyncClient:
     return _client_async
 
 
+@handle_http_status_error
 def post(
-    endpoint: str,
-    json_data: dict = None,
-    raise_for_status: bool = True,
+    endpoint: str, json_data: dict = None, raise_for_status: bool = True
 ) -> httpx.Response:
     client = _get_client()
-    response = client.post(
-        endpoint,
-        json=json_data,
-    )
-    if raise_for_status:
-        response.raise_for_status()
-
-    return response
+    return client.post(endpoint, json=json_data)
 
 
 async def async_post(
@@ -94,42 +108,35 @@ async def async_post(
     return response
 
 
+@handle_http_status_error
 def patch(
     endpoint: str,
     json_data: dict = None,
     raise_for_status: bool = True,
 ) -> httpx.Response:
     client = _get_client()
-    response = client.patch(
+    return client.patch(
         endpoint,
         json=json_data,
     )
-    if raise_for_status:
-        response.raise_for_status()
-
-    return response
 
 
+@handle_http_status_error
 def get(
     endpoint: str,
     **kwargs,
 ) -> httpx.Response:
     client = _get_client()
-    response = client.get(endpoint, **kwargs)
-    response.raise_for_status()
-
-    return response
+    return client.get(endpoint, **kwargs)
 
 
+@handle_http_status_error
 def delete(
     endpoint: str,
     **kwargs,
 ) -> httpx.Response:
     client = _get_client()
-    response = client.delete(endpoint, **kwargs)
-    response.raise_for_status()
-
-    return response
+    return client.delete(endpoint, **kwargs)
 
 
 def create_callback(encoder: MultipartEncoder) -> t.Callable:
