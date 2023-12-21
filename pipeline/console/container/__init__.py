@@ -302,18 +302,13 @@ def _push_container(namespace: Namespace):
 
     upload_token = None
     if registry_info.special_auth:
-        try:
-            start_upload_response = http.post(
-                endpoint="/v4/registry/start-upload",
-                json_data={
-                    "pipeline_name": pipeline_name,
-                    "pipeline_tag": None,
-                },
-            )
-        except httpx.HTTPStatusError as e:
-            msg = e.response.json()
-            print("Error received from API: " + msg["detail"]["message"])
-            return
+        start_upload_response = http.post(
+            endpoint="/v4/registry/start-upload",
+            json_data={
+                "pipeline_name": pipeline_name,
+                "pipeline_tag": None,
+            },
+        )
         start_upload_dict = start_upload_response.json()
         upload_token = start_upload_dict.get("bearer", None)
 
