@@ -20,10 +20,11 @@ _client_async = None
 def get_response_error_dict(e: httpx.HTTPStatusError) -> t.Dict:
     try:
         detail = e.response.json()["detail"]
+        if not isinstance(detail, dict):
+            detail = {"detail": detail}
     except (TypeError, KeyError):
         return {"message": "Something went wrong.", "response_json": e.response.json()}
     return {**detail, "x-correlation-id": e.response.headers.get("x-correlation-id")}
-
 
 def handle_http_status_error(func):
     @functools.wraps(func)
