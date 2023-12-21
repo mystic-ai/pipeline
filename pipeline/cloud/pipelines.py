@@ -77,7 +77,7 @@ def _run_pipeline(run_create_schema: RunCreate):
     res = http.post(
         "/v4/runs",
         json_data=run_create_schema.dict(),
-        handle_error=False,
+        handle_error=True,
     )
 
     if res.status_code == 500:
@@ -102,12 +102,7 @@ def _run_pipeline(run_create_schema: RunCreate):
             level="ERROR",
         )
         raise Exception("Pipeline not found", res.status_code)
-    elif res.status_code == 503:
-        _print(
-            f"Environment not cached (status={res.status_code}, text={res.text})",
-            level="ERROR",
-        )
-        raise Exception("Environment not cached", res.status_code)
+
     elif res.status_code == 502:
         _print(
             "Gateway error",
