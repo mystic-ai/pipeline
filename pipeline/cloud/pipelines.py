@@ -80,36 +80,6 @@ def _run_pipeline(run_create_schema: RunCreate):
         handle_error=True,
     )
 
-    if res.status_code == 500:
-        _print(
-            f"Failed run (status={res.status_code}, text={res.text}, "
-            f"headers={res.headers})",
-            level="ERROR",
-        )
-        raise Exception(f"Error: {res.status_code}, {res.text}", res.status_code)
-    elif res.status_code == 429:
-        _print(
-            f"Too many requests (status={res.status_code}, text={res.text})",
-            level="ERROR",
-        )
-        raise Exception(
-            "Too many requests, please try again later",
-            res.status_code,
-        )
-    elif res.status_code == 404:
-        _print(
-            f"Pipeline not found (status={res.status_code}, text={res.text})",
-            level="ERROR",
-        )
-        raise Exception("Pipeline not found", res.status_code)
-
-    elif res.status_code == 502:
-        _print(
-            "Gateway error",
-            level="ERROR",
-        )
-        raise Exception("Gateway error", res.status_code)
-
     return ClusterRunResult.parse_raw(res.text)
 
 
