@@ -6,7 +6,6 @@ from argparse import Namespace
 from pathlib import Path
 
 import docker
-import httpx
 import yaml
 from docker.types import DeviceRequest, LogConfig
 from pydantic import BaseModel

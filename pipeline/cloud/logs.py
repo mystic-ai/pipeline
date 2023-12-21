@@ -2,7 +2,6 @@ import json
 import urllib.parse
 from typing import Generator
 
-from httpx import HTTPStatusError
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 from websockets.sync.client import connect
 

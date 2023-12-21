@@ -5,7 +5,6 @@ from pipeline.cloud.files import resolve_run_input_file_object
 from pipeline.cloud.schemas.runs import ClusterRunResult, RunCreate, RunInput, RunIOType
 from pipeline.objects import File
 from pipeline.objects.graph import InputSchema
-from pipeline.util.logging import _print
 
 
 class PipelineRunError(Exception):
