@@ -23,7 +23,7 @@ async def run_pipeline(
     res = await http.async_post(
         "/v4/runs",
         json_data=run_create_schema.dict(),
-        raise_for_status=False,
+        handle_error=False,
     )
 
     if return_response:

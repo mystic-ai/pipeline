@@ -31,7 +31,7 @@ def handle_http_status_error(func):
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         response = func(*args, **kwargs)
-        if kwargs.pop("raise_for_status", True):
+        if kwargs.pop("handle_error", True):
             try:
                 response.raise_for_status()
             except httpx.HTTPStatusError as e:
@@ -93,25 +93,26 @@ def _get_async_client() -> httpx.AsyncClient:
 
 @handle_http_status_error
 def post(
-    endpoint: str, json_data: dict = None, raise_for_status: bool = True
+    endpoint: str,
+    json_data: dict = None,
+    handle_error: bool = True,
 ) -> httpx.Response:
     client = _get_client()
-    return client.post(endpoint, json=json_data)
+    response = client.post(endpoint, json=json_data)
+    return response
 
 
+@handle_http_status_error
 async def async_post(
     endpoint: str,
     json_data: dict = None,
-    raise_for_status: bool = True,
+    handle_error: bool = True,
 ) -> httpx.Response:
     client = _get_async_client()
     response = await client.post(
         endpoint,
         json=json_data,
     )
-    if raise_for_status:
-        response.raise_for_status()
-
     return response
 
 
@@ -119,7 +120,7 @@ async def async_post(
 def patch(
     endpoint: str,
     json_data: dict = None,
-    raise_for_status: bool = True,
+    handle_error: bool = True,
 ) -> httpx.Response:
     client = _get_client()
     return client.patch(
@@ -131,19 +132,23 @@ def patch(
 @handle_http_status_error
 def get(
     endpoint: str,
+    handle_error: bool = True,
     **kwargs,
 ) -> httpx.Response:
     client = _get_client()
-    return client.get(endpoint, **kwargs)
+    response = client.get(endpoint, **kwargs)
+    return response
 
 
 @handle_http_status_error
 def delete(
     endpoint: str,
+    handle_error: bool = True,
     **kwargs,
 ) -> httpx.Response:
     client = _get_client()
-    return client.delete(endpoint, **kwargs)
+    response = client.delete(endpoint, **kwargs)
+    return response
 
 
 def create_callback(encoder: MultipartEncoder) -> t.Callable:

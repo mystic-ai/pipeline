@@ -77,7 +77,7 @@ def _run_pipeline(run_create_schema: RunCreate):
     res = http.post(
         "/v4/runs",
         json_data=run_create_schema.dict(),
-        raise_for_status=False,
+        handle_error=False,
     )
 
     if res.status_code == 500:
