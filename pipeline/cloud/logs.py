@@ -78,7 +78,8 @@ def get_pipeline_startup_logs(pipeline_id: str) -> list[str] | None:
         )
     except HTTPStatusError as e:
         print(
-            f"Error getting pipeline startup logs: {e.response.status_code} - {e.response.content}"
+            f"Error getting pipeline startup logs: "
+            f"{e.response.status_code} - {e.response.content}"
         )
         return
     response_json = response.json()
