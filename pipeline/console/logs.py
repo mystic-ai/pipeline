@@ -60,6 +60,7 @@ def _pipeline_startup_logs(args: Namespace) -> None:
 
     log_entries = get_pipeline_startup_logs(pipeline_id)
     if not log_entries:
+        print("No logs found in the last 24h")
         return
     for message in log_entries:
         print(message)
