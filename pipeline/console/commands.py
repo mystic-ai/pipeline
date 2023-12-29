@@ -109,6 +109,7 @@ def logs_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         dest="target",
     )
     logs.run_logs_parser(logs_sub_parser)
+    logs.pipeline_startup_logs_parser(logs_sub_parser)
 
 
 def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
