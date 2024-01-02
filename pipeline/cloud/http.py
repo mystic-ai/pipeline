@@ -24,7 +24,7 @@ def get_response_error_dict(e: httpx.HTTPStatusError) -> t.Dict:
             detail = {"detail": detail}
     except (TypeError, KeyError):
         return {"message": "Something went wrong.", "response_json": e.response.json()}
-    return {**detail, "x-correlation-id": e.response.headers.get("x-correlation-id")}
+    return {**detail, "request_id": e.response.headers.get("x-correlation-id")}
 
 
 def handle_http_status_error(func):
