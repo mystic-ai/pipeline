@@ -20,7 +20,6 @@
 
     <script type="text/babel" data-presets="env,react">
       const fileRunIOTypes = ["pkl", "file"];
-      const host = "http://localhost:14300";
 
       // => boolean
       const isObject = (value) => {
@@ -1047,7 +1046,7 @@
       async function handlePostFile(file) {
         const formData = new FormData();
         formData.append("pfile", file);
-        const fileData = await fetch(`${host}/v4/files`, {
+        const fileData = await fetch(`/v4/files`, {
           method: "POST",
           headers: {
             Accept: "/*",
@@ -1161,13 +1160,21 @@
 
         // => { file: RunOutputFile }
         function PipelineFileResponse({ file }) {
+          const [blobUrl, setBlobUrl] = React.useState(null);
+          React.useEffect(() => {
+            fetch(`/v4/files/download/${file.path}`).then(async (res) => {
+              const blob = await res.blob();
+              setBlobUrl(URL.createObjectURL(blob));
+            });
+          }, []);
+          if (!blobUrl) return <></>;
           if (
             file.path.includes("png") ||
             file.path.includes("jpg") ||
             file.path.includes("jpeg")
           ) {
             return (
-              <img src={file.url} alt={file.name} className="w-full max-w-lg" />
+              <img src={blobUrl} alt={file.name} className="w-full max-w-lg" />
             );
           } else if (
             file.path.includes("wav") ||
@@ -1180,8 +1187,8 @@
             file.path.includes("wma")
           ) {
             return (
-              <audio controls src={file.url} className="w-full">
-                <a href={file.url}> Download audio </a>
+              <audio controls src={blobUrl} className="w-full">
+                <a href={blobUrl}> Download audio </a>
                 Your browser does not support the audio element.
               </audio>
             );
@@ -1200,15 +1207,15 @@
               <div className="aspect-video">
                 <video controls>
                   {/* Provide a fallback for browsers that don't support this format */}
-                  <source src={file.url} type="video/ogg" />
-                  <source src={file.url} type="video/mp4" />
-                  <source src={file.url} type="video/mov" />
-                  <source src={file.url} type="video/wmv" />
-                  <source src={file.url} type="video/flv" />
-                  <source src={file.url} type="video/avi" />
-                  <source src={file.url} type="video/avchd" />
-                  <source src={file.url} type="video/webm" />
-                  <source src={file.url} type="video/mkv" />
+                  <source src={blobUrl} type="video/ogg" />
+                  <source src={blobUrl} type="video/mp4" />
+                  <source src={blobUrl} type="video/mov" />
+                  <source src={blobUrl} type="video/wmv" />
+                  <source src={blobUrl} type="video/flv" />
+                  <source src={blobUrl} type="video/avi" />
+                  <source src={blobUrl} type="video/avchd" />
+                  <source src={blobUrl} type="video/webm" />
+                  <source src={blobUrl} type="video/mkv" />
                 </video>
               </div>
             );
@@ -1308,7 +1315,7 @@
               setOutputData(null);
               setErrorOutputData(null);
 
-              fetch(`${host}/v4/runs`, {
+              fetch(`/v4/runs`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
 
@@ -1331,7 +1338,7 @@
 
         // GET pipeline
         React.useEffect(() => {
-          fetch(`${host}/v4/container/pipeline`)
+          fetch(`/v4/container/pipeline`)
             .then((res) => res.json())
             .then((data) => {
               setPipeline(data);

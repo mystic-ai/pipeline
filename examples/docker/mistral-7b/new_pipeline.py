@@ -19,7 +19,7 @@ class ModelKwargs(InputSchema):
 class Mistral7B:
     @pipe(on_startup=True, run_once=True)
     def load_model(self) -> None:
-        self.llm = LLM("mistralai/Mistral-7B-v0.1")
+        self.llm = LLM("mistralai/Mistral-7B-v0.1", gpu_memory_utilization=0.5)
 
     @pipe
     def inference(self, prompts: list, kwargs: ModelKwargs) -> List[str]:

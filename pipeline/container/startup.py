@@ -1,7 +1,5 @@
 import asyncio
-import logging
 import os
-import time
 import traceback
 import uuid
 
@@ -11,19 +9,21 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from loguru import logger
 
-from pipeline.cloud.schemas import pipelines as pipeline_schemas
+from pipeline.cloud.schemas import runs as run_schemas
+from pipeline.container.logging import redirect_stdout, setup_logging
 from pipeline.container.manager import Manager
 from pipeline.container.routes import router
 from pipeline.container.status import router as status_router
-
-logger = logging.getLogger("uvicorn")
 
 
 def create_app() -> FastAPI:
     app = FastAPI(
         title="pipeline-container",
     )
+
+    setup_logging()
 
     setup_oapi(app)
     setup_middlewares(app)
@@ -94,36 +94,24 @@ def setup_oapi(app: FastAPI) -> None:
 
 
 async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) -> None:
-    await run_in_threadpool(manager.startup)
+    with redirect_stdout():
+        await run_in_threadpool(manager.startup)
 
-    while True:
-        try:
-            args, response_queue = await execution_queue.get()
-
-            start_time = time.time()
-            timedout = False
-
-            while manager.pipeline_state == pipeline_schemas.PipelineState.loading:
-                if time.time() - start_time > 30:
-                    timedout = True
-                    break
-
-                await asyncio.sleep(0.1)
-
-            if timedout:
-                response_queue.put_nowait(Exception())
-                continue
-
-            if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
-                response_queue.put_nowait(Exception())
-                continue
-
+        while True:
             try:
-                output = await run_in_threadpool(manager.run, input_data=args)
-            except Exception as e:
-                logger.exception(e)
-                response_queue.put_nowait(e)
-                continue
-            response_queue.put_nowait(output)
-        except Exception:
-            logger.exception("Got an error in the execution loop handler")
+                args, response_queue = await execution_queue.get()
+                args: run_schemas.ContainerRunCreate
+                input_data = args.inputs
+                run_id = args.run_id
+                with logger.contextualize(run_id=run_id):
+                    try:
+                        output = await run_in_threadpool(
+                            manager.run, run_id=run_id, input_data=input_data
+                        )
+                    except Exception as e:
+                        logger.exception("Exception raised during pipeline execution")
+                        response_queue.put_nowait(e)
+                        continue
+                    response_queue.put_nowait(output)
+            except Exception:
+                logger.exception("Got an error in the execution loop handler")

@@ -12,4 +12,4 @@ end_time = datetime.datetime.now()
 
 total_time = (end_time - start_time).total_seconds()
 
-print(f"Total time taken: {total_time}, result: {result.result.result_array()}")
+print(f"Total time taken: {total_time}, result: {result.outputs_formatted()}")

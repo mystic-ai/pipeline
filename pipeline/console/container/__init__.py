@@ -13,13 +13,14 @@ from pydantic import BaseModel
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.schemas import pipelines as pipelines_schemas
+from pipeline.cloud.schemas import registry as registry_schemas
 from pipeline.container import docker_templates
 from pipeline.util.logging import _print
 
 
 class PythonRuntime(BaseModel):
-    python_version: str
-    python_requirements: t.List[str] | None
+    version: str
+    requirements: t.List[str] | None
     cuda_version: str | None = "11.4"
 
     class Config:
@@ -40,6 +41,7 @@ class PipelineConfig(BaseModel):
     accelerator_memory: int | None
     pipeline_graph: str
     pipeline_name: str = ""
+    extras: t.Dict[str, t.Any] | None
 
     class Config:
         extra = "forbid"
@@ -66,13 +68,16 @@ def _up_container(namespace: Namespace):
         },
     )
     volumes: list | None = None
+
+    port = int(getattr(namespace, "port", "14300"))
+
     run_command = [
         "uvicorn",
         "pipeline.container.startup:create_app",
         "--host",
         "0.0.0.0",
         "--port",
-        "14300",
+        str(port),
         "--factory",
     ]
 
@@ -128,7 +133,7 @@ def _up_container(namespace: Namespace):
     # Stop container on python exit
     container = docker_client.containers.run(
         pipeline_name,
-        ports={"14300/tcp": 14300},
+        ports={f"{port}/tcp": int(port)},
         stderr=True,
         stdout=True,
         log_config=lc,
@@ -144,7 +149,7 @@ def _up_container(namespace: Namespace):
     )
 
     _print(
-        "Container started on port 14300, view the live docs: http://localhost:14300/redoc",  # noqa
+        f"Container started on port {port}.\n\n\t\tView the live docs:\n\n\t\t\t http://localhost:{port}/redoc\n\n\t\tor live play:\n\n\t\t\t http://localhost:{port}/play\n",  # noqa
         "SUCCESS",
     )
 
@@ -161,7 +166,7 @@ def _up_container(namespace: Namespace):
 
 def _build_container(namespace: Namespace):
     _print("Starting build service...", "INFO")
-    template = docker_templates.template_1
+    template = docker_templates.dockerfile_template
 
     config_file = Path("./pipeline.yaml")
 
@@ -180,9 +185,9 @@ def _build_container(namespace: Namespace):
 
     python_runtime = pipeline_config.runtime.python
     dockerfile_str = template.format(
-        python_version=python_runtime.python_version,
-        python_requirements=" ".join(python_runtime.python_requirements)
-        if python_runtime.python_requirements
+        python_version=python_runtime.version,
+        python_requirements=" ".join(python_runtime.requirements)
+        if python_runtime.requirements
         else "",
         container_commands="".join(
             [
@@ -280,20 +285,13 @@ def _push_container(namespace: Namespace):
 
     docker_client = docker.from_env()
 
-    start_upload_response = http.post(
-        endpoint="/v4/registry/start-upload",
-        json_data={
-            "pipeline_name": pipeline_name,
-            "pipeline_tag": None,
-        },
-    )
-    start_upload_dict = start_upload_response.json()
+    registry_info = http.get(endpoint="/v4/registry")
+    registry_info = registry_schemas.RegistryInformation.parse_raw(registry_info.text)
 
-    upload_registry = start_upload_dict.get("upload_registry", None)
-    upload_token = start_upload_dict.get("bearer", None)
+    upload_registry = registry_info.url
 
-    if upload_token is None:
-        raise ValueError("No upload token found")
+    if upload_registry is None:
+        raise ValueError("No upload registry found")
 
     image_hash = docker_client.images.get(pipeline_name).id.split(":")[1]
 
@@ -301,12 +299,20 @@ def _push_container(namespace: Namespace):
     image_to_push = pipeline_name + ":" + hash_tag
     image_to_push_reg = upload_registry + "/" + image_to_push
 
-    if upload_registry is None:
-        _print("No upload registry found, not doing anything...", "WARNING")
-    else:
-        _print(f"Pushing image to upload registry {upload_registry}", "INFO")
+    upload_token = None
+    if registry_info.special_auth:
+        start_upload_response = http.post(
+            endpoint="/v4/registry/start-upload",
+            json_data={
+                "pipeline_name": pipeline_name,
+                "pipeline_tag": None,
+            },
+        )
+        start_upload_dict = start_upload_response.json()
+        upload_token = start_upload_dict.get("bearer", None)
 
-        docker_client.images.get(pipeline_name).tag(image_to_push_reg)
+        if upload_token is None:
+            raise ValueError("No upload token found")
 
         # Login to upload registry
         docker_client.login(
@@ -315,52 +321,53 @@ def _push_container(namespace: Namespace):
             registry="http://" + upload_registry,
         )
 
-        resp = docker_client.images.push(
-            image_to_push_reg,
-            auth_config=dict(username="pipeline", password=upload_token),
-            stream=True,
-            decode=True,
-        )
+    _print(f"Pushing image to upload registry {upload_registry}", "INFO")
 
-        all_ids = []
+    docker_client.images.get(pipeline_name).tag(image_to_push_reg)
 
-        current_index = 0
+    resp = docker_client.images.push(
+        image_to_push_reg,
+        stream=True,
+        decode=True,
+        auth_config=dict(username="pipeline", password=upload_token)
+        if upload_token
+        else None,
+    )
 
-        for line in resp:
-            if "error" in line:
-                raise ValueError(line["error"])
-            elif "status" in line:
-                if "id" not in line or line["status"] != "Pushing":
-                    continue
+    all_ids = []
 
-                if "id" in line and line["id"] not in all_ids:
-                    all_ids.append(line["id"])
-                    print("Adding")
+    current_index = 0
 
-                index_difference = all_ids.index(line["id"]) - current_index
-                # print(index_difference)
+    for line in resp:
+        if "error" in line:
+            raise ValueError(line["error"])
+        elif "status" in line:
+            if "id" not in line or line["status"] != "Pushing":
+                continue
 
-                print_string = (
-                    line["id"]
-                    + " "
-                    + line["progress"].replace("\n", "").replace("\r", "")
-                )
+            if "id" in line and line["id"] not in all_ids:
+                all_ids.append(line["id"])
+                print("Adding")
 
-                if index_difference > 0:
-                    print_string += "\n" * index_difference + "\r"
-                    # print("up")
-                elif index_difference < 0:
-                    print_string += "\033[A" * abs(index_difference) + "\r"
-                    # print("down")
-                else:
-                    print_string += "\r"
-                    # print("same")
-                current_index = all_ids.index(line["id"])
+            index_difference = all_ids.index(line["id"]) - current_index
 
-                sys.stdout.write(print_string)
-                sys.stdout.flush()
+            print_string = (
+                line["id"] + " " + line["progress"].replace("\n", "").replace("\r", "")
+            )
 
-            # print(line)
+            if index_difference > 0:
+                print_string += "\n" * index_difference + "\r"
+                # print("up")
+            elif index_difference < 0:
+                print_string += "\033[A" * abs(index_difference) + "\r"
+                # print("down")
+            else:
+                print_string += "\r"
+                # print("same")
+            current_index = all_ids.index(line["id"])
+
+            sys.stdout.write(print_string)
+            sys.stdout.flush()
 
     new_deployment_request = http.post(
         endpoint="/v4/pipelines",
@@ -374,7 +381,7 @@ def _push_container(namespace: Namespace):
                 maximum_cache_number=None,
                 gpu_memory_min=pipeline_config.accelerator_memory,
                 accelerators=pipeline_config.accelerators,
-                extras={},
+                extras=pipeline_config.extras,
             ).json()
         ),
     )
@@ -397,7 +404,7 @@ def _init_dir(namespace: Namespace) -> None:
     if not pipeline_name:
         pipeline_name = input("Enter a name for your pipeline: ")
 
-    python_template = docker_templates.pipeline_template_python_1
+    python_template = docker_templates.pipeline_template_python
 
     default_config = PipelineConfig(
         runtime=RuntimeConfig(
@@ -406,8 +413,8 @@ def _init_dir(namespace: Namespace) -> None:
                 "apt-get install -y git",
             ],
             python=PythonRuntime(
-                python_version="3.10",
-                python_requirements=[
+                version="3.10",
+                requirements=[
                     "git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes",  # noqa
                 ],
             ),
@@ -416,6 +423,7 @@ def _init_dir(namespace: Namespace) -> None:
         pipeline_graph="new_pipeline:my_new_pipeline",
         pipeline_name=pipeline_name,
         accelerator_memory=None,
+        extras={},
     )
 
     with open("./pipeline.yaml", "w") as f:

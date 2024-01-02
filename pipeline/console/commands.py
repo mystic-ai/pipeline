@@ -157,6 +157,12 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         help="Mount a volume into the container.",
     )
 
+    up_parser.add_argument(
+        "--port",
+        "-p",
+        help="Container port.",
+        default=14300,
+    )
     # Init
     init_parser = container_sub_parser.add_parser(
         "init",
