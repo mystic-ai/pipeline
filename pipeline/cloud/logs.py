@@ -2,7 +2,6 @@ import json
 import urllib.parse
 from typing import Generator
 
-from httpx import HTTPStatusError
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 from websockets.sync.client import connect
 
@@ -12,15 +11,9 @@ from pipeline.util.logging import _print
 
 
 def get_run_logs(run_id: str) -> list[str] | None:
-    try:
-        response = http.get(
-            f"/v4/logs/run/{run_id}",
-        )
-    except HTTPStatusError as e:
-        print(
-            f"Error getting run logs: {e.response.status_code} - {e.response.content}"
-        )
-        return
+    response = http.get(
+        f"/v4/logs/run/{run_id}",
+    )
     response_json = response.json()
     return response_json.get("log_entries")
 

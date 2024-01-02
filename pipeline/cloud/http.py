@@ -1,3 +1,4 @@
+import functools
 import io
 import os
 import typing as t
@@ -10,10 +11,38 @@ from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from tqdm import tqdm
 
 from pipeline import current_configuration
-from pipeline.util.logging import PIPELINE_STR
+from pipeline.util.logging import PIPELINE_STR, _print
 
 _client = None
 _client_async = None
+
+
+def get_response_error_dict(e: httpx.HTTPStatusError) -> t.Dict:
+    try:
+        detail = e.response.json()["detail"]
+        if not isinstance(detail, dict):
+            detail = {"detail": detail}
+    except (TypeError, KeyError):
+        return {"message": "Something went wrong.", "response_json": e.response.json()}
+    return {**detail, "request_id": e.response.headers.get("x-correlation-id")}
+
+
+def handle_http_status_error(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        response = func(*args, **kwargs)
+        if kwargs.pop("handle_error", True):
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                _print(
+                    get_response_error_dict(e),
+                    level="ERROR",
+                )
+                raise
+        return response
+
+    return wrapper
 
 
 def _get_client() -> httpx.Client:
@@ -62,73 +91,63 @@ def _get_async_client() -> httpx.AsyncClient:
     return _client_async
 
 
+@handle_http_status_error
 def post(
     endpoint: str,
     json_data: dict = None,
-    raise_for_status: bool = True,
+    handle_error: bool = True,
 ) -> httpx.Response:
     client = _get_client()
-    response = client.post(
-        endpoint,
-        json=json_data,
-    )
-    if raise_for_status:
-        response.raise_for_status()
-
+    response = client.post(endpoint, json=json_data)
     return response
 
 
+@handle_http_status_error
 async def async_post(
     endpoint: str,
     json_data: dict = None,
-    raise_for_status: bool = True,
+    handle_error: bool = True,
 ) -> httpx.Response:
     client = _get_async_client()
     response = await client.post(
         endpoint,
         json=json_data,
     )
-    if raise_for_status:
-        response.raise_for_status()
-
     return response
 
 
+@handle_http_status_error
 def patch(
     endpoint: str,
     json_data: dict = None,
-    raise_for_status: bool = True,
+    handle_error: bool = True,
 ) -> httpx.Response:
     client = _get_client()
-    response = client.patch(
+    return client.patch(
         endpoint,
         json=json_data,
     )
-    if raise_for_status:
-        response.raise_for_status()
-
-    return response
 
 
+@handle_http_status_error
 def get(
     endpoint: str,
+    handle_error: bool = True,
     **kwargs,
 ) -> httpx.Response:
     client = _get_client()
     response = client.get(endpoint, **kwargs)
-    response.raise_for_status()
-
     return response
 
 
+@handle_http_status_error
 def delete(
     endpoint: str,
+    handle_error: bool = True,
     **kwargs,
 ) -> httpx.Response:
     client = _get_client()
     response = client.delete(endpoint, **kwargs)
-    response.raise_for_status()
-
     return response
 
 
