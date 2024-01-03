@@ -12,6 +12,7 @@ from loguru import logger
 class StreamToLogger:
     def __init__(self, level="INFO"):
         self._level = level
+        self.encoding = 'utf'
 
     def write(self, buffer):
         for line in buffer.rstrip().splitlines():
