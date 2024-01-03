@@ -292,8 +292,8 @@ def _push_container(namespace: Namespace):
 
     if upload_registry is None:
         raise ValueError("No upload registry found")
-
-    image_hash = docker_client.images.get(pipeline_name).id.split(":")[1]
+    image = docker_client.images.get(pipeline_name)
+    image_hash = image.id.split(":")[1]
 
     hash_tag = image_hash[:12]
     image_to_push = pipeline_name + ":" + hash_tag
@@ -310,9 +310,12 @@ def _push_container(namespace: Namespace):
         )
         start_upload_dict = start_upload_response.json()
         upload_token = start_upload_dict.get("bearer", None)
+        pipeline_name = start_upload_dict.get("pipeline_name")
 
         if upload_token is None:
             raise ValueError("No upload token found")
+        if pipeline_name is None:
+            raise ValueError("No authed pipeline name found")
 
         # Login to upload registry
         docker_client.login(
@@ -320,6 +323,10 @@ def _push_container(namespace: Namespace):
             password=upload_token,
             registry="http://" + upload_registry,
         )
+
+        image_to_push = pipeline_name + ":" + hash_tag
+        image_to_push_reg = upload_registry + "/" + image_to_push
+        image.tag(image_to_push_reg)
 
     _print(f"Pushing image to upload registry {upload_registry}", "INFO")
 
