@@ -37,6 +37,8 @@ class PipelineStartUpload(BaseModel):
 class PipelineStartUploadResponse(BaseModel):
     bearer: str
     upload_registry: t.Optional[str]
+    #: Full username/pipeline_name. Used for naming docker image
+    pipeline_name: str
 
 
 class PipelineCreate(BaseModel):
