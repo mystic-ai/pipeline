@@ -300,6 +300,7 @@ def _push_container(namespace: Namespace):
     image_to_push_reg = upload_registry + "/" + image_to_push
 
     upload_token = None
+    true_pipeline_name = None
     if registry_info.special_auth:
         start_upload_response = http.post(
             endpoint="/v4/registry/start-upload",
@@ -310,11 +311,11 @@ def _push_container(namespace: Namespace):
         )
         start_upload_dict = start_upload_response.json()
         upload_token = start_upload_dict.get("bearer", None)
-        pipeline_name = start_upload_dict.get("pipeline_name")
+        true_pipeline_name = start_upload_dict.get("pipeline_name")
 
         if upload_token is None:
             raise ValueError("No upload token found")
-        if pipeline_name is None:
+        if true_pipeline_name is None:
             raise ValueError("No authed pipeline name found")
 
         # Login to upload registry
@@ -324,13 +325,16 @@ def _push_container(namespace: Namespace):
             registry="http://" + upload_registry,
         )
 
-        image_to_push = pipeline_name + ":" + hash_tag
+        # Override the tag with the pipeline name from catalyst
+        image_to_push = true_pipeline_name + ":" + hash_tag
         image_to_push_reg = upload_registry + "/" + image_to_push
-        image.tag(image_to_push_reg)
 
     _print(f"Pushing image to upload registry {upload_registry}", "INFO")
 
     docker_client.images.get(pipeline_name).tag(image_to_push_reg)
+    # Do this after tagging, because we need to use the old pipeline name to tag the local image
+    if true_pipeline_name:
+        pipeline_name = true_pipeline_name
 
     resp = docker_client.images.push(
         image_to_push_reg,
