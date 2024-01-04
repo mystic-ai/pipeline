@@ -72,15 +72,8 @@ def tail_run_logs(run_id: str) -> Generator[tuple, None, None]:
 
 
 def get_pipeline_startup_logs(pipeline_id: str) -> list[str] | None:
-    try:
-        response = http.get(
-            f"/v4/logs/pipeline/{pipeline_id}/startup",
-        )
-    except HTTPStatusError as e:
-        print(
-            f"Error getting pipeline startup logs: "
-            f"{e.response.status_code} - {e.response.content}"
-        )
-        return
+    response = http.get(
+        f"/v4/logs/pipeline/{pipeline_id}/startup",
+    )
     response_json = response.json()
     return response_json.get("log_entries")
