@@ -317,7 +317,8 @@ def _push_container(namespace: Namespace):
             raise ValueError("No upload token found")
         if true_pipeline_name is None:
             # will fail unless they use their correct username in the pipeline name
-            # just makes this deployment of pipeline backwards compatible with older catalyst
+            # just makes this deployment of pipeline backwards compatible 
+            # with older catalyst
             true_pipeline_name = pipeline_name
 
         # Login to upload registry
@@ -334,7 +335,8 @@ def _push_container(namespace: Namespace):
     _print(f"Pushing image to upload registry {upload_registry}", "INFO")
 
     docker_client.images.get(pipeline_name).tag(image_to_push_reg)
-    # Do this after tagging, because we need to use the old pipeline name to tag the local image
+    # Do this after tagging, because we need to use 
+    # the old pipeline name to tag the local image
     if true_pipeline_name:
         pipeline_name = true_pipeline_name
 
