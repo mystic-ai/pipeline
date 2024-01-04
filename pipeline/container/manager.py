@@ -8,7 +8,6 @@ from pathlib import Path
 from types import NoneType, UnionType
 from urllib import request
 
-import validators
 from loguru import logger
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
@@ -16,6 +15,15 @@ from pipeline.cloud.schemas import runs as run_schemas
 from pipeline.exceptions import RunnableError
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputSchema
+
+from urllib.parse import urlparse
+
+def is_url(string):
+    try:
+        result = urlparse(string)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
 
 
 class Manager:
@@ -79,6 +87,8 @@ class Manager:
     ) -> None:
         local_host_dir = "/tmp"
 
+        print("HHHHHHHHH", flush=True)
+        print(file.path, file.url, flush=True)
         if hasattr(file, "url") and file.url is not None:
             cache_name = hashlib.md5(file.url.geturl().encode()).hexdigest()
 
@@ -115,7 +125,7 @@ class Manager:
         path: str | None = None
         url: str | None = None
 
-        if validators.url(path_or_url):
+        if is_url(path_or_url):
             url = str(urllib.parse.urlparse(path_or_url).geturl())
         else:
             path = path_or_url
@@ -130,6 +140,7 @@ class Manager:
         else:
             variable = File(path=path, url=url)
 
+        print(path_or_url, url, path, flush=True)
         self._resolve_file_variable_to_local(variable, use_tmp=use_tmp)
         return variable
 
@@ -144,11 +155,12 @@ class Manager:
             for item in input_data:
                 input_schema = run_schemas.RunInput.parse_obj(item)
                 if input_schema.type == run_schemas.RunIOType.file:
-                    if input_schema.file_path is None:
-                        raise Exception("File path not provided")
+                    if input_schema.file_path is None and input_schema.file_url is None:
+                        raise Exception("A file must either have a path or url attribute")
+                    path_or_url = input_schema.file_url if input_schema.file_url else input_schema.file_path
 
                     variable = self._create_file_variable(
-                        path_or_url=input_schema.file_path
+                        path_or_url=path_or_url
                     )
                     inputs.append(
                         variable,
@@ -201,7 +213,6 @@ class Manager:
         with logger.contextualize(run_id=run_id):
             logger.info("Running pipeline")
             args = self._parse_inputs(input_data, self.pipeline)
-            raise Exception("Hope this works")
             try:
                 result = self.pipeline.run(*args)
             except Exception as exc:
