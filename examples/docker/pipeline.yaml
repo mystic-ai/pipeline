@@ -11,7 +11,7 @@ runtime:
       - "torch==2.0.1"
       - "transformers"
       - "pipeline-ai"
-      - "git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes"
+      - "git+https://github.com/mystic-ai/pipeline.git@v2.0.0"
       # - "accelerate==0.21.0"
       # - "vllm==0.2.0"
       # - "pandas"
