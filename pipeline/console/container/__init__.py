@@ -202,7 +202,7 @@ def _build_container(namespace: Namespace):
 
     dockerfile_path = Path("./pipeline.dockerfile")
     dockerfile_path.write_text(dockerfile_str)
-    docker_client = docker.APIClient(base_url="unix://var/run/docker.sock")
+    docker_client = docker.APIClient()
     generator = docker_client.build(
         # fileobj=dockerfile_path.open("rb"),
         path="./",
@@ -292,14 +292,15 @@ def _push_container(namespace: Namespace):
 
     if upload_registry is None:
         raise ValueError("No upload registry found")
-
-    image_hash = docker_client.images.get(pipeline_name).id.split(":")[1]
+    image = docker_client.images.get(pipeline_name)
+    image_hash = image.id.split(":")[1]
 
     hash_tag = image_hash[:12]
     image_to_push = pipeline_name + ":" + hash_tag
     image_to_push_reg = upload_registry + "/" + image_to_push
 
     upload_token = None
+    true_pipeline_name = None
     if registry_info.special_auth:
         start_upload_response = http.post(
             endpoint="/v4/registry/start-upload",
@@ -310,9 +311,15 @@ def _push_container(namespace: Namespace):
         )
         start_upload_dict = start_upload_response.json()
         upload_token = start_upload_dict.get("bearer", None)
+        true_pipeline_name = start_upload_dict.get("pipeline_name")
 
         if upload_token is None:
             raise ValueError("No upload token found")
+        if true_pipeline_name is None:
+            # will fail unless they use their correct username in the pipeline name
+            # just makes this deployment of pipeline backwards compatible
+            # with older catalyst
+            true_pipeline_name = pipeline_name
 
         # Login to upload registry
         docker_client.login(
@@ -321,9 +328,17 @@ def _push_container(namespace: Namespace):
             registry="http://" + upload_registry,
         )
 
+        # Override the tag with the pipeline name from catalyst
+        image_to_push = true_pipeline_name + ":" + hash_tag
+        image_to_push_reg = upload_registry + "/" + image_to_push
+
     _print(f"Pushing image to upload registry {upload_registry}", "INFO")
 
     docker_client.images.get(pipeline_name).tag(image_to_push_reg)
+    # Do this after tagging, because we need to use
+    # the old pipeline name to tag the local image
+    if true_pipeline_name:
+        pipeline_name = true_pipeline_name
 
     resp = docker_client.images.push(
         image_to_push_reg,
