@@ -202,7 +202,7 @@ def _build_container(namespace: Namespace):
 
     dockerfile_path = Path("./pipeline.dockerfile")
     dockerfile_path.write_text(dockerfile_str)
-    docker_client = docker.APIClient(base_url="unix://var/run/docker.sock")
+    docker_client = docker.APIClient()
     generator = docker_client.build(
         # fileobj=dockerfile_path.open("rb"),
         path="./",
