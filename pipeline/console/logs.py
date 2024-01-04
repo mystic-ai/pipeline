@@ -48,17 +48,17 @@ def pipeline_startup_logs_parser(
     # )
 
     startup_logs_parser.add_argument(
-        "pipeline_id",
-        help="Pipeline ID to get logs for.",
+        "pipeline_id_or_pointer",
+        help="Pipeline ID or pointer to get logs for.",
         type=str,
     )
 
 
 def _pipeline_startup_logs(args: Namespace) -> None:
     # follow = getattr(args, "follow", False)
-    pipeline_id = getattr(args, "pipeline_id")
+    pipeline_id_or_pointer = getattr(args, "pipeline_id_or_pointer")
 
-    log_entries = get_pipeline_startup_logs(pipeline_id)
+    log_entries = get_pipeline_startup_logs(pipeline_id_or_pointer)
     if not log_entries:
         print("No logs found in the last 24h")
         return

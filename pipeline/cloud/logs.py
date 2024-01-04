@@ -71,9 +71,9 @@ def tail_run_logs(run_id: str) -> Generator[tuple, None, None]:
             _print(f"Run {run_id} not found", level="ERROR")
 
 
-def get_pipeline_startup_logs(pipeline_id: str) -> list[str] | None:
+def get_pipeline_startup_logs(pipeline_id_or_pointer: str) -> list[str] | None:
     response = http.get(
-        f"/v4/logs/pipeline/{pipeline_id}/startup",
+        f"/v4/logs/pipeline-startup/{pipeline_id_or_pointer}",
     )
     response_json = response.json()
     return response_json.get("log_entries")
