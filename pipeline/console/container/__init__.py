@@ -315,11 +315,6 @@ def _push_container(namespace: Namespace):
 
         if upload_token is None:
             raise ValueError("No upload token found")
-        if true_pipeline_name is None:
-            # will fail unless they use their correct username in the pipeline name
-            # just makes this deployment of pipeline backwards compatible
-            # with older catalyst
-            true_pipeline_name = pipeline_name
 
         # Login to upload registry
         docker_client.login(
