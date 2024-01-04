@@ -161,6 +161,10 @@ class Manager:
                         if input_schema.file_url
                         else input_schema.file_path
                     )
+                    if path_or_url is None:
+                        raise Exception(
+                            "A file must either have a path or url attribute"
+                        )
 
                     variable = self._create_file_variable(path_or_url=path_or_url)
                     inputs.append(
