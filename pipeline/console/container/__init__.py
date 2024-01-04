@@ -415,7 +415,7 @@ def _init_dir(namespace: Namespace) -> None:
             python=PythonRuntime(
                 version="3.10",
                 requirements=[
-                    "git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes",  # noqa
+                    "git+https://github.com/mystic-ai/pipeline.git@v2.0.0",
                 ],
             ),
         ),
