@@ -58,18 +58,20 @@ class Manager:
         logger.info(f"Pipeline set to {self.pipeline_path}")
 
     def startup(self):
-        logger.info("Starting pipeline")
-        self.pipeline_state = pipeline_schemas.PipelineState.loading
-        try:
-            self.pipeline._startup()
-        except Exception:
-            tb = traceback.format_exc()
-            logger.exception("Exception raised during pipeline execution")
-            self.pipeline_state = pipeline_schemas.PipelineState.failed
-            self.pipeline_state_message = tb
-        else:
-            self.pipeline_state = pipeline_schemas.PipelineState.loaded
-            logger.info("Pipeline started successfully")
+        # add context to enable fetching of startup logs
+        with logger.contextualize(pipeline_stage="startup"):
+            logger.info("Starting pipeline")
+            self.pipeline_state = pipeline_schemas.PipelineState.loading
+            try:
+                self.pipeline._startup()
+            except Exception:
+                tb = traceback.format_exc()
+                logger.exception("Exception raised during pipeline execution")
+                self.pipeline_state = pipeline_schemas.PipelineState.failed
+                self.pipeline_state_message = tb
+            else:
+                self.pipeline_state = pipeline_schemas.PipelineState.loaded
+                logger.info("Pipeline started successfully")
 
     def _resolve_file_variable_to_local(
         self,
