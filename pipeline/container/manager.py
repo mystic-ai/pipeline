@@ -7,6 +7,7 @@ import urllib.parse
 from pathlib import Path
 from types import NoneType, UnionType
 from urllib import request
+from urllib.parse import urlparse
 
 from loguru import logger
 
@@ -16,7 +17,6 @@ from pipeline.exceptions import RunnableError
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputSchema
 
-from urllib.parse import urlparse
 
 def is_url(string):
     try:
@@ -87,8 +87,6 @@ class Manager:
     ) -> None:
         local_host_dir = "/tmp"
 
-        print("HHHHHHHHH", flush=True)
-        print(file.path, file.url, flush=True)
         if hasattr(file, "url") and file.url is not None:
             cache_name = hashlib.md5(file.url.geturl().encode()).hexdigest()
 
@@ -140,7 +138,6 @@ class Manager:
         else:
             variable = File(path=path, url=url)
 
-        print(path_or_url, url, path, flush=True)
         self._resolve_file_variable_to_local(variable, use_tmp=use_tmp)
         return variable
 
@@ -156,12 +153,16 @@ class Manager:
                 input_schema = run_schemas.RunInput.parse_obj(item)
                 if input_schema.type == run_schemas.RunIOType.file:
                     if input_schema.file_path is None and input_schema.file_url is None:
-                        raise Exception("A file must either have a path or url attribute")
-                    path_or_url = input_schema.file_url if input_schema.file_url else input_schema.file_path
-
-                    variable = self._create_file_variable(
-                        path_or_url=path_or_url
+                        raise Exception(
+                            "A file must either have a path or url attribute"
+                        )
+                    path_or_url = (
+                        input_schema.file_url
+                        if input_schema.file_url
+                        else input_schema.file_path
                     )
+
+                    variable = self._create_file_variable(path_or_url=path_or_url)
                     inputs.append(
                         variable,
                     )
