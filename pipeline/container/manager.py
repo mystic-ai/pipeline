@@ -201,6 +201,7 @@ class Manager:
         with logger.contextualize(run_id=run_id):
             logger.info("Running pipeline")
             args = self._parse_inputs(input_data, self.pipeline)
+            raise Exception("Hope this works")
             try:
                 result = self.pipeline.run(*args)
             except Exception as exc:
