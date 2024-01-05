@@ -13,7 +13,7 @@ from loguru import logger
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
-from pipeline.exceptions import RunnableError
+from pipeline.exceptions import RunInputException, RunnableError
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputSchema
 
@@ -155,7 +155,7 @@ class Manager:
                 input_schema = run_schemas.RunInput.parse_obj(item)
                 if input_schema.type == run_schemas.RunIOType.file:
                     if input_schema.file_path is None and input_schema.file_url is None:
-                        raise Exception(
+                        raise RunInputException(
                             "A file must either have a path or url attribute"
                         )
                     path_or_url = (
@@ -164,7 +164,7 @@ class Manager:
                         else input_schema.file_path
                     )
                     if path_or_url is None:
-                        raise Exception(
+                        raise RunInputException(
                             "A file must either have a path or url attribute"
                         )
 
@@ -178,7 +178,7 @@ class Manager:
         graph_inputs = list(filter(lambda v: v.is_input, graph.variables))
 
         if len(inputs) != len(graph_inputs):
-            raise Exception("Inputs do not match graph inputs")
+            raise RunInputException("Inputs do not match graph inputs")
 
         final_inputs = []
 
@@ -191,11 +191,11 @@ class Manager:
                     if isinstance(value, UnionType) or "typing.Optional" in str(value):
                         var_union_types = list(t.get_args(value))
                         if len(var_union_types) > 2:
-                            raise Exception("Only support Union of 2 types")
+                            raise RunInputException("Only support Union of 2 types")
                         if NoneType in var_union_types:
                             var_union_types.remove(NoneType)
                         else:
-                            raise Exception("Only support Union with None")
+                            raise RunInputException("Only support Union with None")
                         var_type = var_union_types[0]
                     else:
                         var_type = value
