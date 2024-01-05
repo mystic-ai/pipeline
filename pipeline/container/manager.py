@@ -140,6 +140,7 @@ class Manager:
         variable: File | Directory | None = None
 
         if is_directory:
+
             variable = Directory(path=path, url=url)
         else:
             variable = File(path=path, url=url)
