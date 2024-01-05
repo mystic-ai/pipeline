@@ -219,8 +219,8 @@ class Manager:
     ) -> t.Any:
         with logger.contextualize(run_id=run_id):
             logger.info("Running pipeline")
+            args = self._parse_inputs(input_data, self.pipeline)
             try:
-                args = self._parse_inputs(input_data, self.pipeline)
                 result = self.pipeline.run(*args)
             except Exception as exc:
                 raise RunnableError(exception=exc, traceback=traceback.format_exc())
