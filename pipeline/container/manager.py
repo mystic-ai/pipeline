@@ -26,6 +26,10 @@ def is_url(string):
         return False
 
 
+def _get_url_or_path(input_schema: run_schemas.RunInput) -> str | None:
+    return input_schema.file_url if input_schema.file_url else input_schema.file_path
+
+
 class Manager:
     def __init__(self, pipeline_path: str):
         if ":" not in pipeline_path:
@@ -158,11 +162,7 @@ class Manager:
                         raise RunInputException(
                             "A file must either have a path or url attribute"
                         )
-                    path_or_url = (
-                        input_schema.file_url
-                        if input_schema.file_url
-                        else input_schema.file_path
-                    )
+                    path_or_url = _get_url_or_path(input_schema)
                     if path_or_url is None:
                         raise RunInputException(
                             "A file must either have a path or url attribute"
@@ -204,9 +204,9 @@ class Manager:
                         if user_input.get(key) is None:
                             continue
                         file_schema = run_schemas.RunInput.parse_obj(user_input[key])
-
+                        path_or_url = _get_url_or_path(file_schema)
                         variable = self._create_file_variable(
-                            path_or_url=file_schema.file_path,
+                            path_or_url=path_or_url,
                             use_tmp=True,
                         )
                         user_input[key] = variable
