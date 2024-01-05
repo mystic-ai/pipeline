@@ -7,8 +7,8 @@ import urllib.parse
 from pathlib import Path
 from types import NoneType, UnionType
 from urllib import request
+from urllib.parse import urlparse
 
-import validators
 from loguru import logger
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
@@ -16,6 +16,14 @@ from pipeline.cloud.schemas import runs as run_schemas
 from pipeline.exceptions import RunnableError
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputSchema
+
+
+def is_url(string):
+    try:
+        result = urlparse(string)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
 
 
 class Manager:
@@ -117,7 +125,7 @@ class Manager:
         path: str | None = None
         url: str | None = None
 
-        if validators.url(path_or_url):
+        if is_url(path_or_url):
             url = str(urllib.parse.urlparse(path_or_url).geturl())
         else:
             path = path_or_url
@@ -146,12 +154,21 @@ class Manager:
             for item in input_data:
                 input_schema = run_schemas.RunInput.parse_obj(item)
                 if input_schema.type == run_schemas.RunIOType.file:
-                    if input_schema.file_path is None:
-                        raise Exception("File path not provided")
-
-                    variable = self._create_file_variable(
-                        path_or_url=input_schema.file_path
+                    if input_schema.file_path is None and input_schema.file_url is None:
+                        raise Exception(
+                            "A file must either have a path or url attribute"
+                        )
+                    path_or_url = (
+                        input_schema.file_url
+                        if input_schema.file_url
+                        else input_schema.file_path
                     )
+                    if path_or_url is None:
+                        raise Exception(
+                            "A file must either have a path or url attribute"
+                        )
+
+                    variable = self._create_file_variable(path_or_url=path_or_url)
                     inputs.append(
                         variable,
                     )
