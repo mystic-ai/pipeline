@@ -12,5 +12,11 @@ end_time = datetime.datetime.now()
 
 total_time = (end_time - start_time).total_seconds()
 
-print(f"Total time taken: {total_time}, result: {result.outputs_formatted()}")
-print(f"Error: {result.error}")
+if result.error:
+    print(f"Error: {result.error.json()}")
+else:
+    print(
+        f"Total time taken: {total_time}\n"
+        f"Run ID: {result.id}\n"
+        f"Result: {result.outputs_formatted()}"
+    )
