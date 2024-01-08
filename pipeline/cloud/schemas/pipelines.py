@@ -54,6 +54,9 @@ class PipelineCreate(BaseModel):
     gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
+    # Additional meta data
+    description: t.Optional[str]
+    readme: t.Optional[str]
     extras: t.Optional[dict]
 
 

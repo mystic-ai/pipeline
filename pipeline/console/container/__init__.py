@@ -41,6 +41,8 @@ class PipelineConfig(BaseModel):
     accelerator_memory: int | None
     pipeline_graph: str
     pipeline_name: str = ""
+    description: str | None = None
+    readme: str | None = None
     extras: t.Dict[str, t.Any] | None
 
     class Config:
@@ -391,6 +393,8 @@ def _push_container(namespace: Namespace):
                 maximum_cache_number=None,
                 gpu_memory_min=pipeline_config.accelerator_memory,
                 accelerators=pipeline_config.accelerators,
+                description=pipeline_config.description,
+                readme=pipeline_config.readme,
                 extras=pipeline_config.extras,
             ).json()
         ),
