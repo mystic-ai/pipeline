@@ -2,9 +2,9 @@ import typing as t
 from pathlib import Path
 
 from PIL.Image import Image
-from pipeline.objects.graph import InputField, InputSchema
 
 from pipeline import File, Pipeline, Variable, entity, pipe
+from pipeline.objects.graph import InputField, InputSchema
 
 HF_MODEL_ID = "runwayml/stable-diffusion-v1-5"
 
