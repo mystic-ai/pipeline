@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 from pipeline import current_configuration
 from pipeline.util.logging import PIPELINE_STR, _print
+from json.decoder import JSONDecodeError
 
 _client = None
 _client_async = None
@@ -22,6 +23,8 @@ def get_response_error_dict(e: httpx.HTTPStatusError) -> t.Dict:
         detail = e.response.json()["detail"]
         if not isinstance(detail, dict):
             detail = {"detail": detail}
+    except JSONDecodeError:
+        return {"message": "Something went wrong.", "response": e.response}
     except (TypeError, KeyError):
         return {"message": "Something went wrong.", "response_json": e.response.json()}
     return {**detail, "request_id": e.response.headers.get("x-correlation-id")}
