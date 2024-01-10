@@ -1,0 +1,18 @@
+runtime:
+  container_commands:
+    - apt-get update
+    - apt-get install -y git
+  python:
+    version: "3.10"
+    requirements:
+      - pipeline-ai
+      - torch==2.0.1
+      - transformers==4.31.0
+    cuda_version: "11.4"
+accelerators: []
+accelerator_memory: null
+pipeline_graph: new_pipeline:my_new_pipeline
+pipeline_name: plutopulp/falcon-7b-instruct
+description: null
+readme: null
+extras: {}
