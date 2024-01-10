@@ -16,8 +16,8 @@ def login_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         "--url",
         type=str,
         required=False,
-        help="Remote URL for auth (default URL is for Catalyst=https://mystic.ai)",
-        default="https://mystic.ai",
+        help="Remote URL for auth (default URL is https://www.mystic.ai)",
+        default="https://www.mystic.ai",
     )
 
     login_parser.add_argument(
