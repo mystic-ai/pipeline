@@ -17,11 +17,14 @@ _client_async = None
 
 
 class APIError(Exception):
-    def __init__(self, status_code: int, detail: dict | str, request_id: str | None):
+    def __init__(
+        self, url: str, status_code: int, detail: dict | str, request_id: str | None
+    ):
+        self.url = url
         self.status_code = status_code
         self.detail = detail
         self.request_id = request_id
-        super().__init__(status_code, detail, request_id)
+        super().__init__(url, status_code, detail, request_id)
 
     @classmethod
     def from_response(cls, response: httpx.Response):
@@ -29,17 +32,13 @@ class APIError(Exception):
             detail = response.json()["detail"]
             if not isinstance(detail, dict):
                 detail = {"detail": detail}
-        except JSONDecodeError:
+        except (JSONDecodeError, TypeError, KeyError):
             detail = {
                 "message": "Something went wrong.",
-                "response_json": response.text,
-            }
-        except (TypeError, KeyError):
-            detail = {
-                "message": "Something went wrong.",
-                "response_json": response.json(),
+                "response": response.text,
             }
         return cls(
+            url=str(response.url),
             detail=detail,
             status_code=response.status_code,
             request_id=response.headers.get("x-correlation-id"),
