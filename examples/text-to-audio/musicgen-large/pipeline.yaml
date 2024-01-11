@@ -12,7 +12,7 @@ runtime:
 accelerators: ["nvidia_a100"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline
-pipeline_name: plutopulp/musicgen-large
+pipeline_name: musicgen-large
 description: null
 readme: null
 extras: {}
