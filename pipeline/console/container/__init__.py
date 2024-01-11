@@ -353,10 +353,12 @@ def _push_container(namespace: Namespace):
     for line in resp:
         if "error" in line:
             if line["error"] == "unauthorized: authentication required":
-                print("""
+                print(
+                    """
 Failed to authenticate with the registry. 
 This can happen if your pipeline took longer than an hour to push.
-Please try reduce the size of your pipeline or contact mystic.ai""")
+Please try reduce the size of your pipeline or contact mystic.ai"""
+                )
                 return
             raise ValueError(line["error"])
         elif "status" in line:
