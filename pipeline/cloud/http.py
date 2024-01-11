@@ -2,10 +2,9 @@ import functools
 import io
 import os
 import typing as t
+from json.decoder import JSONDecodeError
 
 import httpx
-
-# from httpx import _GeneratorContextManager
 import requests
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
 from tqdm import tqdm
@@ -17,14 +16,48 @@ _client = None
 _client_async = None
 
 
-def get_response_error_dict(e: httpx.HTTPStatusError) -> t.Dict:
+class APIError(Exception):
+    def __init__(self, status_code: int, detail: dict | str, request_id: str | None):
+        self.status_code = status_code
+        self.detail = detail
+        self.request_id = request_id
+        super().__init__(status_code, detail, request_id)
+
+    @classmethod
+    def from_response(cls, response: httpx.Response):
+        try:
+            detail = response.json()["detail"]
+            if not isinstance(detail, dict):
+                detail = {"detail": detail}
+        except JSONDecodeError:
+            detail = {
+                "message": "Something went wrong.",
+                "response_json": response.text,
+            }
+        except (TypeError, KeyError):
+            detail = {
+                "message": "Something went wrong.",
+                "response_json": response.json(),
+            }
+        return cls(
+            detail=detail,
+            status_code=response.status_code,
+            request_id=response.headers.get("x-correlation-id"),
+        )
+
+    def __str__(self):
+        error_msg = ", ".join(f"{k}={v}" for k, v in self.__dict__.items())
+        error_msg = f"APIError({error_msg})"
+        return error_msg
+
+
+def raise_if_http_status_error(response: httpx.Response):
     try:
-        detail = e.response.json()["detail"]
-        if not isinstance(detail, dict):
-            detail = {"detail": detail}
-    except (TypeError, KeyError):
-        return {"message": "Something went wrong.", "response_json": e.response.json()}
-    return {**detail, "request_id": e.response.headers.get("x-correlation-id")}
+        response.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        error = APIError.from_response(e.response)
+        _print(str(error), level="ERROR")
+        raise error from None
 
 
 def handle_http_status_error(func):
@@ -32,14 +65,7 @@ def handle_http_status_error(func):
     def wrapper(*args, **kwargs):
         response = func(*args, **kwargs)
         if kwargs.pop("handle_error", True):
-            try:
-                response.raise_for_status()
-            except httpx.HTTPStatusError as e:
-                _print(
-                    get_response_error_dict(e),
-                    level="ERROR",
-                )
-                raise
+            raise_if_http_status_error(response)
         return response
 
     return wrapper
