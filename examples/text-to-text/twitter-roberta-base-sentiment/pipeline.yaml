@@ -13,7 +13,7 @@ runtime:
 accelerators: ["nvidia_t4"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline
-pipeline_name: plutopulp/twitter-roberta-base-sentiment
+pipeline_name: twitter-roberta-base-sentiment
 description: null
 readme: null
 extras: {}

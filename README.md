@@ -30,7 +30,7 @@ pip install pipeline-ai
 To create a new pipeline navigate to the directory you want to create the pipeline in and run:
 
 ```shell
-pipeline container init -n paulcjh/quickstart
+pipeline container init -n quickstart
 ```
 
 This will create two files in the directory:
