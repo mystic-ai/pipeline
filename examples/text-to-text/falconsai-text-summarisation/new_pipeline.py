@@ -1,6 +1,6 @@
 import typing as t
 
-from transformers import pipeline as t_pipeline
+from transformers import pipeline as hf_pipeline
 
 from pipeline import Pipeline, Variable, entity, pipe
 from pipeline.objects.graph import File, InputField, InputSchema
