@@ -25,8 +25,9 @@ class NoResourcesAvailable(Exception):
         self,
         run_result: ClusterRunResult,
         message=(
-            "No available resources to run the inference request. "
-            "Please try again in a few minutes."
+            "This pipeline is currently starting up. This is normal behaviour "
+            "for pipelines that are new or have not been run in a while. Please "
+            "wait a few minutes before next run."
         ),
     ):
         self.message = message
