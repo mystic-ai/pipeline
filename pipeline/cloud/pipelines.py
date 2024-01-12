@@ -1,29 +1,40 @@
 import typing as t
 
+from pydantic import ValidationError
+
 from pipeline.cloud import http
 from pipeline.cloud.files import resolve_run_input_file_object
-from pipeline.cloud.schemas.runs import ClusterRunResult, RunCreate, RunInput, RunIOType
+from pipeline.cloud.schemas.runs import (
+    ClusterRunResult,
+    RunCreate,
+    RunInput,
+    RunIOType,
+    RunState,
+)
 from pipeline.objects import File
 from pipeline.objects.graph import InputSchema
+from pipeline.util.logging import _print
 
 
-class PipelineRunError(Exception):
-    """Error raised when there was an exception raised during a pipeline run"""
+class NoResourcesAvailable(Exception):
+    """Exception raised when there are no available resources to route the run
+    request to.
+    """
 
     def __init__(
         self,
-        exception: str,
-        traceback: t.Optional[str],
-    ) -> None:
-        self.exception = exception
-        self.traceback = traceback
-        super().__init__(self.exception, self.traceback)
+        run_result: ClusterRunResult,
+        message=(
+            "No available resources to run the inference request. "
+            "Please try again in a few minutes."
+        ),
+    ):
+        self.message = message
+        self.run_result = run_result
+        super().__init__(self.message, self.run_result)
 
     def __str__(self):
-        error_msg = self.exception
-        if self.traceback:
-            error_msg += f"\n\nFull traceback from run:\n\n{self.traceback}"
-        return error_msg
+        return self.message
 
 
 def _data_to_run_input(data: t.Tuple) -> t.List[RunInput]:
@@ -76,10 +87,22 @@ def _run_pipeline(run_create_schema: RunCreate):
     res = http.post(
         "/v4/runs",
         json_data=run_create_schema.dict(),
-        handle_error=True,
+        handle_error=False,
     )
+    try:
+        result = ClusterRunResult.parse_raw(res.text)
+    except ValidationError:
+        http.raise_if_http_status_error(res)
+        raise
 
-    return ClusterRunResult.parse_raw(res.text)
+    if result.state == RunState.no_resources_available:
+        error = NoResourcesAvailable(run_result=result)
+        _print(
+            f"{error.message}\nRun result:\n{error.run_result.json(indent=2)}",
+            level="ERROR",
+        )
+        raise error
+    return result
 
 
 def run_pipeline(
