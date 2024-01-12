@@ -49,7 +49,7 @@ class Summarizer:
 
     @pipe(run_once=True, on_startup=True)
     def load(self) -> None:
-        self.summarizer = t_pipeline("summarization", model=HF_MODEL_NAME)
+        self.summarizer = hf_pipeline("summarization", model=HF_MODEL_NAME)
 
     @pipe
     def predict(self, text: str, model_kwargs: ModelKwargs) -> t.Any:
