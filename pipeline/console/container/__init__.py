@@ -279,6 +279,11 @@ def _push_container(namespace: Namespace):
 
     pipeline_config = PipelineConfig.parse_obj(pipeline_config_yaml)
 
+    # Read markdown file, transform to string, and put it back in .yaml
+    if pipeline_config.readme is not None:
+        markdown_file = Path(pipeline_config.readme)
+        markdown_content = markdown_file.read_text()
+
     pipeline_name = (
         pipeline_config.pipeline_name.split(":")[0]
         if ":" in pipeline_config.pipeline_name
@@ -402,7 +407,7 @@ Please try reduce the size of your pipeline or contact mystic.ai"""
                 gpu_memory_min=pipeline_config.accelerator_memory,
                 accelerators=pipeline_config.accelerators,
                 description=pipeline_config.description,
-                readme=pipeline_config.readme,
+                readme=markdown_content,
                 extras=pipeline_config.extras,
             ).json()
         ),
