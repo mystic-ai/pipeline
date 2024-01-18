@@ -37,6 +37,8 @@ class PipelineStartUpload(BaseModel):
 class PipelineStartUploadResponse(BaseModel):
     bearer: str
     upload_registry: t.Optional[str]
+    #: Full username/pipeline_name. Used for naming docker image
+    pipeline_name: str
 
 
 class PipelineCreate(BaseModel):
@@ -52,6 +54,9 @@ class PipelineCreate(BaseModel):
     gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
+    # Additional meta data
+    description: t.Optional[str]
+    readme: t.Optional[str]
     extras: t.Optional[dict]
 
 

@@ -2,7 +2,6 @@ import json
 import re
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 
-from httpx import HTTPStatusError
 from tabulate import tabulate
 
 from pipeline.cloud import http
@@ -149,7 +148,7 @@ def _get_pointer(namespace: Namespace) -> None:
     if pipeline_name:
         query_params["pipeline_name"] = pipeline_name
     paginated_raw_pointers: Paginated[dict] = http.get(
-        "/v3/pointers", params=dict(**query_params, **pagination.dict())
+        "/v4/pointers", params=dict(**query_params, **pagination.dict())
     ).json()
 
     pointers = [
@@ -184,23 +183,16 @@ def _create_pointer(namespace: Namespace) -> None:
         pointer_or_pipeline_id=pipeline_id_or_pointer,
         locked=locked,
     )
-    try:
-        result = http.post(
-            "/v3/pointers",
-            json.loads(
-                create_schema.json(),
-            ),
-        )
+    result = http.post(
+        "/v4/pointers",
+        json.loads(
+            create_schema.json(),
+        ),
+    )
 
-        pointer = pointers_schema.PointerGet.parse_obj(result.json())
+    pointer = pointers_schema.PointerGet.parse_obj(result.json())
 
-        _print(f"Created pointer {pointer.pointer} -> {pointer.pipeline_id}")
-    except HTTPStatusError as e:
-        if e.response.status_code == 409:
-            _print("Pointer already exists!", level="ERROR")
-            return
-        else:
-            raise e
+    _print(f"Created pointer {pointer.pointer} -> {pointer.pipeline_id}")
 
 
 def _edit_pointer(namespace: Namespace) -> None:
@@ -223,9 +215,8 @@ def _edit_pointer(namespace: Namespace) -> None:
         pointer_or_pipeline_id=source,
         locked=locked if locked is not None else not unlocked,
     )
-
     http.patch(
-        f"/v3/pointers/{pointer}",
+        f"/v4/pointers/{pointer}",
         json.loads(
             edit_schema.json(),
         ),
@@ -240,7 +231,7 @@ def _delete_pointer(namespace: Namespace) -> None:
     _print(f"Deleting pointer ({pointer})")
 
     http.delete(
-        f"/v3/pointers/{pointer}",
+        f"/v4/pointers/{pointer}",
     )
 
     _print("Pointer deleted!")

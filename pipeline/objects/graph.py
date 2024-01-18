@@ -656,7 +656,7 @@ class Graph:
                     input = float(input)
                 else:
                     raise RunInputException(
-                        "Input type mismatch, expceted %s got %s"
+                        "Input type mismatch, expected %s got %s"
                         % (
                             input_variables[i].type_class,
                             input.__class__,

@@ -6,7 +6,6 @@ from argparse import Namespace
 from pathlib import Path
 
 import docker
-import httpx
 import yaml
 from docker.types import DeviceRequest, LogConfig
 from pydantic import BaseModel
@@ -42,6 +41,8 @@ class PipelineConfig(BaseModel):
     accelerator_memory: int | None
     pipeline_graph: str
     pipeline_name: str = ""
+    description: str | None = None
+    readme: str | None = None
     extras: t.Dict[str, t.Any] | None
 
     class Config:
@@ -203,7 +204,7 @@ def _build_container(namespace: Namespace):
 
     dockerfile_path = Path("./pipeline.dockerfile")
     dockerfile_path.write_text(dockerfile_str)
-    docker_client = docker.APIClient(base_url="unix://var/run/docker.sock")
+    docker_client = docker.APIClient()
     generator = docker_client.build(
         # fileobj=dockerfile_path.open("rb"),
         path="./",
@@ -293,29 +294,26 @@ def _push_container(namespace: Namespace):
 
     if upload_registry is None:
         raise ValueError("No upload registry found")
-
-    image_hash = docker_client.images.get(pipeline_name).id.split(":")[1]
+    image = docker_client.images.get(pipeline_name)
+    image_hash = image.id.split(":")[1]
 
     hash_tag = image_hash[:12]
     image_to_push = pipeline_name + ":" + hash_tag
     image_to_push_reg = upload_registry + "/" + image_to_push
 
     upload_token = None
+    true_pipeline_name = None
     if registry_info.special_auth:
-        try:
-            start_upload_response = http.post(
-                endpoint="/v4/registry/start-upload",
-                json_data={
-                    "pipeline_name": pipeline_name,
-                    "pipeline_tag": None,
-                },
-            )
-        except httpx.HTTPStatusError as e:
-            msg = e.response.json()
-            print("Error received from API: " + msg["detail"]["message"])
-            return
+        start_upload_response = http.post(
+            endpoint="/v4/registry/start-upload",
+            json_data={
+                "pipeline_name": pipeline_name,
+                "pipeline_tag": None,
+            },
+        )
         start_upload_dict = start_upload_response.json()
         upload_token = start_upload_dict.get("bearer", None)
+        true_pipeline_name = start_upload_dict.get("pipeline_name")
 
         if upload_token is None:
             raise ValueError("No upload token found")
@@ -327,9 +325,17 @@ def _push_container(namespace: Namespace):
             registry="http://" + upload_registry,
         )
 
+        # Override the tag with the pipeline name from catalyst
+        image_to_push = true_pipeline_name + ":" + hash_tag
+        image_to_push_reg = upload_registry + "/" + image_to_push
+
     _print(f"Pushing image to upload registry {upload_registry}", "INFO")
 
     docker_client.images.get(pipeline_name).tag(image_to_push_reg)
+    # Do this after tagging, because we need to use
+    # the old pipeline name to tag the local image
+    if true_pipeline_name:
+        pipeline_name = true_pipeline_name
 
     resp = docker_client.images.push(
         image_to_push_reg,
@@ -346,6 +352,14 @@ def _push_container(namespace: Namespace):
 
     for line in resp:
         if "error" in line:
+            if line["error"] == "unauthorized: authentication required":
+                print(
+                    """
+Failed to authenticate with the registry.
+This can happen if your pipeline took longer than an hour to push.
+Please try reduce the size of your pipeline or contact mystic.ai"""
+                )
+                return
             raise ValueError(line["error"])
         elif "status" in line:
             if "id" not in line or line["status"] != "Pushing":
@@ -387,6 +401,8 @@ def _push_container(namespace: Namespace):
                 maximum_cache_number=None,
                 gpu_memory_min=pipeline_config.accelerator_memory,
                 accelerators=pipeline_config.accelerators,
+                description=pipeline_config.description,
+                readme=pipeline_config.readme,
                 extras=pipeline_config.extras,
             ).json()
         ),
@@ -421,7 +437,7 @@ def _init_dir(namespace: Namespace) -> None:
             python=PythonRuntime(
                 version="3.10",
                 requirements=[
-                    "git+https://github.com/mystic-ai/pipeline.git@ph/just-balls-in-holes",  # noqa
+                    "pipeline-ai",
                 ],
             ),
         ),

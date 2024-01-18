@@ -1,0 +1,22 @@
+runtime:
+  container_commands:
+    - apt-get update
+    - apt-get install -y git
+  python:
+    version: "3.10"
+    requirements:
+      - pipeline-ai
+      - torch==2.0.1
+      - transformers==4.31.0
+      - diffusers==0.19.3
+      - accelerate==0.21.0
+      - hf-transfer~=0.1
+      - vllm==0.1.4
+    cuda_version: "11.4"
+accelerators: ["nvidia_a100"]
+accelerator_memory: null
+pipeline_graph: new_pipeline:my_new_pipeline
+pipeline_name: llama2-13b-chat-vllm
+description: null
+readme: null
+extras: {}

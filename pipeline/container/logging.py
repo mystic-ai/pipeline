@@ -12,6 +12,7 @@ from loguru import logger
 class StreamToLogger:
     def __init__(self, level="INFO"):
         self._level = level
+        self.encoding = "utf-8"
 
     def write(self, buffer):
         for line in buffer.rstrip().splitlines():
@@ -96,7 +97,7 @@ def setup_logging():
     logging.getLogger("uvicorn.error").setLevel(logging.CRITICAL)
     logging.getLogger("uvicorn.access").handlers.clear()
     logger.remove()
-    # if
+
     use_json_logging = os.environ.get("USE_JSON_LOGGING", False)
     if use_json_logging:
         handler = dict(

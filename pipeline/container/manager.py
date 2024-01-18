@@ -7,15 +7,27 @@ import urllib.parse
 from pathlib import Path
 from types import NoneType, UnionType
 from urllib import request
+from urllib.parse import urlparse
 
-import validators
 from loguru import logger
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
-from pipeline.exceptions import RunnableError
+from pipeline.exceptions import RunInputException, RunnableError
 from pipeline.objects import Directory, File, Graph
 from pipeline.objects.graph import InputSchema
+
+
+def is_url(string):
+    try:
+        result = urlparse(string)
+        return all([result.scheme, result.netloc])
+    except ValueError:
+        return False
+
+
+def _get_url_or_path(input_schema: run_schemas.RunInput) -> str | None:
+    return input_schema.file_url if input_schema.file_url else input_schema.file_path
 
 
 class Manager:
@@ -58,18 +70,20 @@ class Manager:
         logger.info(f"Pipeline set to {self.pipeline_path}")
 
     def startup(self):
-        logger.info("Starting pipeline")
-        self.pipeline_state = pipeline_schemas.PipelineState.loading
-        try:
-            self.pipeline._startup()
-        except Exception:
-            tb = traceback.format_exc()
-            logger.exception("Exception raised during pipeline execution")
-            self.pipeline_state = pipeline_schemas.PipelineState.failed
-            self.pipeline_state_message = tb
-        else:
-            self.pipeline_state = pipeline_schemas.PipelineState.loaded
-            logger.info("Pipeline started successfully")
+        # add context to enable fetching of startup logs
+        with logger.contextualize(pipeline_stage="startup"):
+            logger.info("Starting pipeline")
+            self.pipeline_state = pipeline_schemas.PipelineState.loading
+            try:
+                self.pipeline._startup()
+            except Exception:
+                tb = traceback.format_exc()
+                logger.exception("Exception raised during pipeline execution")
+                self.pipeline_state = pipeline_schemas.PipelineState.failed
+                self.pipeline_state_message = tb
+            else:
+                self.pipeline_state = pipeline_schemas.PipelineState.loaded
+                logger.info("Pipeline started successfully")
 
     def _resolve_file_variable_to_local(
         self,
@@ -115,7 +129,7 @@ class Manager:
         path: str | None = None
         url: str | None = None
 
-        if validators.url(path_or_url):
+        if is_url(path_or_url):
             url = str(urllib.parse.urlparse(path_or_url).geturl())
         else:
             path = path_or_url
@@ -144,12 +158,17 @@ class Manager:
             for item in input_data:
                 input_schema = run_schemas.RunInput.parse_obj(item)
                 if input_schema.type == run_schemas.RunIOType.file:
-                    if input_schema.file_path is None:
-                        raise Exception("File path not provided")
+                    if input_schema.file_path is None and input_schema.file_url is None:
+                        raise RunInputException(
+                            "A file must either have a path or url attribute"
+                        )
+                    path_or_url = _get_url_or_path(input_schema)
+                    if path_or_url is None:
+                        raise RunInputException(
+                            "A file must either have a path or url attribute"
+                        )
 
-                    variable = self._create_file_variable(
-                        path_or_url=input_schema.file_path
-                    )
+                    variable = self._create_file_variable(path_or_url=path_or_url)
                     inputs.append(
                         variable,
                     )
@@ -159,7 +178,7 @@ class Manager:
         graph_inputs = list(filter(lambda v: v.is_input, graph.variables))
 
         if len(inputs) != len(graph_inputs):
-            raise Exception("Inputs do not match graph inputs")
+            raise RunInputException("Inputs do not match graph inputs")
 
         final_inputs = []
 
@@ -172,11 +191,11 @@ class Manager:
                     if isinstance(value, UnionType) or "typing.Optional" in str(value):
                         var_union_types = list(t.get_args(value))
                         if len(var_union_types) > 2:
-                            raise Exception("Only support Union of 2 types")
+                            raise RunInputException("Only support Union of 2 types")
                         if NoneType in var_union_types:
                             var_union_types.remove(NoneType)
                         else:
-                            raise Exception("Only support Union with None")
+                            raise RunInputException("Only support Union with None")
                         var_type = var_union_types[0]
                     else:
                         var_type = value
@@ -185,9 +204,9 @@ class Manager:
                         if user_input.get(key) is None:
                             continue
                         file_schema = run_schemas.RunInput.parse_obj(user_input[key])
-
+                        path_or_url = _get_url_or_path(file_schema)
                         variable = self._create_file_variable(
-                            path_or_url=file_schema.file_path,
+                            path_or_url=path_or_url,
                             use_tmp=True,
                         )
                         user_input[key] = variable

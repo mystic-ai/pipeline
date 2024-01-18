@@ -1,30 +1,41 @@
 import typing as t
 
+from pydantic import ValidationError
+
 from pipeline.cloud import http
 from pipeline.cloud.files import resolve_run_input_file_object
-from pipeline.cloud.schemas.runs import ClusterRunResult, RunCreate, RunInput, RunIOType
+from pipeline.cloud.schemas.runs import (
+    ClusterRunResult,
+    RunCreate,
+    RunInput,
+    RunIOType,
+    RunState,
+)
 from pipeline.objects import File
 from pipeline.objects.graph import InputSchema
 from pipeline.util.logging import _print
 
 
-class PipelineRunError(Exception):
-    """Error raised when there was an exception raised during a pipeline run"""
+class NoResourcesAvailable(Exception):
+    """Exception raised when there are no available resources to route the run
+    request to.
+    """
 
     def __init__(
         self,
-        exception: str,
-        traceback: t.Optional[str],
-    ) -> None:
-        self.exception = exception
-        self.traceback = traceback
-        super().__init__(self.exception, self.traceback)
+        run_result: ClusterRunResult,
+        message=(
+            "This pipeline is currently starting up. This is normal behaviour "
+            "for pipelines that are new or have not been run in a while. Please "
+            "wait a few minutes before next run."
+        ),
+    ):
+        self.message = message
+        self.run_result = run_result
+        super().__init__(self.message, self.run_result)
 
     def __str__(self):
-        error_msg = self.exception
-        if self.traceback:
-            error_msg += f"\n\nFull traceback from run:\n\n{self.traceback}"
-        return error_msg
+        return self.message
 
 
 def _data_to_run_input(data: t.Tuple) -> t.List[RunInput]:
@@ -77,45 +88,22 @@ def _run_pipeline(run_create_schema: RunCreate):
     res = http.post(
         "/v4/runs",
         json_data=run_create_schema.dict(),
-        raise_for_status=False,
+        handle_error=False,
     )
+    try:
+        result = ClusterRunResult.parse_raw(res.text)
+    except ValidationError:
+        http.raise_if_http_status_error(res)
+        raise
 
-    if res.status_code == 500:
+    if result.state == RunState.no_resources_available:
+        error = NoResourcesAvailable(run_result=result)
         _print(
-            f"Failed run (status={res.status_code}, text={res.text}, "
-            f"headers={res.headers})",
+            f"{error.message}\nRun result:\n{error.run_result.json(indent=2)}",
             level="ERROR",
         )
-        raise Exception(f"Error: {res.status_code}, {res.text}", res.status_code)
-    elif res.status_code == 429:
-        _print(
-            f"Too many requests (status={res.status_code}, text={res.text})",
-            level="ERROR",
-        )
-        raise Exception(
-            "Too many requests, please try again later",
-            res.status_code,
-        )
-    elif res.status_code == 404:
-        _print(
-            f"Pipeline not found (status={res.status_code}, text={res.text})",
-            level="ERROR",
-        )
-        raise Exception("Pipeline not found", res.status_code)
-    elif res.status_code == 503:
-        _print(
-            f"Environment not cached (status={res.status_code}, text={res.text})",
-            level="ERROR",
-        )
-        raise Exception("Environment not cached", res.status_code)
-    elif res.status_code == 502:
-        _print(
-            "Gateway error",
-            level="ERROR",
-        )
-        raise Exception("Gateway error", res.status_code)
-
-    return ClusterRunResult.parse_raw(res.text)
+        raise error
+    return result
 
 
 def run_pipeline(

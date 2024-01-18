@@ -176,7 +176,7 @@ def _edit_pipeline(args: Namespace) -> None:
         return
 
     http.patch(
-        f"/v3/pipelines/{pipeline_id}",
+        f"/v4/pipelines/{pipeline_id}",
         patch_schema.dict(),
     )
 
