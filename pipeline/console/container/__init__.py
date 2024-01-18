@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 import typing as t
@@ -278,6 +279,12 @@ def _push_container(namespace: Namespace):
     pipeline_config_yaml = yaml.load(config, Loader=yaml.FullLoader)
 
     pipeline_config = PipelineConfig.parse_obj(pipeline_config_yaml)
+
+    # Check for file, transform to string, and put it back in config
+    if pipeline_config.readme is not None:
+        if os.path.isfile(pipeline_config.readme):
+            markdown_file = Path(pipeline_config.readme)
+            pipeline_config.readme = markdown_file.read_text()
 
     pipeline_name = (
         pipeline_config.pipeline_name.split(":")[0]
