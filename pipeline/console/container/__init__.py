@@ -4,6 +4,7 @@ import sys
 import typing as t
 from argparse import Namespace
 from pathlib import Path
+import os
 
 import docker
 import yaml
@@ -279,10 +280,11 @@ def _push_container(namespace: Namespace):
 
     pipeline_config = PipelineConfig.parse_obj(pipeline_config_yaml)
 
-    # Read markdown file, transform to string, and put it back in config
+    # Check for file, transform to string, and put it back in config
     if pipeline_config.readme is not None:
-        markdown_file = Path(pipeline_config.readme)
-        pipeline_config.readme = markdown_file.read_text()
+        if os.path.isfile(pipeline_config.readme):
+            markdown_file = Path(pipeline_config.readme)
+            pipeline_config.readme = markdown_file.read_text()
 
     pipeline_name = (
         pipeline_config.pipeline_name.split(":")[0]
