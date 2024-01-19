@@ -57,6 +57,7 @@ class PipelineCreate(BaseModel):
     # Additional meta data
     description: t.Optional[str]
     readme: t.Optional[str]
+    image_url: t.Optional[str]
     extras: t.Optional[dict]
 
 

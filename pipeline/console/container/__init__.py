@@ -43,6 +43,7 @@ class PipelineConfig(BaseModel):
     pipeline_graph: str
     pipeline_name: str = ""
     description: str | None = None
+    image_url: str | None = None
     readme: str | None = None
     extras: t.Dict[str, t.Any] | None
 
@@ -410,6 +411,7 @@ Please try reduce the size of your pipeline or contact mystic.ai"""
                 accelerators=pipeline_config.accelerators,
                 description=pipeline_config.description,
                 readme=pipeline_config.readme,
+                image_url=pipeline_config.image_url,
                 extras=pipeline_config.extras,
             ).json()
         ),
