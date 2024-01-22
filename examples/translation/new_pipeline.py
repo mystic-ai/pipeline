@@ -23,7 +23,6 @@ class ModelKwargs(InputSchema):
     )
 
 
-# Put your model inside of the below entity class
 @entity
 class MyModelClass:
     @pipe(run_once=True, on_startup=True)
