@@ -55,15 +55,14 @@ Below are some popular models that have been premade by the community on Mystic.
 
 # Example and tutorials
 
-| Tutorial                                                                         | Description                                                                      |
-| -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| [Keyword schemas](https://docs.mystic.ai/docs/keyword-schemas)                   | Set default, min, max, and various other constraints on your inputs with schemas |
-| [Entity objects](https://docs.mystic.ai/docs/entity-objects)                     | Use entity objects to persist values and store things                            |
-| [Cold start optimisations](https://docs.mystic.ai/docs/cold-start-optimisations) | Premade functions to do heavy tasks seperately                                   |
-| [Input/output types](https://docs.mystic.ai/docs/inputoutpu-types)               | Defining what goes in and out of your pipes                                      |
-| [Files and directories](https://docs.mystic.ai/docs/files-and-directories)       | Inputing or outputing files from your runs                                       |
-| [Pipeline building](https://docs.mystic.ai/docs/pipeline-building)               | Building pipelines - how it works                                                |
-| [Runs](https://docs.mystic.ai/docs/runs)                                         | Running a pipeline remotely - how it works                                       |
+| Tutorial                                                                         | Description                                           |
+| -------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| [Entity objects](https://docs.mystic.ai/docs/entity-objects)                     | Use entity objects to persist values and store things |
+| [Cold start optimisations](https://docs.mystic.ai/docs/cold-start-optimisations) | Premade functions to do heavy tasks seperately        |
+| [Input/output types](https://docs.mystic.ai/docs/inputs-outputs)                 | Defining what goes in and out of your pipes           |
+| [Files](https://docs.mystic.ai/docs/files-and-directories)                       | Inputing or outputing files from your runs            |
+| [Pipeline building](https://docs.mystic.ai/docs/pipeline-building)               | Building pipelines - how it works                     |
+| [Runs](https://docs.mystic.ai/docs/runs)                                         | Running a pipeline remotely - how it works            |
 
 Below is some sample python that demonstrates various features and how to use the Pipeline SDK to create a simple pipeline that can be run locally or on Mystic.
 
@@ -80,7 +79,7 @@ from pipeline.objects import File
 from pipeline.objects.graph import InputField, InputSchema
 
 
-class ModelKwargs(InputSchema): # TUTORIAL: Keyword schemas
+class ModelKwargs(InputSchema): # TUTORIAL: Input/output types
     height: int | None = InputField(default=512, ge=64, le=1024)
     width: int | None = InputField(default=512, ge=64, le=1024)
     num_inference_steps: int | None = InputField(default=50)
