@@ -113,7 +113,7 @@ class StableDiffusionModel:
         return output_images
 
 
-with Pipeline() as builder:
+with Pipeline() as builder: # TUTORIAL: Pipeline building
     prompt = Variable(str)
     kwargs = Variable(ModelKwargs)
     model = StableDiffusionModel()
