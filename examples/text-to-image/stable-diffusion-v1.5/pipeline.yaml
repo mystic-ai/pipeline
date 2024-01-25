@@ -10,7 +10,6 @@ runtime:
       - torch==2.1.1
       - transformers==4.35.2
       - accelerate==0.25.0
-    cuda_version: "11.4"
 accelerators: ["nvidia_a100"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline

@@ -10,7 +10,6 @@ runtime:
       - requests==2.30.0
       - transformers==4.32.0
       - pillow==10.0.0
-    cuda_version: "11.4"
 accelerators: ["nvidia_a100"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline

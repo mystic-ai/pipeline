@@ -8,7 +8,6 @@ runtime:
       - pipeline-ai
       - torch==2.0.1
       - audiocraft
-    cuda_version: "11.4"
 accelerators: ["nvidia_a100"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline

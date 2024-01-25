@@ -9,7 +9,6 @@ runtime:
       - tweet-preprocessor==0.6.0
       - torch==2.0.1
       - transformers==4.32.0
-    cuda_version: "11.4"
 accelerators: ["nvidia_t4"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline
