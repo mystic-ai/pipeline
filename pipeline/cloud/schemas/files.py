@@ -3,6 +3,12 @@ from datetime import datetime
 from pipeline.cloud.schemas import BaseModel
 
 
+class RemoteFileData(BaseModel):
+    id: str
+    path: str
+    url: str | None
+
+
 class FileGet(BaseModel):
     id: str
     path: str

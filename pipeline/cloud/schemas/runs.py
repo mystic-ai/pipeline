@@ -115,6 +115,8 @@ class RunIOType(str, Enum):
         elif isinstance(obj, dict) or obj is dict:
             if obj is dict:
                 return cls.dictionary
+            # The below try/except means that dict inputs
+            # with file-like values will be treated as pkl
             try:
                 json.dumps(obj)
             except (TypeError, OverflowError):
@@ -128,7 +130,12 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.array
-        elif isinstance(obj, io.BufferedIOBase) or obj is File or isinstance(obj, File):
+        elif (
+            isinstance(obj, io.BufferedIOBase)
+            or isinstance(obj, io.IOBase)
+            or obj is File
+            or isinstance(obj, File)
+        ):
             return cls.file
         else:
             return cls.pkl
