@@ -1,3 +1,5 @@
+import io
+import os
 import typing as t
 
 from pydantic import ValidationError
@@ -42,6 +44,9 @@ def _data_to_run_input(data: t.Tuple) -> t.List[RunInput]:
     input_array = []
 
     for item in data:
+        if isinstance(item, io.IOBase):
+            path = os.path.abspath(item.name)
+            item = File(path=path)
         input_type = RunIOType.from_object(item)
         if input_type == RunIOType.file or isinstance(item, File):
             input_schema = resolve_run_input_file_object(item)
@@ -52,6 +57,9 @@ def _data_to_run_input(data: t.Tuple) -> t.List[RunInput]:
             output_dict = dict()
             output_dict.update(item_dict)
             for pair_key, pair_value in item_dict.items():
+                if isinstance(pair_value, io.IOBase):
+                    path = os.path.abspath(pair_value.name)
+                    pair_value = File(path=path)
                 pair_value_type = RunIOType.from_object(pair_value)
                 if pair_value_type == RunIOType.file:
                     new_schema = resolve_run_input_file_object(pair_value)
