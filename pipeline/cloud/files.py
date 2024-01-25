@@ -19,6 +19,15 @@ from pipeline.util.logging import PIPELINE_FILE_STR
 FILE_CHUNK_SIZE = 200 * 1024 * 1024  # 200 MiB
 
 
+def upload_file(file_path: Path) -> s.RemoteFileData:
+    """Upload file directly to storage using single-part upload."""
+    with file_path.open("rb") as f:
+        files = {"file": f}
+        files = {"pfile": (f.name, f)}
+        response = http.post_file("/v4/files", files=files)
+        return s.RemoteFileData.parse_obj(response.json())
+
+
 def upload_multipart_file(file_path: Path, progress: bool = False) -> s.FileGet:
     """Upload file directly to storage using multi-part upload.
 
@@ -71,6 +80,10 @@ def upload_multipart_file(file_path: Path, progress: bool = False) -> s.FileGet:
         file_id=file_id, upload_id=upload_id, multipart_metadata=parts
     )
     return file_get
+
+
+def is_file_like(obj):
+    return isinstance(obj, File) or isinstance(obj, io.IOBase)
 
 
 def _init_multipart_upload(filename: str) -> s.MultipartFileUploadInitGet:
@@ -222,12 +235,13 @@ def resolve_run_input_file_object(obj: File | Directory) -> RunInput:
                 file_path=remote_dir.path,
             )
         elif isinstance(obj, File):
-            remote_file = upload_multipart_file(obj.path)
+            remote_file = upload_file(obj.path)
             return RunInput(
                 type=RunIOType.file,
                 value=None,
                 file_name=remote_file.path.split("/")[-1],
                 file_path=remote_file.path,
+                file_url=remote_file.url,
             )
 
     raise Exception(f"Invalid file object: {obj}, must have remote_id, path, or URL")
