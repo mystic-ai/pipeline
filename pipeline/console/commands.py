@@ -137,7 +137,9 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
     )
     push_parser.set_defaults(func=container._push_container)
     push_parser.add_argument(
-        "--skip-prompt", action="store_true", help="Skip the prompt about running pipeline container up"
+        "--skip-prompt",
+        action="store_true",
+        help="Skip the prompt about running pipeline container up",
     )
 
     up_parser = container_sub_parser.add_parser(
