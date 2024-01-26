@@ -260,6 +260,26 @@ def _build_container(namespace: Namespace):
     #     _print(f"Created tag {pipeline_repo}:{pipeline_tag}", "SUCCESS")
 
 
+def _check_user_has_run_container_up():
+    user_input = (
+        input(
+            "Have you checked your pipeline works locally by running 'pipeline container up'? (yes/no): "
+        )
+        .strip()
+        .lower()
+    )
+    if user_input == "yes":
+        return
+    elif user_input == "no":
+        _print(
+            "Please run the command 'pipeline container up' before continuing. This will help ensure your pipeline works as expected before uploading it to Mystic."
+        )
+        sys.exit()
+    else:
+        _print("Invalid input. Please answer 'yes' or 'no'.")
+        _check_user_has_run_container_up()
+
+
 def _push_container(namespace: Namespace):
     """
 
@@ -274,6 +294,8 @@ def _push_container(namespace: Namespace):
 
     if not config_file.exists():
         raise FileNotFoundError(f"Config file {config_file} not found")
+
+    _check_user_has_run_container_up()
 
     config = config_file.read_text()
     pipeline_config_yaml = yaml.load(config, Loader=yaml.FullLoader)
