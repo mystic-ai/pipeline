@@ -4,6 +4,7 @@ from enum import Enum
 
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.schemas import BaseModel, pagination
+from pipeline.cloud.schemas.cluster import PipelineClusterConfig
 from pipeline.cloud.schemas.runs import RunIOType
 
 
@@ -53,6 +54,8 @@ class PipelineCreate(BaseModel):
 
     gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
+
+    cluster: PipelineClusterConfig | None = None
 
     # Additional meta data
     description: t.Optional[str]
