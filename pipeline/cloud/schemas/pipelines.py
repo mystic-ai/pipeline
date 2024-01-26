@@ -83,6 +83,8 @@ class PipelineGet(Pipeline):
     gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
+    cluster: PipelineClusterConfig | None = None
+
     extras: t.Optional[dict]
 
 
