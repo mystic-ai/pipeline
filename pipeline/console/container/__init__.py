@@ -263,7 +263,11 @@ def _build_container(namespace: Namespace):
 def _check_user_has_run_container_up(skip_prompt=False):
     if not skip_prompt:
         print(
-            "We recommend trying 'pipeline container up' if you have the GPU hardware."
+            (
+                "\nWe recommend trying 'pipeline container up' before continuing. \n"
+                "This will help ensure your pipeline works as expected before "
+                "uploading it to Mystic.\n"
+            )
         )
         input(
             "Press Enter to continue, or Ctrl+C to exit if you need to run the command."
