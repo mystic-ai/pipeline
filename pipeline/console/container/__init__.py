@@ -260,24 +260,14 @@ def _build_container(namespace: Namespace):
     #     _print(f"Created tag {pipeline_repo}:{pipeline_tag}", "SUCCESS")
 
 
-def _check_user_has_run_container_up():
-    user_input = (
+def _check_user_has_run_container_up(skip_prompt=False):
+    if not skip_prompt:
+        print(
+            "We recommend trying 'pipeline container up' if you have the GPU hardware."
+        )
         input(
-            "Have you checked your pipeline works locally by running 'pipeline container up'? (yes/no): "
+            "Press Enter to continue, or Ctrl+C to exit if you need to run the command..."
         )
-        .strip()
-        .lower()
-    )
-    if user_input == "yes":
-        return
-    elif user_input == "no":
-        _print(
-            "Please run the command 'pipeline container up' before continuing. This will help ensure your pipeline works as expected before uploading it to Mystic."
-        )
-        sys.exit()
-    else:
-        _print("Invalid input. Please answer 'yes' or 'no'.")
-        _check_user_has_run_container_up()
 
 
 def _push_container(namespace: Namespace):
@@ -289,13 +279,14 @@ def _push_container(namespace: Namespace):
     3. Send complete request to server
 
     """
-
     config_file = Path("./pipeline.yaml")
 
     if not config_file.exists():
         raise FileNotFoundError(f"Config file {config_file} not found")
 
-    _check_user_has_run_container_up()
+    skip_prompt = getattr(namespace, "skip_prompt")
+
+    _check_user_has_run_container_up(skip_prompt=skip_prompt)
 
     config = config_file.read_text()
     pipeline_config_yaml = yaml.load(config, Loader=yaml.FullLoader)
