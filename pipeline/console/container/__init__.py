@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
+from pipeline.cloud.schemas import cluster as cluster_schemas
 from pipeline.cloud.schemas import pipelines as pipelines_schemas
 from pipeline.cloud.schemas import registry as registry_schemas
 from pipeline.container import docker_templates
@@ -45,6 +46,7 @@ class PipelineConfig(BaseModel):
     description: str | None = None
     readme: str | None = None
     extras: t.Dict[str, t.Any] | None
+    cluster: cluster_schemas.PipelineClusterConfig | None = None
 
     class Config:
         extra = "forbid"
