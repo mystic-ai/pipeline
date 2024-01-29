@@ -1,7 +1,14 @@
 from argparse import ArgumentParser, _SubParsersAction
 
 from pipeline.console import cluster, container, logs
-from pipeline.console.targets import environments, files, pipelines, pointers, resources
+from pipeline.console.targets import (
+    environments,
+    files,
+    pipelines,
+    pointers,
+    resources,
+    scaling_configs,
+)
 
 
 def create_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
@@ -57,6 +64,7 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     pointers.get_parser(get_sub_parser)
     resources.get_parser(get_sub_parser)
     files.get_parser(get_sub_parser)
+    scaling_configs.get_parser(get_sub_parser)
 
 
 def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
