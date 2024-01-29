@@ -45,6 +45,7 @@ def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     pipelines.edit_parser(edit_sub_parser)
     pointers.edit_parser(edit_sub_parser)
     files.edit_parser(edit_sub_parser)
+    scaling_configs.edit_parser(edit_sub_parser)
 
 
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:

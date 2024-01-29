@@ -1,5 +1,8 @@
+import json
+import typing as t
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from datetime import datetime
+from enum import Enum
 
 from tabulate import tabulate
 
@@ -10,6 +13,10 @@ from pipeline.cloud.schemas.pagination import (
     to_page_position,
 )
 from pipeline.util.logging import _print
+
+
+class ScalingConfigType(str, Enum):
+    windows = "windows"
 
 
 def _get_scaling_config(args: Namespace) -> None:
@@ -35,6 +42,8 @@ def _get_scaling_config(args: Namespace) -> None:
             datetime.fromtimestamp(scaling.get("created_at"))
             if "created_at" in scaling
             else "N/A",
+            scaling["type"],
+            scaling["args"],
         ]
         for scaling in paginated_scaling_configs["data"]
     ]
@@ -51,11 +60,41 @@ def _get_scaling_config(args: Namespace) -> None:
             "ID",
             "Name",
             "Created",
+            "Type",
+            "Args",
         ],
         tablefmt="psql",
     )
     print(table)
     print(f"\nPage {page_position['current']} of {page_position['total']}\n")
+
+
+def _edit_scaling_config(args: Namespace) -> None:
+    name = getattr(args, "name")
+    _type = getattr(args, "type", None)
+    _args = getattr(args, "args", None)
+
+    # patch_schema = pipelines_schema.PipelinePatch(
+    #     minimum_cache_number=cache_number,
+    #     gpu_memory_min=gpu_memory,
+    # )
+
+    if _type is None and _args is None:
+        _print("Nothing to edit.", level="ERROR")
+        return
+
+    payload = {}
+    if _type is not None:
+        payload["type"] = _type
+    if _args is not None:
+        payload["args"] = _args
+    _print(args)
+    http.patch(
+        f"/v4/scaling-configs/{name}",
+        payload,
+    )
+
+    _print("Scaling configuration edited!")
 
 
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
@@ -85,4 +124,34 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         "-l",
         help="Total number of scaling configs to fetch in paginated set.",
         type=int,
+    )
+
+
+def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
+    edit_parser = command_parser.add_parser(
+        "scalings",
+        aliases=["scaling"],
+        help="Edit scaling config information.",
+    )
+
+    edit_parser.set_defaults(func=_edit_scaling_config)
+
+    # Requires name param to edit
+    edit_parser.add_argument(
+        "--name",
+        "-n",
+        help="Scaling config name.",
+        type=str,
+    )
+    edit_parser.add_argument(
+        "--type",
+        "-t",
+        help="The type of the scaling configuration",
+        type=ScalingConfigType,
+    )
+    edit_parser.add_argument(
+        "--args",
+        "-a",
+        help="The arguments of the scaling configuration",
+        type=json.loads,
     )
