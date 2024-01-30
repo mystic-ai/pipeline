@@ -1,5 +1,4 @@
 import json
-import typing as t
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from datetime import datetime
 from enum import Enum
@@ -71,30 +70,39 @@ def _get_scaling_config(args: Namespace) -> None:
 
 def _edit_scaling_config(args: Namespace) -> None:
     name = getattr(args, "name")
-    _type = getattr(args, "type", None)
-    _args = getattr(args, "args", None)
+    type_ = getattr(args, "type", None)
+    args_ = getattr(args, "args", None)
 
     # patch_schema = pipelines_schema.PipelinePatch(
     #     minimum_cache_number=cache_number,
     #     gpu_memory_min=gpu_memory,
     # )
 
-    if _type is None and _args is None:
+    if type_ is None and args_ is None:
         _print("Nothing to edit.", level="ERROR")
         return
 
     payload = {}
-    if _type is not None:
-        payload["type"] = _type
-    if _args is not None:
-        payload["args"] = _args
-    _print(args)
+    if type_ is not None:
+        payload["type"] = type_
+    if args_ is not None:
+        payload["args"] = args_
     http.patch(
         f"/v4/scaling-configs/{name}",
         payload,
     )
 
     _print("Scaling configuration edited!")
+
+
+def _delete_scaling_config(args: Namespace) -> None:
+    name = getattr(args, "name")
+
+    http.delete(
+        f"/v4/scaling-configs/{name}",
+    )
+
+    _print("Scaling configuration deleted!")
 
 
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
@@ -138,9 +146,8 @@ def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 
     # Requires name param to edit
     edit_parser.add_argument(
-        "--name",
-        "-n",
-        help="Scaling config name.",
+        "name",
+        help="The name of the scaling configuration to edit.",
         type=str,
     )
     edit_parser.add_argument(
@@ -154,4 +161,19 @@ def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         "-a",
         help="The arguments of the scaling configuration",
         type=json.loads,
+    )
+
+
+def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
+    delete_parser = command_parser.add_parser(
+        "scalings",
+        aliases=["scaling"],
+        help="Delete a scaling configuration.",
+    )
+
+    delete_parser.set_defaults(func=_delete_scaling_config)
+
+    delete_parser.add_argument(
+        "name",
+        help="Name of the scaling configuration to delete.",
     )

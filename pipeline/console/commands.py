@@ -86,6 +86,7 @@ def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     pointers.delete_parser(delete_sub_parser)
     resources.delete_parser(delete_sub_parser)
     files.delete_parser(delete_sub_parser)
+    scaling_configs.delete_parser(delete_sub_parser)
 
 
 def cluster_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
