@@ -50,14 +50,25 @@ async def run(
                     message="Pipeline is still loading",
                 ),
             )
-
-        if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
+        
+        if manager.pipeline_state == pipeline_schemas.PipelineState.load_failed:
             logger.info("Pipeline failed to load")
             return run_schemas.ContainerRunResult(
                 outputs=None,
                 error=run_schemas.ContainerRunError(
-                    type=run_schemas.ContainerRunErrorType.startup_error,
+                    type=run_schemas.ContainerRunErrorType.load_error,
                     message="Pipeline failed to load",
+                    traceback=manager.pipeline_state_message,
+                ),
+            )
+
+        if manager.pipeline_state == pipeline_schemas.PipelineState.failed:
+            logger.info("Pipeline failed to startup")
+            return run_schemas.ContainerRunResult(
+                outputs=None,
+                error=run_schemas.ContainerRunError(
+                    type=run_schemas.ContainerRunErrorType.startup_error,
+                    message="Pipeline failed to startup",
                     traceback=manager.pipeline_state_message,
                 ),
             )

@@ -216,6 +216,7 @@ class ContainerRunErrorType(str, Enum):
     pipeline_error = "pipeline_error"
     startup_error = "startup_error"
     pipeline_loading = "pipeline_loading"
+    load_error = "load_error"
     unknown = "unknown"
 
 
