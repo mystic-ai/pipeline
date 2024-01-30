@@ -1,14 +1,11 @@
 import json
-import typing as t
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from datetime import datetime
 from enum import Enum
 
-from pydantic import conint
 from tabulate import tabulate
 
 from pipeline.cloud import http
-from pipeline.cloud.schemas import BaseModel
 from pipeline.cloud.schemas.pagination import (
     Paginated,
     get_default_pagination,
@@ -19,14 +16,6 @@ from pipeline.util.logging import _print
 
 class ScalingConfigType(str, Enum):
     windows = "windows"
-
-
-class ScalingConfigCreate(BaseModel):
-    name: str
-    minimum_nodes: conint(ge=0) = 1
-    maximum_nodes: conint(ge=0) = 100
-    type: ScalingConfigType
-    args: t.Dict[str, t.Any]
 
 
 def _create_scaling_config(namespace: Namespace) -> None:
