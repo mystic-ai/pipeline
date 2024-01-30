@@ -88,14 +88,6 @@ class PipelineGet(Pipeline):
     extras: t.Optional[dict]
 
 
-class PipelineDeploymentStatus(str, Enum):
-    not_deployed = "not_deployed"
-    deploying = "deploying"
-    deployed = "deployed"
-    failed = "failed"
-    deleting = "deleting"
-    deleted = "deleted"
-
 class PipelinePatch(BaseModel):
     input_variables: t.Optional[t.List[IOVariable]]
     output_variables: t.Optional[t.List[IOVariable]]
@@ -108,8 +100,13 @@ class PipelinePatch(BaseModel):
 
     extras: t.Optional[dict]
 
-    deployment_status: t.Optional[PipelineDeploymentStatus]
-
+class PipelineDeploymentStatus(str, Enum):
+    not_deployed = "not_deployed"
+    deploying = "deploying"
+    deployed = "deployed"
+    failed = "failed"
+    deleting = "deleting"
+    deleted = "deleted"
 
 class PipelineListPagination(pagination.Pagination):
     class OrderBy(str, Enum):
