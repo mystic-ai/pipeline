@@ -75,7 +75,6 @@ class Manager:
             tb = traceback.format_exc()
             self.pipeline_state_message = tb
             return
-        
 
     def startup(self):
         if self.pipeline_state == pipeline_schemas.PipelineState.load_failed:

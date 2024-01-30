@@ -50,7 +50,7 @@ async def run(
                     message="Pipeline is still loading",
                 ),
             )
-        
+
         if manager.pipeline_state == pipeline_schemas.PipelineState.load_failed:
             logger.info("Pipeline failed to load")
             return run_schemas.ContainerRunResult(
