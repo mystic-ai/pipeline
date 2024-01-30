@@ -44,6 +44,7 @@ class Manager:
         self.pipeline_path = pipeline_path
         self.pipeline_module_str, self.pipeline_name_str = pipeline_path.split(":")
 
+        self.pipeline_state = pipeline_schemas.PipelineState.loading
         try:
             self.pipeline_module = importlib.import_module(self.pipeline_module_str)
             self.pipeline: Graph = getattr(self.pipeline_module, self.pipeline_name_str)
@@ -82,7 +83,6 @@ class Manager:
         # add context to enable fetching of startup logs
         with logger.contextualize(pipeline_stage="startup"):
             logger.info("Starting pipeline")
-            self.pipeline_state = pipeline_schemas.PipelineState.loading
             try:
                 self.pipeline._startup()
             except Exception:
