@@ -100,13 +100,6 @@ class PipelinePatch(BaseModel):
 
     extras: t.Optional[dict]
 
-class PipelineDeploymentStatus(str, Enum):
-    not_deployed = "not_deployed"
-    deploying = "deploying"
-    deployed = "deployed"
-    failed = "failed"
-    deleting = "deleting"
-    deleted = "deleted"
 
 class PipelineListPagination(pagination.Pagination):
     class OrderBy(str, Enum):
@@ -124,6 +117,13 @@ class PipelineListPagination(pagination.Pagination):
     order_by: OrderBy
     order: pagination.Order
 
+class PipelineDeploymentStatus(str, Enum):
+    not_deployed = "not_deployed"
+    deploying = "deploying"
+    deployed = "deployed"
+    failed = "failed"
+    deleting = "deleting"
+    deleted = "deleted"
 
 
 class PipelineState(str, Enum):
