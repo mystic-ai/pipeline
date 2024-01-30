@@ -27,6 +27,7 @@ def create_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     pointers.create_parser(create_sub_parser)
     resources.create_parser(create_sub_parser)
     files.create_parser(create_sub_parser)
+    scaling_configs.create_parser(create_sub_parser)
 
 
 def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:

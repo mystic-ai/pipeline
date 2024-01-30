@@ -1,11 +1,14 @@
 import json
+import typing as t
 from argparse import ArgumentParser, Namespace, _SubParsersAction
 from datetime import datetime
 from enum import Enum
 
+from pydantic import conint
 from tabulate import tabulate
 
 from pipeline.cloud import http
+from pipeline.cloud.schemas import BaseModel
 from pipeline.cloud.schemas.pagination import (
     Paginated,
     get_default_pagination,
@@ -16,6 +19,50 @@ from pipeline.util.logging import _print
 
 class ScalingConfigType(str, Enum):
     windows = "windows"
+
+
+class ScalingConfigBase(BaseModel):
+    name: str
+    minimum_nodes: conint(ge=0) = 1
+    maximum_nodes: conint(ge=0) = 100
+    type: ScalingConfigType
+    args: t.Dict[str, t.Any]
+
+
+class ScalingConfigCreate(ScalingConfigBase):
+    pass
+
+
+class ScalingConfigGet(ScalingConfigBase):
+    id: str
+    created_at: datetime
+    updated_at: datetime
+
+
+def _create_scaling_config(namespace: Namespace) -> None:
+    name = getattr(namespace, "name")
+    type_ = getattr(namespace, "type", ScalingConfigType.windows)
+    args_ = getattr(namespace, "args", {})
+    min_nodes = getattr(namespace, "min_nodes", 1)
+    max_nodes = getattr(namespace, "max_nodes", 100)
+
+    create_schema = ScalingConfigCreate(
+        name=name,
+        minimum_nodes=min_nodes,
+        maximum_nodes=max_nodes,
+        args=args_,
+        type=type_,
+    )
+    result = http.post(
+        "/v4/scaling-configs",
+        json.loads(
+            create_schema.json(),
+        ),
+    )
+
+    scaling_config = ScalingConfigGet.parse_obj(result.json())
+
+    _print(f"Created scaling configuration {scaling_config.name}")
 
 
 def _get_scaling_config(args: Namespace) -> None:
@@ -127,6 +174,44 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         "--limit",
         "-l",
         help="Total number of scaling configs to fetch in paginated set.",
+        type=int,
+    )
+
+
+def create_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
+    create_parser = command_parser.add_parser(
+        "scalings",
+        aliases=["scaling"],
+        help="Create a new scaling configuration.",
+    )
+
+    create_parser.set_defaults(func=_create_scaling_config)
+
+    create_parser.add_argument(
+        "name",
+        type=str,
+        help="Scaling configuration to create.",
+    )
+    create_parser.add_argument(
+        "--type",
+        "-t",
+        help="The type of the scaling configuration",
+        type=ScalingConfigType,
+    )
+    create_parser.add_argument(
+        "--args",
+        "-a",
+        help="The arguments of the scaling configuration",
+        type=json.loads,
+    )
+    create_parser.add_argument(
+        "--min-nodes",
+        help="The minimum number of nodes for the scaling configuration",
+        type=int,
+    )
+    create_parser.add_argument(
+        "--max-nodes",
+        help="The maximum number of nodes for the scaling configuration",
         type=int,
     )
 
