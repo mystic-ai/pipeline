@@ -21,22 +21,12 @@ class ScalingConfigType(str, Enum):
     windows = "windows"
 
 
-class ScalingConfigBase(BaseModel):
+class ScalingConfigCreate(BaseModel):
     name: str
     minimum_nodes: conint(ge=0) = 1
     maximum_nodes: conint(ge=0) = 100
     type: ScalingConfigType
     args: t.Dict[str, t.Any]
-
-
-class ScalingConfigCreate(ScalingConfigBase):
-    pass
-
-
-class ScalingConfigGet(ScalingConfigBase):
-    id: str
-    created_at: datetime
-    updated_at: datetime
 
 
 def _create_scaling_config(namespace: Namespace) -> None:
@@ -60,9 +50,9 @@ def _create_scaling_config(namespace: Namespace) -> None:
         ),
     )
 
-    scaling_config = ScalingConfigGet.parse_obj(result.json())
+    scaling_config = result.json()["name"]
 
-    _print(f"Created scaling configuration {scaling_config.name}")
+    _print(f"Created scaling configuration {scaling_config}")
 
 
 def _get_scaling_config(args: Namespace) -> None:
