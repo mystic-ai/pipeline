@@ -104,6 +104,8 @@ def _edit_scaling_config(args: Namespace) -> None:
     name = getattr(args, "name")
     type_ = getattr(args, "type", None)
     args_ = getattr(args, "args", None)
+    min_nodes = getattr(args, "min_nodes")
+    max_nodes = getattr(args, "max_nodes")
 
     if type_ is None and args_ is None:
         _print("Nothing to edit.", level="ERROR")
@@ -114,6 +116,11 @@ def _edit_scaling_config(args: Namespace) -> None:
         payload["type"] = type_
     if args_ is not None:
         payload["args"] = args_
+    if min_nodes is not None:
+        payload["minimum_nodes"] = min_nodes
+    if max_nodes is not None:
+        payload["maximum_nodes"] = max_nodes
+
     response = http.patch(
         f"/v4/scaling-configs/{name}",
         payload,
@@ -227,6 +234,16 @@ def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         "-a",
         help="The arguments of the scaling configuration",
         type=json.loads,
+    )
+    edit_parser.add_argument(
+        "--min-nodes",
+        help="The minimum number of nodes of the scaling configuration",
+        type=int,
+    )
+    edit_parser.add_argument(
+        "--max-nodes",
+        help="The maximum number of nodes of the scaling configuration",
+        type=int,
     )
 
 
