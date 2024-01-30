@@ -56,7 +56,7 @@ async def run(
             return run_schemas.ContainerRunResult(
                 outputs=None,
                 error=run_schemas.ContainerRunError(
-                    type=run_schemas.ContainerRunErrorType.load_error,
+                    type=run_schemas.ContainerRunErrorType.startup_error,
                     message="Pipeline failed to load",
                     traceback=manager.pipeline_state_message,
                 ),
