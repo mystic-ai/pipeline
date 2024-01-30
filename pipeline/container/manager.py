@@ -32,22 +32,22 @@ def _get_url_or_path(input_schema: run_schemas.RunInput) -> str | None:
 
 class Manager:
     def __init__(self, pipeline_path: str):
-        if ":" not in pipeline_path:
-            raise ValueError(
-                "Invalid pipeline path, must be in format <module_or_file>:<pipeline>"
-            )
-        if len(pipeline_path.split(":")) != 2:
-            raise ValueError(
-                "Invalid pipeline path, must be in format <module_or_file>:<pipeline>"
-            )
-
-        self.pipeline_path = pipeline_path
-        self.pipeline_module_str, self.pipeline_name_str = pipeline_path.split(":")
-
         self.pipeline_state: pipeline_schemas.PipelineState = (
             pipeline_schemas.PipelineState.not_loaded
         )
         self.pipeline_state_message: str | None = None
+
+        if ":" not in pipeline_path:
+            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
+            self.pipeline_state_message = "Invalid pipeline path, must be in format <module_or_file>:<pipeline>"
+            return
+        if len(pipeline_path.split(":")) != 2:
+            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
+            self.pipeline_state_message = "Invalid pipeline path, must be in format <module_or_file>:<pipeline>"
+            return
+
+        self.pipeline_path = pipeline_path
+        self.pipeline_module_str, self.pipeline_name_str = pipeline_path.split(":")
 
         try:
             self.pipeline_module = importlib.import_module(self.pipeline_module_str)
@@ -56,22 +56,17 @@ class Manager:
             self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             tb = traceback.format_exc()
             self.pipeline_state_message = tb
-            raise ValueError(f"Could not find module {self.pipeline_module_str}")
+            return
         except AttributeError:
             self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             tb = traceback.format_exc()
             self.pipeline_state_message = tb
-            raise ValueError(
-                (
-                    f"Could not find pipeline {self.pipeline_name_str} in module"
-                    f" {self.pipeline_module_str}"
-                )
-            )
+            return
         except Exception as e:
             self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             tb = traceback.format_exc()
             self.pipeline_state_message = tb
-            raise ValueError(f"Unexpected error: {e}")
+            return
 
         self.pipeline_name = os.environ.get("PIPELINE_NAME", "unknown")
         self.pipeline_image = os.environ.get("PIPELINE_IMAGE", "unknown")
@@ -79,6 +74,8 @@ class Manager:
         logger.info(f"Pipeline set to {self.pipeline_path}")
 
     def startup(self):
+        if self.pipeline_state == pipeline_schemas.PipelineState.load_failed:
+            return
         # add context to enable fetching of startup logs
         with logger.contextualize(pipeline_stage="startup"):
             logger.info("Starting pipeline")
