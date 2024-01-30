@@ -33,7 +33,7 @@ async def is_ready(request: Request, response: Response):
     ]:
         response.status_code = 503
     elif run_manager.pipeline_state in [
-        pipeline_schemas.PipelineState.failed,
+        pipeline_schemas.PipelineState.startup_failed,
         pipeline_schemas.PipelineState.load_failed,
     ]:
         response.status_code = 500

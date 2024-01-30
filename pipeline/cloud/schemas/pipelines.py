@@ -132,8 +132,7 @@ class PipelineState(str, Enum):
     loading = "loading"
     loaded = "loaded"
     load_failed = "load_failed"
-    # This is really startup_failed
-    failed = "failed"
+    startup_failed = "startup_failed"
 
 
 class PipelineContainerState(BaseModel):
