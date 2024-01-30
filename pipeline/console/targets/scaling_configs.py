@@ -31,24 +31,19 @@ class ScalingConfigCreate(BaseModel):
 
 def _create_scaling_config(namespace: Namespace) -> None:
     name = getattr(namespace, "name")
-    type_ = getattr(namespace, "type", ScalingConfigType.windows)
-    args_ = getattr(namespace, "args", {})
-    min_nodes = getattr(namespace, "min_nodes", 1)
-    max_nodes = getattr(namespace, "max_nodes", 100)
+    type_ = getattr(namespace, "type")
+    args_ = getattr(namespace, "args")
+    min_nodes = getattr(namespace, "min_nodes")
+    max_nodes = getattr(namespace, "max_nodes")
+    # Annoyingly, setting default values above did not seem to work
+    payload = {}
+    payload["name"] = name
+    payload["type"] = type_ or "windows"
+    payload["args"] = args_ or {}
+    payload["minimum_nodes"] = min_nodes or 1
+    payload["maximum_nodes"] = max_nodes or 100
 
-    create_schema = ScalingConfigCreate(
-        name=name,
-        minimum_nodes=min_nodes,
-        maximum_nodes=max_nodes,
-        args=args_,
-        type=type_,
-    )
-    result = http.post(
-        "/v4/scaling-configs",
-        json.loads(
-            create_schema.json(),
-        ),
-    )
+    result = http.post("/v4/scaling-configs", json_data=payload)
 
     scaling_config = result.json()["name"]
 
