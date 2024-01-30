@@ -133,6 +133,8 @@ class PipelineState(str, Enum):
     not_loaded = "not_loaded"
     loading = "loading"
     loaded = "loaded"
+    load_failed = "load_failed"
+    # This is really startup_failed
     failed = "failed"
 
 

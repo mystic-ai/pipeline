@@ -53,8 +53,10 @@ class Manager:
             self.pipeline_module = importlib.import_module(self.pipeline_module_str)
             self.pipeline: Graph = getattr(self.pipeline_module, self.pipeline_name_str)
         except ModuleNotFoundError:
+            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             raise ValueError(f"Could not find module {self.pipeline_module_str}")
         except AttributeError:
+            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             raise ValueError(
                 (
                     f"Could not find pipeline {self.pipeline_name_str} in module"
@@ -62,6 +64,7 @@ class Manager:
                 )
             )
         except Exception as e:
+            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             raise ValueError(f"Unexpected error: {e}")
 
         self.pipeline_name = os.environ.get("PIPELINE_NAME", "unknown")
