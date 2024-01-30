@@ -117,6 +117,7 @@ class PipelineListPagination(pagination.Pagination):
     order_by: OrderBy
     order: pagination.Order
 
+
 class PipelineDeploymentStatus(str, Enum):
     not_deployed = "not_deployed"
     deploying = "deploying"
