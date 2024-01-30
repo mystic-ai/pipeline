@@ -73,11 +73,6 @@ def _edit_scaling_config(args: Namespace) -> None:
     type_ = getattr(args, "type", None)
     args_ = getattr(args, "args", None)
 
-    # patch_schema = pipelines_schema.PipelinePatch(
-    #     minimum_cache_number=cache_number,
-    #     gpu_memory_min=gpu_memory,
-    # )
-
     if type_ is None and args_ is None:
         _print("Nothing to edit.", level="ERROR")
         return
@@ -87,10 +82,11 @@ def _edit_scaling_config(args: Namespace) -> None:
         payload["type"] = type_
     if args_ is not None:
         payload["args"] = args_
-    http.patch(
+    response = http.patch(
         f"/v4/scaling-configs/{name}",
         payload,
     )
+    _print(response.json())
 
     _print("Scaling configuration edited!")
 
