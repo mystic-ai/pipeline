@@ -51,8 +51,12 @@ async def is_ready(request: Request, response: Response):
 )
 async def get_pipeline(request: Request):
     run_manager: Manager = request.app.state.manager
+    if run_manager.pipeline_state == pipeline_schemas.PipelineState.load_failed:
+        raise Exception("Pipeline was never loaded")
+
     input_variables: t.List[pipeline_schemas.IOVariable] = []
     output_variables: t.List[pipeline_schemas.IOVariable] = []
+
     graph: Graph = run_manager.pipeline
     for variable in graph.variables:
         if variable.is_input:
