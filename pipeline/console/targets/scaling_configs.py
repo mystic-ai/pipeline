@@ -90,6 +90,8 @@ def _get_scaling_config(args: Namespace) -> None:
 
 
 def _edit_scaling_config(args: Namespace) -> None:
+    # If you add new arg, check whether it should be add to 
+    # the `if all(...)` below
     name = getattr(args, "name")
     type_ = getattr(args, "type", None)
     args_ = getattr(args, "args", None)
