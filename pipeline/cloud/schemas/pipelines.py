@@ -134,6 +134,9 @@ class PipelineState(str, Enum):
     load_failed = "load_failed"
     startup_failed = "startup_failed"
 
+    # backwards compatability
+    failed = "failed"
+
 
 class PipelineContainerState(BaseModel):
     state: PipelineState
