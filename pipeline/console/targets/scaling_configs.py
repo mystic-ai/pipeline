@@ -90,13 +90,15 @@ def _get_scaling_config(args: Namespace) -> None:
 
 
 def _edit_scaling_config(args: Namespace) -> None:
+    # If you add new arg, check whether it should be add to
+    # the `if all(...)` below
     name = getattr(args, "name")
     type_ = getattr(args, "type", None)
     args_ = getattr(args, "args", None)
     min_nodes = getattr(args, "min_nodes")
     max_nodes = getattr(args, "max_nodes")
 
-    if type_ is None and args_ is None:
+    if all(arg is None for arg in (type_, args_, min_nodes, max_nodes)):
         _print("Nothing to edit.", level="ERROR")
         return
 
