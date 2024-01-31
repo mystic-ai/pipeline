@@ -131,6 +131,10 @@ class PipelineState(str, Enum):
     not_loaded = "not_loaded"
     loading = "loading"
     loaded = "loaded"
+    load_failed = "load_failed"
+    startup_failed = "startup_failed"
+
+    # backwards compatability
     failed = "failed"
 
 
