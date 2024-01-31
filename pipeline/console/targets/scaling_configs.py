@@ -96,7 +96,7 @@ def _edit_scaling_config(args: Namespace) -> None:
     min_nodes = getattr(args, "min_nodes")
     max_nodes = getattr(args, "max_nodes")
 
-    if type_ is None and args_ is None:
+    if all(arg is None for arg in (type_, args_, min_nodes, max_nodes)):
         _print("Nothing to edit.", level="ERROR")
         return
 
