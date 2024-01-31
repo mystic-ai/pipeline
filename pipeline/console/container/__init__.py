@@ -413,6 +413,7 @@ Please try reduce the size of your pipeline or contact mystic.ai"""
                 description=pipeline_config.description,
                 readme=pipeline_config.readme,
                 extras=pipeline_config.extras,
+                cluster=pipeline_config.cluster,
             ).json()
         ),
     )
