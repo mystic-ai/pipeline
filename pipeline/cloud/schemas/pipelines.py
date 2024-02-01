@@ -99,6 +99,7 @@ class PipelinePatch(BaseModel):
     accelerators: t.Optional[t.List[Accelerator]]
 
     extras: t.Optional[dict]
+    scaling_config_name: t.Optional[str]
 
 
 class PipelineListPagination(pagination.Pagination):
