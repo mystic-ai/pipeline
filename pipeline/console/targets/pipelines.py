@@ -41,6 +41,13 @@ def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         help="Minimum GPU memory.",
         type=int,
     )
+    edit_parser.add_argument(
+        "--scaling-config",
+        "-s",
+        help="The scaling configuration name the pipeline uses",
+        type=str,
+        required=False,
+    )
 
 
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
@@ -165,13 +172,14 @@ def _edit_pipeline(args: Namespace) -> None:
     pipeline_id = getattr(args, "pipeline_id")
     cache_number = getattr(args, "cache_number", None)
     gpu_memory = getattr(args, "gpu_memory", None)
+    scaling_config = getattr(args, "scaling_config", None)
 
     patch_schema = pipelines_schema.PipelinePatch(
         minimum_cache_number=cache_number,
         gpu_memory_min=gpu_memory,
+        scaling_config=scaling_config,
     )
-
-    if cache_number is None and gpu_memory is None:
+    if all(arg is None for arg in (gpu_memory, cache_number, scaling_config)):
         _print("Nothing to edit.", level="ERROR")
         return
 
