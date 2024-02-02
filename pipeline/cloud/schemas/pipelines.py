@@ -86,6 +86,8 @@ class PipelineGet(Pipeline):
     cluster: PipelineClusterConfig | None = None
 
     extras: t.Optional[dict]
+    #: The name of the scaling configuration
+    scaling_config: str | None = None
 
 
 class PipelinePatch(BaseModel):
@@ -99,7 +101,8 @@ class PipelinePatch(BaseModel):
     accelerators: t.Optional[t.List[Accelerator]]
 
     extras: t.Optional[dict]
-    scaling_config_name: t.Optional[str]
+    #: The name of the scaling configuration
+    scaling_config: str | None = None
 
 
 class PipelineListPagination(pagination.Pagination):
