@@ -156,3 +156,5 @@ migrate_pipelines/pipeline.yaml
 migrate_pipelines/pipelines.csv
 
 examples/**/pipeline.dockerfile
+
+**/model_weights/
