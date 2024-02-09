@@ -62,9 +62,6 @@ class MyModelClass:
         self.pipe = AutoPipelineForText2Image.from_pretrained(
             "lykon/dreamshaper-xl-v2-turbo", torch_dtype=torch.float16, variant="fp16"
         )
-        # self.pipe.scheduler = DPMSolverMultistepScheduler.from_config(
-        #     pipe.scheduler.config
-        # )
         device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
         self.pipe = self.pipe.to(device)
 
