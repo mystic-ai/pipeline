@@ -118,11 +118,13 @@ def run_pipeline(
     pipeline: str,
     *data,
     async_run: bool = False,
+    wait_for_resources: bool | None = None,
 ):
     run_create_schema = RunCreate(
         pipeline=pipeline,
         inputs=_data_to_run_input(data),
         async_run=async_run,
+        wait_for_resources=wait_for_resources,
     )
 
     run_get = _run_pipeline(run_create_schema)
