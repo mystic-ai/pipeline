@@ -39,7 +39,7 @@ class ModelKwargs(InputSchema):
             "usually lead to a higher quality image at the expense "
             "of slower inference."
         ),
-        default=50,
+        default=25,
         optional=True,
     )
 
@@ -56,22 +56,22 @@ class ModelKwargs(InputSchema):
 class MyModelClass:
     @pipe(run_once=True, on_startup=True)
     def load(self) -> None:
-        # Perform any operations needed to load your model here
         print("Loading model...", flush=True)
 
         self.pipe = AutoPipelineForText2Image.from_pretrained(
-            "lykon/dreamshaper-xl-v2-turbo", torch_dtype=torch.float16, variant="fp16"
+            # "lykon/dreamshaper-xl-v2-turbo",
+            "./model_weights",
+            torch_dtype=torch.float16,
+            variant="fp16",
         )
-        # self.pipe.scheduler = DPMSolverMultistepScheduler.from_config(
-        #     pipe.scheduler.config
-        # )
+
         device = torch.device("cuda") if torch.cuda.is_available() else "cpu"
         self.pipe = self.pipe.to(device)
 
         print("Model loaded!", flush=True)
 
     @pipe
-    def predict(self, prompt: str, model_kwargs: ModelKwargs) -> t.List[File]:
+    def predict(self, prompt: t.List[str], model_kwargs: ModelKwargs) -> t.List[File]:
         # Perform any operations needed to predict with your model here
         print("Predicting...")
 
@@ -89,9 +89,11 @@ class MyModelClass:
 
 with Pipeline() as builder:
     input_var = Variable(
-        str,
-        description="Input prompt",
-        title="Input prompt",
+        list,
+        description="An array of input prompts",
+        title="Input prompts",
+        examples=[["A cat", "A dog"]],
+        default=["A cat", "A dog"],
     )
     model_kwargs = Variable(ModelKwargs)
 
