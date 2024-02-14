@@ -19,6 +19,7 @@ RUN pip install {python_requirements}
 # Copy in files
 COPY ./ ./
 
+ENV PYTHONUNBUFFERED=1
 ENV PIPELINE_PATH={pipeline_path}
 ENV PIPELINE_NAME={pipeline_name}
 ENV PIPELINE_IMAGE={pipeline_image}
