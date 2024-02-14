@@ -145,9 +145,11 @@ def _up_container(namespace: Namespace):
         remove=True,
         auto_remove=True,
         detach=True,
-        device_requests=[DeviceRequest(device_ids=gpu_ids, capabilities=[["gpu"]])]
-        if gpu_ids
-        else None,
+        device_requests=(
+            [DeviceRequest(device_ids=gpu_ids, capabilities=[["gpu"]])]
+            if gpu_ids
+            else None
+        ),
         command=run_command,
         volumes=volumes,
         environment=environment_variables,
@@ -166,6 +168,9 @@ def _up_container(namespace: Namespace):
             _print("Stopping container...", "WARNING")
             container.stop()
             # container.remove()
+            break
+        except docker.errors.NotFound:
+            _print("Container did not start successfully", "ERROR")
             break
 
 
@@ -191,9 +196,9 @@ def _build_container(namespace: Namespace):
     python_runtime = pipeline_config.runtime.python
     dockerfile_str = template.format(
         python_version=python_runtime.version,
-        python_requirements=" ".join(python_runtime.requirements)
-        if python_runtime.requirements
-        else "",
+        python_requirements=(
+            " ".join(python_runtime.requirements) if python_runtime.requirements else ""
+        ),
         container_commands="".join(
             [
                 "RUN " + command + " \n"
@@ -350,9 +355,9 @@ def _push_container(namespace: Namespace):
         image_to_push_reg,
         stream=True,
         decode=True,
-        auth_config=dict(username="pipeline", password=upload_token)
-        if upload_token
-        else None,
+        auth_config=(
+            dict(username="pipeline", password=upload_token) if upload_token else None
+        ),
     )
 
     all_ids = []
