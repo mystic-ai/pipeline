@@ -66,7 +66,9 @@ class Manager:
                     )
                 )
             except ImportError as e:
-                raise ImportError(e) from None
+                print("ROSSLOG")
+                print(e.__dict__)
+                raise
 
             self.pipeline_name = os.environ.get("PIPELINE_NAME", "unknown")
             self.pipeline_image = os.environ.get("PIPELINE_IMAGE", "unknown")
