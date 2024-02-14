@@ -50,20 +50,15 @@ class Manager:
             self.pipeline_module_str, self.pipeline_name_str = pipeline_path.split(":")
 
             self.pipeline_state = pipeline_schemas.PipelineState.loading
-            logger.info("ROSSLOG 1")
             try:
-                logger.info("ROSSLOG 2")
                 self.pipeline_module = importlib.import_module(self.pipeline_module_str)
 
-                logger.info("ROSSLOG 3")
                 self.pipeline: Graph = getattr(
                     self.pipeline_module, self.pipeline_name_str
                 )
             except ModuleNotFoundError:
-                logger.info("ROSSLOG 4")
                 raise ValueError(f"Could not find module {self.pipeline_module_str}")
             except AttributeError:
-                logger.info("ROSSLOG 5")
                 raise ValueError(
                     (
                         f"Could not find pipeline {self.pipeline_name_str} in module"
@@ -84,10 +79,9 @@ class Manager:
         try:
             self._load(pipeline_path)
         except Exception:
-            logger.info("ROSSLOG 6")
-            logger.exception("Exception raised during pipeline loading")
-            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             tb = traceback.format_exc()
+            logger.exception("Exception raised when loading pipeline")
+            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             self.pipeline_state_message = tb
             return
 
