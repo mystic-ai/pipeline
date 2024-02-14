@@ -24,7 +24,9 @@ run_id = initial_result.id
 
 result = poll_for_run_completion(run_id, interval_secs=1)
 
-if result.error:
-    print(f"Error: {result.error.json(indent=2)}")
+if result.state != RunState.completed:
+    print(f"Run id: {result.id}, state: {result.state}")
+    if result.error:
+        print(f"Error: {result.error.json(indent=2)}")
 else:
     print(f"Run id: {result.id}, result: {result.outputs_formatted()}")
