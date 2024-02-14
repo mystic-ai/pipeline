@@ -52,6 +52,7 @@ class Manager:
             self.pipeline_state = pipeline_schemas.PipelineState.loading
             try:
                 self.pipeline_module = importlib.import_module(self.pipeline_module_str)
+
                 self.pipeline: Graph = getattr(
                     self.pipeline_module, self.pipeline_name_str
                 )
@@ -78,8 +79,9 @@ class Manager:
         try:
             self._load(pipeline_path)
         except Exception:
-            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             tb = traceback.format_exc()
+            logger.exception("Exception raised when loading pipeline")
+            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
             self.pipeline_state_message = tb
             return
 
