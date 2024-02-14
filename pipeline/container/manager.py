@@ -65,6 +65,8 @@ class Manager:
                         f" {self.pipeline_module_str}"
                     )
                 )
+            except ImportError as e:
+                raise ImportError(e) from None
 
             self.pipeline_name = os.environ.get("PIPELINE_NAME", "unknown")
             self.pipeline_image = os.environ.get("PIPELINE_IMAGE", "unknown")
