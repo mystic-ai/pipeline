@@ -145,3 +145,9 @@ class PipelineState(str, Enum):
 class PipelineContainerState(BaseModel):
     state: PipelineState
     message: t.Optional[str]
+
+
+class PipelineScalingInfo(BaseModel):
+    current_replicas: int
+    desired_replicas: int
+    current_pipeline_states: dict[PipelineState, int]
