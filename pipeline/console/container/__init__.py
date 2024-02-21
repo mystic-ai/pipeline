@@ -292,6 +292,27 @@ def _push_container(namespace: Namespace):
         if os.path.isfile(pipeline_config.readme):
             markdown_file = Path(pipeline_config.readme)
             pipeline_config.readme = markdown_file.read_text()
+    else:
+        pipeline_config.readme = ""
+
+    # Attempt to format the readme
+    readmeless_config = pipeline_config.copy()
+    readmeless_config.readme = None
+    pipeline_yaml_text = yaml.dump(
+        json.loads(readmeless_config.json(exclude_none=True, exclude_unset=True)),
+        sort_keys=False,
+    )
+
+    pipeline_yaml_text = "```yaml\n" + pipeline_yaml_text + "\n```"
+    pipeline_code = Path(
+        pipeline_config.pipeline_graph.split(":")[0] + ".py"
+    ).read_text()
+    pipeline_code = "```python\n" + pipeline_code + "\n```"
+    pipeline_config.readme = pipeline_config.readme.format(
+        pipeline_name=pipeline_config.pipeline_name,
+        pipeline_yaml=pipeline_yaml_text,
+        pipeline_code=pipeline_code,
+    )
 
     pipeline_name = (
         pipeline_config.pipeline_name.split(":")[0]
@@ -461,12 +482,15 @@ def _init_dir(namespace: Namespace) -> None:
         pipeline_name=pipeline_name,
         accelerator_memory=None,
         extras={},
+        readme="README.md",
     )
-
     with open("./pipeline.yaml", "w") as f:
         f.write(yaml.dump(json.loads(default_config.json()), sort_keys=False))
 
     with open("./new_pipeline.py", "w") as f:
         f.write(python_template)
+
+    with open("./README.md", "w") as f:
+        f.write(docker_templates.readme_template)
 
     _print("Initialized directory.", "SUCCESS")
