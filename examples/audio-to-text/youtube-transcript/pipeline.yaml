@@ -17,6 +17,6 @@ accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline
 pipeline_name: paulh/youtube-transcript
 description: null
-readme: null
+readme: README.md
 extras: {}
 cluster: null
