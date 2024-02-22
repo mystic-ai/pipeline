@@ -158,3 +158,5 @@ migrate_pipelines/pipelines.csv
 examples/**/pipeline.dockerfile
 
 **/model_weights/
+node_modules/*
+node_modules

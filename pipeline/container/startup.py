@@ -40,8 +40,9 @@ def create_app() -> FastAPI:
     app.include_router(router)
     app.include_router(status_router)
     static_dir = pkg_resources.resource_filename(
-        "pipeline", "container/frontend/static"
+        "pipeline", "container/frontend/src"
     )
+    print(static_dir, flush=True)
 
     app.mount(
         "/static",
