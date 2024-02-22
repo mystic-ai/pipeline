@@ -730,9 +730,13 @@
         );
       }
 
-      function DynamicControlLabel({ id, label, children }) {
+      function DynamicControlLabel({ id, label, required, children }) {
         return (
-          <label htmlFor={id} className="flex gap-1">
+          <label
+            htmlFor={id}
+            className="flex gap-1"
+            data-required={required ? "true" : "false"}
+          >
             <span className="text-xs font-medium text-gray-700 whitespace-nowrap">
               {label}
             </span>
@@ -767,7 +771,7 @@
         if (subType === "string" && options.length === 0) {
           return (
             <div className="flex flex-col gap-1.5">
-              <DynamicControlLabel id={id} label={label}>
+              <DynamicControlLabel id={id} label={label} required={!optional}>
                 {subType}
               </DynamicControlLabel>
 
@@ -788,7 +792,7 @@
         if (subType === "string" && options.length >= 1) {
           return (
             <div className="flex flex-col gap-1.5">
-              <DynamicControlLabel id={id} label={label}>
+              <DynamicControlLabel id={id} label={label} required={!optional}>
                 {subType}
               </DynamicControlLabel>
 
@@ -811,7 +815,7 @@
         if (subType === "integer" || subType === "fp") {
           const InputNumberLabel = function () {
             return (
-              <DynamicControlLabel id={id} label={label}>
+              <DynamicControlLabel id={id} label={label} required={!optional}>
                 {subType}{" "}
                 {!isNullOrUndefined(min) && isNullOrUndefined(max) ? (
                   <>(minimum {min})</>
@@ -877,7 +881,7 @@
         if (subType === "boolean") {
           return (
             <div className="flex flex-col gap-1.5">
-              <DynamicControlLabel id={id} label={label}>
+              <DynamicControlLabel id={id} label={label} required={!optional}>
                 bool
               </DynamicControlLabel>
 
@@ -899,7 +903,11 @@
 
           return (
             <div className="flex flex-col gap-1.5">
-              <DynamicControlLabel id={id} label={fieldName}>
+              <DynamicControlLabel
+                id={id}
+                label={fieldName}
+                required={!optional}
+              >
                 {inputType}
               </DynamicControlLabel>
               <div className="flex">
@@ -956,7 +964,7 @@
           // we send it along parsed to the backend
           return (
             <div className="flex flex-col gap-1.5">
-              <DynamicControlLabel id={id} label={label}>
+              <DynamicControlLabel id={id} label={label} required={!optional}>
                 array
               </DynamicControlLabel>
 
@@ -982,7 +990,7 @@
           for (const [key, value] of Object.entries(defaultValue)) {
             ArbitraryInputs.push(
               <div className="flex flex-col gap-1.5" key={key}>
-                <DynamicControlLabel id={id} label={label}>
+                <DynamicControlLabel id={id} label={label} required={!optional}>
                   Dictionary
                 </DynamicControlLabel>
                 <textarea
@@ -1027,6 +1035,7 @@
                   <DynamicControlLabel
                     label={dynamicField.label}
                     id={dynamicField.id}
+                    required={!dynamicField.optional}
                   >
                     dictionary
                   </DynamicControlLabel>
@@ -1062,7 +1071,9 @@
           if (item.dicts && item.dicts.length) {
             const newObj = {};
             for (const dict of item.dicts) {
+              if (!dict.defaultValue && !!dict.optional) continue;
               newObj[dict.label] = dict.defaultValue;
+
               if (dict.subType === "file") {
                 const fileData = await handlePostFile(dict.defaultValue);
                 newObj[dict.label] = {
@@ -1085,6 +1096,7 @@
             }
           }
         }
+        console.log(array);
 
         return array;
       }
