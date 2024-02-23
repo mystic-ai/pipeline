@@ -1,17 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import { Greeting } from "./components/Greeting";
-import { Farewell } from "./components/Farewell";
-import { Button } from "./components/buttons/button";
+import { Header } from "./components/Header";
 import "./styles/global.css";
 
-const App = () => (
-  <div>
-    <Greeting name="Word" />
-    <Farewell name="World" />
-    <button>Hey</button>
-    <Button colorVariant="primary-animated">Hey</Button>
-  </div>
-);
+const App = () => <Header />;
 
 ReactDOM.render(<App />, document.getElementById("root"));
