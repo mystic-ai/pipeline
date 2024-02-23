@@ -57,3 +57,8 @@ div:empty {
 .bg-alternate .bg-alternate .bg-alternate .bg-alternate {
   background: white;
 }
+
+label[data-required="true"]::after {
+  content: " *";
+  color: red;
+}
