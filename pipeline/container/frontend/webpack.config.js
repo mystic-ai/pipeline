@@ -50,9 +50,13 @@ module.exports = {
     },
     compress: true,
     port: 1234,
-    open: true,
-    // proxy: {
-    //   '/api': 'http://localhost:8000',
-    // },
+    open: false,
+    hot: true,
+    proxy: [
+      {
+        context: ["/v4"],
+        target: "http://localhost:14300",
+      },
+    ],
   },
 };
