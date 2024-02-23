@@ -2,7 +2,7 @@
 
 ## Description
 
-This is a new pipeline created using the `pipeline-ai` CLI.
+Stable Diffusion is a text-to-image model. This implementation is the SDXL Turbo model, with optional image input for context.
 
 ### Configuration
 
@@ -17,14 +17,6 @@ _Put usage information here_
 ## Code
 
 {pipeline_code}
-
-## License
-
-_Put license information here_
-
-## Author
-
-_Put author information here_
 
 ---
 

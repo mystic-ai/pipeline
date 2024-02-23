@@ -100,20 +100,6 @@ class MyModelClass:
             new_width = kwargs.width
             new_height = kwargs.height
 
-            # # Calculate the center crop box
-            # img_width, img_height = image.size
-            # left = (img_width - new_width) / 2
-            # top = (img_height - new_height) / 2
-            # right = (img_width + new_width) / 2
-            # bottom = (img_height + new_height) / 2
-            # box = (left, top, right, bottom)
-            # print(box)
-
-            # # Perform the crop
-            # cropped_img = image.crop(box)
-
-            # resized_img = cropped_img.resize((new_width, new_height), Image.BICUBIC)
-
             # Calculate the new dimensions while preserving aspect ratio
             img_width, img_height = image.size
             aspect_ratio = img_width / img_height
