@@ -11,7 +11,6 @@ runtime:
       - accelerate==0.27.2
       - pytube==15.0.0
       - moviepy==1.0.3
-    cuda_version: "11.4"
 accelerators: ["nvidia_l4"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline

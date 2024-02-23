@@ -10,7 +10,6 @@ runtime:
       - torch==2.2.0
       - accelerate==0.26.1
       - diffusers==0.26.2
-    cuda_version: "11.4"
 accelerators: ["nvidia_l4"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline
