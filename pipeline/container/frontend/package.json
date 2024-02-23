@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "parcel build src/index.html --public-url /dist/",
+    "build": "webpack --mode production",
     "dev": "webpack serve --mode development"
   },
   "keywords": [],
