@@ -7,6 +7,8 @@ const App = () => (
   <div>
     <Greeting name="Word" />
     <Farewell name="World" />
+    <button>Hey</button>
+    <button>Hey</button>
   </div>
 );
 
