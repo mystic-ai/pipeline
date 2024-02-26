@@ -17,7 +17,10 @@ class ModelKwargs(InputSchema):
         title="num_images_per_prompt",
         description="The number of images to generate per prompt.",
         default=1,
+        le=4,
+        ge=1,
         optional=True,
+        multiple_of=1,
     )
     height: int = InputField(
         title="height",
@@ -26,6 +29,7 @@ class ModelKwargs(InputSchema):
         optional=True,
         multiple_of=64,
         ge=64,
+        le=1024,
     )
     width: int = InputField(
         title="width",
@@ -34,6 +38,7 @@ class ModelKwargs(InputSchema):
         optional=True,
         multiple_of=64,
         ge=64,
+        le=1024,
     )
     num_inference_steps: int = InputField(
         title="num_inference_steps",
@@ -44,6 +49,8 @@ class ModelKwargs(InputSchema):
         ),
         default=4,
         optional=True,
+        le=100,
+        ge=1,
     )
 
     source_image: File | None = InputField(
@@ -58,8 +65,8 @@ class ModelKwargs(InputSchema):
         description="The strength of the new image from the input image. The lower the strength the closer to the original image the output will be.",  # noqa
         default=0.8,
         optional=True,
-        ge=0,
-        le=1,
+        ge=0.0,
+        le=1.0,
     )
 
 
