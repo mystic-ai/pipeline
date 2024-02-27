@@ -121,25 +121,23 @@ def _get_pipeline(args: Namespace) -> None:
         [
             pipeline_raw["id"],
             pipeline_raw["name"],
-            datetime.fromtimestamp(pipeline_raw.get("created_at"))
-            if "created_at" in pipeline_raw
-            else "N/A",
+            (
+                datetime.fromtimestamp(pipeline_raw.get("created_at"))
+                if "created_at" in pipeline_raw
+                else "N/A"
+            ),
             val if (val := pipeline_raw.get("minimum_cache_number", "N/A")) else "N/A",
             (
                 ""
                 if not (accelerators := pipeline_raw.get("accelerators", None))
                 else (
-                    "nvidia_all"
-                    if Accelerator.nvidia_all in accelerators
-                    else (
-                        "cpu"
-                        if Accelerator.cpu in pipeline_raw.get("accelerators", [])
-                        else "\n".join(
-                            [
-                                f"{accelerators.count(accelerator)}× {accelerator}"
-                                for accelerator in set(accelerators)
-                            ]
-                        )
+                    "cpu"
+                    if Accelerator.cpu in pipeline_raw.get("accelerators", [])
+                    else "\n".join(
+                        [
+                            f"{accelerators.count(accelerator)}× {accelerator}"
+                            for accelerator in set(accelerators)
+                        ]
                     )
                 )
             ),
