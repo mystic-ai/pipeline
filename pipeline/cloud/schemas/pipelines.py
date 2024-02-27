@@ -49,10 +49,6 @@ class PipelineCreate(BaseModel):
     input_variables: t.List[IOVariable]
     output_variables: t.List[IOVariable]
 
-    minimum_cache_number: t.Optional[int]
-    maximum_cache_number: t.Optional[int]
-
-    gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
     cluster: PipelineClusterConfig | None = None
@@ -77,10 +73,6 @@ class PipelineGet(Pipeline):
     created_at: datetime
     updated_at: datetime
 
-    minimum_cache_number: t.Optional[int]
-    maximum_cache_number: t.Optional[int]
-
-    gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
     cluster: PipelineClusterConfig | None = None
@@ -94,10 +86,6 @@ class PipelinePatch(BaseModel):
     input_variables: t.Optional[t.List[IOVariable]]
     output_variables: t.Optional[t.List[IOVariable]]
 
-    minimum_cache_number: t.Optional[int]
-    maximum_cache_number: t.Optional[int]
-
-    gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
     extras: t.Optional[dict]
@@ -112,11 +100,6 @@ class PipelineListPagination(pagination.Pagination):
 
         pipeline_name = "pipeline_name"
         image = "image"
-
-        gpu_memory_min = "gpu_memory_min"
-
-        minimum_cache_number = "minimum_cache_number"
-        maximum_cache_number = "maximum_cache_number"
 
     order_by: OrderBy
     order: pagination.Order
