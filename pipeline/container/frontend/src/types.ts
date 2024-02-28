@@ -79,26 +79,10 @@ export type Accelerator =
   | "cpu";
 
 export interface GetPipelineResponse {
-  id: string;
-  public: boolean;
-  description?: string;
-  website_url?: string;
-  repository_url?: string;
-  paper_url?: string;
-  image_url?: string;
-  license_url?: string;
-  created_at: number;
-  updated_at: number;
   name: string;
-  path: string;
-  minimum_cache_number?: number;
-  gpu_memory_min?: number;
-  pointers?: string[];
+  image: string;
   input_variables: IOVariable[];
   output_variables: IOVariable[];
-
-  accelerators?: Accelerator[];
-  extras?: object;
 }
 
 export type RunState =
