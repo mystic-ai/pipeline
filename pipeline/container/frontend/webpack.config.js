@@ -1,5 +1,6 @@
 const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: "./src/index.tsx",
@@ -29,7 +30,7 @@ module.exports = {
             loader: "postcss-loader",
             options: {
               postcssOptions: {
-                plugins: [require("tailwindcss"), require("autoprefixer")],
+                config: path.resolve(__dirname, "postcss.config.js"),
               },
             },
           },
@@ -43,6 +44,9 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: "./src/index.html",
+    }),
+    new CopyPlugin({
+      patterns: [{ from: "src/public", to: "" }],
     }),
   ],
   devServer: {
