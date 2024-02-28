@@ -1,8 +1,8 @@
 import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, ButtonHTMLAttributes } from "react";
-import { IconLoading } from "../icons";
-import { twMerge } from "../../lib/class-names";
+import { twMerge } from "../../../lib/class-names";
+import { IconLoading } from "../Icons/IconLoading";
 
 const button = cva(
   "btn font-medium shadow-xs relative rounded leading-4 flex gap-2 items-center ring-1 transition [&_svg]:flex-shrink-0",
