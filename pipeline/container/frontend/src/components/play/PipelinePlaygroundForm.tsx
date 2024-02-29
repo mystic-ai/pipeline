@@ -53,12 +53,15 @@ export function PipelinePlaygroundForm({
     handleRunReset && handleRunReset();
     handleIsLoading(true);
 
-    const resultObject: any = {
-      inputs,
-    };
-    postRun({ inputs }).then((run) => handleRunComplete(run));
-
-    // mutate(resultObject, syncMutatonOptions);
+    postRun({ inputs })
+      .then((run) => handleRunComplete(run))
+      .catch((error) => {
+        console.log(error);
+        notification.error({ title: "Error posting run." });
+      })
+      .finally(() => {
+        handleIsLoading(false);
+      });
   }
 
   if (resetLoading) return <PipelinePlaygroundFormSkeleton />;

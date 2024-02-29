@@ -27,13 +27,10 @@ export function DynamicFieldsForm({
   children,
   variant,
 }: Props): JSX.Element {
-  // Hooks
   const notification = useNotification();
 
-  // Generate dynamic fields
   const dynamicFields = useMemo(
     () => generateDynamicFieldsFromIOVariables(pipelineInputIOVariables),
-    // () => generateDynamicFieldsFromIOVariables(mockIOVariables),
     [pipelineInputIOVariables]
   );
 
