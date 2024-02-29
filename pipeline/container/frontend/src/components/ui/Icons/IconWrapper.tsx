@@ -2,7 +2,7 @@ import React from "react";
 
 import { ReactNode } from "react";
 import { cva } from "class-variance-authority";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 
 const iconWrapperVariants = cva(
   `flex items-center justify-center rounded-full mt-2 [&_svg]:stroke-black dark:[&_svg]:stroke-white`,

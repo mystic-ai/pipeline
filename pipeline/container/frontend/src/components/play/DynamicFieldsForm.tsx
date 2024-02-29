@@ -7,7 +7,7 @@ import {
   generateDictFromDynamicFields,
   generateDynamicFieldsFromIOVariables,
   generateFormDefaultValues,
-} from "../../lib/ioVariables";
+} from "../../utils/ioVariables";
 import {
   DynamicRunInputList,
   DynamicRunInputListVariantProps,

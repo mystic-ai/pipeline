@@ -4,7 +4,7 @@ import { FileError } from "react-dropzone";
 import { HintText } from "./HintText";
 import { InputErrorText } from "./InputErrorText";
 import { Label } from "./Label";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 import { Button } from "../Buttons/Button";
 import { IconTrash } from "../Icons/IconTrash";
 

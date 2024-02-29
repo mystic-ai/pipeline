@@ -45,26 +45,6 @@ export interface TernarySorting<SortingKey> {
   order: TernarySortingOrder;
 }
 
-// Pipelines
-export interface GetPipelinesResponse {
-  // In mock data already
-  id: string;
-  created_at: number;
-  updated_at: number;
-  name: string;
-
-  // Not decided, added for now
-  status?: number;
-  runs?: number;
-  last_run?: number;
-  errors?: number;
-  last_error?: number;
-  average_compute?: number;
-  total_compute?: number;
-  size?: number;
-  description?: string; //added for explore
-}
-
 export type Accelerator =
   | "nvidia_t4"
   | "nvidia_a100"
@@ -111,6 +91,16 @@ export interface RunOutputFile {
   path: string;
   url: string;
   size: number;
+}
+export interface HTTPExceptionDetailObject {
+  message?: string;
+  [key: string]: any; // Optionally, allow any other properties
+}
+
+export interface HTTPException {
+  status_code: number;
+  detail: string | HTTPExceptionDetailObject;
+  headers?: Record<string, string>;
 }
 
 export interface RunError {
@@ -225,6 +215,10 @@ export interface RunInput {
 }
 
 export interface PostRunPayload {
-  pipeline: string;
   inputs: RunInput[];
+}
+
+export interface PostFileResponse {
+  // The path of the file on the container
+  path: string;
 }

@@ -3,7 +3,7 @@ import * as SwitchPrimitive from "@radix-ui/react-switch";
 import { forwardRef, ElementRef, ComponentPropsWithoutRef } from "react";
 import { HintText } from "./HintText";
 import { InputField } from "./InputField";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 
 interface Props extends ComponentPropsWithoutRef<typeof SwitchPrimitive.Root> {
   hintText?: string;

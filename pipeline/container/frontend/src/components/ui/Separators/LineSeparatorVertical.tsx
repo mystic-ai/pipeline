@@ -1,5 +1,5 @@
 import React from "react";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 
 export function LineSeparatorVertical({ className }: { className?: string }) {
   return (

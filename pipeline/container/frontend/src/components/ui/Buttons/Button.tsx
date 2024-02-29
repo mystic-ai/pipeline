@@ -1,7 +1,7 @@
 import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { forwardRef, ButtonHTMLAttributes } from "react";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 import { IconLoading } from "../Icons/IconLoading";
 
 const button = cva(

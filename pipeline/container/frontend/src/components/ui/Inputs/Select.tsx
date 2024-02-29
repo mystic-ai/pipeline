@@ -8,7 +8,7 @@ import { Label as LabelPrimitive } from "@radix-ui/react-label";
 import type { PropsWithChildren } from "react";
 import { HintText } from "./HintText";
 import { cva, type VariantProps } from "class-variance-authority";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 
 const select = cva(
   "select-trigger [&>.select-icon]:data-[state=open]:rotate-180",

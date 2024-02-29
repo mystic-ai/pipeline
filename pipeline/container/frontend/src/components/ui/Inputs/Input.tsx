@@ -5,7 +5,7 @@ import { Label } from "./Label";
 import { HintText } from "./HintText";
 import { InputErrorText } from "./InputErrorText";
 import { InputField } from "./InputField";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 import { IconCheckmark } from "../Icons/IconCheckmark";
 import { IconAlertCircle } from "../Icons/IconAlertCircle";
 import { IconEyeOff } from "../Icons/IconEyeOff";

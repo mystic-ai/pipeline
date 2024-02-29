@@ -1,6 +1,6 @@
 import React from "react";
 import { PropsWithChildren } from "react";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 
 interface Props extends PropsWithChildren {
   className?: string;

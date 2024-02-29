@@ -1,7 +1,7 @@
 import React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PropsWithChildren } from "react";
-import { cn } from "../../../lib/class-names";
+import { cn } from "../../../utils/class-names";
 
 const card = cva(
   "border rounded gap-2 shadow-sm [&_svg]:shrink-0 [&>hr]:-my-2",

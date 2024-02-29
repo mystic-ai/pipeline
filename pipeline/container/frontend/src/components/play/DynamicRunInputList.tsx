@@ -4,7 +4,7 @@ import { DynamicRunInput } from "./DynamicRunInput";
 import { DynamicRunInputLabel } from "./DynamicRunInputLabel";
 import { cva, type VariantProps } from "class-variance-authority";
 import { DynamicFieldData } from "../../types";
-import { isObjectEmpty } from "../../lib/objects";
+import { isObjectEmpty } from "../../utils/objects";
 import { InputField } from "../ui/Inputs/InputField";
 
 const groupStyles = cva("flex flex-col gap-2", {

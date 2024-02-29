@@ -1,14 +1,14 @@
 import { UseQueryOptions, useQuery } from "@tanstack/react-query";
-import { GetPipelineResponse } from "../types";
-import { getPipeline } from "../lib/queries/get-pipeline";
+import { GetPipelineResponse, HTTPException } from "../types";
+import { getPipeline } from "../utils/queries/get-pipeline";
 
 export const queryKey = ["pipeline"];
 
 type Options = {
-  queryOptions?: UseQueryOptions<GetPipelineResponse>;
+  queryOptions?: UseQueryOptions<GetPipelineResponse, HTTPException>;
 };
 const useGetPipeline = ({ queryOptions }: Options = {}) => {
-  return useQuery<GetPipelineResponse>({
+  return useQuery<GetPipelineResponse, HTTPException>({
     queryKey,
     queryFn: () => getPipeline(),
     ...(queryOptions ? queryOptions : {}),

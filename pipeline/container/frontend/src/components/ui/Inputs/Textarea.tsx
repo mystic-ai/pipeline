@@ -8,7 +8,7 @@ import { TextSkeleton } from "../Skeletons/TextSkeleton";
 import { BlockSkeleton } from "../Skeletons/BlockSkeleton";
 import { InputErrorText } from "./InputErrorText";
 import { InputField } from "./InputField";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 import { useTextareaAutoHeight } from "../../../hooks/use-textarea-auto-height";
 
 const textarea = cva("textarea", {

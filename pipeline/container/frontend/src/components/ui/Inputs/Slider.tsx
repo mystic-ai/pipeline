@@ -2,7 +2,7 @@ import React from "react";
 
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { forwardRef, ElementRef, ComponentPropsWithoutRef } from "react";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 
 const Slider = forwardRef<
   ElementRef<typeof SliderPrimitive.Root>,

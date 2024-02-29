@@ -9,10 +9,10 @@ import { HintText } from "../HintText";
 import { Label } from "../Label";
 import { InputErrorText } from "../InputErrorText";
 import { DescriptionText } from "../../Typography/DescriptionText";
-import { formatBytes } from "../../../../lib/bytes";
+import { formatBytes } from "../../../../utils/bytes";
 import { BaseDynamicFieldData } from "../../../../types";
 import { IconWrapper, IconWrapperVariants } from "../../Icons/IconWrapper";
-import { twMerge } from "../../../../lib/class-names";
+import { twMerge } from "../../../../utils/class-names";
 import { IconUpload } from "../../Icons/IconUpload";
 
 const fileupload = cva("file-upload px-3 py-4", {

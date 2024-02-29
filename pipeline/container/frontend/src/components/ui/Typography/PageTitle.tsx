@@ -1,6 +1,6 @@
 import React from "react";
 import { PropsWithChildren } from "react";
-import { cn } from "../../../lib/class-names";
+import { cn } from "../../../utils/class-names";
 
 interface Props extends PropsWithChildren {
   className?: string;

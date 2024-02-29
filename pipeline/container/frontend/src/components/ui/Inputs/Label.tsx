@@ -1,6 +1,6 @@
 import React from "react";
 import { DescriptionText } from "../Typography/DescriptionText";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 
 interface Props {
   id?: string;

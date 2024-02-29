@@ -12,7 +12,7 @@ import { cva } from "class-variance-authority";
 import { Button } from "../Buttons/Button";
 import { IconHeart } from "../Icons/IconHeart";
 import { DescriptionText } from "../Typography/DescriptionText";
-import { twMerge } from "../../../lib/class-names";
+import { twMerge } from "../../../utils/class-names";
 import { IconWrapper } from "../Icons/IconWrapper";
 import { IconAlertCircle } from "../Icons/IconAlertCircle";
 import { IconCheckmarkCircle } from "../Icons/IconCheckmarkCircle";
