@@ -1,6 +1,7 @@
+import React from "react";
 import { PropsWithChildren } from "react";
-import { TitleText } from "@/components/ui/Typography/TitleText";
 import { DescriptionText } from "../Typography/DescriptionText";
+import { TitleText } from "../Typography/TitleText";
 
 interface Props extends PropsWithChildren {
   size?: "sm" | "base";

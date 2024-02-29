@@ -1,3 +1,4 @@
+import React from "react";
 import { IconTypes } from "./types";
 
 export const IconCopy = ({ className, size = 24 }: IconTypes) => {

@@ -4,7 +4,7 @@ import {
   TooltipTrigger,
   TooltipContent,
   TooltipArrow,
-} from "@/contexts/TooltipProvider";
+} from "../../../contexts/TooltipProvider";
 import {
   TooltipContentProps,
   type TooltipProps,

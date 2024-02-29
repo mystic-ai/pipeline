@@ -4,7 +4,7 @@ export async function postRun({
   inputs,
 }: PostRunPayload): Promise<GetRunResponse> {
   try {
-    const res = await fetch("/v4/container/run", {
+    const res = await fetch("/v4/runs", {
       method: "POST",
       headers: {
         Accept: "/*",

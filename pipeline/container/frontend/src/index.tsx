@@ -2,9 +2,9 @@ import React from "react";
 import ReactDOM from "react-dom";
 import { Header } from "./components/Header";
 import AppProviders from "./contexts/AppProviders";
-import { Playground } from "./components/play/Playground";
 
 import "./styles/global.css";
+import PipelinePlayWrapper from "./components/play/PipelinePlayWrapper";
 
 const App = () => {
   return (
@@ -12,7 +12,7 @@ const App = () => {
       <div className="flex flex-col pb-12">
         <Header />
         <div className="flex justify-center py-12">
-          <Playground />
+          <PipelinePlayWrapper />
         </div>
       </div>
     </AppProviders>

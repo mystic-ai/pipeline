@@ -6,7 +6,7 @@ export async function postFile({
   formData: FormData;
 }): Promise<PostFileResponse> {
   try {
-    const res = await fetch("/v4/container/files", {
+    const res = await fetch("/v4/files", {
       method: "POST",
       headers: {
         Accept: "/*",

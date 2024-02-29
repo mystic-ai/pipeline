@@ -46,17 +46,14 @@ async function handlePostFile({ file }: HandlePostFileProps) {
 export async function generateDictFromDynamicFields({
   dynamicFields,
   data,
-  isAuthed,
 }: {
   dynamicFields: DynamicFieldData[];
   data: Record<string, any>;
-  isAuthed?: boolean;
 }) {
   const inputs = [];
 
   for (const inputConfig of dynamicFields) {
-    // We need to upload the file to s3 storage before being able to
-    // make a run.
+    // We need to upload the file to the container before making a run
     if (fileRunIOTypes.includes(inputConfig.subType)) {
       const file: File = data[inputConfig.fieldName as keyof typeof data];
 
@@ -65,7 +62,7 @@ export async function generateDictFromDynamicFields({
         inputs.push({
           type: "file",
           value: null,
-          file_url: fileData.url,
+          file_path: fileData.path,
         });
       } catch (error) {
         throw new Error("Error while uploading the file.");
@@ -82,7 +79,7 @@ export async function generateDictFromDynamicFields({
             data[dictInputConfig.fieldName as keyof typeof data];
           if (dictInputConfig.optional && !file) continue;
           const fileData = await handlePostFile({ file });
-          value = { type: "file", value: null, file_url: fileData.url };
+          value = { type: "file", value: null, file_url: fileData.path };
         }
         if (
           dictInputConfig.subType === "integer" ||
@@ -246,25 +243,6 @@ export function generateReferenceDetails(
       });
     }
   }
-
-  // TODO: Make this work with arbitrary nested dicts
-  // Throws 'Objects are not valid as a React child' error
-
-  // const examples = generateDefaultValue(props);
-  // console.log(examples);
-
-  // if (examples) {
-  //   // if examples is an object
-  //   referenceDetailItems.push({
-  //     title: "examples",
-  //     examples: [{ examples: [<ApiReferenceTag>{examples}</ApiReferenceTag>] }],
-  //   });
-  // }
-
-  // referenceDetailItems.push({
-  //   title: "examples",
-  //   examples: [{ examples: [<ApiReferenceTag>{examples}</ApiReferenceTag>] }],
-  // });
 
   // Requirements
   const emptyRequirements: ReferenceDetailRequiredItem[] = [];
