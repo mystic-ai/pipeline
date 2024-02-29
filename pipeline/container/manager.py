@@ -113,6 +113,8 @@ class Manager:
         if hasattr(file, "url") and file.url is not None:
             cache_name = hashlib.md5(file.url.geturl().encode()).hexdigest()
 
+            logger.info(f"ROSSLOG {file.url=}")
+            logger.info(f"ROSSLOG {file.url.geturl()}")
             file_name = file.url.geturl().split("/")[-1]
             local_path = f"{local_host_dir}/{cache_name}/{file_name}"
             file_path = Path(local_path)
