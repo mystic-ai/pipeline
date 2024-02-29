@@ -5,9 +5,9 @@ const CopyPlugin = require("copy-webpack-plugin");
 module.exports = {
   entry: "./src/index.tsx",
   output: {
-    path: path.resolve(__dirname, "dist"),
+    path: path.resolve(__dirname, "static"),
     filename: "bundle.js",
-    publicPath: "/dist",
+    publicPath: "/static",
   },
   module: {
     rules: [
@@ -51,7 +51,7 @@ module.exports = {
   ],
   devServer: {
     static: {
-      directory: path.join(__dirname, "dist"),
+      directory: path.join(__dirname, "static"),
     },
     compress: true,
     port: 1234,
