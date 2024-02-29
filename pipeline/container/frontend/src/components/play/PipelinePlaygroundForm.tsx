@@ -1,13 +1,7 @@
 import React from "react";
 
-import { MutateOptions } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  GetPipelineResponse,
-  GetRunResponse,
-  PostRunPayload,
-  RunError,
-} from "../../types";
+import { GetPipelineResponse, GetRunResponse, RunError } from "../../types";
 import { useNotification } from "../ui/Notifications/Notifications";
 import { DynamicFieldsForm } from "./DynamicFieldsForm";
 import { Card } from "../ui/Cards/Card";
