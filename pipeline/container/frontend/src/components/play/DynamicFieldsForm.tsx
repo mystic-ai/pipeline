@@ -23,7 +23,7 @@ interface Props extends PropsWithChildren {
 export function DynamicFieldsForm({
   pipelineInputIOVariables,
   onSubmitHandler,
-  className = "flex flex-col gap-8 max-w-142",
+  className = "flex flex-col gap-8 md:min-w-142",
   children,
   variant,
 }: Props): JSX.Element {

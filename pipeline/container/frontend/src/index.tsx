@@ -11,7 +11,9 @@ const App = () => {
     <AppProviders>
       <div className="flex flex-col pb-12">
         <Header />
-        <Playground />
+        <div className="flex justify-center py-12">
+          <Playground />
+        </div>
       </div>
     </AppProviders>
   );
