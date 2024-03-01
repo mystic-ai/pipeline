@@ -15,10 +15,16 @@ router = APIRouter(prefix="/files", tags=["Files"])
 @router.get("/download/{path:path}", status_code=status.HTTP_200_OK)
 async def read_file(path: str):
     """Download the contents of a file stored on the container."""
-    file_path = Path(path)
+    # Check if the path is intended to be absolute
+    if path.startswith("/"):
+        file_path = Path(path)
+    else:
+        base_path = Path("/")
+        file_path = base_path / path
+
     if not file_path.exists() or not file_path.is_file():
         raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(path)
+    return FileResponse(str(file_path))
 
 
 @router.post(

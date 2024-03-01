@@ -7,8 +7,6 @@ import { Code } from "../ui/Code/Code";
 import { isObject } from "../../utils/objects";
 import { isArray } from "../../utils/arrays";
 import { getFile } from "../../utils/queries/get-file";
-import { BlockSkeleton } from "../ui/Skeletons/BlockSkeleton";
-const VideoPlayer = React.lazy(() => import("react-player")); // Lazy-loaded
 
 function PipelineFileResponse({ file }: { file: RunOutputFile }): JSX.Element {
   const [blobUrl, setBlobUrl] = React.useState<string | null>(null);
@@ -52,15 +50,18 @@ function PipelineFileResponse({ file }: { file: RunOutputFile }): JSX.Element {
   ) {
     return (
       <div className="aspect-video">
-        <Suspense fallback={<BlockSkeleton />}>
-          <VideoPlayer
-            url={file.url}
-            controls={true}
-            width="100%"
-            height="100%"
-            fallback={<>Video format not supported: {file.url}</>}
-          />
-        </Suspense>
+        <video controls>
+          {/* Provide a fallback for browsers that don't support this format */}
+          <source src={blobUrl} type="video/ogg" />
+          <source src={blobUrl} type="video/mp4" />
+          <source src={blobUrl} type="video/mov" />
+          <source src={blobUrl} type="video/wmv" />
+          <source src={blobUrl} type="video/flv" />
+          <source src={blobUrl} type="video/avi" />
+          <source src={blobUrl} type="video/avchd" />
+          <source src={blobUrl} type="video/webm" />
+          <source src={blobUrl} type="video/mkv" />
+        </video>
       </div>
     );
   } else {
