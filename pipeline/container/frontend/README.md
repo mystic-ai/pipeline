@@ -19,13 +19,19 @@ pipeline container up -v "/path/to/your/pipeline_SDK:/usr/local/lib/python3.10/s
 
 After running this command, the pipeline container play page should be available at `localhost:14300/play`.
 This serves the bundled `html`, `js` and `css` located under the `static` directory.
-For development however, you can use the dev server by running
+For development however, a dev server is available to you.
+First install all the node modules by running
+
+```shell
+npm install
+```
+
+in this directory (where `package.json` lives) and then
 
 ```shell
 npm run dev
 ```
 
-in this directory (where `package.json` lives).
 This will spin up a dev server at `localhost:1234` with hot-reloading and avoids having to re-build your application to see your changes appear.
 
 In order for the dev server to fetch pipeline information from the container API, the following proxy is defined:
