@@ -8,7 +8,6 @@ runtime:
       - pipeline-ai
       - transformers==4.36.2
       - torch==2.1.2
-    cuda_version: "11.4"
 accelerators: ["nvidia_t4"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline

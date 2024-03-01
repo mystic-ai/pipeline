@@ -12,7 +12,6 @@ runtime:
       - "diffusers==0.19.3"
       - "accelerate==0.21.0"
       - "vllm==0.2.1.post1"
-    cuda_version: "11.4"
 accelerators: ["nvidia_a100"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_pipeline
