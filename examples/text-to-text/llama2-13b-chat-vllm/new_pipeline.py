@@ -147,7 +147,19 @@ class LlamaPipeline:
 
 
 with Pipeline() as builder:
-    prompt = Variable(list)
+    prompt = Variable(
+        list,
+        default=[
+            [
+                {"role": "user", "content": "Hello, how are you?"},
+                {
+                    "role": "assistant",
+                    "content": "I'm doing great, thank you for asking. How can I help you today?",
+                },
+                {"role": "user", "content": "I need help with my computer."},
+            ]
+        ],
+    )
     kwargs = Variable(ModelKwargs)
 
     _pipeline = LlamaPipeline()

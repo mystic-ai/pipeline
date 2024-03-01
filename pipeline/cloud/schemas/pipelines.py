@@ -4,6 +4,7 @@ from enum import Enum
 
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.schemas import BaseModel, pagination
+from pipeline.cloud.schemas.cluster import PipelineClusterConfig
 from pipeline.cloud.schemas.runs import RunIOType
 
 
@@ -48,11 +49,9 @@ class PipelineCreate(BaseModel):
     input_variables: t.List[IOVariable]
     output_variables: t.List[IOVariable]
 
-    minimum_cache_number: t.Optional[int]
-    maximum_cache_number: t.Optional[int]
-
-    gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
+
+    cluster: PipelineClusterConfig | None = None
 
     # Additional meta data
     description: t.Optional[str]
@@ -74,26 +73,24 @@ class PipelineGet(Pipeline):
     created_at: datetime
     updated_at: datetime
 
-    minimum_cache_number: t.Optional[int]
-    maximum_cache_number: t.Optional[int]
-
-    gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
+    cluster: PipelineClusterConfig | None = None
+
     extras: t.Optional[dict]
+    #: The name of the scaling configuration
+    scaling_config: str | None = None
 
 
 class PipelinePatch(BaseModel):
     input_variables: t.Optional[t.List[IOVariable]]
     output_variables: t.Optional[t.List[IOVariable]]
 
-    minimum_cache_number: t.Optional[int]
-    maximum_cache_number: t.Optional[int]
-
-    gpu_memory_min: t.Optional[int]
     accelerators: t.Optional[t.List[Accelerator]]
 
     extras: t.Optional[dict]
+    #: The name of the scaling configuration
+    scaling_config: str | None = None
 
 
 class PipelineListPagination(pagination.Pagination):
@@ -103,11 +100,6 @@ class PipelineListPagination(pagination.Pagination):
 
         pipeline_name = "pipeline_name"
         image = "image"
-
-        gpu_memory_min = "gpu_memory_min"
-
-        minimum_cache_number = "minimum_cache_number"
-        maximum_cache_number = "maximum_cache_number"
 
     order_by: OrderBy
     order: pagination.Order
@@ -126,9 +118,19 @@ class PipelineState(str, Enum):
     not_loaded = "not_loaded"
     loading = "loading"
     loaded = "loaded"
+    load_failed = "load_failed"
+    startup_failed = "startup_failed"
+
+    # backwards compatability
     failed = "failed"
 
 
 class PipelineContainerState(BaseModel):
     state: PipelineState
     message: t.Optional[str]
+
+
+class PipelineScalingInfo(BaseModel):
+    current_replicas: int
+    desired_replicas: int
+    current_pipeline_states: dict[PipelineState, int]

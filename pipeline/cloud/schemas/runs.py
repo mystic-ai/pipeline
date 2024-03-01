@@ -282,3 +282,6 @@ class RunCreate(ContainerRunCreate):
     # pipeline id or pointer
     pipeline: str
     async_run: bool = False
+    # flag to determine whether the run will wait for compute resources to be
+    # become available if none are currently running the pipeline
+    wait_for_resources: bool | None = None

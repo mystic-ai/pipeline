@@ -11,6 +11,7 @@ runtime:
       - transformers==4.35.2
       - accelerate==0.25.0
 accelerators: ["nvidia_a100"]
+readme: README.md
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline
 pipeline_name: stable-diffusion-v1.5

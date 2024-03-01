@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from pipeline.cloud import http
 from pipeline.cloud.compute_requirements import Accelerator
+from pipeline.cloud.schemas import cluster as cluster_schemas
 from pipeline.cloud.schemas import pipelines as pipelines_schemas
 from pipeline.cloud.schemas import registry as registry_schemas
 from pipeline.container import docker_templates
@@ -44,6 +45,7 @@ class PipelineConfig(BaseModel):
     description: str | None = None
     readme: str | None = None
     extras: t.Dict[str, t.Any] | None
+    cluster: cluster_schemas.PipelineClusterConfig | None = None
 
     class Config:
         extra = "forbid"
@@ -142,9 +144,11 @@ def _up_container(namespace: Namespace):
         remove=True,
         auto_remove=True,
         detach=True,
-        device_requests=[DeviceRequest(device_ids=gpu_ids, capabilities=[["gpu"]])]
-        if gpu_ids
-        else None,
+        device_requests=(
+            [DeviceRequest(device_ids=gpu_ids, capabilities=[["gpu"]])]
+            if gpu_ids
+            else None
+        ),
         command=run_command,
         volumes=volumes,
         environment=environment_variables,
@@ -163,6 +167,9 @@ def _up_container(namespace: Namespace):
             _print("Stopping container...", "WARNING")
             container.stop()
             # container.remove()
+            break
+        except docker.errors.NotFound:
+            _print("Container did not start successfully", "ERROR")
             break
 
 
@@ -188,9 +195,9 @@ def _build_container(namespace: Namespace):
     python_runtime = pipeline_config.runtime.python
     dockerfile_str = template.format(
         python_version=python_runtime.version,
-        python_requirements=" ".join(python_runtime.requirements)
-        if python_runtime.requirements
-        else "",
+        python_requirements=(
+            " ".join(python_runtime.requirements) if python_runtime.requirements else ""
+        ),
         container_commands="".join(
             [
                 "RUN " + command + " \n"
@@ -284,6 +291,27 @@ def _push_container(namespace: Namespace):
         if os.path.isfile(pipeline_config.readme):
             markdown_file = Path(pipeline_config.readme)
             pipeline_config.readme = markdown_file.read_text()
+    else:
+        pipeline_config.readme = ""
+
+    # Attempt to format the readme
+    readmeless_config = pipeline_config.copy()
+    readmeless_config.readme = None
+    pipeline_yaml_text = yaml.dump(
+        json.loads(readmeless_config.json(exclude_none=True, exclude_unset=True)),
+        sort_keys=False,
+    )
+
+    pipeline_yaml_text = "```yaml\n" + pipeline_yaml_text + "\n```"
+    pipeline_code = Path(
+        pipeline_config.pipeline_graph.split(":")[0] + ".py"
+    ).read_text()
+    pipeline_code = "```python\n" + pipeline_code + "\n```"
+    pipeline_config.readme = pipeline_config.readme.format(
+        pipeline_name=pipeline_config.pipeline_name,
+        pipeline_yaml=pipeline_yaml_text,
+        pipeline_code=pipeline_code,
+    )
 
     pipeline_name = (
         pipeline_config.pipeline_name.split(":")[0]
@@ -347,9 +375,9 @@ def _push_container(namespace: Namespace):
         image_to_push_reg,
         stream=True,
         decode=True,
-        auth_config=dict(username="pipeline", password=upload_token)
-        if upload_token
-        else None,
+        auth_config=(
+            dict(username="pipeline", password=upload_token) if upload_token else None
+        ),
     )
 
     all_ids = []
@@ -410,6 +438,7 @@ Please try reduce the size of your pipeline or contact mystic.ai"""
                 description=pipeline_config.description,
                 readme=pipeline_config.readme,
                 extras=pipeline_config.extras,
+                cluster=pipeline_config.cluster,
             ).json()
         ),
     )
@@ -452,12 +481,15 @@ def _init_dir(namespace: Namespace) -> None:
         pipeline_name=pipeline_name,
         accelerator_memory=None,
         extras={},
+        readme="README.md",
     )
-
     with open("./pipeline.yaml", "w") as f:
         f.write(yaml.dump(json.loads(default_config.json()), sort_keys=False))
 
     with open("./new_pipeline.py", "w") as f:
         f.write(python_template)
+
+    with open("./README.md", "w") as f:
+        f.write(docker_templates.readme_template)
 
     _print("Initialized directory.", "SUCCESS")
