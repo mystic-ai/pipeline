@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 
 import { RunOutput, RunOutputFile } from "../../types";
 import { PipelineRunImage } from "./PipelineRunImage";
@@ -7,7 +7,8 @@ import { Code } from "../ui/Code/Code";
 import { isObject } from "../../utils/objects";
 import { isArray } from "../../utils/arrays";
 import { getFile } from "../../utils/queries/get-file";
-import VideoPlayer from "react-player";
+import { BlockSkeleton } from "../ui/Skeletons/BlockSkeleton";
+const VideoPlayer = React.lazy(() => import("react-player")); // Lazy-loaded
 
 function PipelineFileResponse({ file }: { file: RunOutputFile }): JSX.Element {
   const [blobUrl, setBlobUrl] = React.useState<string | null>(null);
@@ -51,13 +52,15 @@ function PipelineFileResponse({ file }: { file: RunOutputFile }): JSX.Element {
   ) {
     return (
       <div className="aspect-video">
-        <VideoPlayer
-          url={file.url}
-          controls={true}
-          width="100%"
-          height="100%"
-          fallback={<>Video format not supported: {file.url}</>}
-        />
+        <Suspense fallback={<BlockSkeleton />}>
+          <VideoPlayer
+            url={file.url}
+            controls={true}
+            width="100%"
+            height="100%"
+            fallback={<>Video format not supported: {file.url}</>}
+          />
+        </Suspense>
       </div>
     );
   } else {
