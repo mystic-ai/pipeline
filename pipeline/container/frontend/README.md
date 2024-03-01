@@ -41,4 +41,13 @@ proxy: [
 
 This is necessary for instance, to get the inputs variables to the pipeline, which need to be fetched from the container API.
 
-Hence, the pipeline container must be up and running in order for this to work.
+Hence, all endpoints under `/v4` on the container API are also available to you on the dev server. Note that this means the pipeline container must be up and running in order for the dev server to work as expected.
+
+When you are happy with all your changes, simply build the frontend application by running:
+
+```shell
+npm run build
+```
+
+This will generate new bundled files under the `static` directory.
+You should then see those changes appear on the pipeline container play page at `localhost:14300/play`.
