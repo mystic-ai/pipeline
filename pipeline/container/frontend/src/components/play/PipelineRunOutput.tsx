@@ -6,26 +6,23 @@ import { Textarea } from "../ui/Inputs/Textarea";
 import { Code } from "../ui/Code/Code";
 import { isObject } from "../../utils/objects";
 import { isArray } from "../../utils/arrays";
-
-// TO-DO: sort video player after
-// const VideoPlayer = dynamic(() => import("react-player"), {
-//   loading: () => <BlockSkeleton height={365} />,
-// });
+import { getFile } from "../../utils/queries/get-file";
+import VideoPlayer from "react-player";
 
 function PipelineFileResponse({ file }: { file: RunOutputFile }): JSX.Element {
+  const [blobUrl, setBlobUrl] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    getFile(file.path).then(async (blob) => {
+      setBlobUrl(URL.createObjectURL(blob));
+    });
+  }, []);
+  if (!blobUrl) return <></>;
   if (
     file.path.includes("png") ||
     file.path.includes("jpg") ||
     file.path.includes("jpeg")
   ) {
-    return (
-      <PipelineRunImage
-        name={file?.name}
-        path={file?.path}
-        size={file?.size}
-        url={file?.url}
-      />
-    );
+    return <PipelineRunImage url={blobUrl} alt={file.name} />;
   } else if (
     file.path.includes("wav") ||
     file.path.includes("mp3") ||
@@ -37,35 +34,33 @@ function PipelineFileResponse({ file }: { file: RunOutputFile }): JSX.Element {
     file.path.includes("wma")
   ) {
     return (
-      <audio controls src={file.url} className="w-full">
-        <a href={file.url}> Download audio </a>
+      <audio controls src={blobUrl} className="w-full">
+        <a href={blobUrl}> Download audio </a>
         Your browser does not support the audio element.
       </audio>
     );
-  }
-  // else if (
-  //   file.path.includes("mp4") ||
-  //   file.path.includes("mov") ||
-  //   file.path.includes("wmv") ||
-  //   file.path.includes("flv") ||
-  //   file.path.includes("avi") ||
-  //   file.path.includes("avchd") ||
-  //   file.path.includes("webm") ||
-  //   file.path.includes("mkv")
-  // ) {
-  //   return (
-  //     <div className="aspect-video">
-  //       <VideoPlayer
-  //         url={file.url}
-  //         controls={true}
-  //         width="100%"
-  //         height="100%"
-  //         fallback={<>Video format not supported: {file.url}</>}
-  //       />
-  //     </div>
-  //   );
-  // }
-  else {
+  } else if (
+    file.path.includes("mp4") ||
+    file.path.includes("mov") ||
+    file.path.includes("wmv") ||
+    file.path.includes("flv") ||
+    file.path.includes("avi") ||
+    file.path.includes("avchd") ||
+    file.path.includes("webm") ||
+    file.path.includes("mkv")
+  ) {
+    return (
+      <div className="aspect-video">
+        <VideoPlayer
+          url={file.url}
+          controls={true}
+          width="100%"
+          height="100%"
+          fallback={<>Video format not supported: {file.url}</>}
+        />
+      </div>
+    );
+  } else {
     return <></>;
   }
 }

@@ -90,7 +90,7 @@ export interface RunOutputFile {
   name: string;
   path: string;
   url: string;
-  size: number;
+  size?: number;
 }
 export interface HTTPExceptionDetailObject {
   message?: string;

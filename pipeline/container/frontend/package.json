@@ -28,6 +28,7 @@
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.3",
     "react-hook-form": "^7.50.1",
+    "react-player": "^2.15.0",
     "react-syntax-highlighter": "^15.5.0",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7"

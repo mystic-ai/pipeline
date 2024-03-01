@@ -1,11 +1,14 @@
 import React from "react";
-import { RunOutputFile } from "../../types";
 import { Button } from "../ui/Buttons/Button";
 
-export function PipelineRunImage(props: RunOutputFile): JSX.Element {
+interface Props {
+  url: string;
+  alt: string;
+}
+export function PipelineRunImage(props: Props): JSX.Element {
   return (
     <div className="flex flex-col gap-4">
-      <img src={props.url} alt={props.name} className="w-full max-w-lg" />
+      <img src={props.url} alt={props.alt} className="w-full max-w-lg" />
 
       <a
         href={props.url}
