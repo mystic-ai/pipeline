@@ -1,5 +1,6 @@
 import typing as t
 
+import yaml
 from fastapi import APIRouter, Request, Response
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
@@ -67,9 +68,18 @@ async def get_pipeline(request: Request):
 
     input_variables = input_variables
     output_variables = output_variables
+    # Load the YAML file to get the 'extras' field
+    try:
+        with open("/app/pipeline.yaml", "r") as file:
+            pipeline_config = yaml.safe_load(file)
+            extras = pipeline_config.get("extras", {})
+    except Exception as e:
+        raise Exception(f"Failed to load pipeline configuration: {str(e)}")
+
     return pipeline_schemas.Pipeline(
         name=run_manager.pipeline_name,
         image=run_manager.pipeline_image,
         input_variables=input_variables,
         output_variables=output_variables,
+        extras=extras,
     )
