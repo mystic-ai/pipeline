@@ -77,7 +77,7 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
   }
 
   // Hooks
-  // const notification = useNotification();
+  const notification = useNotification();
 
   // Handlers
   function clearChat() {
@@ -86,9 +86,9 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
     setPrompHistory([]);
   }
   async function onSettingsSubmit(inputs: Array<any>) {
-    // notification.success({
-    //   title: "Saved chat settings",
-    // });
+    notification.success({
+      title: "Saved chat settings",
+    });
 
     // Settings come in as first dict value
     setChatSettings(inputs[0].value);
@@ -163,7 +163,7 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
       })
       .catch((error) => {
         console.log(error);
-        // notification.error({ title: "Error posting run." });
+        notification.error({ title: "Error posting run." });
       });
   }
 
