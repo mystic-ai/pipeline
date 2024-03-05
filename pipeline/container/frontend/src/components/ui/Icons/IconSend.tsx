@@ -1,3 +1,4 @@
+import React from "react";
 import { IconTypes } from "./types";
 
 export function IconSend({ className, size = 24 }: IconTypes): JSX.Element {

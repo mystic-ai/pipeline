@@ -12,12 +12,16 @@ import {
 import { EmptyResourceCard } from "../ui/Cards/EmptyResourceCard";
 import { PipelineRunOutput } from "./PipelineRunOutput";
 import { Code } from "../ui/Code/Code";
+import ChatApp from "./chat-app/ChatApp";
+import { ButtonToggle } from "../ui/Buttons/ButtonToggle";
+import { Button } from "../ui/Buttons/Button";
 
 export default function PipelinePlayWrapper(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [runOutputs, setRunOuputs] = useState<RunOutput[] | null>(null);
   const [runErrors, setRunError] = useState<RunError | null>(null);
   const [activeScreen, setActiveScreen] = useState<"form" | "example">("form");
+  const [chatAvailable, setChatAvailable] = useState<boolean>(false);
 
   const { data: pipeline, isLoading: isPipelineLoading } = useGetPipeline();
 
@@ -51,6 +55,14 @@ export default function PipelinePlayWrapper(): JSX.Element {
     handleErrorResult(null);
     setLoading(false);
   }
+  console.log(chatAvailable);
+  // Effects
+  React.useEffect(() => {
+    if (pipeline && pipeline?.extras?.model_type === "chat") {
+      setChatAvailable(true);
+      setActiveScreen("example");
+    }
+  }, [isPipelineLoading]);
 
   // Loading skeleton
   if (isPipelineLoading) {
@@ -68,7 +80,36 @@ export default function PipelinePlayWrapper(): JSX.Element {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-6">
+        {chatAvailable ? (
+          <>
+            <ButtonToggle>
+              <Button
+                colorVariant={
+                  activeScreen === "example" ? "secondary" : "muted"
+                }
+                active={activeScreen === "example"}
+                onClick={() => setActiveScreen("example")}
+                size="sm"
+              >
+                Chat mode
+              </Button>
+              <Button
+                colorVariant={activeScreen === "form" ? "secondary" : "muted"}
+                active={activeScreen === "form"}
+                onClick={() => setActiveScreen("form")}
+                size="sm"
+              >
+                Request builder
+              </Button>
+            </ButtonToggle>
+          </>
+        ) : null}
         <div className="flex flex-col gap-8 lg:flex-row max-w-full ">
+          {pipeline && activeScreen === "example" ? (
+            <div className="w-full vcol2:min-w-vcol2 vcol2:w-vcol2 max-w-full vcol2:max-w-vcol2">
+              <ChatApp pipeline={pipeline} />
+            </div>
+          ) : null}
           {activeScreen === "form" ? (
             <div className="vcol-row vcol-row-2 shadow-sm">
               <PipelinePlayColumn title="Inputs" className="vcol-col-first">
