@@ -18,4 +18,5 @@ pipeline_graph: new_pipeline:my_new_pipeline
 pipeline_name: llama2-13b-chat-vllm
 description: null
 readme: null
-extras: {}
+extras:
+  model_type: "chat"

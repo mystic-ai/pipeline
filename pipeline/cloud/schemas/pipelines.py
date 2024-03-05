@@ -65,6 +65,7 @@ class Pipeline(BaseModel):
 
     input_variables: t.List[IOVariable]
     output_variables: t.List[IOVariable]
+    extras: t.Optional[dict]
 
 
 class PipelineGet(Pipeline):

@@ -63,6 +63,7 @@ export interface GetPipelineResponse {
   image: string;
   input_variables: IOVariable[];
   output_variables: IOVariable[];
+  extras?: Record<string, any>;
 }
 
 export type RunState =
