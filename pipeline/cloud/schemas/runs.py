@@ -11,6 +11,8 @@ class RunState(str, Enum):
     created = "created"
     routing = "routing"
     queued = "queued"
+    provisioning_node = "provisioning_node"
+    pipeline_starting = "pipeline_starting"
     running = "running"
     completed = "completed"
     failed = "failed"
