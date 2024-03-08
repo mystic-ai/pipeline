@@ -96,6 +96,7 @@ class RunIOType(str, Enum):
     array = "array"
     pkl = "pkl"
     file = "file"
+    stream = "stream"
 
     @classmethod
     def from_object(cls, obj: t.Any):
@@ -130,6 +131,11 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.array
+        # Also check if class name == Stream
+        elif hasattr(obj, "iterable") or (
+            hasattr(obj, "__name__") and obj.__name__ == "Stream"
+        ):
+            return cls.stream
         elif (
             isinstance(obj, io.BufferedIOBase)
             or isinstance(obj, io.IOBase)

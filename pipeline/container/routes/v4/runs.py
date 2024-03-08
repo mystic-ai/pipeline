@@ -6,6 +6,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Request, Response
+from fastapi.responses import StreamingResponse
 from loguru import logger
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
@@ -45,9 +46,11 @@ async def run(
             logger.info("Pipeline loading")
             return run_schemas.ContainerRunResult(
                 outputs=None,
+                inputs=None,
                 error=run_schemas.ContainerRunError(
                     type=run_schemas.ContainerRunErrorType.pipeline_loading,
                     message="Pipeline is still loading",
+                    traceback=None,
                 ),
             )
 
@@ -55,6 +58,7 @@ async def run(
             logger.info("Pipeline failed to load")
             return run_schemas.ContainerRunResult(
                 outputs=None,
+                inputs=None,
                 error=run_schemas.ContainerRunError(
                     type=run_schemas.ContainerRunErrorType.startup_error,
                     message="Pipeline failed to load",
@@ -66,6 +70,7 @@ async def run(
             logger.info("Pipeline failed to startup")
             return run_schemas.ContainerRunResult(
                 outputs=None,
+                inputs=None,
                 error=run_schemas.ContainerRunError(
                     type=run_schemas.ContainerRunErrorType.startup_error,
                     message="Pipeline failed to startup",
@@ -80,7 +85,79 @@ async def run(
         run_output = await response_queue.get()
 
         response_schema, response.status_code = _generate_run_result(run_output)
-        return response_schema
+
+        outputs = response_schema.outputs
+        if outputs is not None and any(
+            [output.type == run_schemas.RunIOType.stream for output in outputs]
+        ):
+            static_outputs = [
+                output
+                for output in outputs
+                if output.type != run_schemas.RunIOType.stream
+            ]
+
+            streaming_outputs = [
+                output
+                for output in outputs
+                if output.type == run_schemas.RunIOType.stream
+            ]
+
+            async def stream_func():
+                # Iterate over all streams, if done then add to static
+
+                streaming_outputs_to_move = []
+                # try:
+
+                while len(streaming_outputs) > 0:
+                    next_streaming_outputs = []
+                    for output in streaming_outputs:
+                        try:
+                            if output.value is None:
+                                raise Exception("Stream value was None")
+
+                            next_value = output.value.__next__()
+                            if next_value is not None:
+                                next_streaming_outputs.append(
+                                    run_schemas.RunOutput(
+                                        type=run_schemas.RunIOType.from_object(
+                                            next_value
+                                        ),
+                                        value=next_value,
+                                        file=None,
+                                    )
+                                )
+                        except StopIteration:
+                            static_outputs.append(
+                                run_schemas.RunOutput(
+                                    type=output.type,
+                                    value=None,
+                                    file=output.file,
+                                )
+                            )
+                            streaming_outputs_to_move.append(output)
+
+                    for output in streaming_outputs_to_move:
+                        streaming_outputs.remove(output)
+
+                    new_response_schema = run_schemas.ContainerRunResult(
+                        inputs=response_schema.inputs,
+                        outputs=[*static_outputs, *next_streaming_outputs],
+                        error=response_schema.error,
+                    )
+
+                    yield new_response_schema.json()
+
+                    if await request.is_disconnected():
+                        for output in streaming_outputs:
+                            if output.value is not None and hasattr(
+                                output.value.iterable, "end"
+                            ):
+                                output.value.iterable.end()
+                        break
+
+            return StreamingResponse(stream_func(), media_type="application/json")
+        else:
+            return response_schema
 
 
 def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, int]:
@@ -88,9 +165,11 @@ def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, in
         return (
             run_schemas.ContainerRunResult(
                 outputs=None,
+                inputs=None,
                 error=run_schemas.ContainerRunError(
                     type=run_schemas.ContainerRunErrorType.input_error,
                     message=run_output.message,
+                    traceback=None,
                 ),
             ),
             400,
@@ -99,6 +178,7 @@ def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, in
         return (
             run_schemas.ContainerRunResult(
                 outputs=None,
+                inputs=None,
                 error=run_schemas.ContainerRunError(
                     type=run_schemas.ContainerRunErrorType.pipeline_error,
                     message=repr(run_output.exception),
@@ -111,9 +191,11 @@ def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, in
         return (
             run_schemas.ContainerRunResult(
                 outputs=None,
+                inputs=None,
                 error=run_schemas.ContainerRunError(
                     type=run_schemas.ContainerRunErrorType.unknown,
                     message=str(run_output),
+                    traceback=None,
                 ),
             ),
             500,
@@ -124,6 +206,7 @@ def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, in
             run_schemas.ContainerRunResult(
                 outputs=outputs,
                 error=None,
+                inputs=None,
             ),
             200,
         )

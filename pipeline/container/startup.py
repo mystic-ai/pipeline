@@ -55,25 +55,22 @@ def create_app() -> FastAPI:
 def setup_middlewares(app: FastAPI) -> None:
     @app.middleware("http")
     async def _(request: Request, call_next):
+        request.state.request_id = request.headers.get("X-Request-Id") or str(
+            uuid.uuid4()
+        )
+
         try:
             response = await call_next(request)
+            response.headers["X-Request-Id"] = request.state.request_id
         except Exception as e:
             logger.exception(e)
-            return JSONResponse(
+            response = JSONResponse(
                 status_code=500,
                 content={
                     "traceback": str(traceback.format_exc()),
                 },
             )
-        return response
-
-    @app.middleware("http")
-    async def _(request: Request, call_next):
-        request.state.request_id = request.headers.get("X-Request-Id") or str(
-            uuid.uuid4()
-        )
-        response = await call_next(request)
-        response.headers["X-Request-Id"] = request.state.request_id
+            response.headers["X-Request-Id"] = request.state.request_id
         return response
 
 

@@ -46,3 +46,4 @@ with Pipeline() as builder:
 
 
 my_pipeline = builder.get_pipeline()
+print("lol")

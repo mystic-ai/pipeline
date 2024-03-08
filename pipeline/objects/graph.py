@@ -1,13 +1,10 @@
 import inspect
 from pathlib import Path
 from types import NoneType, UnionType
-from typing import Any, Iterable, List, get_args
+from typing import Any, Generic, Iterable, List, TypeVar, get_args
 from urllib.parse import ParseResult, urlparse
 
 import httpx
-
-# Have tmp added this because loads/dumps import
-# did not exist
 from cloudpickle import dumps, loads
 from tqdm import tqdm
 
@@ -383,12 +380,14 @@ class Variable:
 
     def to_io_schema(self) -> IOVariable:
         return IOVariable(
-            run_io_type=RunIOType.dictionary
-            if (
-                inspect.isclass(self.type_class)
-                and issubclass(self.type_class, InputSchema)
-            )
-            else RunIOType.from_object(self.type_class),
+            run_io_type=(
+                RunIOType.dictionary
+                if (
+                    inspect.isclass(self.type_class)
+                    and issubclass(self.type_class, InputSchema)
+                )
+                else RunIOType.from_object(self.type_class)
+            ),
             title=self.title,
             description=self.description,
             examples=self.examples,
@@ -440,25 +439,6 @@ class File(Variable):
         )
         self.remote_id: str | None = remote_id
         self.url = urlparse(url) if url is not None else None
-
-    # @classmethod
-    # def from_object(
-    #     cls,
-    #     obj: Any,
-    #     modules: Optional[List[str]] = None,
-    #     allow_out_of_context_creation: bool = True,
-    # ):
-    #     temp_file = tempfile.NamedTemporaryFile(delete=False)
-
-    #     bytes = dump_object(obj, modules=modules)
-    #     temp_file.write(bytes)
-    #     temp_file.seek(0)
-
-    #     return cls(
-    #         path=temp_file.name,
-    #         title=temp_file.name,
-    #         allow_out_of_context_creation=allow_out_of_context_creation,
-    #     )
 
     def save(self, path: str | Path) -> None:
         if self.path is None and self.url is None:
@@ -519,8 +499,18 @@ class Directory(File):
         raise NotImplementedError("Directory.from_object is not implemented")
 
 
-class Stream(Variable, Iterable):
-    ...
+ST = TypeVar("ST")
+
+
+class Stream(Generic[ST], Iterable):
+    def __init__(self, iterable: Iterable[ST]):
+        self.iterable = iterable
+
+    def __iter__(self):
+        return self.iterable.__iter__()
+
+    def __next__(self):
+        return self.iterable.__next__()
 
 
 class GraphNode:
