@@ -2,13 +2,10 @@ runtime:
   container_commands:
     - apt-get update
     - apt-get install -y git
-    # - git clone https://github.com/mystic-ai/pipeline.git
     - git clone https://github.com/paulcjh/transformers.git
   python:
     version: "3.10"
     requirements:
-      # - "-e git+https://github.com/mystic-ai/pipeline.git"
-      # - "-e ./pipeline"
       - "-e ./transformers"
       - "pipeline-ai"
       - "torch==2.0.1"
