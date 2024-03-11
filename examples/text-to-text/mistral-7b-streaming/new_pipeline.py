@@ -24,7 +24,6 @@ class StoppingStreamer(TextIteratorStreamer):
         self.thread = thread
 
     def end(self):
-        # kill the thread
         ...
 
 
