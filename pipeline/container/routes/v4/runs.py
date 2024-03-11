@@ -155,7 +155,11 @@ async def run(
                                 output.value.iterable.end()
                         break
 
-            return StreamingResponse(stream_func(), media_type="application/json")
+            return StreamingResponse(
+                stream_func(),
+                media_type="application/json",
+                headers={"X-Accel-Buffering": "no"},
+            )
         else:
             return response_schema
 
