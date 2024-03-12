@@ -52,6 +52,47 @@ export default function PipelinePlayWrapper(): JSX.Element {
   function handleIsLoading(isLoading: boolean) {
     setLoading(isLoading);
   }
+  function handleNewStreamChunk(chunk: string) {
+    try {
+      const chunkData: RunResult = JSON.parse(chunk);
+      setRunOuputs((oldOutputs) => {
+        // Create a copy of the current outputs to modify
+        let updatedOutputs = [...oldOutputs];
+
+        // Process each output in the chunk
+        chunkData.outputs?.forEach((newChunkOutput, chunkIdx) => {
+          // Get the existing output for this index if it exists
+          const existingOutputIndex = oldOutputs.findIndex(
+            (_, idx) => idx === chunkIdx
+          );
+          if (
+            existingOutputIndex !== -1 &&
+            streamOutputIndexes.includes(chunkIdx)
+          ) {
+            // Append to stream
+            const newValue = newChunkOutput.value || "";
+            updatedOutputs[existingOutputIndex] = {
+              ...updatedOutputs[existingOutputIndex],
+              value: updatedOutputs[existingOutputIndex].value
+                ? updatedOutputs[existingOutputIndex].value + newValue
+                : newValue,
+            };
+          } else {
+            // Add new output/override if it doesn't exist
+            updatedOutputs[chunkIdx] = {
+              type: newChunkOutput.type,
+              value: newChunkOutput.value,
+              file: newChunkOutput.file,
+            };
+          }
+        });
+
+        return updatedOutputs;
+      });
+    } catch (error) {
+      console.error("Error parsing chunk:", error);
+    }
+  }
 
   function handleRunFinished(run: GetRunResponse) {
     handleIsLoading(false);
