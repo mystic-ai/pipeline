@@ -1,7 +1,12 @@
 import React from "react";
 
 import { useState } from "react";
-import { GetPipelineResponse, GetRunResponse, RunError } from "../../types";
+import {
+  GetPipelineResponse,
+  GetRunResponse,
+  RunError,
+  RunResult,
+} from "../../types";
 import { useNotification } from "../ui/Notifications/Notifications";
 import { DynamicFieldsForm } from "./DynamicFieldsForm";
 import { Card } from "../ui/Cards/Card";
@@ -17,7 +22,7 @@ interface FormProps {
   handleRunComplete: (run: GetRunResponse) => void;
   handleRunReset: () => void;
   handleErrorResult?: (error: RunError | null) => void;
-  handleNewStreamChunk: (chunk: string) => void;
+  handleNewStreamChunk: (chunk: RunResult) => void;
   isStreaming: boolean;
 }
 

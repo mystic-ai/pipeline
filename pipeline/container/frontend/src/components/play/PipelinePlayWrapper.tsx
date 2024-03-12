@@ -52,22 +52,22 @@ export default function PipelinePlayWrapper(): JSX.Element {
   function handleIsLoading(isLoading: boolean) {
     setLoading(isLoading);
   }
-  function handleNewStreamChunk(chunk: string) {
+  function handleNewStreamChunk(chunk: RunResult) {
     try {
-      const chunkData: RunResult = JSON.parse(chunk);
       setRunOuputs((oldOutputs) => {
         // Create a copy of the current outputs to modify
         let updatedOutputs = [...oldOutputs];
 
         // Process each output in the chunk
-        chunkData.outputs?.forEach((newChunkOutput, chunkIdx) => {
+        chunk.outputs?.forEach((newChunkOutput, chunkIdx) => {
           // Get the existing output for this index if it exists
           const existingOutputIndex = oldOutputs.findIndex(
             (_, idx) => idx === chunkIdx
           );
           if (
             existingOutputIndex !== -1 &&
-            streamOutputIndexes.includes(chunkIdx)
+            streamOutputIndexes.includes(chunkIdx) &&
+            false
           ) {
             // Append to stream
             const newValue = newChunkOutput.value || "";
