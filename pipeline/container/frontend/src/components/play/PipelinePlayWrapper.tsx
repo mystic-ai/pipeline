@@ -181,6 +181,8 @@ export default function PipelinePlayWrapper(): JSX.Element {
                         handleRunReset={handleRunReset}
                         handleRunComplete={handleRunFinished}
                         handleErrorResult={handleErrorResult}
+                        handleNewStreamChunk={handleNewStreamChunk}
+                        isStreaming={isStreaming}
                       />
                     ) : (
                       <EmptyResourceCard size="sm">
@@ -192,7 +194,7 @@ export default function PipelinePlayWrapper(): JSX.Element {
               </PipelinePlayColumn>
 
               <PipelinePlayColumn title="Output" className="vcol-col-not-first">
-                {loading ? (
+                {loading && !isStreaming ? (
                   <BlockSkeleton height={200} />
                 ) : (
                   <>
