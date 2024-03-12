@@ -111,7 +111,6 @@ export default function PipelinePlayWrapper(): JSX.Element {
     handleErrorResult(null);
     setLoading(false);
   }
-  console.log(chatAvailable);
   // Effects
   React.useEffect(() => {
     if (pipeline && pipeline?.extras?.model_type === "chat") {

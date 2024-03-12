@@ -38,7 +38,6 @@ export function DynamicRunInputList({
 }: Props): JSX.Element[] {
   return dynamicFields.map((d: DynamicFieldData, i: number) => {
     const isDict = d.subType === "dictionary" && d.dicts && d.dicts.length;
-    console.log(isAuthed);
     return (
       <div key={d.label} className={groupStyles({ variant })}>
         <div className="flex flex-col gap-1 empty:hidden">
