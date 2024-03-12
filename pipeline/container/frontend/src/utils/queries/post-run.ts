@@ -1,4 +1,4 @@
-import { GetRunResponse, PostRunPayload } from "../../types";
+import { GetRunResponse, PostRunPayload, RunResult } from "../../types";
 
 export async function postRun({
   inputs,
@@ -29,7 +29,7 @@ export async function postRun({
 }
 
 interface StreamPostRun extends PostRunPayload {
-  onNewChunk: (chunk: string) => void;
+  onNewChunk: (chunk: RunResult) => void;
 }
 export async function streamPostRun({
   inputs,
@@ -47,6 +47,9 @@ export async function streamPostRun({
     if (response.body) {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      // Variable to accumulate chunks. Needed when chunk is not valid json
+      // and need to accumulate chunks until it is
+      let accumulatedData = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -54,10 +57,19 @@ export async function streamPostRun({
           console.log("Streaming finished");
           break;
         }
-        // Decode the chunk to a string
-        const chunkStr = decoder.decode(value);
-        onNewChunk(chunkStr);
-        console.log("Received chunk:", chunkStr);
+        accumulatedData += decoder.decode(value, { stream: true });
+
+        try {
+          // Attempt to parse the accumulated data as JSON
+          const chunkData = JSON.parse(accumulatedData);
+          // If parsing is successful, call onNewChunk and reset accumulatedData
+          onNewChunk(chunkData);
+          console.log("Received chunk:", accumulatedData);
+          accumulatedData = "";
+        } catch (error) {
+          // If parsing fails, continue accumulating data
+          console.log("Accumulating data for JSON parsing");
+        }
       }
     } else {
       console.log("Response body is null");
