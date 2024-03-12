@@ -129,3 +129,40 @@ def run_pipeline(
 
     run_get = _run_pipeline(run_create_schema)
     return run_get
+
+
+def _stream_pipeline(
+    run_create_schema: RunCreate,
+) -> t.Generator[ClusterRunResult, t.Any, None]:
+    with http.stream(
+        method="POST",
+        endpoint="/v4/runs/stream",
+        json_data=run_create_schema.dict(),
+        handle_error=False,
+    ) as response:
+        for chunk in response.iter_bytes():
+            try:
+                result = ClusterRunResult.parse_raw(chunk.decode())
+            except ValidationError:
+                http.raise_if_http_status_error(response)
+                raise
+
+            if result.state == RunState.no_resources_available:
+                error = NoResourcesAvailable(run_result=result)
+                _print(
+                    f"{error.message}\nRun result:\n{error.run_result.json(indent=2)}",
+                    level="ERROR",
+                )
+                raise error
+            yield result
+
+
+def stream_pipeline(pipeline: str, *data, wait_for_resources: bool | None = None):
+    run_create_schema = RunCreate(
+        pipeline=pipeline,
+        inputs=_data_to_run_input(data),
+        wait_for_resources=wait_for_resources,
+    )
+
+    for result in _stream_pipeline(run_create_schema):
+        yield result

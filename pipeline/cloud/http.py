@@ -2,6 +2,7 @@ import functools
 import io
 import os
 import typing as t
+from contextlib import contextmanager
 from json.decoder import JSONDecodeError
 
 import httpx
@@ -272,3 +273,16 @@ def post_files(
         )
 
     return response
+
+
+@handle_http_status_error
+@contextmanager
+def stream(
+    method: str,
+    endpoint: str,
+    json_data: dict | None = None,
+    handle_error: bool = True,
+):
+    client = _get_client()
+    with client.stream(method=method, url=endpoint, json=json_data) as response:
+        yield response
