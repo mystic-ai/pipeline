@@ -2,7 +2,13 @@ import React, { useMemo } from "react";
 import { useState } from "react";
 
 import { PipelinePlayColumn } from "./PipelinePlayColumn";
-import { GetRunResponse, RunError, RunOutput, RunResult } from "../../types";
+import {
+  GetRunResponse,
+  RunError,
+  RunOutput,
+  RunResult,
+  StreamingMode,
+} from "../../types";
 import useGetPipeline from "../../hooks/use-get-pipeline";
 import { BlockSkeleton } from "../ui/Skeletons/BlockSkeleton";
 import {
@@ -15,6 +21,7 @@ import { Code } from "../ui/Code/Code";
 import ChatApp from "./chat-app/ChatApp";
 import { ButtonToggle } from "../ui/Buttons/ButtonToggle";
 import { Button } from "../ui/Buttons/Button";
+import PipelineOutputColumn from "./PipelineOutputColumn";
 
 export default function PipelinePlayWrapper(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
@@ -22,6 +29,7 @@ export default function PipelinePlayWrapper(): JSX.Element {
   const [runErrors, setRunError] = useState<RunError | null>(null);
   const [activeScreen, setActiveScreen] = useState<"form" | "example">("form");
   const [chatAvailable, setChatAvailable] = useState<boolean>(false);
+  const [streamingMode, setStreamingMode] = useState<StreamingMode>("append");
 
   const { data: pipeline, isLoading: isPipelineLoading } = useGetPipeline();
 
@@ -64,11 +72,12 @@ export default function PipelinePlayWrapper(): JSX.Element {
           const existingOutputIndex = oldOutputs.findIndex(
             (_, idx) => idx === chunkIdx
           );
-          if (
+          const appendToPrevChunk =
             existingOutputIndex !== -1 &&
             streamOutputIndexes.includes(chunkIdx) &&
-            false
-          ) {
+            streamingMode === "append";
+
+          if (appendToPrevChunk) {
             // Append to stream
             const newValue = newChunkOutput.value || "";
             updatedOutputs[existingOutputIndex] = {
@@ -191,8 +200,10 @@ export default function PipelinePlayWrapper(): JSX.Element {
                   </>
                 )}
               </PipelinePlayColumn>
-
-              <PipelinePlayColumn title="Output" className="vcol-col-not-first">
+              <PipelineOutputColumn
+                isStreaming={isStreaming}
+                onStreamingModeChange={(newMode) => setStreamingMode(newMode)}
+              >
                 {loading && !isStreaming ? (
                   <BlockSkeleton height={200} />
                 ) : (
@@ -234,7 +245,7 @@ ${runErrors.message}`,
                     ) : null}
                   </div>
                 ) : null}
-              </PipelinePlayColumn>
+              </PipelineOutputColumn>
             </div>
           ) : null}
         </div>

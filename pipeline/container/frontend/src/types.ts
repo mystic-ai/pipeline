@@ -227,3 +227,7 @@ export interface PostFileResponse {
   // The path of the file on the container
   path: string;
 }
+
+// Should new chunks be appended (e.g in chat streaming) or
+// should they replace previous chunks (e.g. in image diffusion)
+export type StreamingMode = "append" | "replace";
