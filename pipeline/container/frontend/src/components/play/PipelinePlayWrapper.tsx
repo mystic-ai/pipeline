@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useState } from "react";
 
 import { PipelinePlayColumn } from "./PipelinePlayColumn";
-import { GetRunResponse, RunError, RunOutput } from "../../types";
+import { GetRunResponse, RunError, RunOutput, RunResult } from "../../types";
 import useGetPipeline from "../../hooks/use-get-pipeline";
 import { BlockSkeleton } from "../ui/Skeletons/BlockSkeleton";
 import {
@@ -18,7 +18,7 @@ import { Button } from "../ui/Buttons/Button";
 
 export default function PipelinePlayWrapper(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
-  const [runOutputs, setRunOuputs] = useState<RunOutput[] | null>(null);
+  const [runOutputs, setRunOuputs] = useState<RunOutput[]>([]);
   const [runErrors, setRunError] = useState<RunError | null>(null);
   const [activeScreen, setActiveScreen] = useState<"form" | "example">("form");
   const [chatAvailable, setChatAvailable] = useState<boolean>(false);
@@ -26,10 +26,25 @@ export default function PipelinePlayWrapper(): JSX.Element {
   const { data: pipeline, isLoading: isPipelineLoading } = useGetPipeline();
 
   const pipelineInputs = pipeline?.input_variables || [];
+  const pipelineOutputs = pipeline?.output_variables || [];
+
+  // The indexes of stream type outputs in the outputs array
+  const streamOutputIndexes = useMemo(() => {
+    return pipelineOutputs.reduce((acc: number[], output, index) => {
+      if (output.run_io_type === "stream") {
+        acc.push(index);
+      }
+      return acc;
+    }, []);
+  }, [pipelineOutputs]);
+
+  const isStreaming = useMemo(() => {
+    return streamOutputIndexes.length > 0;
+  }, [streamOutputIndexes]);
 
   // Handlers
   function handleSuccessResult(data: RunOutput[] | null) {
-    setRunOuputs(data);
+    setRunOuputs(data ? data : []);
   }
   function handleErrorResult(error: RunError | null) {
     setRunError(error);
@@ -51,7 +66,7 @@ export default function PipelinePlayWrapper(): JSX.Element {
   }
 
   function handleRunReset() {
-    setRunOuputs(null);
+    setRunOuputs([]);
     handleErrorResult(null);
     setLoading(false);
   }
