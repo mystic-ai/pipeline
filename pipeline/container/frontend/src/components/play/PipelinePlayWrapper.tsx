@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useState } from "react";
 
 import { PipelinePlayColumn } from "./PipelinePlayColumn";
-import { GetRunResponse, RunError, RunOutput } from "../../types";
+import { GetRunResponse, RunError, RunOutput, RunResult } from "../../types";
 import useGetPipeline from "../../hooks/use-get-pipeline";
 import { BlockSkeleton } from "../ui/Skeletons/BlockSkeleton";
 import {
@@ -18,7 +18,7 @@ import { Button } from "../ui/Buttons/Button";
 
 export default function PipelinePlayWrapper(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
-  const [runOutputs, setRunOuputs] = useState<RunOutput[] | null>(null);
+  const [runOutputs, setRunOuputs] = useState<RunOutput[]>([]);
   const [runErrors, setRunError] = useState<RunError | null>(null);
   const [activeScreen, setActiveScreen] = useState<"form" | "example">("form");
   const [chatAvailable, setChatAvailable] = useState<boolean>(false);
@@ -26,16 +26,72 @@ export default function PipelinePlayWrapper(): JSX.Element {
   const { data: pipeline, isLoading: isPipelineLoading } = useGetPipeline();
 
   const pipelineInputs = pipeline?.input_variables || [];
+  const pipelineOutputs = pipeline?.output_variables || [];
+
+  // The indexes of stream type outputs in the outputs array
+  const streamOutputIndexes = useMemo(() => {
+    return pipelineOutputs.reduce((acc: number[], output, index) => {
+      if (output.run_io_type === "stream") {
+        acc.push(index);
+      }
+      return acc;
+    }, []);
+  }, [pipelineOutputs]);
+
+  const isStreaming = useMemo(() => {
+    return streamOutputIndexes.length > 0;
+  }, [streamOutputIndexes]);
 
   // Handlers
   function handleSuccessResult(data: RunOutput[] | null) {
-    setRunOuputs(data);
+    setRunOuputs(data ? data : []);
   }
   function handleErrorResult(error: RunError | null) {
     setRunError(error);
   }
   function handleIsLoading(isLoading: boolean) {
     setLoading(isLoading);
+  }
+  function handleNewStreamChunk(chunk: string) {
+    try {
+      const chunkData: RunResult = JSON.parse(chunk);
+      setRunOuputs((oldOutputs) => {
+        // Create a copy of the current outputs to modify
+        let updatedOutputs = [...oldOutputs];
+
+        // Process each output in the chunk
+        chunkData.outputs?.forEach((newChunkOutput, chunkIdx) => {
+          // Get the existing output for this index if it exists
+          const existingOutputIndex = oldOutputs.findIndex(
+            (_, idx) => idx === chunkIdx
+          );
+          if (
+            existingOutputIndex !== -1 &&
+            streamOutputIndexes.includes(chunkIdx)
+          ) {
+            // Append to stream
+            const newValue = newChunkOutput.value || "";
+            updatedOutputs[existingOutputIndex] = {
+              ...updatedOutputs[existingOutputIndex],
+              value: updatedOutputs[existingOutputIndex].value
+                ? updatedOutputs[existingOutputIndex].value + newValue
+                : newValue,
+            };
+          } else {
+            // Add new output/override if it doesn't exist
+            updatedOutputs[chunkIdx] = {
+              type: newChunkOutput.type,
+              value: newChunkOutput.value,
+              file: newChunkOutput.file,
+            };
+          }
+        });
+
+        return updatedOutputs;
+      });
+    } catch (error) {
+      console.error("Error parsing chunk:", error);
+    }
   }
 
   function handleRunFinished(run: GetRunResponse) {
@@ -51,11 +107,10 @@ export default function PipelinePlayWrapper(): JSX.Element {
   }
 
   function handleRunReset() {
-    setRunOuputs(null);
+    setRunOuputs([]);
     handleErrorResult(null);
     setLoading(false);
   }
-  console.log(chatAvailable);
   // Effects
   React.useEffect(() => {
     if (pipeline && pipeline?.extras?.model_type === "chat") {
@@ -125,6 +180,8 @@ export default function PipelinePlayWrapper(): JSX.Element {
                         handleRunReset={handleRunReset}
                         handleRunComplete={handleRunFinished}
                         handleErrorResult={handleErrorResult}
+                        handleNewStreamChunk={handleNewStreamChunk}
+                        isStreaming={isStreaming}
                       />
                     ) : (
                       <EmptyResourceCard size="sm">
@@ -136,7 +193,7 @@ export default function PipelinePlayWrapper(): JSX.Element {
               </PipelinePlayColumn>
 
               <PipelinePlayColumn title="Output" className="vcol-col-not-first">
-                {loading ? (
+                {loading && !isStreaming ? (
                   <BlockSkeleton height={200} />
                 ) : (
                   <>

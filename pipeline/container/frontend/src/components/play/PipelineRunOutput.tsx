@@ -91,6 +91,7 @@ export function RenderOutput({
   const renderString = (value: string) => (
     <Textarea
       id={value.substring(0, 10)}
+      value={value}
       defaultValue={value}
       autoHeight
       readOnly
