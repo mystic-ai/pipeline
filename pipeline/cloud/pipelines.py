@@ -140,21 +140,32 @@ def _stream_pipeline(
         json_data=run_create_schema.dict(),
         handle_error=False,
     ) as response:
-        for chunk in response.iter_bytes():
-            try:
-                result = ClusterRunResult.parse_raw(chunk.decode())
-            except ValidationError:
-                http.raise_if_http_status_error(response)
-                raise
+        incomplete_chunk = ""
+        for chunk in response.iter_text():
+            # chunk of data coming back from API could either be an incomplete
+            # result or more than one results, so try to handle both these cases
+            full_chunk = incomplete_chunk + chunk
+            results = full_chunk.split("\n")
+            for result in results:
+                if not result:
+                    continue
+                try:
+                    result = ClusterRunResult.parse_raw(result)
+                    incomplete_chunk = ""
+                except ValidationError:
+                    http.raise_if_http_status_error(response)
+                    # assume due to an incomplete chunk of JSON
+                    incomplete_chunk = result
+                    break
 
-            if result.state == RunState.no_resources_available:
-                error = NoResourcesAvailable(run_result=result)
-                _print(
-                    f"{error.message}\nRun result:\n{error.run_result.json(indent=2)}",
-                    level="ERROR",
-                )
-                raise error
-            yield result
+                if result.state == RunState.no_resources_available:
+                    error = NoResourcesAvailable(run_result=result)
+                    _print(
+                        f"{error.message}\nRun result:\n{error.run_result.json(indent=2)}",
+                        level="ERROR",
+                    )
+                    raise error
+                yield result
 
 
 def stream_pipeline(pipeline: str, *data, wait_for_resources: bool | None = None):
