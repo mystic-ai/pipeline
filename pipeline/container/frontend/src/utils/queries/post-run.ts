@@ -43,36 +43,36 @@ export async function streamPostRun({
       },
       body: JSON.stringify({ inputs }),
     });
-
-    if (response.body) {
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      // Variable to accumulate chunks. Needed when chunk is not valid json
-      // and need to accumulate chunks until it is
-      let accumulatedData = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) {
-          console.log("Streaming finished");
-          break;
-        }
-        accumulatedData += decoder.decode(value, { stream: true });
-
-        try {
-          // Attempt to parse the accumulated data as JSON
-          const chunkData = JSON.parse(accumulatedData);
-          // If parsing is successful, call onNewChunk and reset accumulatedData
-          onNewChunk(chunkData);
-          console.log("Received chunk:", accumulatedData);
-          accumulatedData = "";
-        } catch (error) {
-          // If parsing fails, continue accumulating data
-          console.log("Accumulating data for JSON parsing");
-        }
-      }
-    } else {
+    if (!response.body) {
       console.log("Response body is null");
+      return;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    // Variable to accumulate chunks. Needed when chunk is not valid json
+    // and need to accumulate chunks until it is
+    let accumulatedData = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        console.log("Streaming finished");
+        break;
+      }
+      accumulatedData += decoder.decode(value);
+
+      try {
+        // Attempt to parse the accumulated data as JSON
+        const chunkData = JSON.parse(accumulatedData);
+        // If parsing is successful, call onNewChunk and reset accumulatedData
+        onNewChunk(chunkData);
+        console.log("Received chunk:", accumulatedData);
+        accumulatedData = "";
+      } catch (error) {
+        // If parsing fails, continue accumulating data
+        console.log("Accumulating data for JSON parsing");
+      }
     }
   } catch (error) {
     console.error("Error during streaming request", error);
