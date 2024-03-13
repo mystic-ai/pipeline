@@ -16,6 +16,7 @@ from pipeline.cloud.schemas.runs import (
 from pipeline.objects import File
 from pipeline.objects.graph import InputSchema
 from pipeline.util.logging import _print
+from pipeline.util.streaming import handle_stream_response
 
 
 class NoResourcesAvailable(Exception):
@@ -140,24 +141,9 @@ def _stream_pipeline(
         json_data=run_create_schema.dict(),
         handle_error=False,
     ) as response:
-        incomplete_chunk = ""
-        for chunk in response.iter_text():
-            # chunk of data coming back from API could either be an incomplete
-            # result or more than one results, so try to handle both these cases
-            full_chunk = incomplete_chunk + chunk
-            results = full_chunk.split("\n")
-            for result in results:
-                if not result:
-                    continue
-                try:
-                    result = ClusterRunResult.parse_raw(result)
-                    incomplete_chunk = ""
-                except ValidationError:
-                    http.raise_if_http_status_error(response)
-                    # assume due to an incomplete chunk of JSON
-                    incomplete_chunk = result
-                    break
-
+        try:
+            for result in handle_stream_response(response, ClusterRunResult):
+                result: ClusterRunResult
                 if result.state == RunState.no_resources_available:
                     error = NoResourcesAvailable(run_result=result)
                     _print(
@@ -166,6 +152,9 @@ def _stream_pipeline(
                     )
                     raise error
                 yield result
+        except Exception as e:
+            http.raise_if_http_status_error(response)
+            raise e
 
 
 def stream_pipeline(pipeline: str, *data, wait_for_resources: bool | None = None):
