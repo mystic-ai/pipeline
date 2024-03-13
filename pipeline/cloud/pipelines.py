@@ -141,20 +141,24 @@ def _stream_pipeline(
         json_data=run_create_schema.dict(),
         handle_error=False,
     ) as response:
-        try:
-            for result_json in handle_stream_response(response):
+        for result_json in handle_stream_response(response):
+            try:
                 result = ClusterRunResult.parse_obj(result_json)
-                if result.state == RunState.no_resources_available:
-                    error = NoResourcesAvailable(run_result=result)
-                    _print(
-                        f"{error.message}\nRun result:\n{result.json(indent=2)}",
-                        level="ERROR",
-                    )
-                    raise error
-                yield result
-        except Exception as e:
-            http.raise_if_http_status_error(response)
-            raise e
+            except ValidationError:
+                _print(f"Unexpected result from streaming run:\n{result_json}")
+                return
+            except Exception as e:
+                http.raise_if_http_status_error(response)
+                raise e
+
+            if result.state == RunState.no_resources_available:
+                error = NoResourcesAvailable(run_result=result)
+                _print(
+                    f"{error.message}\nRun result:\n{result.json(indent=2)}",
+                    level="ERROR",
+                )
+                raise error
+            yield result
 
 
 def stream_pipeline(pipeline: str, *data, wait_for_resources: bool | None = None):
