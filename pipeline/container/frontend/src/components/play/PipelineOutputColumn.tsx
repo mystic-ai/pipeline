@@ -5,6 +5,7 @@ import { Tooltip } from "../ui/Tooltips/Tooltip";
 import { IconInfoCircle } from "../ui/Icons/IconInfoCircle";
 import { Select, SelectItem } from "../ui/Inputs/Select";
 import { StreamingMode } from "../../types";
+import { Label } from "../ui/Inputs/Label";
 
 interface Props extends PropsWithChildren {
   isStreaming: boolean;
@@ -17,17 +18,20 @@ const StreamingModeForm = ({ onChange }: StreamingModeFormProps) => {
   const options: StreamingMode[] = ["append", "replace"];
 
   return (
-    <Select
-      label="Streaming mode"
-      defaultValue={"append"}
-      onValueChange={(value: StreamingMode) => onChange(value)}
-    >
-      {options.map((o, index) => (
-        <SelectItem value={o.valueOf()} key={o.valueOf()}>
-          {o.valueOf()}
-        </SelectItem>
-      ))}
-    </Select>
+    <div className="flex items-center gap-3">
+      <Label>Streaming mode</Label>
+      <Select
+        defaultValue={"append"}
+        onValueChange={(value: StreamingMode) => onChange(value)}
+        size={"xs"}
+      >
+        {options.map((o, index) => (
+          <SelectItem value={o.valueOf()} key={o.valueOf()}>
+            {o.valueOf()}
+          </SelectItem>
+        ))}
+      </Select>
+    </div>
   );
 };
 interface TitleWithStreamingInfoProps {

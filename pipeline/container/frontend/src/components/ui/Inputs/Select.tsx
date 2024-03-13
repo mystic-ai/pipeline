@@ -19,6 +19,10 @@ const select = cva(
         valid: ["input-valid"],
         invalid: ["input-invalid"],
       },
+      size: {
+        xs: ["!h-[23px]"],
+        md: [],
+      },
     },
     defaultVariants: {
       status: "clean",
@@ -38,8 +42,15 @@ interface Props
 
 export const Select = forwardRef(
   (props: Props, forwardedRef: ForwardedRef<HTMLButtonElement>) => {
-    const { label, hintText, placeholder, children, status, ...selectProps } =
-      props;
+    const {
+      label,
+      hintText,
+      placeholder,
+      children,
+      status,
+      size,
+      ...selectProps
+    } = props;
 
     return (
       <LabelPrimitive className="flex flex-col gap-1.5">
@@ -47,7 +58,7 @@ export const Select = forwardRef(
 
         <SelectPrimitive.Root {...selectProps}>
           <SelectPrimitive.Trigger
-            className={twMerge(select({ status }))}
+            className={twMerge(select({ status, size }))}
             disabled={props.disabled}
             ref={forwardedRef}
           >
