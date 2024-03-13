@@ -127,13 +127,13 @@ async def run(
                                     )
                                 )
                         except StopIteration:
-                            static_outputs.append(
-                                run_schemas.RunOutput(
-                                    type=output.type,
-                                    value=None,
-                                    file=output.file,
-                                )
-                            )
+                            # static_outputs.append(
+                            #     run_schemas.RunOutput(
+                            #         type=output.type,
+                            #         value=None,
+                            #         file=output.file,
+                            #     )
+                            # )
                             streaming_outputs_to_move.append(output)
 
                     for output in streaming_outputs_to_move:

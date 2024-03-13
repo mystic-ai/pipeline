@@ -1,24 +1,24 @@
-from pathlib import Path
-
-import torch
-
-from threading import Thread
 import base64
+import copy
 from io import BytesIO
 
-from diffusers import (
-    AutoPipelineForImage2Image,
+# from pathlib import Path
+from queue import Queue
+from threading import Thread
+
+import torch
+from DeepCache import DeepCacheSDHelper
+from diffusers import (  # AutoPipelineForImage2Image,; StableDiffusionXLPipeline,
+    AutoencoderKL,
     AutoPipelineForText2Image,
     DiffusionPipeline,
+    EulerDiscreteScheduler,
+    UNet2DConditionModel,
 )
+from huggingface_hub import hf_hub_download
+from safetensors.torch import load_file
 
-
-import torchvision.transforms as T
-
-from PIL import Image
-from queue import Queue
-
-from pipeline import File, Pipeline, Variable, entity, pipe
+from pipeline import Pipeline, Variable, entity, pipe
 from pipeline.objects.graph import InputField, InputSchema, Stream
 
 
@@ -87,16 +87,42 @@ class MyModelClass:
     def load(self) -> None:
         # Perform any operations needed to load your model here
         print("Loading model...")
+        base = "stabilityai/stable-diffusion-xl-base-1.0"
+        repo = "ByteDance/SDXL-Lightning"
+        ckpt = "sdxl_lightning_4step_unet.safetensors"
+        unet = UNet2DConditionModel.from_config(base, subfolder="unet").to(
+            "cuda", torch.float16
+        )
+        unet.load_state_dict(load_file(hf_hub_download(repo, ckpt), device="cuda"))
 
         self.pipeline_text2image = AutoPipelineForText2Image.from_pretrained(
-            "stabilityai/sdxl-turbo", torch_dtype=torch.float16, variant="fp16"
-        )
-        self.pipeline_text2image = self.pipeline_text2image.to("cuda")
-        self.pipeline_image2image = AutoPipelineForImage2Image.from_pipe(
-            self.pipeline_text2image
+            base,
+            unet=unet,
+            torch_dtype=torch.float16,
+            variant="fp16",
+            # use_safetensors=True,
         )
 
+        self.pipeline_text2image = self.pipeline_text2image.to("cuda")
+        self.pipeline_text2image.scheduler = EulerDiscreteScheduler.from_config(
+            self.pipeline_text2image.scheduler.config,
+            timestep_spacing="trailing",
+        )
+
+        if False:
+            helper = DeepCacheSDHelper(pipe=self.pipeline_text2image)
+            helper.set_params(
+                cache_interval=3,
+                cache_branch_id=0,
+            )
+            helper.enable()
+        # self.pipeline_image2image = AutoPipelineForImage2Image.from_pipe(
+        #     self.pipeline_text2image
+        # )
+
         self.queue = Queue()
+        self.render_vae: AutoencoderKL = copy.deepcopy(self.pipeline_text2image.vae)
+        self.render_vae.to(torch.float32).to("cuda")
 
         print("Model loaded!")
 
@@ -107,32 +133,33 @@ class MyModelClass:
         timestep: int,
         callback_kwargs: dict,
     ):
+        if True:  # toggle for testing speed with no image streaming
+            latents = (
+                copy.deepcopy(callback_kwargs.get("latents"))
+                .to(dtype=torch.float32)
+                .to("cuda")
+            )
 
-        # print(callback_kwargs.keys(), flush=True)
-        latents = callback_kwargs.get("latents")
-        # print(latents.shape, flush=True)
-        image: torch.Tensor = inference_pipeline.vae.decode(
-            latents / inference_pipeline.vae.config.scaling_factor,
-            return_dict=False,
-        )[0]
-        # Squeeze image (it's a torch tensor)
-        image = image.squeeze()
-        transform = T.ToPILImage()
+            image: torch.Tensor = self.render_vae.decode(
+                latents / self.render_vae.config.scaling_factor,
+                return_dict=False,
+            )[0]
 
-        pil_image = transform(image.cpu())
-        pil_image = pil_image.resize((128, 128), Image.LANCZOS)
-        buffered = BytesIO()
-        pil_image.save(buffered, format="JPEG")
-        img_str = base64.b64encode(buffered.getvalue())
+            image = inference_pipeline.image_processor.postprocess(image)
 
-        self.queue.put(img_str.decode("utf-8"))
+            buffered = BytesIO()
+
+            image[0].save(buffered, format="JPEG")
+            img_str = base64.b64encode(buffered.getvalue())
+
+            self.queue.put(img_str.decode("utf-8"))
 
         return callback_kwargs
 
     def stream_func(self):
         while True:
             value = self.queue.get(timeout=5)
-            if value == None:
+            if value is None:
                 raise StopIteration()
             else:
                 yield value
@@ -143,7 +170,13 @@ class MyModelClass:
             guidance_scale=0.0,
             callback_on_step_end=self.callback_on_step_end,
             **kwargs.to_dict(),
-        )
+        ).images
+
+        buffered = BytesIO()
+        images[0].save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue())
+
+        self.queue.put(img_str.decode())
         self.queue.put(None)
 
     @pipe
