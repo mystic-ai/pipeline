@@ -142,12 +142,12 @@ def _stream_pipeline(
         handle_error=False,
     ) as response:
         try:
-            for result in handle_stream_response(response, ClusterRunResult):
-                result: ClusterRunResult
+            for result_json in handle_stream_response(response):
+                result = ClusterRunResult.parse_obj(result_json)
                 if result.state == RunState.no_resources_available:
                     error = NoResourcesAvailable(run_result=result)
                     _print(
-                        f"{error.message}\nRun result:\n{error.run_result.json(indent=2)}",
+                        f"{error.message}\nRun result:\n{result.json(indent=2)}",
                         level="ERROR",
                     )
                     raise error

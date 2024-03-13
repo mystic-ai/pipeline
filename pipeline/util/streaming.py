@@ -1,16 +1,12 @@
+import json
 import typing as t
 
 from httpx import Response
-from pydantic import BaseModel, ValidationError
-
-T = t.TypeVar("T", bound=BaseModel)
 
 
-def handle_stream_response(
-    response: Response, result_schema_cls: T
-) -> t.Generator[T, t.Any, None]:
+def handle_stream_response(response: Response) -> t.Generator[t.Any, t.Any, None]:
     """Helper function to help with parsing streamed data from an API into
-    instances of 'result_schema_cls'
+    JSON objects
     """
     incomplete_chunk = ""
     for chunk in response.iter_text():
@@ -22,21 +18,21 @@ def handle_stream_response(
             if not result:
                 continue
             try:
-                result = result_schema_cls.parse_raw(result)
+                result_json = json.loads(result)
                 incomplete_chunk = ""
-            except ValidationError:
+            except json.JSONDecodeError:
                 # assume due to an incomplete chunk of JSON
                 incomplete_chunk = result
                 break
 
-            yield result
+            yield result_json
 
 
 async def handle_async_stream_response(
-    response: Response, result_schema_cls: T
-) -> t.AsyncGenerator[T, t.Any]:
+    response: Response,
+) -> t.AsyncGenerator[t.Any, t.Any]:
     """Helper function to help with parsing streamed data from an API into
-    instances of 'result_schema_cls'
+    JSON objects
 
     Same as above but for async httpx client.
     """
@@ -50,11 +46,11 @@ async def handle_async_stream_response(
             if not result:
                 continue
             try:
-                result = result_schema_cls.parse_raw(result)
+                result_json = json.loads(result)
                 incomplete_chunk = ""
-            except ValidationError:
+            except json.JSONDecodeError:
                 # assume due to an incomplete chunk of JSON
                 incomplete_chunk = result
                 break
 
-            yield result
+            yield result_json
