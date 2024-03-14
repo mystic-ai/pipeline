@@ -4,7 +4,8 @@ import torch
 from transformers import AutoTokenizer, MistralForCausalLM, TextIteratorStreamer
 
 from pipeline import Pipeline, entity, pipe
-from pipeline.objects.graph import InputField, InputSchema, Stream, Variable
+from pipeline.objects.graph import InputField, InputSchema, Variable
+from pipeline.objects.variables import Stream
 
 
 class ModelKwargs(InputSchema):
