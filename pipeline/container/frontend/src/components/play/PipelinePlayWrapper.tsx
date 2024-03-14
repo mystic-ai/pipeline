@@ -22,6 +22,7 @@ import ChatApp from "./chat-app/ChatApp";
 import { ButtonToggle } from "../ui/Buttons/ButtonToggle";
 import { Button } from "../ui/Buttons/Button";
 import PipelineOutputColumn from "./PipelineOutputColumn";
+import useStreamingIndexes from "../../hooks/use-streaming-indexes";
 
 export default function PipelinePlayWrapper(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
@@ -34,21 +35,8 @@ export default function PipelinePlayWrapper(): JSX.Element {
   const { data: pipeline, isLoading: isPipelineLoading } = useGetPipeline();
 
   const pipelineInputs = pipeline?.input_variables || [];
-  const pipelineOutputs = pipeline?.output_variables || [];
 
-  // The indexes of stream type outputs in the outputs array
-  const streamOutputIndexes = useMemo(() => {
-    return pipelineOutputs.reduce((acc: number[], output, index) => {
-      if (output.run_io_type === "stream") {
-        acc.push(index);
-      }
-      return acc;
-    }, []);
-  }, [pipelineOutputs]);
-
-  const isStreaming = useMemo(() => {
-    return streamOutputIndexes.length > 0;
-  }, [streamOutputIndexes]);
+  const { isStreaming, streamOutputIndexes } = useStreamingIndexes(pipeline);
 
   // Handlers
   function handleSuccessResult(data: RunOutput[] | null) {
