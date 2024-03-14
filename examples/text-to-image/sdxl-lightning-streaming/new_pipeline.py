@@ -19,7 +19,8 @@ from huggingface_hub import hf_hub_download
 from safetensors.torch import load_file
 
 from pipeline import Pipeline, Variable, entity, pipe
-from pipeline.objects.graph import InputField, InputSchema, Stream
+from pipeline.objects.graph import InputField, InputSchema
+from pipeline.objects.variables import Stream
 
 
 class ModelKwargs(InputSchema):
