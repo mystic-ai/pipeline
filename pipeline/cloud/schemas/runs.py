@@ -5,7 +5,6 @@ from datetime import datetime
 from enum import Enum
 
 from pipeline.cloud.schemas import BaseModel
-from pipeline.objects.variables import Stream
 
 
 class RunState(str, Enum):
@@ -132,7 +131,10 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.array
-        elif isinstance(obj, Stream) or obj is Stream:
+        # Also check if class name == Stream
+        elif hasattr(obj, "iterable") or (
+            hasattr(obj, "__name__") and obj.__name__ == "Stream"
+        ):
             return cls.stream
         elif (
             isinstance(obj, io.BufferedIOBase)

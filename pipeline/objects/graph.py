@@ -1,7 +1,7 @@
 import inspect
 from pathlib import Path
 from types import NoneType, UnionType
-from typing import Any, List, get_args
+from typing import Any, Generic, Iterable, List, TypeVar, get_args
 from urllib.parse import ParseResult, urlparse
 
 import httpx
@@ -497,6 +497,20 @@ class Directory(File):
         **kwargs,
     ):
         raise NotImplementedError("Directory.from_object is not implemented")
+
+
+ST = TypeVar("ST")
+
+
+class Stream(Generic[ST], Iterable):
+    def __init__(self, iterable: Iterable[ST]):
+        self.iterable = iterable
+
+    def __iter__(self):
+        return self.iterable.__iter__()
+
+    def __next__(self):
+        return self.iterable.__next__()
 
 
 class GraphNode:
