@@ -95,9 +95,9 @@ async def stream_run(
         response_schema, response.status_code = _generate_run_result(run_output)
 
         outputs = response_schema.outputs or []
-        print("ROSSLOG")
-        print([output.type for output in outputs])
-        if not any([output.type == run_schemas.RunIOType.stream for output in outputs]):
+        if outputs and not any(
+            [output.type == run_schemas.RunIOType.stream for output in outputs]
+        ):
             raise TypeError("No streaming outputs found")
 
         static_outputs = [
