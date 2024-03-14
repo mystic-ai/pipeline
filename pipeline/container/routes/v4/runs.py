@@ -104,11 +104,8 @@ async def run(
 
             async def stream_func():
                 # Iterate over all streams, if done then add to static
-
-                streaming_outputs_to_move = []
-                # try:
-
                 while len(streaming_outputs) > 0:
+                    streaming_outputs_to_remove = []
                     next_streaming_outputs = []
                     for output in streaming_outputs:
                         try:
@@ -127,17 +124,13 @@ async def run(
                                     )
                                 )
                         except StopIteration:
-                            # static_outputs.append(
-                            #     run_schemas.RunOutput(
-                            #         type=output.type,
-                            #         value=None,
-                            #         file=output.file,
-                            #     )
-                            # )
-                            streaming_outputs_to_move.append(output)
+                            streaming_outputs_to_remove.append(output)
 
-                    for output in streaming_outputs_to_move:
+                    for output in streaming_outputs_to_remove:
                         streaming_outputs.remove(output)
+
+                    if not len(streaming_outputs):
+                        break
 
                     new_response_schema = run_schemas.ContainerRunResult(
                         inputs=response_schema.inputs,
@@ -145,7 +138,8 @@ async def run(
                         error=response_schema.error,
                     )
 
-                    yield new_response_schema.json()
+                    # serialise response to str and add newline separator
+                    yield new_response_schema.json() + "\n"
 
                     if await request.is_disconnected():
                         for output in streaming_outputs:

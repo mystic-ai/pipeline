@@ -16,6 +16,7 @@ from pipeline.cloud.schemas.runs import (
 from pipeline.objects import File
 from pipeline.objects.graph import InputSchema
 from pipeline.util.logging import _print
+from pipeline.util.streaming import handle_stream_response
 
 
 class NoResourcesAvailable(Exception):
@@ -140,17 +141,20 @@ def _stream_pipeline(
         json_data=run_create_schema.dict(),
         handle_error=False,
     ) as response:
-        for chunk in response.iter_bytes():
+        for result_json in handle_stream_response(response):
             try:
-                result = ClusterRunResult.parse_raw(chunk.decode())
+                result = ClusterRunResult.parse_obj(result_json)
             except ValidationError:
+                _print(f"Unexpected result from streaming run:\n{result_json}")
+                return
+            except Exception:
                 http.raise_if_http_status_error(response)
                 raise
 
             if result.state == RunState.no_resources_available:
                 error = NoResourcesAvailable(run_result=result)
                 _print(
-                    f"{error.message}\nRun result:\n{error.run_result.json(indent=2)}",
+                    f"{error.message}\nRun result:\n{result.json(indent=2)}",
                     level="ERROR",
                 )
                 raise error
