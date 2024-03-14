@@ -132,7 +132,7 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.array
-        elif isinstance(obj, Stream):
+        elif isinstance(obj, Stream) or obj is Stream:
             return cls.stream
         elif (
             isinstance(obj, io.BufferedIOBase)
