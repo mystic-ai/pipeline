@@ -162,7 +162,6 @@ async def stream_run(
 def _handle_pipeline_state_not_ready(
     manager: Manager,
 ) -> run_schemas.ContainerRunResult | None:
-
     if manager.pipeline_state == pipeline_schemas.PipelineState.loading:
         logger.info("Pipeline loading")
         return run_schemas.ContainerRunResult(
