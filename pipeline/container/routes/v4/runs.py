@@ -71,7 +71,7 @@ async def stream_run(
     run_create: run_schemas.ContainerRunCreate,
     request: Request,
     response: Response,
-) -> run_schemas.ContainerRunResult | StreamingResponse:
+):
     run_id = run_create.run_id
     with logger.contextualize(run_id=run_id):
         manager: Manager = request.app.state.manager
