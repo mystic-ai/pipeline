@@ -41,6 +41,9 @@ interface Prompt {
   role: "user" | "system" | "assistant";
   content: string;
 }
+interface StreamChunkOptions {
+  startTime?: Date;
+}
 
 interface ChatAppProps {
   pipeline: GetPipelineResponse;
@@ -129,6 +132,8 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
       const newChunkContent = chunk.outputs[0].value[0].content;
       // Append the new chunk output to the last chat's model value (or use an empty string if model is undefined)
       const newChatValue = lastChatValue + newChunkContent;
+      const now = new Date();
+      const startTime = lastChat.model?.createdAt || now;
 
       // Update the last chat's model value with the new concatenated value
       lastChat = {
@@ -136,8 +141,9 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
         model: {
           ...lastChat.model,
           value: newChatValue,
-          createdAt: new Date(),
+          createdAt: now,
           isLoading: false,
+          responseTime: now.getTime() - startTime.getTime(),
         },
       };
 
@@ -149,7 +155,7 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
     });
   }
 
-  function handleChatSubmit(question: string) {
+  async function handleChatSubmit(question: string) {
     if (!question) return;
 
     const userChat: ChatMessages = {
@@ -170,9 +176,10 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
     prompts.push(userPrompt);
 
     // Set a loading message in chat window optimistically
+    // We will use createdAt to compute responseTime in new chunk handler
     setChats((chats) => [
       ...chats,
-      { model: { value: "", createdAt: new Date(), isLoading: true } },
+      { model: { value: "", createdAt: startTime, isLoading: true } },
     ]);
 
     // Build the request data
@@ -186,9 +193,13 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
         value: chatSettings,
       },
     ];
-    streamPostRun({
+    // We await so that the setChats call below gets the full content
+    // of the lastChat after it has finished being streamed.
+    await streamPostRun({
       inputs,
       onNewChunk: handleNewStreamChunk,
+    }).catch((error) => {
+      notification.error({ title: "Error streaming run response." });
     });
     // This just used to get the current chats and save stuff to localStorage
     setChats((chats) => {
@@ -256,12 +267,12 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
         <ChatAppMessages chats={chats} pipeline={pipeline}>
           {inputValue === "" ? (
             <div className="mx-auto max-w-[400px] pb-8">
-              {/* <ChatPromptExamples
+              <ChatPromptExamples
                 handleChoice={(question) => {
                   setInputValue(question);
                   handleChatSubmit(question);
                 }}
-              /> */}
+              />
             </div>
           ) : null}
         </ChatAppMessages>
