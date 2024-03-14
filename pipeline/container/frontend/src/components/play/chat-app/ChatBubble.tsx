@@ -7,6 +7,7 @@ import { TypingAnimation } from "./TypingAnimation";
 import { ErrorAvatar } from "./ErrorAvatar";
 import { GetPipelineResponse } from "../../../types";
 import { DescriptionText } from "../../ui/Typography/DescriptionText";
+import { ChatMarkdown } from "./ChatMarkdown";
 
 const styles = cva(
   "p-4 flex flex-col gap-2 text-base font-medium rounded shadow-xs border border-gray-300 dark:border-gray-700 whitespace-pre-line",
@@ -60,7 +61,7 @@ export function ChatBubble({
         </div>
       ) : (
         <div className={styles({ variant })} style={{ overflowAnchor: "none" }}>
-          {children}
+          <ChatMarkdown content={String(children)}></ChatMarkdown>
           <div className="flex gap-3" aria-hidden="true">
             <DescriptionText className="text-xs  select-none">
               {createdAt.toLocaleTimeString()}
