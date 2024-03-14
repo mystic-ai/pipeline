@@ -36,7 +36,7 @@ export async function streamPostRun({
   onNewChunk,
 }: StreamPostRun): Promise<void> {
   try {
-    const response = await fetch("/v4/runs", {
+    const response = await fetch("/v4/runs/stream", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
