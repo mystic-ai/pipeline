@@ -50,6 +50,13 @@ class PipelineConfig(BaseModel):
     class Config:
         extra = "forbid"
 
+def _check_tested_locally(docker_client, container_id):
+    result = docker_client.containers.exec_run(
+        container_id,
+        cmd="test -f /tmp/pipeline_tested",
+        workdir="/"
+    )
+    return result.exit_code == 0
 
 def _up_container(namespace: Namespace):
     _print("Starting container...", "INFO")
@@ -152,6 +159,8 @@ def _up_container(namespace: Namespace):
         command=run_command,
         volumes=volumes,
         environment=environment_variables,
+        labels={"pipeline_tested_locally": "true"},
+
     )
 
     _print(
@@ -296,7 +305,7 @@ def _push_container(namespace: Namespace):
 
     skip_prompt = getattr(namespace, "skip_prompt")
 
-    _check_user_has_run_container_up(skip_prompt=skip_prompt)
+    # _check_user_has_run_container_up(skip_prompt=skip_prompt)
 
     config = config_file.read_text()
     pipeline_config_yaml = yaml.load(config, Loader=yaml.FullLoader)
@@ -337,6 +346,12 @@ def _push_container(namespace: Namespace):
     )
 
     docker_client = docker.from_env(timeout=300)
+
+    if not _check_tested_locally(docker_client, pipeline_name):
+        proceed = input("This pipeline has not been tested locally, do you wish to proceed [y/N]: ").lower().strip()
+        if proceed != 'y':
+            print("Push aborted.")
+            return
 
     registry_info = http.get(endpoint="/v4/registry")
     registry_info = registry_schemas.RegistryInformation.parse_raw(registry_info.text)
