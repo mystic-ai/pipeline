@@ -24,6 +24,7 @@ import { IconSettings4 } from "../../ui/Icons/IconSettings4";
 import { IconTrash } from "../../ui/Icons/IconTrash";
 import { DynamicFieldsForm } from "../DynamicFieldsForm";
 import { postRun, streamPostRun } from "../../../utils/queries/post-run";
+import useStreamingIndexes from "../../../hooks/use-streaming-indexes";
 
 type ChatMessage = {
   value: string;
@@ -40,9 +41,6 @@ export type ChatMessages = {
 interface Prompt {
   role: "user" | "system" | "assistant";
   content: string;
-}
-interface StreamChunkOptions {
-  startTime?: Date;
 }
 
 interface ChatAppProps {
@@ -68,7 +66,7 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
     () => generateDynamicFieldsFromIOVariables(pipeline.input_variables),
     [pipeline.input_variables]
   );
-
+  const { isStreaming } = useStreamingIndexes(pipeline);
   // In rare occasions, the dynamic fields are not loaded yet
   let initialDictForSettings: DynamicFieldData[] | undefined = [];
   if (dynamicFields && dynamicFields.length > 0) {
@@ -79,10 +77,6 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
         dynamicField.dicts.length > 0
     )[0].dicts;
   }
-  React.useEffect(() => {
-    console.log(chats);
-  }, [chats]);
-
   // Hooks
   const notification = useNotification();
 
@@ -195,12 +189,38 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
     ];
     // We await so that the setChats call below gets the full content
     // of the lastChat after it has finished being streamed.
-    await streamPostRun({
-      inputs,
-      onNewChunk: handleNewStreamChunk,
-    }).catch((error) => {
-      notification.error({ title: "Error streaming run response." });
-    });
+    if (isStreaming) {
+      await streamPostRun({
+        inputs,
+        onNewChunk: handleNewStreamChunk,
+      }).catch((error) => {
+        notification.error({ title: "Error streaming run response." });
+      });
+    } else {
+      await postRun({ inputs })
+        .then((run) => {
+          if (run && run.outputs) {
+            setInputValue("");
+
+            // Replace the AI loading message with the response AI message
+            setChats((chats) => [
+              ...chats.slice(0, -1),
+              {
+                model: {
+                  //@ts-ignore
+                  value: run?.outputs[0].value[0].content,
+                  createdAt: new Date(),
+                  responseTime: new Date().getTime() - startTime.getTime(),
+                },
+              },
+            ]);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          notification.error({ title: "Error posting run." });
+        });
+    }
     // This just used to get the current chats and save stuff to localStorage
     setChats((chats) => {
       const lastChat = chats[chats.length - 1];
