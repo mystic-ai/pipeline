@@ -12,11 +12,11 @@ runtime:
       - accelerate==0.21.0
       - hf-transfer~=0.1
       - vllm==0.1.4
-    cuda_version: "11.4"
 accelerators: ["nvidia_a100"]
 accelerator_memory: null
 pipeline_graph: new_pipeline:my_new_pipeline
 pipeline_name: llama2-13b-chat-vllm
 description: null
 readme: null
-extras: {}
+extras:
+  model_type: "chat"

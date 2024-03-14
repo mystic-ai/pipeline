@@ -23,7 +23,6 @@ from pipeline.util.logging import _print
 class PythonRuntime(BaseModel):
     version: str
     requirements: t.List[str] | None
-    cuda_version: str | None = "11.4"
 
     class Config:
         extra = "forbid"
@@ -337,7 +336,7 @@ def _push_container(namespace: Namespace):
         else pipeline_config.pipeline_name
     )
 
-    docker_client = docker.from_env()
+    docker_client = docker.from_env(timeout=300)
 
     registry_info = http.get(endpoint="/v4/registry")
     registry_info = registry_schemas.RegistryInformation.parse_raw(registry_info.text)
