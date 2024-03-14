@@ -71,20 +71,12 @@ async def stream_run(
     run_create: run_schemas.ContainerRunCreate,
     request: Request,
     response: Response,
-) -> StreamingResponse:
+) -> run_schemas.ContainerRunResult | StreamingResponse:
     run_id = run_create.run_id
     with logger.contextualize(run_id=run_id):
         manager: Manager = request.app.state.manager
         if result := _handle_pipeline_state_not_ready(manager):
-            # return a stream of a single result
-            # (serialise response to str and add newline separator)
-            result_stream = iter([result.json() + "\n"])
-            return StreamingResponse(
-                result_stream,
-                media_type="application/json",
-                # hint to disable buffering
-                headers={"X-Accel-Buffering": "no"},
-            )
+            return result
 
         execution_queue: asyncio.Queue = request.app.state.execution_queue
 
@@ -95,6 +87,9 @@ async def stream_run(
         response_schema, response.status_code = _generate_run_result(run_output)
 
         outputs = response_schema.outputs or []
+        if not outputs:
+            return response_schema
+
         if not any([output.type == run_schemas.RunIOType.stream for output in outputs]):
             raise TypeError("No streaming outputs found")
 

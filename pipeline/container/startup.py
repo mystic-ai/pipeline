@@ -67,6 +67,7 @@ def setup_middlewares(app: FastAPI) -> None:
             response = JSONResponse(
                 status_code=500,
                 content={
+                    "error": repr(e),
                     "traceback": str(traceback.format_exc()),
                 },
             )
