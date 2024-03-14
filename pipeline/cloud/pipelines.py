@@ -147,9 +147,9 @@ def _stream_pipeline(
             except ValidationError:
                 _print(f"Unexpected result from streaming run:\n{result_json}")
                 return
-            except Exception as e:
+            except Exception:
                 http.raise_if_http_status_error(response)
-                raise e
+                raise
 
             if result.state == RunState.no_resources_available:
                 error = NoResourcesAvailable(run_result=result)
