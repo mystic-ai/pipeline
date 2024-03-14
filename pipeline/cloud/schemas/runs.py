@@ -132,7 +132,6 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.array
-        # Also check if class name == Stream
         elif isinstance(obj, Stream):
             return cls.stream
         elif (
