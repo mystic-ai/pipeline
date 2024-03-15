@@ -138,11 +138,14 @@ pipeline-bak/
 
 .DS_Store
 .tmp
+
 # Examples
 examples/docker/docker-compose.yml
 examples/docker/Dockerfile
 examples/docker/*.graph
 examples/docker/requirements.txt
+examples/testing/
+
 .tmp_cache/
 *.jsonl
 
