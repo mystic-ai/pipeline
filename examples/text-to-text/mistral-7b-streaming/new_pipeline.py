@@ -14,17 +14,7 @@ class ModelKwargs(InputSchema):
     top_k: float | None = InputField(default=50)
     top_p: float | None = InputField(default=0.9)
     max_new_tokens: int | None = InputField(default=100, ge=1, le=4096)
-
-
-class StoppingStreamer(TextIteratorStreamer):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def set_thread(self, thread: Thread):
-        self.thread = thread
-
-    def end(self):
-        ...
+    repetition_penalty: float | None = InputField(default=1.0, ge=1)
 
 
 @entity
@@ -46,19 +36,11 @@ class Mistral7B:
     @pipe
     def inference(self, prompts: str, kwargs: ModelKwargs) -> Stream[str]:
         streamer = TextIteratorStreamer(self.tokenizer)
-        # streamer = StoppingStreamer(self.tokenizer)
         inputs = self.tokenizer(prompts, return_tensors="pt").to(self.device)
 
         generation_kwargs = dict(inputs, streamer=streamer, **kwargs.to_dict())
         thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
-        # streamer.set_thread(thread)
         thread.start()
-
-        # process = multiprocessing.Process(
-        #     target=self.model.generate, kwargs=generation_kwargs
-        # )
-        # process.start()
-
         return Stream(streamer)
 
 
