@@ -6,6 +6,7 @@ import uuid
 import pkg_resources
 from fastapi import FastAPI, Request
 from fastapi.concurrency import run_in_threadpool
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -73,6 +74,14 @@ def setup_middlewares(app: FastAPI) -> None:
             )
             response.headers["X-Request-Id"] = request.state.request_id
         return response
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 def setup_oapi(app: FastAPI) -> None:
