@@ -5,4 +5,7 @@ inputs = ["input string"]
 
 print("Streaming pipeline:\n")
 for result in stream_pipeline(pipeline, *inputs):
-    print(result.outputs_formatted()[0], flush=True)
+    if result.error:
+        print(result)
+    else:
+        print(result.outputs_formatted()[0], flush=True)
