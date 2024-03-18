@@ -25,7 +25,6 @@ class ChatStreamer(TextIteratorStreamer):
         self.index = 0
 
     def __next__(self):
-
         value = self.text_queue.get(timeout=self.timeout, block=True)
 
         if value == self.stop_signal:
@@ -36,7 +35,6 @@ class ChatStreamer(TextIteratorStreamer):
             return [{"role": "assistant", "content": value}]
 
     def put(self, value):
-
         if len(value.shape) > 1 and value.shape[0] > 1:
             raise ValueError("TextStreamer only supports batch size 1")
         elif len(value.shape) > 1:
@@ -140,7 +138,6 @@ class Mistral7B:
     def inference(
         self, prompts: list[list[dict[str, str]]], results: list, kwargs: ModelKwargs
     ) -> Stream[list[dict[str, str]]]:
-
         streamer = ChatStreamer(
             self.tokenizer,
             skip_special_tokens=True,
