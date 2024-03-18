@@ -56,6 +56,7 @@ export type Accelerator =
   | "nvidia_h100"
   | "nvidia_l4"
   | "nvidia_all"
+  | "nvidia_a10"
   | "cpu";
 
 export interface GetPipelineResponse {
