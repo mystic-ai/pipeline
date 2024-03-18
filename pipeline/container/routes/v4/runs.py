@@ -94,12 +94,25 @@ async def stream_run(
             raise TypeError("No streaming outputs found")
 
         static_outputs = [
-            output for output in outputs if output.type != run_schemas.RunIOType.stream
+            (output, i)
+            for i, output in enumerate(outputs)
+            if output.type != run_schemas.RunIOType.stream
         ]
 
         streaming_outputs = [
-            output for output in outputs if output.type == run_schemas.RunIOType.stream
+            (output, i)
+            for i, output in enumerate(outputs) if output.type == run_schemas.RunIOType.stream
         ]
+
+        def _format_output(next_streaming_outputs: dict[int, run_schemas.RunOutput]):
+            reconstructed_outputs = [None] * len(outputs)
+            for out, i in static_outputs:
+                reconstructed_outputs[i] = out 
+            for i, out in next_streaming_outputs.items():
+                reconstructed_outputs[i] = out 
+            return reconstructed_outputs
+                
+                
 
         async def stream_func():
             processed_outputs = []
