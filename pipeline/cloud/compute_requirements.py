@@ -18,6 +18,8 @@ class Accelerator(str, Enum):
     nvidia_a100_80gb_20gb: str = "nvidia_a100_80gb_20gb"
     nvidia_a100_80gb_40gb: str = "nvidia_a100_80gb_40gb"
 
+    nvidia_a10: str = "nvidia_a10"
+
     @classmethod
     def from_str(cls, accelerator: str) -> "Accelerator":
         if "T4" in accelerator:
@@ -31,6 +33,9 @@ class Accelerator(str, Enum):
             accelerator_type = Accelerator.nvidia_h100
         elif "L4" in accelerator:
             accelerator_type = Accelerator.nvidia_l4
+        # guess this works as long as its after A100
+        elif "A10" in accelerator:
+            accelerator_type = Accelerator.nvidia_a10
 
         else:
             raise Exception(f"Unknown GPU name: {accelerator}")
@@ -48,6 +53,7 @@ class Accelerator(str, Enum):
             [Accelerator.nvidia_a100_80gb] * 2,
             [Accelerator.nvidia_a100_80gb] * 4,
             [Accelerator.nvidia_l4],
+            [Accelerator.nvidia_a10],
             [Accelerator.cpu],
         ]
 
@@ -64,4 +70,5 @@ nvidia_gpus = [
     Accelerator.nvidia_a100_80gb_10gb,
     Accelerator.nvidia_a100_80gb_20gb,
     Accelerator.nvidia_a100_80gb_40gb,
+    Accelerator.nvidia_a10,
 ]
