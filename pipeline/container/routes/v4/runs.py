@@ -104,7 +104,6 @@ async def stream_run(
 async def _stream_run_outputs(
     response_schema: run_schemas.ContainerRunResult, request: Request
 ):
-
     outputs = response_schema.outputs or []
 
     while True:
