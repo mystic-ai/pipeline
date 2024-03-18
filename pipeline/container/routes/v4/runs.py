@@ -105,7 +105,7 @@ async def stream_run(
             processed_outputs = []
             for index, output in enumerate(outputs):
                 if output.type == run_schemas.RunIOType.stream:
-                    # This is a simplification. You'll need to adapt it based on how you can fetch the next value for streaming outputs.
+                    # For streaming outputs, call next and add to list
                     try:
                         if output.value is not None:
                             next_value = output.value.__next__()
@@ -117,7 +117,6 @@ async def stream_run(
                             )
                             processed_outputs.append(processed_output)
                     except StopIteration:
-                        # Handle the end of the stream if necessary
                         continue
                 else:
                     # For static outputs, simply add them to the list
@@ -126,7 +125,6 @@ async def stream_run(
                 print(processed_output, flush=True)
 
                 # Yield or handle the processed_outputs list as needed
-                # This might involve creating a new response schema for each iteration or batch of processing
                 new_response_schema = run_schemas.ContainerRunResult(
                     inputs=response_schema.inputs,
                     outputs=processed_outputs,
