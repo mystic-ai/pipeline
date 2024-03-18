@@ -102,56 +102,41 @@ async def stream_run(
         ]
 
         async def stream_func():
-            # Iterate over all streams, if done then add to static
-            while len(streaming_outputs) > 0:
-                streaming_outputs_to_remove = []
-                next_streaming_outputs = []
-                for output in streaming_outputs:
-                    try:
-                        if output.value is None:
-                            raise Exception("Stream value was None")
+            # Placeholder for the final outputs, initialized with static outputs and placeholders for streaming outputs
+            final_outputs = [{"type": o.type, "value": o.value, "file": None} if o.type != run_schemas.RunIOType.stream else None for o in outputs]
+            # Placeholder for the inputs and error, adjust as necessary
+            inputs = None
+            error = None
 
-                        next_value = output.value.__next__()
-                        if next_value is not None:
-                            next_streaming_outputs.append(
-                                run_schemas.RunOutput(
-                                    type=run_schemas.RunIOType.from_object(next_value),
-                                    value=next_value,
-                                    file=None,
-                                )
-                            )
-                    except StopIteration:
-                        streaming_outputs_to_remove.append(output)
+            # Function to handle a single streaming output
+            async def handle_streaming_output(index, stream):
+                import json
+                async for value in stream:
+                    # Update the streaming output at the correct index with the new value
+                    final_outputs[index] = {"type": "string", "value": value, "file": None}  # Adjust the type and structure as needed
+                    # Rebuild the response with the updated streaming output
+                    response_chunk = {
+                        "inputs": inputs,
+                        "outputs": final_outputs,
+                        "error": error
+                    }
+                    # Yield the updated response
+                    yield json.dumps(response_chunk) + "\n"
 
-                for output in streaming_outputs_to_remove:
-                    streaming_outputs.remove(output)
+            # Create a list to collect futures from handle_streaming_output
+            streaming_futures = []
+            for i, output in enumerate(outputs):
+                if output.type == run_schemas.RunIOType.stream:
+                    # Create a task for each streaming output and add it to the list
+                    streaming_futures.append(handle_streaming_output(i, output.value))
 
-                if not len(streaming_outputs):
-                    break
+            # Iterate over the futures as they complete and yield data
+            for future in asyncio.as_completed(streaming_futures):
+                async for data in future:
+                    print(data, flush=True)
+                    yield data
 
-                new_response_schema = run_schemas.ContainerRunResult(
-                    inputs=response_schema.inputs,
-                    outputs=[*static_outputs, *next_streaming_outputs],
-                    error=response_schema.error,
-                )
-
-                # serialise response to str and add newline separator
-                yield new_response_schema.json() + "\n"
-
-                if await request.is_disconnected():
-                    for output in streaming_outputs:
-                        if output.value is not None and hasattr(
-                            output.value.iterable, "end"
-                        ):
-                            output.value.iterable.end()
-                    break
-
-        return StreamingResponse(
-            stream_func(),
-            media_type="application/json",
-            # hint to disable buffering
-            headers={"X-Accel-Buffering": "no"},
-        )
+        return StreamingResponse(stream_func(), media_type="application/json", headers={"X-Accel-Buffering": "no"})
 
 
 def _handle_pipeline_state_not_ready(
