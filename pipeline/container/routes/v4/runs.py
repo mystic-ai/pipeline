@@ -115,34 +115,38 @@ async def stream_run(
                 
 
         async def stream_func():
-            processed_outputs = []
-            for index, output in enumerate(outputs):
-                if output.type == run_schemas.RunIOType.stream:
-                    # For streaming outputs, call next and add to list
+            # Iterate over all streams, if done then add to static
+            while len(streaming_outputs) > 0:
+                streaming_outputs_to_remove = []
+                next_streaming_outputs: dict[int, run_schemas.RunOutput] = {}
+                for output, i in streaming_outputs:
                     try:
-                        if output.value is not None:
-                            next_value = output.value.__next__()
-                        if next_value is not None:
-                            processed_output = run_schemas.RunOutput(
-                                type=run_schemas.RunIOType.from_object(next_value),
-                                value=next_value,
-                                file=None,
-                            )
-                            processed_outputs.append(processed_output)
-                    except StopIteration:
-                        continue
-                else:
-                    # For static outputs, simply add them to the list
-                    processed_outputs.append(output)
-                print(outputs, flush=True)
-                print(processed_output, flush=True)
+                        if output.value is None:
+                            raise Exception("Stream value was None")
 
-                # Yield or handle the processed_outputs list as needed
+                        next_value = output.value.__next__()
+                        if next_value is not None:
+                            next_streaming_outputs[i] = run_schemas.RunOutput(
+                                    type=run_schemas.RunIOType.from_object(next_value),
+                                    value=next_value,
+                                    file=None,
+                                )
+                    except StopIteration:
+                        streaming_outputs_to_remove.append(output)
+
+                for output in streaming_outputs_to_remove:
+                    streaming_outputs.remove(output)
+
+                if not len(streaming_outputs):
+                    break
+
                 new_response_schema = run_schemas.ContainerRunResult(
                     inputs=response_schema.inputs,
-                    outputs=processed_outputs,
+                    outputs=_format_output(next_streaming_outputs),
                     error=response_schema.error,
                 )
+
+                # serialise response to str and add newline separator
                 yield new_response_schema.json() + "\n"
 
                 if await request.is_disconnected():
