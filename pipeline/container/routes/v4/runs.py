@@ -107,54 +107,60 @@ async def _stream_run_outputs(
 
     outputs = response_schema.outputs or []
 
-    static_outputs = [
-        output for output in outputs if output.type != run_schemas.RunIOType.stream
-    ]
+    while True:
+        next_outputs = []
+        have_new_streamed_outputs = False
+        # iterate over all outputs, until we no longer have any streamed data to
+        # output
+        for output in outputs:
+            if output.type == run_schemas.RunIOType.stream:
+                try:
+                    if output.value is None:
+                        raise Exception("Stream value was None")
 
-    streaming_outputs = [
-        output for output in outputs if output.type == run_schemas.RunIOType.stream
-    ]
-    # Iterate over all streams, if done then add to static
-    while len(streaming_outputs) > 0:
-        streaming_outputs_to_remove = []
-        next_streaming_outputs = []
-        for output in streaming_outputs:
-            try:
-                if output.value is None:
-                    raise Exception("Stream value was None")
-
-                next_value = output.value.__next__()
-                if next_value is not None:
-                    next_streaming_outputs.append(
+                    next_value = output.value.__next__()
+                    next_outputs.append(
                         run_schemas.RunOutput(
                             type=run_schemas.RunIOType.from_object(next_value),
                             value=next_value,
                             file=None,
                         )
                     )
-            except StopIteration:
-                streaming_outputs_to_remove.append(output)
+                    have_new_streamed_outputs = True
+                except StopIteration:
+                    # if no data left for this stream, return None value
+                    next_outputs.append(
+                        run_schemas.RunOutput(
+                            type=run_schemas.RunIOType.from_object(next_value),
+                            value=None,
+                            file=None,
+                        )
+                    )
+            else:
+                next_outputs.append(output)
 
-        for output in streaming_outputs_to_remove:
-            streaming_outputs.remove(output)
-
-        if not len(streaming_outputs):
-            break
+        if not have_new_streamed_outputs:
+            return
 
         new_response_schema = run_schemas.ContainerRunResult(
             inputs=response_schema.inputs,
-            outputs=[*static_outputs, *next_streaming_outputs],
+            outputs=next_outputs,
             error=response_schema.error,
         )
 
         # serialise response to str and add newline separator
         yield new_response_schema.json() + "\n"
 
+        # if request is disconnected terminate all iterators
         if await request.is_disconnected():
-            for output in streaming_outputs:
-                if output.value is not None and hasattr(output.value.iterable, "end"):
+            for output in outputs:
+                if (
+                    output.type == run_schemas.RunIOType.stream
+                    and output.value is not None
+                    and hasattr(output.value.iterable, "end")
+                ):
                     output.value.iterable.end()
-            break
+            return
 
 
 def _handle_pipeline_state_not_ready(
