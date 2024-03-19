@@ -56,8 +56,10 @@ class Manager:
                 self.pipeline: Graph = getattr(
                     self.pipeline_module, self.pipeline_name_str
                 )
-            except ModuleNotFoundError:
-                raise ValueError(f"Could not find module {self.pipeline_module_str}")
+            except ModuleNotFoundError as e:
+                raise ValueError(
+                    f"Could not load module {self.pipeline_module_str}, {e}"
+                )
             except AttributeError:
                 raise ValueError(
                     (
