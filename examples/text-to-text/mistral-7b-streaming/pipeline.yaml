@@ -1,0 +1,21 @@
+runtime:
+  container_commands:
+    - apt-get update
+    - apt-get install -y git
+    - git clone https://github.com/paulcjh/transformers.git
+    - git clone -b ph/pc-1044-streaming-runs https://github.com/mystic-ai/pipeline.git
+
+  python:
+    version: "3.11"
+    requirements:
+      - "-e ./transformers"
+      - "-e ./pipeline"
+      - "torch==2.0.1"
+      - "diffusers"
+      - "accelerate"
+      - "beautifulsoup4"
+accelerators: ["nvidia_a100"]
+pipeline_graph: new_pipeline:my_pipeline
+pipeline_name: mistral-7b-streaming
+extras:
+  model_type: "chat"

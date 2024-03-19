@@ -77,15 +77,18 @@ export type RunState =
   | "no_resources_available"
   | "unknown";
 
-export interface GetRunResponse {
+export interface RunResult {
+  outputs?: RunOutput[];
+  inputs?: RunInput[];
+  error?: RunError;
+}
+
+export interface GetRunResponse extends RunResult {
   id: string;
   created_at: number;
   updated_at: number;
   pipeline_id: string;
   state: RunState;
-  outputs?: RunOutput[];
-  inputs?: RunInput[];
-  error?: RunError;
 }
 
 export interface RunOutputFile {
@@ -131,6 +134,7 @@ export type RunIOType =
   | "boolean"
   | "none"
   | "array"
+  | "stream"
   // A pickled object
   | "pkl"
   | "file";
@@ -224,3 +228,7 @@ export interface PostFileResponse {
   // The path of the file on the container
   path: string;
 }
+
+// Should new chunks be appended (e.g in chat streaming) or
+// should they replace previous chunks (e.g. in image diffusion)
+export type StreamingMode = "append" | "replace";

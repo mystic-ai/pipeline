@@ -6,6 +6,7 @@ import uuid
 import pkg_resources
 from fastapi import FastAPI, Request
 from fastapi.concurrency import run_in_threadpool
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -55,26 +56,32 @@ def create_app() -> FastAPI:
 def setup_middlewares(app: FastAPI) -> None:
     @app.middleware("http")
     async def _(request: Request, call_next):
-        try:
-            response = await call_next(request)
-        except Exception as e:
-            logger.exception(e)
-            return JSONResponse(
-                status_code=500,
-                content={
-                    "traceback": str(traceback.format_exc()),
-                },
-            )
-        return response
-
-    @app.middleware("http")
-    async def _(request: Request, call_next):
         request.state.request_id = request.headers.get("X-Request-Id") or str(
             uuid.uuid4()
         )
-        response = await call_next(request)
-        response.headers["X-Request-Id"] = request.state.request_id
+
+        try:
+            response = await call_next(request)
+            response.headers["X-Request-Id"] = request.state.request_id
+        except Exception as e:
+            logger.exception(e)
+            response = JSONResponse(
+                status_code=500,
+                content={
+                    "error": repr(e),
+                    "traceback": str(traceback.format_exc()),
+                },
+            )
+            response.headers["X-Request-Id"] = request.state.request_id
         return response
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 def setup_oapi(app: FastAPI) -> None:

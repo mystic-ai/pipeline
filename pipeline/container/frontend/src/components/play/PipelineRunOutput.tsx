@@ -88,14 +88,27 @@ export function RenderOutput({
     );
   };
 
-  const renderString = (value: string) => (
-    <Textarea
-      id={value.substring(0, 10)}
-      defaultValue={value}
-      autoHeight
-      readOnly
-    />
-  );
+  const renderString = (value: string) => {
+    // Regular expression to check if the string is base64 encoded
+    // This pattern matches base64 encoded strings, which may include characters A-Z, a-z, 0-9, +, /,
+    // and ends with = for padding. Adjust the length check as needed.
+    const base64Pattern =
+      /^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{2}==|[A-Za-z0-9+\/]{3}=)?$/;
+    if (base64Pattern.test(value)) {
+      // If the value is a base64 encoded string, render PipelineRunImage
+      const imageDataUrl = `data:image/jpeg;base64,${value}`;
+      return <PipelineRunImage base64={imageDataUrl} alt="Generate image" />;
+    }
+    return (
+      <Textarea
+        id={value.substring(0, 10)}
+        value={value}
+        defaultValue={value}
+        autoHeight
+        readOnly
+      />
+    );
+  };
 
   const renderArray = (value: any[]) => {
     // If array of files

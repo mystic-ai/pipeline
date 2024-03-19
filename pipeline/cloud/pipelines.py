@@ -16,6 +16,7 @@ from pipeline.cloud.schemas.runs import (
 from pipeline.objects import File
 from pipeline.objects.graph import InputSchema
 from pipeline.util.logging import _print
+from pipeline.util.streaming import handle_stream_response
 
 
 class NoResourcesAvailable(Exception):
@@ -129,3 +130,43 @@ def run_pipeline(
 
     run_get = _run_pipeline(run_create_schema)
     return run_get
+
+
+def _stream_pipeline(
+    run_create_schema: RunCreate,
+) -> t.Generator[ClusterRunResult, t.Any, None]:
+    with http.stream(
+        method="POST",
+        endpoint="/v4/runs/stream",
+        json_data=run_create_schema.dict(),
+        handle_error=False,
+    ) as response:
+        for result_json in handle_stream_response(response):
+            try:
+                result = ClusterRunResult.parse_obj(result_json)
+            except ValidationError:
+                _print(f"Unexpected result from streaming run:\n{result_json}")
+                return
+            except Exception:
+                http.raise_if_http_status_error(response)
+                raise
+
+            if result.state == RunState.no_resources_available:
+                error = NoResourcesAvailable(run_result=result)
+                _print(
+                    f"{error.message}\nRun result:\n{result.json(indent=2)}",
+                    level="ERROR",
+                )
+                raise error
+            yield result
+
+
+def stream_pipeline(pipeline: str, *data, wait_for_resources: bool | None = None):
+    run_create_schema = RunCreate(
+        pipeline=pipeline,
+        inputs=_data_to_run_input(data),
+        wait_for_resources=wait_for_resources,
+    )
+
+    for result in _stream_pipeline(run_create_schema):
+        yield result

@@ -6,6 +6,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Request, Response
+from fastapi.responses import StreamingResponse
 from loguru import logger
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
@@ -14,14 +15,12 @@ from pipeline.container.manager import Manager
 from pipeline.exceptions import RunInputException, RunnableError
 from pipeline.objects.graph import File
 
-router = APIRouter(prefix="/runs")
+router = APIRouter(prefix="/runs", tags=["runs"])
 
 
 @router.post(
     "",
-    tags=["runs"],
     status_code=200,
-    # response_model=run_schemas.Run,
     responses={
         500: {
             "description": "Pipeline failed",
@@ -37,41 +36,12 @@ async def run(
     run_create: run_schemas.ContainerRunCreate,
     request: Request,
     response: Response,
-):
+) -> run_schemas.ContainerRunResult:
     run_id = run_create.run_id
     with logger.contextualize(run_id=run_id):
         manager: Manager = request.app.state.manager
-        if manager.pipeline_state == pipeline_schemas.PipelineState.loading:
-            logger.info("Pipeline loading")
-            return run_schemas.ContainerRunResult(
-                outputs=None,
-                error=run_schemas.ContainerRunError(
-                    type=run_schemas.ContainerRunErrorType.pipeline_loading,
-                    message="Pipeline is still loading",
-                ),
-            )
-
-        if manager.pipeline_state == pipeline_schemas.PipelineState.load_failed:
-            logger.info("Pipeline failed to load")
-            return run_schemas.ContainerRunResult(
-                outputs=None,
-                error=run_schemas.ContainerRunError(
-                    type=run_schemas.ContainerRunErrorType.startup_error,
-                    message="Pipeline failed to load",
-                    traceback=manager.pipeline_state_message,
-                ),
-            )
-
-        if manager.pipeline_state == pipeline_schemas.PipelineState.startup_failed:
-            logger.info("Pipeline failed to startup")
-            return run_schemas.ContainerRunResult(
-                outputs=None,
-                error=run_schemas.ContainerRunError(
-                    type=run_schemas.ContainerRunErrorType.startup_error,
-                    message="Pipeline failed to startup",
-                    traceback=manager.pipeline_state_message,
-                ),
-            )
+        if result := _handle_pipeline_state_not_ready(manager):
+            return result
 
         execution_queue: asyncio.Queue = request.app.state.execution_queue
 
@@ -83,14 +53,165 @@ async def run(
         return response_schema
 
 
+@router.post(
+    "/stream",
+    status_code=200,
+    responses={
+        500: {
+            "description": "Pipeline failed",
+            "model": run_schemas.ContainerRunResult,
+        },
+        400: {
+            "description": "Invalid input data",
+            "model": run_schemas.ContainerRunResult,
+        },
+    },
+)
+async def stream_run(
+    run_create: run_schemas.ContainerRunCreate,
+    request: Request,
+    response: Response,
+):
+    run_id = run_create.run_id
+    with logger.contextualize(run_id=run_id):
+        manager: Manager = request.app.state.manager
+        if result := _handle_pipeline_state_not_ready(manager):
+            return result
+
+        execution_queue: asyncio.Queue = request.app.state.execution_queue
+
+        response_queue: asyncio.Queue = asyncio.Queue()
+        execution_queue.put_nowait((run_create, response_queue))
+        run_output = await response_queue.get()
+
+        response_schema, response.status_code = _generate_run_result(run_output)
+
+        outputs = response_schema.outputs or []
+        if not outputs:
+            return response_schema
+
+        if not any([output.type == run_schemas.RunIOType.stream for output in outputs]):
+            raise TypeError("No streaming outputs found")
+
+        return StreamingResponse(
+            _stream_run_outputs(response_schema, request),
+            media_type="application/json",
+            # hint to disable buffering
+            headers={"X-Accel-Buffering": "no"},
+        )
+
+
+async def _stream_run_outputs(
+    response_schema: run_schemas.ContainerRunResult, request: Request
+):
+    outputs = response_schema.outputs or []
+
+    while True:
+        next_outputs = []
+        have_new_streamed_outputs = False
+        # iterate over all outputs, until we no longer have any streamed data to
+        # output
+        for output in outputs:
+            if output.type == run_schemas.RunIOType.stream:
+                try:
+                    if output.value is None:
+                        raise Exception("Stream value was None")
+
+                    next_value = output.value.__next__()
+                    next_outputs.append(
+                        run_schemas.RunOutput(
+                            type=run_schemas.RunIOType.from_object(next_value),
+                            value=next_value,
+                            file=None,
+                        )
+                    )
+                    have_new_streamed_outputs = True
+                except StopIteration:
+                    # if no data left for this stream, return None value
+                    next_outputs.append(
+                        run_schemas.RunOutput(
+                            type=run_schemas.RunIOType.from_object(next_value),
+                            value=None,
+                            file=None,
+                        )
+                    )
+            else:
+                next_outputs.append(output)
+
+        if not have_new_streamed_outputs:
+            return
+
+        new_response_schema = run_schemas.ContainerRunResult(
+            inputs=response_schema.inputs,
+            outputs=next_outputs,
+            error=response_schema.error,
+        )
+
+        # serialise response to str and add newline separator
+        yield new_response_schema.json() + "\n"
+
+        # if request is disconnected terminate all iterators
+        if await request.is_disconnected():
+            for output in outputs:
+                if (
+                    output.type == run_schemas.RunIOType.stream
+                    and output.value is not None
+                    and hasattr(output.value.iterable, "end")
+                ):
+                    output.value.iterable.end()
+            return
+
+
+def _handle_pipeline_state_not_ready(
+    manager: Manager,
+) -> run_schemas.ContainerRunResult | None:
+    if manager.pipeline_state == pipeline_schemas.PipelineState.loading:
+        logger.info("Pipeline loading")
+        return run_schemas.ContainerRunResult(
+            outputs=None,
+            inputs=None,
+            error=run_schemas.ContainerRunError(
+                type=run_schemas.ContainerRunErrorType.pipeline_loading,
+                message="Pipeline is still loading",
+                traceback=None,
+            ),
+        )
+
+    if manager.pipeline_state == pipeline_schemas.PipelineState.load_failed:
+        logger.info("Pipeline failed to load")
+        return run_schemas.ContainerRunResult(
+            outputs=None,
+            inputs=None,
+            error=run_schemas.ContainerRunError(
+                type=run_schemas.ContainerRunErrorType.startup_error,
+                message="Pipeline failed to load",
+                traceback=manager.pipeline_state_message,
+            ),
+        )
+
+    if manager.pipeline_state == pipeline_schemas.PipelineState.startup_failed:
+        logger.info("Pipeline failed to startup")
+        return run_schemas.ContainerRunResult(
+            outputs=None,
+            inputs=None,
+            error=run_schemas.ContainerRunError(
+                type=run_schemas.ContainerRunErrorType.startup_error,
+                message="Pipeline failed to startup",
+                traceback=manager.pipeline_state_message,
+            ),
+        )
+
+
 def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, int]:
     if isinstance(run_output, RunInputException):
         return (
             run_schemas.ContainerRunResult(
                 outputs=None,
+                inputs=None,
                 error=run_schemas.ContainerRunError(
                     type=run_schemas.ContainerRunErrorType.input_error,
                     message=run_output.message,
+                    traceback=None,
                 ),
             ),
             400,
@@ -99,6 +220,7 @@ def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, in
         return (
             run_schemas.ContainerRunResult(
                 outputs=None,
+                inputs=None,
                 error=run_schemas.ContainerRunError(
                     type=run_schemas.ContainerRunErrorType.pipeline_error,
                     message=repr(run_output.exception),
@@ -111,9 +233,11 @@ def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, in
         return (
             run_schemas.ContainerRunResult(
                 outputs=None,
+                inputs=None,
                 error=run_schemas.ContainerRunError(
                     type=run_schemas.ContainerRunErrorType.unknown,
                     message=str(run_output),
+                    traceback=None,
                 ),
             ),
             500,
@@ -124,6 +248,7 @@ def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, in
             run_schemas.ContainerRunResult(
                 outputs=outputs,
                 error=None,
+                inputs=None,
             ),
             200,
         )
