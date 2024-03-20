@@ -130,40 +130,39 @@ export default function PipelinePlayWrapper(): JSX.Element {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-6">
-        {chatAvailable ? (
-          <>
-            <ButtonToggle>
-              <Button
-                colorVariant={
-                  activeScreen === "example" ? "secondary" : "muted"
-                }
-                active={activeScreen === "example"}
-                onClick={() => setActiveScreen("example")}
-                size="sm"
-              >
-                Chat mode
-              </Button>
-              <Button
-                colorVariant={activeScreen === "form" ? "secondary" : "muted"}
-                active={activeScreen === "form"}
-                onClick={() => setActiveScreen("form")}
-                size="sm"
-              >
-                Request builder
-              </Button>
-            </ButtonToggle>
-          </>
-        ) : null}
-        <div className="flex flex-col gap-8 lg:flex-row max-w-full ">
-          {pipeline && activeScreen === "example" ? (
-            <div className="w-full vcol2:min-w-vcol2 vcol2:w-vcol2 max-w-full vcol2:max-w-vcol2">
+    <div className="grid grid-rows-[auto_1fr] gap-6">
+      {chatAvailable ? (
+        <div className="px-4">
+          <ButtonToggle>
+            <Button
+              colorVariant={activeScreen === "example" ? "secondary" : "muted"}
+              active={activeScreen === "example"}
+              onClick={() => setActiveScreen("example")}
+              size="sm"
+            >
+              Chat mode
+            </Button>
+            <Button
+              colorVariant={activeScreen === "form" ? "secondary" : "muted"}
+              active={activeScreen === "form"}
+              onClick={() => setActiveScreen("form")}
+              size="sm"
+            >
+              Request builder
+            </Button>
+          </ButtonToggle>
+        </div>
+      ) : null}
+
+      {pipeline && (
+        <div className="px-4">
+          {activeScreen === "example" && (
+            <div className="vcol1:w-vcol1 vcol2:w-vcol2 h-full min-w-0">
               <ChatApp pipeline={pipeline} />
             </div>
-          ) : null}
-          {activeScreen === "form" ? (
-            <div className="vcol-row vcol-row-2 shadow-sm">
+          )}
+          {activeScreen === "form" && (
+            <div className="flex flex-col vcol1:w-vcol1 vcol2:w-vcol2 vcol2:flex-row h-full shadow-sm">
               <PipelinePlayColumn title="Inputs" className="vcol-col-first">
                 {isPipelineLoading ? (
                   <PipelinePlaygroundFormSkeleton />
@@ -235,9 +234,9 @@ ${runErrors.message}`,
                 ) : null}
               </PipelineOutputColumn>
             </div>
-          ) : null}
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

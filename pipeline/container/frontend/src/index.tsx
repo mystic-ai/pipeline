@@ -9,7 +9,7 @@ import PipelinePlayWrapper from "./components/play/PipelinePlayWrapper";
 const App = () => {
   return (
     <AppProviders>
-      <div className="flex flex-col pb-12">
+      <div className="grid grid-rows-[52px_1fr] h-screen">
         <Header />
         <div className="flex justify-center py-12">
           <PipelinePlayWrapper />
