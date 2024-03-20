@@ -10,6 +10,7 @@ import {
   GetPipelineResponse,
   PostRunPayload,
   RunInput,
+  RunResult,
 } from "../../../types";
 import {
   generateDynamicFieldsFromIOVariables,
@@ -22,7 +23,8 @@ import { Tooltip } from "../../ui/Tooltips/Tooltip";
 import { IconSettings4 } from "../../ui/Icons/IconSettings4";
 import { IconTrash } from "../../ui/Icons/IconTrash";
 import { DynamicFieldsForm } from "../DynamicFieldsForm";
-import { postRun } from "../../../utils/queries/post-run";
+import { postRun, streamPostRun } from "../../../utils/queries/post-run";
+import useStreamingIndexes from "../../../hooks/use-streaming-indexes";
 
 type ChatMessage = {
   value: string;
@@ -61,6 +63,8 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
   const pipelineInputDictIOVariable = pipeline.input_variables.filter(
     (input) => input.run_io_type === "dictionary"
   );
+
+  const { isStreaming } = useStreamingIndexes(pipeline);
 
   // This is state because we want to update this when the user changes the settings
   const initialDynamicFields = generateDynamicFieldsFromIOVariables(
@@ -103,7 +107,61 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
     setShowSettings(false);
   }
 
-  function handleChatSubmit(question: string) {
+  function handleNewStreamChunk(chunk: RunResult) {
+    const isChunkValueValid =
+      chunk.outputs &&
+      chunk.outputs[0].value &&
+      chunk.outputs[0].value[0].content;
+
+    if (!isChunkValueValid) {
+      console.log("Chunk output is not in the expected format or missing.");
+      return;
+    }
+    setChats((currentChats) => {
+      if (currentChats.length === 0) {
+        console.log("No chats to update.");
+        return currentChats;
+      }
+      // Assuming `chats` is an array of chat messages and each chat message has a model property that contains the value.
+      // First, make a shallow copy of the chats array to avoid directly mutating the state.
+      const updatedChats = [...currentChats];
+
+      // Check if there are any chats and if the last chat has a model property
+      const isLastChatTypeModel =
+        updatedChats.length > 0 && updatedChats[updatedChats.length - 1].model;
+      if (!isLastChatTypeModel || !chunk.outputs) return updatedChats;
+      // Get the last chat
+      let lastChat = updatedChats[updatedChats.length - 1];
+
+      // Check if lastChat.model is defined, otherwise use an empty string
+      const lastChatValue = lastChat.model?.value || "";
+      const newChunkContent = chunk.outputs[0].value[0].content;
+      // Append the new chunk output to the last chat's model value (or use an empty string if model is undefined)
+      const newChatValue = lastChatValue + newChunkContent;
+      const now = new Date();
+      const startTime = lastChat.model?.createdAt || now;
+
+      // Update the last chat's model value with the new concatenated value
+      lastChat = {
+        ...lastChat,
+        model: {
+          ...lastChat.model,
+          value: newChatValue,
+          createdAt: now,
+          isLoading: false,
+          responseTime: now.getTime() - startTime.getTime(),
+        },
+      };
+
+      // Update the last chat in the updatedChats array
+      updatedChats[updatedChats.length - 1] = lastChat;
+
+      // Update the state with the new chats array
+      return updatedChats;
+    });
+  }
+
+  async function handleChatSubmit(question: string) {
     if (!question) return;
 
     const userChat: ChatMessages = {
@@ -124,9 +182,10 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
     prompts.push(userPrompt);
 
     // Set a loading message in chat window optimistically
+    // We will use createdAt to compute responseTime in new chunk handler
     setChats((chats) => [
       ...chats,
-      { model: { value: "", createdAt: new Date(), isLoading: true } },
+      { model: { value: "", createdAt: startTime, isLoading: true } },
     ]);
 
     // Build the request data
@@ -140,39 +199,52 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
         value: chatSettings,
       },
     ];
-
-    postRun({ inputs })
-      .then((run) => {
-        if (run && run.outputs) {
-          setInputValue("");
-
-          // Replace the AI loading message with the response AI message
-          setChats((chats) => [
-            ...chats.slice(0, -1),
-            {
-              model: {
-                //@ts-ignore
-                value: run?.outputs[0].value[0].content,
-                createdAt: new Date(),
-                responseTime: new Date().getTime() - startTime.getTime(),
-              },
-            },
-          ]);
-
-          // Prepare to store in localstorage
-          prompts.push({
-            role: "assistant",
-            content: run?.outputs[0].value[0].content,
-          });
-
-          // Push prompts in local storage
-          localStorage.setItem(LS_KEY, JSON.stringify(prompts));
-        }
-      })
-      .catch((error) => {
-        console.log(error);
-        notification.error({ title: "Error posting run." });
+    // We await so that the setChats call below gets the full content
+    // of the lastChat after it has finished being streamed.
+    if (isStreaming) {
+      await streamPostRun({
+        inputs,
+        onNewChunk: handleNewStreamChunk,
+      }).catch((error) => {
+        notification.error({ title: "Error streaming run response." });
       });
+    } else {
+      await postRun({ inputs })
+        .then((run) => {
+          if (run && run.outputs) {
+            setInputValue("");
+
+            // Replace the AI loading message with the response AI message
+            setChats((chats) => [
+              ...chats.slice(0, -1),
+              {
+                model: {
+                  //@ts-ignore
+                  value: run?.outputs[0].value[0].content,
+                  createdAt: new Date(),
+                  responseTime: new Date().getTime() - startTime.getTime(),
+                },
+              },
+            ]);
+          }
+        })
+        .catch((error) => {
+          console.log(error);
+          notification.error({ title: "Error posting run." });
+        });
+    }
+    // This just used to get the current chats and save stuff to localStorage
+    setChats((chats) => {
+      const lastChat = chats[chats.length - 1];
+      if (!lastChat.model) return chats;
+      prompts.push({
+        role: "assistant",
+        content: lastChat.model.value,
+      });
+      // Push prompts in local storage
+      localStorage.setItem(LS_KEY, JSON.stringify(prompts));
+      return chats;
+    });
   }
 
   // On load set chat settings, update the chat settings
