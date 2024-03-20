@@ -11,7 +11,7 @@ T2I Adapter is a network providing additional conditioning to stable diffusion. 
 This Mystic pipeline uses a custom dockerfile. To either run or upload this pipeline, you can build the container using docker by running:
 
 ```sh
-docker build -t sketch-2-img:latest -f pipeline.dockerfile .
+docker build -t sketch-2-img:latest -f t2i_adapter.dockerfile .
 ```
 
 Then you can run it locally (assuming you have a GPU), by running:
