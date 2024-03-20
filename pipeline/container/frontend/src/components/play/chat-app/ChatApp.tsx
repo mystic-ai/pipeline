@@ -282,8 +282,8 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
   }, []);
 
   return (
-    <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm">
-      <div className="grid grid-rows-[1fr,auto] h-[500px] col-span-2">
+    <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm h-full">
+      <div className="grid grid-rows-[1fr,auto] h-full min-h-[500px] col-span-2">
         <ChatAppMessages chats={chats} pipeline={pipeline}>
           {inputValue === "" ? (
             <div className="mx-auto max-w-[400px] pb-8">
