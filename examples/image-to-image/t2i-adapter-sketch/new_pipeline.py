@@ -1,19 +1,22 @@
-from pipeline import Pipeline, entity, pipe, File
-from pipeline.objects.graph import InputField, InputSchema, Variable
-
-from typing import Optional
-
-from diffusers import StableDiffusionXLAdapterPipeline, T2IAdapter, EulerAncestralDiscreteScheduler, AutoencoderKL
-from controlnet_aux.pidi import PidiNetDetector
-
-from PIL import Image
 from io import BytesIO
 from pathlib import Path
+from typing import Optional
+
+import numpy as np
 import torch
 import torchvision.transforms.functional as torch_transforms
-from controlnet_aux.util import resize_image, HWC3
-import numpy as np
+from controlnet_aux.pidi import PidiNetDetector
+from controlnet_aux.util import HWC3, resize_image
+from diffusers import (
+    AutoencoderKL,
+    EulerAncestralDiscreteScheduler,
+    StableDiffusionXLAdapterPipeline,
+    T2IAdapter,
+)
+from PIL import Image
 
+from pipeline import File, Pipeline, entity, pipe
+from pipeline.objects.graph import InputField, InputSchema, Variable
 
 style_list = [
         { 
