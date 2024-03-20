@@ -2,13 +2,14 @@ import asyncio
 import io
 import os
 import shutil
+import traceback
 import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Request, Response
-from fastapi.responses import StreamingResponse
 from loguru import logger
 
+from pipeline.cloud.http import StreamingResponseWithStatusCode
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
 from pipeline.container.manager import Manager
@@ -93,7 +94,7 @@ async def stream_run(
         if not any([output.type == run_schemas.RunIOType.stream for output in outputs]):
             raise TypeError("No streaming outputs found")
 
-        return StreamingResponse(
+        return StreamingResponseWithStatusCode(
             _stream_run_outputs(response_schema, request),
             media_type="application/json",
             # hint to disable buffering
@@ -101,57 +102,95 @@ async def stream_run(
         )
 
 
+def _fetch_next_outputs(outputs: list[run_schemas.RunOutput]):
+    next_outputs = []
+    have_new_streamed_outputs = False
+    for output in outputs:
+        if output.type == run_schemas.RunIOType.stream:
+            if output.value is None:
+                raise Exception("Stream value was None")
+
+            try:
+                next_value = output.value.__next__()
+                next_outputs.append(
+                    run_schemas.RunOutput(
+                        type=run_schemas.RunIOType.from_object(next_value),
+                        value=next_value,
+                        file=None,
+                    )
+                )
+                have_new_streamed_outputs = True
+            except StopIteration:
+                # if no data left for this stream, return None value
+                next_outputs.append(
+                    run_schemas.RunOutput(
+                        type=run_schemas.RunIOType.none,
+                        value=None,
+                        file=None,
+                    )
+                )
+            except Exception as exc:
+                logger.exception("Pipeline error caught during run streaming")
+                raise RunnableError(exception=exc, traceback=traceback.format_exc())
+        else:
+            next_outputs.append(output)
+
+    if not have_new_streamed_outputs:
+        return
+    return next_outputs
+
+
 async def _stream_run_outputs(
     response_schema: run_schemas.ContainerRunResult, request: Request
 ):
+    """Generator returning output data for list of outputs.
+
+    We iterate over all outputs until we no longer have any streamed data to
+    output
+    """
     outputs = response_schema.outputs or []
-
     while True:
-        next_outputs = []
-        have_new_streamed_outputs = False
-        # iterate over all outputs, until we no longer have any streamed data to
-        # output
-        for output in outputs:
-            if output.type == run_schemas.RunIOType.stream:
-                try:
-                    if output.value is None:
-                        raise Exception("Stream value was None")
+        status_code = 200
+        try:
+            next_outputs = _fetch_next_outputs(outputs)
+            if not next_outputs:
+                return
 
-                    next_value = output.value.__next__()
-                    next_outputs.append(
-                        run_schemas.RunOutput(
-                            type=run_schemas.RunIOType.from_object(next_value),
-                            value=next_value,
-                            file=None,
-                        )
-                    )
-                    have_new_streamed_outputs = True
-                except StopIteration:
-                    # if no data left for this stream, return None value
-                    next_outputs.append(
-                        run_schemas.RunOutput(
-                            type=run_schemas.RunIOType.from_object(next_value),
-                            value=None,
-                            file=None,
-                        )
-                    )
-            else:
-                next_outputs.append(output)
+            new_response_schema = run_schemas.ContainerRunResult(
+                inputs=response_schema.inputs,
+                outputs=next_outputs,
+                error=response_schema.error,
+            )
 
-        if not have_new_streamed_outputs:
-            return
-
-        new_response_schema = run_schemas.ContainerRunResult(
-            inputs=response_schema.inputs,
-            outputs=next_outputs,
-            error=response_schema.error,
-        )
+        except RunnableError as e:
+            # if we get a pipeline error, return a run error then finish
+            new_response_schema = run_schemas.ContainerRunResult(
+                outputs=None,
+                inputs=response_schema.inputs,
+                error=run_schemas.ContainerRunError(
+                    type=run_schemas.ContainerRunErrorType.pipeline_error,
+                    message=repr(e.exception),
+                    traceback=e.traceback,
+                ),
+            )
+        except Exception as e:
+            logger.exception("Unexpected error during run streaming")
+            status_code = 500
+            new_response_schema = run_schemas.ContainerRunResult(
+                outputs=None,
+                inputs=response_schema.inputs,
+                error=run_schemas.ContainerRunError(
+                    type=run_schemas.ContainerRunErrorType.unknown,
+                    message=repr(e),
+                    traceback=None,
+                ),
+            )
 
         # serialise response to str and add newline separator
-        yield new_response_schema.json() + "\n"
+        yield f"{new_response_schema.json()}\n", status_code
 
-        # if request is disconnected terminate all iterators
-        if await request.is_disconnected():
+        # if there was an error or request is disconnected terminate all iterators
+        if new_response_schema.error or await request.is_disconnected():
             for output in outputs:
                 if (
                     output.type == run_schemas.RunIOType.stream
