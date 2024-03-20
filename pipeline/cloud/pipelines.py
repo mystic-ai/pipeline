@@ -145,7 +145,10 @@ def _stream_pipeline(
             try:
                 result = ClusterRunResult.parse_obj(result_json)
             except ValidationError:
-                _print(f"Unexpected result from streaming run:\n{result_json}")
+                _print(
+                    f"Unexpected result from streaming run:\n"
+                    f"Status code = {response.status_code}\n{result_json}"
+                )
                 return
             except Exception:
                 http.raise_if_http_status_error(response)
