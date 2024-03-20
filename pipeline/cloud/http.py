@@ -7,7 +7,9 @@ from json.decoder import JSONDecodeError
 
 import httpx
 import requests
+from fastapi.responses import StreamingResponse
 from requests_toolbelt import MultipartEncoder, MultipartEncoderMonitor
+from starlette.types import Send
 from tqdm import tqdm
 
 from pipeline import current_configuration
@@ -286,3 +288,46 @@ def stream(
     client = _get_client()
     with client.stream(method=method, url=endpoint, json=json_data) as response:
         yield response
+
+
+class StreamingResponseWithStatusCode(StreamingResponse):
+    """
+    Variation of StreamingResponse that can dynamically decide the HTTP status
+    code, based on the returns from the content iterator (parameter 'content').
+    Expects the content to yield tuples of (content: str, status_code: int),
+    instead of just content as it was in the original StreamingResponse. The
+    parameter status_code in the constructor is ignored, but kept for
+    compatibility with StreamingResponse.
+
+    See
+    https://github.com/tiangolo/fastapi/discussions/10138#discussioncomment-8216436
+    for inspiration
+    """
+
+    async def stream_response(self, send: Send) -> None:
+        first_chunk_content, self.status_code = await anext(self.body_iterator)
+        if not isinstance(first_chunk_content, bytes):
+            first_chunk_content = first_chunk_content.encode(self.charset)
+
+        await send(
+            {
+                "type": "http.response.start",
+                "status": self.status_code,
+                "headers": self.raw_headers,
+            }
+        )
+        await send(
+            {
+                "type": "http.response.body",
+                "body": first_chunk_content,
+                "more_body": True,
+            }
+        )
+
+        # ignore status code after response has started
+        async for chunk_content, _ in self.body_iterator:
+            if not isinstance(chunk_content, bytes):
+                chunk = chunk_content.encode(self.charset)
+            await send({"type": "http.response.body", "body": chunk, "more_body": True})
+
+        await send({"type": "http.response.body", "body": b"", "more_body": False})

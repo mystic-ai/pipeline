@@ -40,7 +40,8 @@ async def test_stream_run_outputs():
     ]
 
     output_values = []
-    for result in results:
+    for result, status_code in results:
+        assert status_code == 200
         outputs = json.loads(result)["outputs"]
         values = [o["value"] for o in outputs]
         output_values.append(values)
@@ -97,21 +98,27 @@ async def test_stream_run_outputs_when_exception_raised():
     )
 
     results = [
-        json.loads(result)
-        async for result in _stream_run_outputs(container_run_result, DummyRequest())
+        (result, status_code)
+        async for result, status_code in _stream_run_outputs(
+            container_run_result, DummyRequest()
+        )
     ]
+    data = [json.loads(result) for result, _ in results]
+    status_codes = [status_code for _, status_code in results]
+    # even if pipeline_error, status code should be 200
+    assert all(status_code == 200 for status_code in status_codes)
 
     # exception was raised on 2nd iteration, so we expect there to be a valid
     # output followed by an error
     assert len(results) == 2
 
-    assert results[0]["outputs"] == [
+    assert data[0]["outputs"] == [
         {"type": "integer", "value": 1, "file": None},
         {"type": "string", "value": "static output", "file": None},
         {"type": "string", "value": "hello", "file": None},
     ]
 
-    error = results[1].get("error")
+    error = data[1].get("error")
     assert error is not None
     assert error["message"] == "Exception('dummy error')"
     assert error["type"] == "pipeline_error"

@@ -241,6 +241,8 @@ class Manager:
             args = self._parse_inputs(input_data, self.pipeline)
             try:
                 result = self.pipeline.run(*args)
+            except RunInputException:
+                raise
             except Exception as exc:
                 raise RunnableError(exception=exc, traceback=traceback.format_exc())
             return result

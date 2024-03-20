@@ -7,9 +7,9 @@ import uuid
 from pathlib import Path
 
 from fastapi import APIRouter, Request, Response
-from fastapi.responses import StreamingResponse
 from loguru import logger
 
+from pipeline.cloud.http import StreamingResponseWithStatusCode
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
 from pipeline.container.manager import Manager
@@ -94,7 +94,7 @@ async def stream_run(
         if not any([output.type == run_schemas.RunIOType.stream for output in outputs]):
             raise TypeError("No streaming outputs found")
 
-        return StreamingResponse(
+        return StreamingResponseWithStatusCode(
             _stream_run_outputs(response_schema, request),
             media_type="application/json",
             # hint to disable buffering
@@ -150,6 +150,7 @@ async def _stream_run_outputs(
     """
     outputs = response_schema.outputs or []
     while True:
+        status_code = 200
         try:
             next_outputs = _fetch_next_outputs(outputs)
             if not next_outputs:
@@ -174,6 +175,7 @@ async def _stream_run_outputs(
             )
         except Exception as e:
             logger.exception("Unexpected error during run streaming")
+            status_code = 500
             new_response_schema = run_schemas.ContainerRunResult(
                 outputs=None,
                 inputs=response_schema.inputs,
@@ -185,7 +187,7 @@ async def _stream_run_outputs(
             )
 
         # serialise response to str and add newline separator
-        yield new_response_schema.json() + "\n"
+        yield f"{new_response_schema.json()}\n", status_code
 
         # if there was an error or request is disconnected terminate all iterators
         if new_response_schema.error or await request.is_disconnected():
