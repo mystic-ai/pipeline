@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 
 import { useState } from "react";
 import {
@@ -14,6 +14,7 @@ import { DescriptionText } from "../ui/Typography/DescriptionText";
 import { Button } from "../ui/Buttons/Button";
 import { InputSkeleton } from "../ui/Inputs/Input";
 import { postRun, streamPostRun } from "../../utils/queries/post-run";
+import { generateDynamicFieldsFromIOVariables } from "../../utils/ioVariables";
 
 interface FormProps {
   pipeline: GetPipelineResponse;
@@ -35,6 +36,10 @@ export function PipelinePlaygroundForm({
   handleNewStreamChunk,
   isStreaming,
 }: FormProps): JSX.Element {
+  const dynamicFields = useMemo(() => {
+    return generateDynamicFieldsFromIOVariables(pipeline.input_variables);
+  }, [pipeline.input_variables]);
+
   // State
   const [localError, setLocalError] = useState<string>();
   const [resetLoading, setResetLoading] = useState<boolean>(false);
@@ -79,10 +84,7 @@ export function PipelinePlaygroundForm({
   if (resetLoading) return <PipelinePlaygroundFormSkeleton />;
 
   return (
-    <DynamicFieldsForm
-      pipelineInputIOVariables={pipeline.input_variables}
-      onSubmitHandler={onSubmit}
-    >
+    <DynamicFieldsForm onSubmitHandler={onSubmit} dynamicFields={dynamicFields}>
       <div className="flex flex-col gap-4 sticky bottom-8">
         {localError && (
           <Card variant="caution" className="flex gap-4 max-w-96 p-2">

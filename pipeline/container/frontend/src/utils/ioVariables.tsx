@@ -6,6 +6,7 @@ import {
   DynamicFieldData,
   IOVariable,
   RunIOType,
+  RunInput,
   fileRunIOTypes,
 } from "../types";
 import { ApiReferenceTag } from "../components/ui/Badges/ApiReferenceTag";
@@ -49,7 +50,7 @@ export async function generateDictFromDynamicFields({
 }: {
   dynamicFields: DynamicFieldData[];
   data: Record<string, any>;
-}) {
+}): Promise<RunInput[]> {
   const inputs = [];
 
   for (const inputConfig of dynamicFields) {
@@ -60,7 +61,7 @@ export async function generateDictFromDynamicFields({
       try {
         const fileData = await handlePostFile({ file });
         inputs.push({
-          type: "file",
+          type: "file" as RunIOType,
           value: null,
           file_path: fileData.path,
         });
@@ -70,6 +71,7 @@ export async function generateDictFromDynamicFields({
     } else if (inputConfig.subType === "dictionary") {
       const dictValues: { [key: string]: any } = {};
       const dictInputConfigs = inputConfig?.dicts || [];
+
       for (const dictInputConfig of dictInputConfigs) {
         const key = dictInputConfig.label;
         let value: any = data[dictInputConfig.fieldName as keyof typeof data];
@@ -79,7 +81,11 @@ export async function generateDictFromDynamicFields({
             data[dictInputConfig.fieldName as keyof typeof data];
           if (dictInputConfig.optional && !file) continue;
           const fileData = await handlePostFile({ file });
-          value = { type: "file", value: null, file_url: fileData.path };
+          value = {
+            type: "file" as RunIOType,
+            value: null,
+            file_url: fileData.path,
+          };
         }
         if (
           dictInputConfig.subType === "integer" ||
@@ -91,11 +97,18 @@ export async function generateDictFromDynamicFields({
         if (dictInputConfig.subType === "boolean") {
           value = value === true ? true : false;
         }
-        dictValues[key] = value;
+
+        // Only add to the dict if the value is not empty and the input is not optional
+        // this prevents an empty string which is optional to be passed to the payload.
+        if (dictInputConfig.optional && value === "") {
+          continue;
+        } else {
+          dictValues[key] = value;
+        }
       }
 
       inputs.push({
-        type: "dictionary",
+        type: "dictionary" as RunIOType,
         value: dictValues,
       });
     } else if (inputConfig.subType === "array") {
@@ -103,7 +116,7 @@ export async function generateDictFromDynamicFields({
 
       // Should be valid JSON at this point
       inputs.push({
-        type: inputConfig.subType,
+        type: inputConfig.subType as RunIOType,
         value: value,
       });
     } else {
@@ -112,7 +125,7 @@ export async function generateDictFromDynamicFields({
         value = Number(value);
       }
       inputs.push({
-        type: inputConfig.subType,
+        type: inputConfig.subType as RunIOType,
         value,
       });
     }
