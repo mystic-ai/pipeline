@@ -2,7 +2,7 @@ import React from "react";
 import { PropsWithChildren, useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { useNotification } from "../ui/Notifications/Notifications";
-import { IOVariable } from "../../types";
+import { IOVariable, DynamicFieldData } from "../../types";
 import {
   generateDictFromDynamicFields,
   generateDynamicFieldsFromIOVariables,
@@ -14,25 +14,20 @@ import {
 } from "./DynamicRunInputList";
 
 interface Props extends PropsWithChildren {
-  pipelineInputIOVariables: IOVariable[];
   onSubmitHandler: (inputs: Array<any>) => Promise<void>;
   className?: string;
   variant?: DynamicRunInputListVariantProps;
+  dynamicFields: DynamicFieldData[];
 }
 
 export function DynamicFieldsForm({
-  pipelineInputIOVariables,
+  dynamicFields,
   onSubmitHandler,
   className = "flex flex-col gap-8 max-w-142",
   children,
   variant,
 }: Props): JSX.Element {
   const notification = useNotification();
-
-  const dynamicFields = useMemo(
-    () => generateDynamicFieldsFromIOVariables(pipelineInputIOVariables),
-    [pipelineInputIOVariables]
-  );
 
   const formMethods = useForm({
     defaultValues: generateFormDefaultValues(dynamicFields),
@@ -44,7 +39,7 @@ export function DynamicFieldsForm({
   } = formMethods;
 
   // Handlers
-  async function onSubmit(data: object) {
+  async function onSubmit(data: Record<string, any>) {
     try {
       const inputData = await generateDictFromDynamicFields({
         dynamicFields: dynamicFields,

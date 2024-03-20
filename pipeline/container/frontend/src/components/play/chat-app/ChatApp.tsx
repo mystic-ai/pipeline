@@ -8,7 +8,6 @@ import { ChatPromptExamples } from "./ChatPromptExamples";
 import {
   DynamicFieldData,
   GetPipelineResponse,
-  PostRunPayload,
   RunInput,
   RunResult,
 } from "../../../types";
@@ -51,6 +50,8 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
   // Constants
   const LS_KEY = `chat-app-prompt-history-${pipeline.image}`;
 
+  // We get a list of input variables that are of type dictionary,
+  // We assume this is the settings for the chat
   const pipelineInputDictIOVariable = pipeline.input_variables.filter(
     (input) => input.run_io_type === "dictionary"
   );
@@ -62,10 +63,11 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
   const [chats, setChats] = useState<ChatMessages[]>([]);
   const [promptHistory, setPrompHistory] = useState<Prompt[]>();
 
-  const dynamicFields = useMemo(
-    () => generateDynamicFieldsFromIOVariables(pipeline.input_variables),
-    [pipeline.input_variables]
+  // This is state because we want to update this when the user changes the settings
+  const initialDynamicFields = generateDynamicFieldsFromIOVariables(
+    pipelineInputDictIOVariable
   );
+<<<<<<< Updated upstream
   const { isStreaming } = useStreamingIndexes(pipeline);
   // In rare occasions, the dynamic fields are not loaded yet
   let initialDictForSettings: DynamicFieldData[] | undefined = [];
@@ -77,6 +79,10 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
         dynamicField.dicts.length > 0
     )[0].dicts;
   }
+=======
+  const [dynamicFields, setDynamicFields] =
+    useState<DynamicFieldData[]>(initialDynamicFields);
+>>>>>>> Stashed changes
   // Hooks
   const notification = useNotification();
 
@@ -91,8 +97,22 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
       title: "Saved chat settings",
     });
 
-    // Settings come in as first dict value
-    setChatSettings(inputs[0].value);
+    // Map the input value to the dynamic fields default value
+    const updatedSettingsDynamicFields: DynamicFieldData[] | undefined =
+      dynamicFields[0].dicts &&
+      dynamicFields[0].dicts.map((dict, index) => {
+        return {
+          ...dict,
+          defaultValue: inputs[index].value,
+        };
+      });
+
+    // Update the dynamic fields state
+    setDynamicFields((prev) => {
+      prev[0].dicts = updatedSettingsDynamicFields;
+      return prev;
+    });
+
     setShowSettings(false);
   }
   function handleNewStreamChunk(chunk: RunResult) {
@@ -235,15 +255,20 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
     });
   }
 
-  // On mount, generate default json object for dynamic fields from the first dict (chat settings)
+  // On load set chat settings, update the chat settings
   useEffect(() => {
-    if (initialDictForSettings) {
+    // On load, and on close of settings dialog
+    if (showSettings === false) {
+      // Clear the chat settings state
+      setChatSettings(undefined);
+
+      // Build the key value pair for the chat settings
       const initialDictObject = generateFormDefaultValues(
-        initialDictForSettings
+        dynamicFields[0].dicts || []
       );
       setChatSettings(initialDictObject);
     }
-  }, [dynamicFields]);
+  }, [showSettings]);
 
   useEffect(() => {
     const promptHistoryLS = localStorage.getItem(LS_KEY) || "[]";
@@ -353,30 +378,35 @@ export default function ChatApp({ pipeline }: ChatAppProps): JSX.Element {
       </div>
 
       {/* {showSettings && pipelineInputDict ? ( */}
-      {showSettings && pipelineInputDictIOVariable ? (
+      {showSettings ? (
         <ChatAppSettingsDialog
           isOpen={showSettings}
           handleClose={() => setShowSettings(false)}
         >
-          <DynamicFieldsForm
-            pipelineInputIOVariables={pipelineInputDictIOVariable}
-            onSubmitHandler={onSettingsSubmit}
-            variant="minimal"
-          >
-            <div className="flex gap-3">
-              <Button colorVariant="primary" size="lg" type="submit">
-                Save settings
-              </Button>
-              <Button
-                colorVariant="secondary"
-                size="lg"
-                type="button"
-                onClick={() => setShowSettings(false)}
+          {dynamicFields &&
+            dynamicFields[0] &&
+            dynamicFields[0].dicts &&
+            dynamicFields[0].dicts.length > 0 && (
+              <DynamicFieldsForm
+                onSubmitHandler={onSettingsSubmit}
+                variant="minimal"
+                dynamicFields={dynamicFields[0].dicts}
               >
-                Close
-              </Button>
-            </div>
-          </DynamicFieldsForm>
+                <div className="flex gap-3">
+                  <Button colorVariant="primary" size="lg" type="submit">
+                    Save settings
+                  </Button>
+                  <Button
+                    colorVariant="secondary"
+                    size="lg"
+                    type="button"
+                    onClick={() => setShowSettings(false)}
+                  >
+                    Close
+                  </Button>
+                </div>
+              </DynamicFieldsForm>
+            )}
         </ChatAppSettingsDialog>
       ) : null}
     </div>
