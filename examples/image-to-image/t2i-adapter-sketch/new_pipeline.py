@@ -108,7 +108,8 @@ class ModelKwargs(InputSchema):
 
 @entity
 class DiffusionWithAdapter:
-    def __init__(self) -> None: ...
+    def __init__(self) -> None:
+        ...
 
     def apply_style(
         self, style_name: str, positive: str, negative: str = ""
@@ -118,7 +119,6 @@ class DiffusionWithAdapter:
 
     @pipe(on_startup=True, run_once=True)
     def load(self) -> None:
-
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.pidi = PidiNetDetector.from_pretrained("lllyasviel/Annotators").to(device)
@@ -151,7 +151,6 @@ class DiffusionWithAdapter:
 
     @pipe
     def inference(self, image: File, prompt: str, kwargs: ModelKwargs) -> list[File]:
-
         input_image = image
         image = Image.open(BytesIO(image.path.read_bytes())).convert("RGB")
 
@@ -193,7 +192,6 @@ class DiffusionWithAdapter:
 
 
 with Pipeline() as builder:
-
     image = Variable(
         File,
         title="Input sketch",
