@@ -10,9 +10,11 @@ from pydantic import BaseModel
 PIPELINE_DIR = Path(
     os.getenv(
         "PIPELINE_DIR",
-        Path(os.getenv("LOCALAPPDATA")) / ".pipeline/"
-        if (sys.platform == "win32" or sys.platform == "cygwin")
-        else Path.home() / ".pipeline/",
+        (
+            Path(os.getenv("LOCALAPPDATA")) / ".pipeline/"
+            if (sys.platform == "win32" or sys.platform == "cygwin")
+            else Path.home() / ".pipeline/"
+        ),
     )
 )
 
@@ -21,10 +23,10 @@ class _RemoteModel(BaseModel):
     alias: t.Optional[str]
     url: str
     token: t.Optional[str]
-    active: bool = False
 
 
 class _ConfigurationModel(BaseModel):
+    active_remote: t.Optional[str]
     remotes: t.Optional[t.List[_RemoteModel]]
 
 
@@ -32,18 +34,29 @@ class Configuration:
     def __init__(
         self,
     ) -> None:
-        self._config: _ConfigurationModel = None
+        self._config: _ConfigurationModel | None = None
 
         PIPELINE_DIR.mkdir(exist_ok=True)
         (PIPELINE_DIR / "files").mkdir(exist_ok=True)
         self._debug_mode = os.environ.get("PIPELINE_DEBUG", "0") == "1"
 
     @property
-    def active_remote(self) -> _RemoteModel:
+    def active_remote(self) -> _RemoteModel | None:
         if self._config is not None and self._config.remotes is not None:
-            for remote in self._config.remotes:
-                if remote.active:
-                    return remote
+            if self._config.active_remote is not None:
+                for remote in self._config.remotes:
+                    if remote.alias == self._config.active_remote:
+                        return remote
+            else:
+                if len(self._config.remotes) > 0:
+                    new_remote_alias = self._config.remotes[0].alias
+                    if new_remote_alias is None:
+                        raise ValueError("Remote alias cannot be None")
+                    self.set_active_remote(new_remote_alias)
+
+                    return self._config.remotes[0]
+
+                print("No active remote set, please run 'pipeline cluster use <name>'")
         return None
 
     def set_debug_mode(self, debug: bool) -> None:
@@ -53,17 +66,22 @@ class Configuration:
         return self._debug_mode
 
     @property
-    def files_cache(self) -> str:
+    def files_cache(self) -> Path:
         return PIPELINE_DIR / "files"
 
     @property
-    def remotes(self) -> t.List[_RemoteModel]:
+    def remotes(self) -> t.List[_RemoteModel] | None:
+        if self._config is None:
+            return None
         return self._config.remotes
 
     def load(self) -> None:
         path = PIPELINE_DIR / "config.yaml"
         if not path.exists():
-            self._config = _ConfigurationModel()
+            self._config = _ConfigurationModel(
+                active_remote=None,
+                remotes=None,
+            )
             return
 
         try:
@@ -78,6 +96,9 @@ class Configuration:
             raise Exception("Invalid configuration file at '~/.pipeline/config.yaml'")
 
     def save(self) -> None:
+        if self._config is None:
+            raise ValueError("No configuration loaded")
+
         path = PIPELINE_DIR / "config.yaml"
 
         PIPELINE_DIR.mkdir(exist_ok=True)
@@ -93,8 +114,17 @@ class Configuration:
             )
 
     def set_active_remote(self, alias: str) -> None:
-        for remote in self._config.remotes:
-            remote.active = remote.alias == alias
+        if self._config is None:
+            raise ValueError("No configuration loaded")
+
+        if self._config.remotes is None:
+            raise ValueError("No remotes configured")
+
+        if not any([remote.alias == alias for remote in self._config.remotes]):
+            raise ValueError(f"Remote with alias '{alias}' does not exist")
+
+        self._config.active_remote = alias
+
         self.save()
 
     def add_remote(
@@ -103,6 +133,9 @@ class Configuration:
         url: str,
         token: str,
     ) -> None:
+        if self._config is None:
+            raise ValueError("No configuration loaded")
+
         if self._config.remotes is None:
             self._config.remotes = []
 
@@ -116,9 +149,16 @@ class Configuration:
                 token=token,
             )
         )
+
+        if self._config.active_remote is None:
+            self._config.active_remote = alias
+
         self.save()
 
     def remove_remote(self, alias: str) -> None:
+        if self._config is None:
+            raise ValueError("No configuration loaded")
+
         if self._config.remotes is None:
             return
 

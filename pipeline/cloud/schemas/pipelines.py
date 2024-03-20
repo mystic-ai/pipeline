@@ -1,10 +1,12 @@
 import typing as t
 from datetime import datetime
+from enum import Enum
 
 from pydantic import Field
 
 from pipeline.cloud.compute_requirements import Accelerator
-from pipeline.cloud.schemas import BaseModel
+from pipeline.cloud.schemas import BaseModel, pagination
+from pipeline.cloud.schemas.cluster import PipelineClusterConfig
 from pipeline.cloud.schemas.runs import RunIOType
 
 
@@ -30,30 +32,108 @@ class IOVariable(BaseModel):
     optional: bool | None
 
 
-class PipelineGet(BaseModel):
-    id: str
-    created_at: datetime
-    updated_at: datetime
+class PipelineStartUpload(BaseModel):
+    pipeline_name: str
+    pipeline_tag: t.Optional[str]
 
+
+class PipelineStartUploadResponse(BaseModel):
+    bearer: str
+    upload_registry: t.Optional[str]
+    #: Full username/pipeline_name. Used for naming docker image
+    pipeline_name: str
+
+
+class PipelineCreate(BaseModel):
     name: str
-    path: str
-
-    minimum_cache_number: t.Optional[int]
-    gpu_memory_min: t.Optional[int]
-    environment_id: str
-
-    accelerators: t.Optional[t.List[Accelerator]]
+    image: str
 
     input_variables: t.List[IOVariable]
     output_variables: t.List[IOVariable]
 
-    metadata: t.Optional[dict] = Field(alias="_metadata")
+    accelerators: t.Optional[t.List[Accelerator]]
 
-    class Config(BaseModel.Config):
-        allow_population_by_field_name = True
+    cluster: PipelineClusterConfig | None = None
+
+    # Additional meta data
+    description: t.Optional[str]
+    readme: t.Optional[str]
+    extras: t.Optional[dict]
+
+
+class Pipeline(BaseModel):
+    name: str
+    image: str
+
+    input_variables: t.List[IOVariable]
+    output_variables: t.List[IOVariable]
+    extras: t.Optional[dict]
+
+
+class PipelineGet(Pipeline):
+    id: str
+
+    created_at: datetime
+    updated_at: datetime
+
+    accelerators: t.Optional[t.List[Accelerator]]
+
+    cluster: PipelineClusterConfig | None = None
+
+    extras: t.Optional[dict]
+    #: The name of the scaling configuration
+    scaling_config: str | None = None
 
 
 class PipelinePatch(BaseModel):
-    minimum_cache_number: t.Optional[int]
-    gpu_memory_min: t.Optional[int]
+    input_variables: t.Optional[t.List[IOVariable]]
+    output_variables: t.Optional[t.List[IOVariable]]
+
     accelerators: t.Optional[t.List[Accelerator]]
+
+    extras: t.Optional[dict]
+    #: The name of the scaling configuration
+    scaling_config: str | None = None
+
+
+class PipelineListPagination(pagination.Pagination):
+    class OrderBy(str, Enum):
+        created_at = "created_at"
+        updated_at = "updated_at"
+
+        pipeline_name = "pipeline_name"
+        image = "image"
+
+    order_by: OrderBy
+    order: pagination.Order
+
+
+class PipelineDeploymentStatus(str, Enum):
+    not_deployed = "not_deployed"
+    deploying = "deploying"
+    deployed = "deployed"
+    failed = "failed"
+    deleting = "deleting"
+    deleted = "deleted"
+
+
+class PipelineState(str, Enum):
+    not_loaded = "not_loaded"
+    loading = "loading"
+    loaded = "loaded"
+    load_failed = "load_failed"
+    startup_failed = "startup_failed"
+
+    # backwards compatability
+    failed = "failed"
+
+
+class PipelineContainerState(BaseModel):
+    state: PipelineState
+    message: t.Optional[str]
+
+
+class PipelineScalingInfo(BaseModel):
+    current_replicas: int
+    desired_replicas: int
+    current_pipeline_states: dict[PipelineState, int]

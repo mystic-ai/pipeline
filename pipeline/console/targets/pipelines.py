@@ -41,6 +41,13 @@ def edit_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         help="Minimum GPU memory.",
         type=int,
     )
+    edit_parser.add_argument(
+        "--scaling-config",
+        "-s",
+        help="The scaling configuration name the pipeline uses",
+        type=str,
+        required=False,
+    )
 
 
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
@@ -53,12 +60,12 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     get_parser.set_defaults(func=_get_pipeline)
 
     # get by name
-    get_parser.add_argument(
-        "--name",
-        "-n",
-        help="Pipeline name.",
-        type=str,
-    )
+    # get_parser.add_argument(
+    #     "--name",
+    #     "-n",
+    #     help="Pipeline name.",
+    #     type=str,
+    # )
     get_parser.add_argument(
         "--skip",
         "-s",
@@ -95,50 +102,43 @@ def _get_pipeline(args: Namespace) -> None:
 
     params = dict()
     pagination = get_default_pagination()
-    if name := getattr(args, "name", None):
-        params["name"] = name
+    # if name := getattr(args, "name", None):
+    #     params["name"] = name
     if skip := getattr(args, "skip", None):
         pagination.skip = skip
     if limit := getattr(args, "limit", None):
         pagination.limit = limit
     paginated_raw_pipelines: Paginated[dict] = http.get(
-        "/v3/pipelines",
+        "/v4/pipelines",
         params=dict(**params, **pagination.dict()),
     ).json()
+
+    # pipelines_: Paginated[pipelines_schema.PipelineGet] = Paginated[
+    #     pipelines_schema.PipelineGet
+    # ].parse_obj(paginated_raw_pipelines)
+
     pipelines = [
         [
             pipeline_raw["id"],
             pipeline_raw["name"],
-            datetime.fromtimestamp(pipeline_raw.get("created_at"))
-            if "created_at" in pipeline_raw
-            else "N/A",
+            (
+                datetime.fromtimestamp(pipeline_raw.get("created_at"))
+                if "created_at" in pipeline_raw
+                else "N/A"
+            ),
             val if (val := pipeline_raw.get("minimum_cache_number", "N/A")) else "N/A",
             (
                 ""
                 if not (accelerators := pipeline_raw.get("accelerators", None))
                 else (
-                    "nvidia_all"
-                    if Accelerator.nvidia_all in accelerators
-                    else (
-                        "cpu"
-                        if Accelerator.cpu in pipeline_raw.get("accelerators", [])
-                        else "\n".join(
-                            [
-                                f"{accelerators.count(accelerator)}× {accelerator}"
-                                for accelerator in set(accelerators)
-                            ]
-                        )
+                    "cpu"
+                    if Accelerator.cpu in pipeline_raw.get("accelerators", [])
+                    else "\n".join(
+                        [
+                            f"{accelerators.count(accelerator)}× {accelerator}"
+                            for accelerator in set(accelerators)
+                        ]
                     )
-                )
-            )
-            + (
-                " (" + str(val) + "MB VRAM)"
-                if (val := pipeline_raw.get("gpu_memory_min", "N/A"))
-                else (
-                    ""
-                    if (pl_accelerators := pipeline_raw.get("accelerators", [])) is None
-                    or Accelerator.cpu in pl_accelerators
-                    else "-"
                 )
             ),
         ]
@@ -157,7 +157,7 @@ def _get_pipeline(args: Namespace) -> None:
             "ID",
             "Name",
             "Created",
-            "Cache #",
+            "Cache # (min-max)",
             "Accelerators",
         ],
         tablefmt="psql",
@@ -170,18 +170,19 @@ def _edit_pipeline(args: Namespace) -> None:
     pipeline_id = getattr(args, "pipeline_id")
     cache_number = getattr(args, "cache_number", None)
     gpu_memory = getattr(args, "gpu_memory", None)
+    scaling_config = getattr(args, "scaling_config", None)
 
     patch_schema = pipelines_schema.PipelinePatch(
         minimum_cache_number=cache_number,
         gpu_memory_min=gpu_memory,
+        scaling_config=scaling_config,
     )
-
-    if cache_number is None and gpu_memory is None:
+    if all(arg is None for arg in (gpu_memory, cache_number, scaling_config)):
         _print("Nothing to edit.", level="ERROR")
         return
 
     http.patch(
-        f"/v3/pipelines/{pipeline_id}",
+        f"/v4/pipelines/{pipeline_id}",
         patch_schema.dict(),
     )
 
@@ -192,7 +193,7 @@ def _delete_pipeline(args: Namespace) -> None:
     pipeline_id = getattr(args, "pipeline_id")
 
     http.delete(
-        f"/v3/pipelines/{pipeline_id}",
+        f"/v4/pipelines/{pipeline_id}",
     )
 
     _print("Pipeline deleted!")

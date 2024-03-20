@@ -7,37 +7,15 @@ from enum import Enum
 from pipeline.cloud.schemas import BaseModel
 
 
-class RunState(int, Enum):
-    created: int = 0
-    routing: int = 1
-    resource_accepted: int = 2
-    # this includes creating a virtual environment and installing
-    # packages
-    creating_environment: int = 3
-    # starting subrprocess running worker in custom environment
-    starting_worker: int = 4
-    downloading_graph: int = 5
-    caching_graph: int = 6
-    running: int = 7
-    resource_returning: int = 8
-    api_received: int = 9
-    celery_worker_received: int = 22
-
-    in_queue: int = 16
-    denied: int = 11
-    resource_rejected: int = 14
-    resource_died: int = 15
-    retrying: int = 13
-    rerouting: int = 21
-
-    completed: int = 10
-    failed: int = 12
-    rate_limited: int = 17
-    lost: int = 18
-    no_environment_installed: int = 19
-    no_resources_available: int = 23
-
-    unknown: int = 20
+class RunState(str, Enum):
+    created = "created"
+    routing = "routing"
+    queued = "queued"
+    running = "running"
+    completed = "completed"
+    failed = "failed"
+    no_resources_available = "no_resources_available"
+    unknown = "unknown"
 
     @staticmethod
     def is_terminal(state: "RunState") -> bool:
@@ -48,9 +26,6 @@ class RunState(int, Enum):
         return [
             RunState.completed,
             RunState.failed,
-            RunState.lost,
-            RunState.no_environment_installed,
-            RunState.rate_limited,
             RunState.no_resources_available,
         ]
 
@@ -73,7 +48,7 @@ class RunState(int, Enum):
             except KeyError:
                 state = cls.unknown
             return state
-        elif isinstance(v, int):
+        elif isinstance(v, str):
             try:
                 state = getattr(cls, cls.value_lookup[v])
             except KeyError:
@@ -112,16 +87,16 @@ class RunFile(BaseModel):
 
 
 class RunIOType(str, Enum):
-    integer: str = "integer"
-    string: str = "string"
-    fp: str = "fp"
-    dictionary: str = "dictionary"
-    boolean: str = "boolean"
-    none: str = "none"
-    array: str = "array"
-
-    pkl: str = "pkl"
-    file: str = "file"
+    integer = "integer"
+    string = "string"
+    fp = "fp"
+    dictionary = "dictionary"
+    boolean = "boolean"
+    none = "none"
+    array = "array"
+    pkl = "pkl"
+    file = "file"
+    stream = "stream"
 
     @classmethod
     def from_object(cls, obj: t.Any):
@@ -141,6 +116,8 @@ class RunIOType(str, Enum):
         elif isinstance(obj, dict) or obj is dict:
             if obj is dict:
                 return cls.dictionary
+            # The below try/except means that dict inputs
+            # with file-like values will be treated as pkl
             try:
                 json.dumps(obj)
             except (TypeError, OverflowError):
@@ -154,7 +131,17 @@ class RunIOType(str, Enum):
             except (TypeError, OverflowError):
                 return cls.pkl
             return cls.array
-        elif isinstance(obj, io.BufferedIOBase) or obj is File or isinstance(obj, File):
+        # Also check if class name == Stream
+        elif hasattr(obj, "iterable") or (
+            hasattr(obj, "__name__") and obj.__name__ == "Stream"
+        ):
+            return cls.stream
+        elif (
+            isinstance(obj, io.BufferedIOBase)
+            or isinstance(obj, io.IOBase)
+            or obj is File
+            or isinstance(obj, File)
+        ):
             return cls.file
         else:
             return cls.pkl
@@ -185,7 +172,7 @@ class RunIOType(str, Enum):
 class RunOutputFile(BaseModel):
     name: str
     path: str
-    url: str
+    url: t.Optional[str]
     size: int
 
 
@@ -227,30 +214,63 @@ class RunInput(BaseModel):
     file_url: t.Optional[str]
 
 
-class Run(BaseModel):
+class ContainerRunErrorType(str, Enum):
+    input_error = "input_error"
+    cuda_oom = "cuda_oom"
+    cuda_error = "cuda_error"
+    oom = "oom"
+    pipeline_error = "pipeline_error"
+    startup_error = "startup_error"
+    pipeline_loading = "pipeline_loading"
+    timeout = "timeout"
+    unknown = "unknown"
+
+
+class ContainerRunError(BaseModel):
+    type: ContainerRunErrorType
+    message: str
+    traceback: t.Optional[str]
+
+
+class ContainerRunCreate(BaseModel):
+    # run_id is optional since it's just used for attaching logs to a run
+    run_id: t.Optional[str]
+    inputs: t.List[RunInput]
+
+
+class ContainerRunResult(BaseModel):
+    inputs: t.Optional[t.List[RunInput]]
+    outputs: t.Optional[t.List[RunOutput]]
+    error: t.Optional[ContainerRunError]
+
+    def outputs_formatted(self) -> t.List[t.Any]:
+        outputs = self.outputs or []
+        output_array = []
+        for output in outputs:
+            if output.type == RunIOType.file:
+                from pipeline.objects.graph import File
+
+                if output.file is not None and output.file.url is not None:
+                    output_array.append(File(url=output.file.url))
+                else:
+                    raise Exception("Returned file missing information.")
+            else:
+                output_array.append(output.value)
+        return output_array
+
+
+class ClusterRunResult(ContainerRunResult):
     id: str
 
     created_at: datetime
+    updated_at: datetime
 
     pipeline_id: str
-    environment_id: str
-    environment_hash: str
 
     state: RunState
 
-    error: t.Optional[RunError]
-
-    result: t.Optional[RunResult]
-    input_data: t.Optional[t.List[RunInput]]
-
     class Config:
-        # use_enum_values = True
         orm_mode = True
-
-    def outputs(self) -> t.List[t.Any]:
-        if self.result is None:
-            return []
-        return self.result.result_array()
 
 
 class RunStateTransition(BaseModel):
@@ -265,7 +285,10 @@ class RunStateTransitions(BaseModel):
     data: t.List[RunStateTransition]
 
 
-class RunCreate(BaseModel):
-    pipeline_id_or_pointer: str
-    input_data: t.List[RunInput]
+class RunCreate(ContainerRunCreate):
+    # pipeline id or pointer
+    pipeline: str
     async_run: bool = False
+    # flag to determine whether the run will wait for compute resources to be
+    # become available if none are currently running the pipeline
+    wait_for_resources: bool | None = None

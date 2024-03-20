@@ -3,6 +3,12 @@ from datetime import datetime
 from pipeline.cloud.schemas import BaseModel
 
 
+class RemoteFileData(BaseModel):
+    id: str
+    path: str
+    url: str | None
+
+
 class FileGet(BaseModel):
     id: str
     path: str
@@ -47,3 +53,13 @@ class MultipartFileUploadFinaliseCreate(BaseModel):
     upload_id: str
     # The metadata obtained from each part of the file upload
     multipart_metadata: list[MultipartFileUploadMetadata]
+
+
+class UploadFileUsingPresignedUrl(BaseModel):
+    local_file_path: str
+    upload_url: str
+    upload_fields: dict[str, str]
+
+
+class UploadFilesToRemoteStorageCreate(BaseModel):
+    files: list[UploadFileUsingPresignedUrl]

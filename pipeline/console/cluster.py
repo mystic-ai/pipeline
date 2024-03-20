@@ -16,8 +16,8 @@ def login_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
         "--url",
         type=str,
         required=False,
-        help="Remote URL for auth (default URL is for Catalyst=https://mystic.ai)",
-        default="https://mystic.ai",
+        help="Remote URL for auth (default URL is https://www.mystic.ai)",
+        default="https://www.mystic.ai",
     )
 
     login_parser.add_argument(
@@ -51,8 +51,7 @@ def use_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
     )
 
 
-def remove_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
-    ...
+def remove_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None: ...
 
 
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
@@ -111,9 +110,18 @@ def _use(namespace: Namespace) -> None:
 
 
 def _get(namespace: Namespace) -> None:
+    if current_configuration.remotes is None:
+        _print("No remote configurations. Login first.", level="ERROR")
+        return
+
     remotes = [
-        f"{_remote} (active)" if _remote.active else f"{_remote}"
+        (
+            f"{_remote} (active)"
+            if _remote is current_configuration.active_remote
+            else f"{_remote}"
+        )
         for _remote in current_configuration.remotes
     ]
+
     _print("Authenticated remotes:")
     [print(_remote) for _remote in remotes]

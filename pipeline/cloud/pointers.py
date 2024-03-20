@@ -11,20 +11,23 @@ def create_pointer(
     locked: bool = False,
 ) -> None:
     try:
-        http.post(
+        response = http.post(
             "/v3/pointers",
             json_data=pointer_schemas.PointerCreate(
                 pointer=pointer,
                 pointer_or_pipeline_id=target_pipeline_id_or_pointer,
                 locked=locked,
             ).dict(),
+            handle_error=False,
         )
+        response.raise_for_status()
     except HTTPStatusError as e:
         if e.response.status_code == 409 and overwrite:
             http.patch(
                 f"/v3/pointers/{pointer}",
                 json_data=pointer_schemas.PointerPatch(
                     pointer_or_pipeline_id=target_pipeline_id_or_pointer,
+                    locked=locked,
                 ).dict(),
             )
         elif e.response.status_code == 404:

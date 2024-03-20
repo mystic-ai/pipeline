@@ -138,14 +138,31 @@ pipeline-bak/
 
 .DS_Store
 .tmp
+
 # Examples
 examples/docker/docker-compose.yml
 examples/docker/Dockerfile
 examples/docker/*.graph
 examples/docker/requirements.txt
+examples/testing/
+
 .tmp_cache/
 *.jsonl
 
 *.tmp
 tmp/*
 tmp
+
+migrate_pipelines/pipeline.dockerfile
+migrate_pipelines/pipeline.graph
+migrate_pipelines/pipeline.yaml
+migrate_pipelines/pipelines.csv
+
+examples/**/pipeline.dockerfile
+
+**/model_weights/
+node_modules/*
+node_modules
+
+.parcel-cache/*
+.parcel-cache
