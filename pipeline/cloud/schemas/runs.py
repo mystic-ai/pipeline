@@ -15,6 +15,7 @@ class RunState(str, Enum):
     completed = "completed"
     failed = "failed"
     no_resources_available = "no_resources_available"
+    node_preempted = "node_preempted"
     unknown = "unknown"
 
     @staticmethod
@@ -27,6 +28,7 @@ class RunState(str, Enum):
             RunState.completed,
             RunState.failed,
             RunState.no_resources_available,
+            RunState.node_preempted,
         ]
 
     @classmethod
