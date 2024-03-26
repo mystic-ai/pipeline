@@ -19,6 +19,9 @@ class Accelerator(str, Enum):
     nvidia_a100_80gb_40gb: str = "nvidia_a100_80gb_40gb"
 
     nvidia_a10: str = "nvidia_a10"
+    nvidia_a10_12gb: str = "nvidia_a10_12gb"
+    nvidia_a10_8gb: str = "nvidia_a10_8gb"
+    nvidia_a10_4gb: str = "nvidia_a10_4gb"
 
     @classmethod
     def from_str(cls, accelerator: str) -> "Accelerator":
@@ -71,4 +74,7 @@ nvidia_gpus = [
     Accelerator.nvidia_a100_80gb_20gb,
     Accelerator.nvidia_a100_80gb_40gb,
     Accelerator.nvidia_a10,
+    Accelerator.nvidia_a10_12gb,
+    Accelerator.nvidia_a10_8gb,
+    Accelerator.nvidia_a10_4gb,
 ]
