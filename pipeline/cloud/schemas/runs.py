@@ -271,6 +271,9 @@ class ClusterRunResult(ContainerRunResult):
 
     state: RunState
 
+    # queue position if run is in 'queued' state
+    queue_position: int | None = None
+
     class Config:
         orm_mode = True
 
