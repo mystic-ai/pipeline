@@ -68,21 +68,6 @@ class Pipeline(BaseModel):
     extras: t.Optional[dict]
 
 
-class PipelineGet(Pipeline):
-    id: str
-
-    created_at: datetime
-    updated_at: datetime
-
-    accelerators: t.Optional[t.List[Accelerator]]
-
-    cluster: PipelineClusterConfig | None = None
-
-    extras: t.Optional[dict]
-    #: The name of the scaling configuration
-    scaling_config: str | None = None
-
-
 class PipelinePatch(BaseModel):
     input_variables: t.Optional[t.List[IOVariable]]
     output_variables: t.Optional[t.List[IOVariable]]
@@ -135,3 +120,20 @@ class PipelineScalingInfo(BaseModel):
     current_replicas: int
     desired_replicas: int
     current_pipeline_states: dict[PipelineState, int]
+
+
+class PipelineGet(Pipeline):
+    id: str
+
+    created_at: datetime
+    updated_at: datetime
+
+    accelerators: t.Optional[t.List[Accelerator]]
+
+    cluster: PipelineClusterConfig | None = None
+
+    extras: t.Optional[dict]
+    #: The name of the scaling configuration
+    scaling_config: str | None = None
+    #: Additional info attached when pipeline fails to load or startup
+    failed_state_info: t.Optional[PipelineContainerState]
