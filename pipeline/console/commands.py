@@ -147,6 +147,18 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         help="Push a pipeline container.",
     )
     push_parser.set_defaults(func=container._push_container)
+    push_parser.add_argument(
+        "--pointer",
+        "-p",
+        action="append",
+        help="Pointer for the container.",
+    )
+    push_parser.add_argument(
+        "--pointer-overwrite",
+        "-o",
+        action="store_true",
+        help="Overwrite existing pointers.",
+    )
 
     up_parser = container_sub_parser.add_parser(
         "up",
