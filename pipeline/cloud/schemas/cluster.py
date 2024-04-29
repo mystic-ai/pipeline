@@ -6,8 +6,11 @@ class PipelineClusterConfig(BaseModel):
     node_pool: str
 
 
-class PipelineClusterLean(BaseModel):
+class PipelineClusterGetLean(BaseModel):
+    """A lean representation of a cluster when returned from an API call"""
+
     id: str
-    name: str
-    node_pool: str | None = None
+    node_pool: str
+    # Optional for backward compatibility
+    name: str | None = None
     provider: str | None = None
