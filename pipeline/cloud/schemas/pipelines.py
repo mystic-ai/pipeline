@@ -4,7 +4,7 @@ from enum import Enum
 
 from pipeline.cloud.compute_requirements import Accelerator
 from pipeline.cloud.schemas import BaseModel, pagination
-from pipeline.cloud.schemas.cluster import PipelineClusterConfig
+from pipeline.cloud.schemas.cluster import PipelineClusterConfig, PipelineClusterGetLean
 from pipeline.cloud.schemas.runs import RunIOType
 
 
@@ -130,7 +130,7 @@ class PipelineGet(Pipeline):
 
     accelerators: t.Optional[t.List[Accelerator]]
 
-    cluster: PipelineClusterConfig | None = None
+    cluster: PipelineClusterGetLean | None = None
 
     extras: t.Optional[dict]
     #: The name of the scaling configuration
