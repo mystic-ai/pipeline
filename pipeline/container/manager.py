@@ -123,6 +123,7 @@ class Manager:
             file_path = Path(local_path)
             file_path.parent.mkdir(parents=True, exist_ok=True)
             try:
+                # Use the encoded URL for retrieving the file
                 request.urlretrieve(encoded_url, local_path)
             # This should not be raise due to encoded_url, but including it in case
             except InvalidURL:
