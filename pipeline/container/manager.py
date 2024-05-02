@@ -115,7 +115,7 @@ class Manager:
 
         if hasattr(file, "url") and file.url is not None:
             # Encode the URL to handle spaces and other non-URL-safe characters
-            encoded_url = run_schemas.RunInput.encode_url(file.url.geturl(), safe="/:")
+            encoded_url = run_schemas.RunInput.encode_url(file.url.geturl())
             cache_name = hashlib.md5(file.url.geturl().encode()).hexdigest()
 
             file_name = file.url.geturl().split("/")[-1]
