@@ -209,7 +209,7 @@ class RunResult(BaseModel):
 
 
 class RunInput(BaseModel):
-    type: str
+    type: RunIOType
     value: t.Any
     file_name: t.Optional[str]
     file_path: t.Optional[str]
