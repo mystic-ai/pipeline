@@ -208,11 +208,15 @@ class RunResult(BaseModel):
         return output_array
 
 
-import typing as t
 from urllib.parse import quote, unquote
 
 from pydantic import BaseModel, validator
+import typing as t
+from urllib.parse import quote, unquote
 
+from pydantic import BaseModel, validator, root_validator
+import typing as t
+from urllib.parse import quote, unquote
 
 class RunInput(BaseModel):
     type: str
@@ -229,20 +233,24 @@ class RunInput(BaseModel):
             return quote(v, safe="/:")
         return v
 
-    @classmethod
-    def encode_nested_urls(cls, value):
+    @staticmethod
+    def encode_nested_urls(value):
         if isinstance(value, dict):
             for key, val in value.items():
-                if key == "file_url":
-                    setattr(value, key, cls.encode_url(val.file_url))
-                elif isinstance(val, dict):
-                    cls.encode_nested_urls(val)
+                if key == "file_url" and isinstance(val, str):
+                    value[key] = RunInput.encode_url(val)
+                elif isinstance(val, (dict, list)):
+                    RunInput.encode_nested_urls(val)
+        elif isinstance(value, list):
+            for item in value:
+                RunInput.encode_nested_urls(item)
         return value
 
-    @validator("value", pre=True, always=True)
-    def handle_nested_inputs(cls, v):
-        return cls.encode_nested_urls(v)
-
+    @root_validator(pre=True)
+    def handle_nested_inputs(cls, values):
+        if 'value' in values:
+            values['value'] = cls.encode_nested_urls(values['value'])
+        return values
 
 class ContainerRunErrorType(str, Enum):
     input_error = "input_error"
