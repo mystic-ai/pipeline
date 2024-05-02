@@ -4,6 +4,7 @@ import os
 import traceback
 import typing as t
 import urllib.parse
+from http.client import InvalidURL
 from pathlib import Path
 from types import NoneType, UnionType
 from urllib import request
@@ -113,14 +114,23 @@ class Manager:
         local_host_dir = "/tmp"
 
         if hasattr(file, "url") and file.url is not None:
+            # Encode the URL to handle spaces and other non-URL-safe characters
+            encoded_url = run_schemas.RunInput.encode_url(file.url.geturl())
             cache_name = hashlib.md5(file.url.geturl().encode()).hexdigest()
 
             file_name = file.url.geturl().split("/")[-1]
             local_path = f"{local_host_dir}/{cache_name}/{file_name}"
             file_path = Path(local_path)
             file_path.parent.mkdir(parents=True, exist_ok=True)
+            try:
+                # Use the encoded URL for retrieving the file
+                request.urlretrieve(encoded_url, local_path)
+            # This should not be raise due to encoded_url, but including it in case
+            except InvalidURL:
+                raise Exception("The file to download has an invalid URL.")
+            except Exception:
+                raise Exception("Error downloading file.")
 
-            request.urlretrieve(file.url.geturl(), local_path)
         elif file.remote_id is not None or file.path is not None:
             local_path = Path(file.path)
             local_path.parent.mkdir(parents=True, exist_ok=True)
@@ -129,12 +139,6 @@ class Manager:
 
         if isinstance(file, Directory):
             raise NotImplementedError("Remote ID not implemented yet")
-
-            # file.path = Path(f"{local_host_dir}/{cache_name}_dir")
-
-            # with zipfile.ZipFile(local_path, "r") as zip_ref:
-            #     zip_ref.extractall(str(file.path))
-            # return
 
         file.path = Path(local_path)
 
