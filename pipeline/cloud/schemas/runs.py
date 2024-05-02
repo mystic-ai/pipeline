@@ -3,7 +3,7 @@ import json
 import typing as t
 from datetime import datetime
 from enum import Enum
-from urllib.parse import quote
+from urllib.parse import quote, unquote
 
 from pydantic import validator
 
@@ -213,14 +213,14 @@ class RunInput(BaseModel):
     value: t.Any
     file_name: t.Optional[str]
     file_path: t.Optional[str]
-
-    # The file URL is only populated when this schema is
-    # returned by the API, the user should never populate it
     file_url: t.Optional[str]
 
     @validator("file_url", pre=True, always=True)
     def encode_url(cls, v):
         if v is not None:
+            # Check if the URL is already encoded
+            if v != unquote(v):
+                return v  # Return as is if already encoded
             return quote(v, safe="/:")
         return v
 
