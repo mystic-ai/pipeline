@@ -8,7 +8,7 @@ from http.client import InvalidURL
 from pathlib import Path
 from types import NoneType, UnionType
 from urllib import request
-from urllib.parse import quote, urlparse
+from urllib.parse import urlparse
 
 from loguru import logger
 
