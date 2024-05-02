@@ -208,8 +208,14 @@ class RunResult(BaseModel):
         return output_array
 
 
+import typing as t
+from urllib.parse import quote, unquote
+
+from pydantic import BaseModel, validator
+
+
 class RunInput(BaseModel):
-    type: RunIOType
+    type: str
     value: t.Any
     file_name: t.Optional[str]
     file_path: t.Optional[str]
@@ -218,11 +224,24 @@ class RunInput(BaseModel):
     @validator("file_url", pre=True, always=True)
     def encode_url(cls, v):
         if v is not None:
-            # Check if the URL is already encoded
             if v != unquote(v):
                 return v  # Return as is if already encoded
             return quote(v, safe="/:")
         return v
+
+    @classmethod
+    def encode_nested_urls(cls, value):
+        if isinstance(value, dict):
+            for key, val in value.items():
+                if isinstance(val, cls):
+                    val.file_url = cls.encode_url(val.file_url)
+                elif isinstance(val, dict):
+                    cls.encode_nested_urls(val)
+        return value
+
+    @validator("value", pre=True, always=True)
+    def handle_nested_inputs(cls, v):
+        return cls.encode_nested_urls(v)
 
 
 class ContainerRunErrorType(str, Enum):
