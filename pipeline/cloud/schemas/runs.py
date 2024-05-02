@@ -228,8 +228,10 @@ class RunInput(BaseModel):
     @validator("file_url", pre=True, always=True)
     def encode_url(cls, v):
         if v is not None:
+            # check whether has already been encoded, to avoid
+            # multiple encoding
             if v != unquote(v):
-                return v  # Return as is if already encoded
+                return v
             return quote(v, safe="/:")
         return v
 
@@ -239,7 +241,7 @@ class RunInput(BaseModel):
             for key, val in value.items():
                 if key == "file_url" and isinstance(val, str):
                     value[key] = RunInput.encode_url(val)
-                elif isinstance(val, (dict, list)):
+                elif isinstance(val, dict):
                     RunInput.encode_nested_urls(val)
         elif isinstance(value, list):
             for item in value:
