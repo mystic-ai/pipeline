@@ -3,6 +3,9 @@ import json
 import typing as t
 from datetime import datetime
 from enum import Enum
+from urllib.parse import quote, unquote
+
+from pydantic import root_validator, validator
 
 from pipeline.cloud.schemas import BaseModel
 
@@ -208,12 +211,38 @@ class RunResult(BaseModel):
 class RunInput(BaseModel):
     type: RunIOType
     value: t.Any
-
     file_name: t.Optional[str]
     file_path: t.Optional[str]
-    # The file URL is only populated when this schema is
-    # returned by the API, the user should never populate it
     file_url: t.Optional[str]
+
+    @validator("file_url", pre=True, always=True)
+    def encode_url(cls, v):
+        if v is not None:
+            # check whether has already been encoded, to avoid
+            # multiple encoding
+            if v != unquote(v):
+                return v
+            return quote(v, safe="/:")
+        return v
+
+    @classmethod
+    def encode_nested_urls(cls, value):
+        if isinstance(value, dict):
+            for key, val in value.items():
+                if key == "file_url" and isinstance(val, str):
+                    value[key] = cls.encode_url(val)
+                elif isinstance(val, (dict, list)):
+                    cls.encode_nested_urls(val)
+        elif isinstance(value, list):
+            for item in value:
+                cls.encode_nested_urls(item)
+        return value
+
+    @root_validator(pre=True)
+    def handle_nested_inputs(cls, values):
+        if "value" in values:
+            values["value"] = cls.encode_nested_urls(values["value"])
+        return values
 
 
 class ContainerRunErrorType(str, Enum):
