@@ -1,5 +1,4 @@
 from pipeline.cloud.schemas.runs import RunInput, RunIOType
-from urllib.parse import quote
 
 
 def test_url_with_spaces():
@@ -100,12 +99,13 @@ def test_mixed_content_encoding():
         == "http://example.com/another%20file%20with%20space.png"
     ), "Mixed content URL file_5 should be encoded correctly"
 
-def test_nested_url_encoding():
+
+def test_run_input_list():
     input_list = [
         {
             "type": "file",
             "value": None,
-            "file_url": "https://storage.googleapis.com/catalyst-staging-v4/pipeline_files/6f/d2/image 0.jpeg"
+            "file_url": "https://storage.googleapis.com/catalyst-v4/pipeline_files/6f/d2/image 0.jpeg",  # noqa
         },
         {
             "type": "dictionary",
@@ -113,29 +113,39 @@ def test_nested_url_encoding():
                 "file_1": {
                     "type": "file",
                     "value": None,
-                    "file_url": "https://storage.googleapis.com/catalyst-staging-v4/pipeline_files/d4/99/image 0.jpeg"
+                    "file_url": "https://storage.googleapis.com/catalyst-v4/pipeline_files/d4/99/image 0.jpeg",  # noqa
                 },
                 "file_2": {
                     "type": "file",
                     "value": None,
-                    "file_url": "https://storage.googleapis.com/catalyst-staging-v4/pipeline_files/c7/81/image 0.jpeg"
-                }
-            }
-        }
+                    "file_url": "https://storage.googleapis.com/catalyst-v4/pipeline_files/c7/81/image 0.jpeg",  # noqa
+                },
+            },
+        },
     ]
 
     # Convert dictionaries to RunInput instances
     run_inputs = []
     for item in input_list:
-        if 'file_url' in item:
+        if "file_url" in item:
             run_inputs.append(RunInput(**item))
         else:
-            # Create a new dictionary for the value field where each sub-item is converted to RunInput
-            modified_value = {k: RunInput(**v) for k, v in item['value'].items()}
+            # Create a new dictionary for the value field where each sub-item
+            # is converted to RunInput
+            modified_value = {k: RunInput(**v) for k, v in item["value"].items()}
             # Create RunInput instance with the modified value
-            run_inputs.append(RunInput(type=item['type'], value=modified_value))
+            run_inputs.append(RunInput(type=item["type"], value=modified_value))
 
     # Check the encoding of URLs
-    assert run_inputs[0].file_url == "https://storage.googleapis.com/catalyst-staging-v4/pipeline_files/6f/d2/image%200.jpeg", "Top-level URL should be encoded correctly"
-    assert run_inputs[1].value['file_1'].file_url == "https://storage.googleapis.com/catalyst-staging-v4/pipeline_files/d4/99/image%200.jpeg", "Nested URL file_1 should be encoded correctly"
-    assert run_inputs[1].value['file_2'].file_url == "https://storage.googleapis.com/catalyst-staging-v4/pipeline_files/c7/81/image%200.jpeg", "Nested URL file_2 should be encoded correctly"
+    assert (
+        run_inputs[0].file_url
+        == "https://storage.googleapis.com/catalyst-v4/pipeline_files/6f/d2/image%200.jpeg"  # noqa
+    ), "Top-level URL should be encoded correctly"
+    assert (
+        run_inputs[1].value["file_1"].file_url
+        == "https://storage.googleapis.com/catalyst-v4/pipeline_files/d4/99/image%200.jpeg"  # noqa
+    ), "Nested URL file_1 should be encoded correctly"
+    assert (
+        run_inputs[1].value["file_2"].file_url
+        == "https://storage.googleapis.com/catalyst-v4/pipeline_files/c7/81/image%200.jpeg"  # noqa
+    ), "Nested URL file_2 should be encoded correctly"

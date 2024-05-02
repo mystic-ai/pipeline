@@ -5,7 +5,7 @@ from datetime import datetime
 from enum import Enum
 from urllib.parse import quote, unquote
 
-from pydantic import validator
+from pydantic import root_validator, validator
 
 from pipeline.cloud.schemas import BaseModel
 
@@ -208,16 +208,6 @@ class RunResult(BaseModel):
         return output_array
 
 
-from urllib.parse import quote, unquote
-
-from pydantic import BaseModel, validator
-import typing as t
-from urllib.parse import quote, unquote
-
-from pydantic import BaseModel, validator, root_validator
-import typing as t
-from urllib.parse import quote, unquote
-
 class RunInput(BaseModel):
     type: str
     value: t.Any
@@ -235,24 +225,25 @@ class RunInput(BaseModel):
             return quote(v, safe="/:")
         return v
 
-    @staticmethod
-    def encode_nested_urls(value):
+    @classmethod
+    def encode_nested_urls(cls, value):
         if isinstance(value, dict):
             for key, val in value.items():
                 if key == "file_url" and isinstance(val, str):
-                    value[key] = RunInput.encode_url(val)
-                elif isinstance(val, dict):
-                    RunInput.encode_nested_urls(val)
+                    value[key] = cls.encode_url(val)
+                elif isinstance(val, (dict, list)):
+                    cls.encode_nested_urls(val)
         elif isinstance(value, list):
             for item in value:
-                RunInput.encode_nested_urls(item)
+                cls.encode_nested_urls(item)
         return value
 
     @root_validator(pre=True)
     def handle_nested_inputs(cls, values):
-        if 'value' in values:
-            values['value'] = cls.encode_nested_urls(values['value'])
+        if "value" in values:
+            values["value"] = cls.encode_nested_urls(values["value"])
         return values
+
 
 class ContainerRunErrorType(str, Enum):
     input_error = "input_error"
