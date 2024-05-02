@@ -233,8 +233,8 @@ class RunInput(BaseModel):
     def encode_nested_urls(cls, value):
         if isinstance(value, dict):
             for key, val in value.items():
-                if isinstance(val, cls):
-                    val.file_url = cls.encode_url(val.file_url)
+                if key == "file_url":
+                    setattr(value, key, cls.encode_url(val.file_url))
                 elif isinstance(val, dict):
                     cls.encode_nested_urls(val)
         return value
