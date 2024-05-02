@@ -100,7 +100,7 @@ def test_mixed_content_encoding():
     ), "Mixed content URL file_5 should be encoded correctly"
 
 
-def test_run_input_list():
+def test_json_run_input_list():
     input_list = [
         {
             "type": "file",
@@ -136,7 +136,6 @@ def test_run_input_list():
             # Create RunInput instance with the modified value
             run_inputs.append(RunInput(type=item["type"], value=modified_value))
 
-    # Check the encoding of URLs
     assert (
         run_inputs[0].file_url
         == "https://storage.googleapis.com/catalyst-v4/pipeline_files/6f/d2/image%200.jpeg"  # noqa
