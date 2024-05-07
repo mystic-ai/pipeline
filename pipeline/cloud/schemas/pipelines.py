@@ -58,6 +58,8 @@ class PipelineCreate(BaseModel):
     readme: t.Optional[str]
     extras: t.Optional[dict]
 
+    experimental_registry: t.Optional[bool]
+
 
 class Pipeline(BaseModel):
     name: str
