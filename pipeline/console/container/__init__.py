@@ -387,6 +387,15 @@ def _push_container(namespace: Namespace):
 
     upload_registry = registry_info.url
 
+    experimental_registry = getattr(namespace, "experimental_registry", False)
+    if experimental_registry:
+        upload_registry = "172.202.122.36:8080"
+
+        if pipeline_config.extras:
+            pipeline_config.extras["experimental_registry"] = True
+        else:
+            pipeline_config.extras = {"experimental_registry": True}
+
     if upload_registry is None:
         raise ValueError("No upload registry found")
     image = docker_client.images.get(pipeline_name)

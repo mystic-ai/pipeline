@@ -159,6 +159,12 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         action="store_true",
         help="Overwrite existing pointers.",
     )
+    push_parser.add_argument(
+        "--experimental-registry",
+        "-e",
+        action="store_true",
+        help="Push to the experimental Rust registry.",
+    )
 
     up_parser = container_sub_parser.add_parser(
         "up",
