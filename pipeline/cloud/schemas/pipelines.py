@@ -53,6 +53,8 @@ class PipelineCreate(BaseModel):
 
     cluster: PipelineClusterConfig | None = None
 
+    scaling_config: str | None = None
+
     # Additional meta data
     description: t.Optional[str]
     readme: t.Optional[str]
