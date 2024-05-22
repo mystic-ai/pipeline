@@ -47,6 +47,7 @@ class PipelineConfig(BaseModel):
     readme: str | None = None
     extras: t.Dict[str, t.Any] | None
     cluster: cluster_schemas.PipelineClusterConfig | None = None
+    scaling_config: str | None = None
 
     class Config:
         extra = "forbid"
@@ -492,14 +493,12 @@ Please try reduce the size of your pipeline or contact mystic.ai"""
                 image=image_to_push_reg,
                 input_variables=[],
                 output_variables=[],
-                minimum_cache_number=None,
-                maximum_cache_number=None,
-                gpu_memory_min=pipeline_config.accelerator_memory,
                 accelerators=pipeline_config.accelerators,
                 description=pipeline_config.description,
                 readme=pipeline_config.readme,
                 extras=pipeline_config.extras,
                 cluster=pipeline_config.cluster,
+                scaling_config=pipeline_config.scaling_config,
             ).json()
         ),
     )
