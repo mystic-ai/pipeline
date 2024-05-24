@@ -113,7 +113,7 @@ def _create_pointer(
 
 def _up_container(namespace: Namespace):
     _print("Starting container...", "INFO")
-    config_file = Path("./pipeline.yaml")
+    config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))
 
     if not config_file.exists():
         raise FileNotFoundError(f"Config file {config_file} not found")
@@ -237,7 +237,7 @@ def _build_container(namespace: Namespace):
     _print("Starting build service...", "INFO")
     template = docker_templates.dockerfile_template
 
-    config_file = Path("./pipeline.yaml")
+    config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))
 
     if not config_file.exists():
         raise FileNotFoundError(f"Config file {config_file} not found")
@@ -276,7 +276,9 @@ def _build_container(namespace: Namespace):
         # fileobj=dockerfile_path.open("rb"),
         path="./",
         # custom_context=True,
-        dockerfile=dockerfile_path.absolute(),
+        dockerfile=Path(
+            getattr(namespace, "docker_file", "./pipeline.dockerfile")
+        ).absolute(),
         # tag="test",
         rm=True,
         decode=True,
@@ -336,7 +338,7 @@ def _push_container(namespace: Namespace):
 
     """
 
-    config_file = Path("./pipeline.yaml")
+    config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))
 
     if not config_file.exists():
         raise FileNotFoundError(f"Config file {config_file} not found")
@@ -548,7 +550,7 @@ def _init_dir(namespace: Namespace) -> None:
         extras={},
         readme="README.md",
     )
-    with open("./pipeline.yaml", "w") as f:
+    with open(getattr(namespace, "file", "./pipeline.yaml"), "w") as f:
         f.write(yaml.dump(json.loads(default_config.json()), sort_keys=False))
 
     with open("./new_pipeline.py", "w") as f:

@@ -141,6 +141,14 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
     )
     build_parser.set_defaults(func=container._build_container)
 
+    build_parser.add_argument(
+        "--docker-file",
+        "-d",
+        type=str,
+        help="Filepath to a custom Dockerfile. The auto-generated dockerfile will still be created, but NOT used.",  # noqa
+        default="./pipeline.dockerfile",
+    )
+
     push_parser = container_sub_parser.add_parser(
         "push",
         description="Push a pipeline container.",
@@ -201,3 +209,11 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         help="Name of the pipeline.",
     )
     init_parser.set_defaults(func=container._init_dir)
+
+    container_parser.add_argument(
+        "--file",
+        "-f",
+        type=str,
+        help="Filepath to a pipeline configuration yaml file.",
+        default="./pipeline.yaml",
+    )
