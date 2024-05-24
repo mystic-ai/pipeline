@@ -146,7 +146,6 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         "-d",
         type=str,
         help="Filepath to a custom Dockerfile. No dockerfile will be auto-generated!",  # noqa
-        default="./pipeline.dockerfile",
     )
 
     push_parser = container_sub_parser.add_parser(
