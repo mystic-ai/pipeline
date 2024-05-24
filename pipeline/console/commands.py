@@ -145,7 +145,7 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         "--docker-file",
         "-d",
         type=str,
-        help="Filepath to a custom Dockerfile. The auto-generated dockerfile will still be created, but NOT used.",  # noqa
+        help="Filepath to a custom Dockerfile. No dockerfile will be auto-generated!",  # noqa
         default="./pipeline.dockerfile",
     )
 

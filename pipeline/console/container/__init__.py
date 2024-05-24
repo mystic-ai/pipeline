@@ -253,32 +253,36 @@ def _build_container(namespace: Namespace):
         raise ValueError("No python runtime config found")
 
     python_runtime = pipeline_config.runtime.python
-    dockerfile_str = template.format(
-        python_version=python_runtime.version,
-        python_requirements=(
-            " ".join(python_runtime.requirements) if python_runtime.requirements else ""
-        ),
-        container_commands="".join(
-            [
-                "RUN " + command + " \n"
-                for command in pipeline_config.runtime.container_commands or []
-            ]
-        ),
-        pipeline_path=pipeline_config.pipeline_graph,
-        pipeline_name=pipeline_config.pipeline_name,
-        pipeline_image=pipeline_config.pipeline_name,
-    )
+    dockerfile_path = getattr(namespace, "docker_file", None)
+    if dockerfile_path is None:
+        dockerfile_str = template.format(
+            python_version=python_runtime.version,
+            python_requirements=(
+                " ".join(python_runtime.requirements)
+                if python_runtime.requirements
+                else ""
+            ),
+            container_commands="".join(
+                [
+                    "RUN " + command + " \n"
+                    for command in pipeline_config.runtime.container_commands or []
+                ]
+            ),
+            pipeline_path=pipeline_config.pipeline_graph,
+            pipeline_name=pipeline_config.pipeline_name,
+            pipeline_image=pipeline_config.pipeline_name,
+        )
 
-    dockerfile_path = Path("./pipeline.dockerfile")
-    dockerfile_path.write_text(dockerfile_str)
+        dockerfile_path = Path("./pipeline.dockerfile")
+        dockerfile_path.write_text(dockerfile_str)
+    else:
+        dockerfile_path = Path(dockerfile_path)
     docker_client = docker.APIClient()
     generator = docker_client.build(
         # fileobj=dockerfile_path.open("rb"),
         path="./",
         # custom_context=True,
-        dockerfile=Path(
-            getattr(namespace, "docker_file", "./pipeline.dockerfile")
-        ).absolute(),
+        dockerfile=dockerfile_path.absolute(),
         # tag="test",
         rm=True,
         decode=True,
