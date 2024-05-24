@@ -113,7 +113,7 @@ def _create_pointer(
 
 def _up_container(namespace: Namespace):
     _print("Starting container...", "INFO")
-    config_file = Path("./pipeline.yaml")
+    config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))
 
     if not config_file.exists():
         raise FileNotFoundError(f"Config file {config_file} not found")
@@ -237,7 +237,7 @@ def _build_container(namespace: Namespace):
     _print("Starting build service...", "INFO")
     template = docker_templates.dockerfile_template
 
-    config_file = Path("./pipeline.yaml")
+    config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))
 
     if not config_file.exists():
         raise FileNotFoundError(f"Config file {config_file} not found")
@@ -253,24 +253,30 @@ def _build_container(namespace: Namespace):
         raise ValueError("No python runtime config found")
 
     python_runtime = pipeline_config.runtime.python
-    dockerfile_str = template.format(
-        python_version=python_runtime.version,
-        python_requirements=(
-            " ".join(python_runtime.requirements) if python_runtime.requirements else ""
-        ),
-        container_commands="".join(
-            [
-                "RUN " + command + " \n"
-                for command in pipeline_config.runtime.container_commands or []
-            ]
-        ),
-        pipeline_path=pipeline_config.pipeline_graph,
-        pipeline_name=pipeline_config.pipeline_name,
-        pipeline_image=pipeline_config.pipeline_name,
-    )
+    dockerfile_path = getattr(namespace, "docker_file", None)
+    if dockerfile_path is None:
+        dockerfile_str = template.format(
+            python_version=python_runtime.version,
+            python_requirements=(
+                " ".join(python_runtime.requirements)
+                if python_runtime.requirements
+                else ""
+            ),
+            container_commands="".join(
+                [
+                    "RUN " + command + " \n"
+                    for command in pipeline_config.runtime.container_commands or []
+                ]
+            ),
+            pipeline_path=pipeline_config.pipeline_graph,
+            pipeline_name=pipeline_config.pipeline_name,
+            pipeline_image=pipeline_config.pipeline_name,
+        )
 
-    dockerfile_path = Path("./pipeline.dockerfile")
-    dockerfile_path.write_text(dockerfile_str)
+        dockerfile_path = Path("./pipeline.dockerfile")
+        dockerfile_path.write_text(dockerfile_str)
+    else:
+        dockerfile_path = Path(dockerfile_path)
     docker_client = docker.APIClient()
     generator = docker_client.build(
         # fileobj=dockerfile_path.open("rb"),
@@ -336,7 +342,7 @@ def _push_container(namespace: Namespace):
 
     """
 
-    config_file = Path("./pipeline.yaml")
+    config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))
 
     if not config_file.exists():
         raise FileNotFoundError(f"Config file {config_file} not found")
@@ -548,7 +554,7 @@ def _init_dir(namespace: Namespace) -> None:
         extras={},
         readme="README.md",
     )
-    with open("./pipeline.yaml", "w") as f:
+    with open(getattr(namespace, "file", "./pipeline.yaml"), "w") as f:
         f.write(yaml.dump(json.loads(default_config.json()), sort_keys=False))
 
     with open("./new_pipeline.py", "w") as f:
