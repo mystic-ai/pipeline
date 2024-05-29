@@ -166,6 +166,16 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         action="store_true",
         help="Overwrite existing pointers.",
     )
+    push_parser.add_argument(
+        "--cluster",
+        type=str,
+        help="Cluster ID for the pipeline container.",
+    )
+    push_parser.add_argument(
+        "--node-pool",
+        type=str,
+        help="Node pool name for the pipeline container.",
+    )
 
     up_parser = container_sub_parser.add_parser(
         "up",
