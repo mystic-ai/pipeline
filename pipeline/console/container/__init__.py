@@ -358,11 +358,11 @@ def _push_container(namespace: Namespace):
     cluster_id: str | None = getattr(namespace, "cluster", None)
     node_pool_id: str | None = getattr(namespace, "node_pool", None)
     # Ensure node pool arg is provided if cluster arg provided
-    if cluster_id:
-        if node_pool_id is None:
-            raise ValueError(
-                "If --cluster is provided, --node-pool must also be provided"
-            )
+    if cluster_id and node_pool_id is None:
+        raise ValueError("If --cluster is provided, --node-pool must also be provided")
+    if node_pool_id and cluster_id is None:
+        raise ValueError("If --node-pool is provided, --cluster must also be provided")
+    if cluster_id and node_pool_id:
         pipeline_config.cluster = cluster_schemas.PipelineClusterConfig(
             id=cluster_id, node_pool=node_pool_id
         )
