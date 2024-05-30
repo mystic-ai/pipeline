@@ -133,7 +133,6 @@ class InputField:
         min_length: int | None = None,
         max_length: int | None = None,
         choices: list[Any] | None = None,
-        optional: bool | None = False,
     ):
         self.default = default
         self.title = title
@@ -150,7 +149,7 @@ class InputField:
         self.min_length = min_length
         self.max_length = max_length
         self.choices = choices
-        self.optional = optional
+        self.optional = False
 
         if default is not None:
             try:
@@ -159,6 +158,9 @@ class InputField:
                 raise TypeError(
                     f"Default value {default} is invalid for field {self.title}"
                 ) from e
+
+    def set_optional(self, is_optional: bool):
+        self.optional = is_optional
 
     def _to_io_schema(self, _type: Any, _title: str) -> IOVariable:
         return IOVariable(
