@@ -115,7 +115,7 @@ class InputSchema:
         return {key: getattr(self, key) for key in self.__annotations__.keys()}
 
 
-class InputField:
+class InputField(Any):
     def __init__(
         self,
         default: Any | None = None,
