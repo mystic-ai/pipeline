@@ -32,7 +32,11 @@ interface HandlePostFileProps {
 
 async function handlePostFile({ file }: HandlePostFileProps) {
   const formData = new FormData();
-  formData.append("pfile", file);
+  const encodedFileName = encodeURIComponent(file.name);
+  formData.append(
+    "pfile",
+    new File([file], encodedFileName, { type: file.type })
+  );
 
   try {
     const fileData = await postFile({ formData });
