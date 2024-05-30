@@ -137,6 +137,7 @@ class InputField:
         min_length: int | None = None,
         max_length: int | None = None,
         choices: list[Any] | None = None,
+        optional: bool | None = None
     ):
         self.default = default
         self.title = title
@@ -153,7 +154,7 @@ class InputField:
         self.min_length = min_length
         self.max_length = max_length
         self.choices = choices
-        self.optional = False
+        self.optional = optional
 
         if default is not None:
             try:
