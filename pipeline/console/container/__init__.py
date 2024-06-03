@@ -7,6 +7,7 @@ from argparse import Namespace
 from pathlib import Path
 
 import docker
+import docker.errors
 import yaml
 from docker.types import DeviceRequest, LogConfig
 from pydantic import BaseModel
@@ -195,24 +196,28 @@ def _up_container(namespace: Namespace):
         gpu_ids = None
 
     # Stop container on python exit
-    container = docker_client.containers.run(
-        pipeline_name,
-        ports={f"{port}/tcp": int(port)},
-        stderr=True,
-        stdout=True,
-        log_config=lc,
-        remove=True,
-        auto_remove=True,
-        detach=True,
-        device_requests=(
-            [DeviceRequest(device_ids=gpu_ids, capabilities=[["gpu"]])]
-            if gpu_ids
-            else None
-        ),
-        command=run_command,
-        volumes=volumes,
-        environment=environment_variables,
-    )
+    try:
+        container = docker_client.containers.run(
+            pipeline_name,
+            ports={f"{port}/tcp": int(port)},
+            stderr=True,
+            stdout=True,
+            log_config=lc,
+            remove=True,
+            auto_remove=True,
+            detach=True,
+            device_requests=(
+                [DeviceRequest(device_ids=gpu_ids, capabilities=[["gpu"]])]
+                if gpu_ids
+                else None
+            ),
+            command=run_command,
+            volumes=volumes,
+            environment=environment_variables,
+        )
+    except docker.errors.NotFound as e:
+        _print(f"Container did not start successfully:\n{e}", "ERROR")
+        return
 
     _print(
         f"Container started on port {port}.\n\n\t\tView the live docs:\n\n\t\t\t http://localhost:{port}/redoc\n\n\t\tor live play:\n\n\t\t\t http://localhost:{port}/play\n",  # noqa
