@@ -108,6 +108,7 @@ class PipelineState(str, Enum):
     loaded = "loaded"
     load_failed = "load_failed"
     startup_failed = "startup_failed"
+    container_failed = "container_failed"
 
     # backwards compatability
     failed = "failed"
