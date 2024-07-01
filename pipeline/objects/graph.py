@@ -23,15 +23,19 @@ class InputSchema:
             if not isinstance(validation_field, InputField):
                 raise Exception("Must be InputField")
 
+            # Check if the field is optional based on the type hint
+            is_optional = "typing.Optional" in str(value) or isinstance(
+                value, UnionType
+            )
+            validation_field.set_optional(is_optional)
+
             if key not in kwargs and (
                 "typing.Optional" in str(value) or isinstance(value, UnionType)
             ):
                 setattr(self, key, validation_field.default)
                 continue
 
-            if key not in kwargs and not (
-                "typing.Optional" in str(value) or isinstance(value, UnionType)
-            ):
+            if key not in kwargs and not is_optional:
                 raise Exception(
                     f"Missing value for '{key}', if you want to make it optional, use 'typing.Optional' or the pipe operator for example: 'int | None'"  # noqa
                 )
@@ -140,7 +144,7 @@ class InputField(T):
         min_length: int | None = None,
         max_length: int | None = None,
         choices: list[Any] | None = None,
-        optional: bool | None = False,
+        optional: bool | None = None
     ):
         self.default = default
         self.title = title
@@ -166,6 +170,9 @@ class InputField(T):
                 raise TypeError(
                     f"Default value {default} is invalid for field {self.title}"
                 ) from e
+
+    def set_optional(self, is_optional: bool):
+        self.optional = is_optional
 
     def _to_io_schema(self, _type: Any, _title: str) -> IOVariable:
         return IOVariable(
