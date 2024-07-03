@@ -33,6 +33,7 @@ class IOVariable(BaseModel):
 class PipelineStartUpload(BaseModel):
     pipeline_name: str
     pipeline_tag: t.Optional[str]
+    cluster: PipelineClusterConfig | None = None
 
 
 class PipelineStartUploadResponse(BaseModel):
