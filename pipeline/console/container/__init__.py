@@ -339,12 +339,10 @@ def _build_container(namespace: Namespace):
 
 def _push_container(namespace: Namespace):
     """
-
     Upload protocol:
     1. Request upload URL from server, along with auth token
     2. Upload to URL with auth token
     3. Send complete request to server
-
     """
 
     config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))
@@ -426,10 +424,11 @@ def _push_container(namespace: Namespace):
     if registry_info.special_auth:
         start_upload_response = http.post(
             endpoint="/v4/registry/start-upload",
-            json_data={
-                "pipeline_name": pipeline_name,
-                "pipeline_tag": None,
-            },
+            json_data=pipelines_schemas.PipelineStartUpload(
+                pipeline_name=pipeline_name,
+                pipeline_tag=None,
+                cluster=pipeline_config.cluster,
+            ).dict(),
         )
         start_upload_dict = start_upload_response.json()
         upload_token = start_upload_dict.get("bearer", None)
@@ -439,11 +438,17 @@ def _push_container(namespace: Namespace):
             raise ValueError("No upload token found")
 
         # Login to upload registry
-        docker_client.login(
-            username="pipeline",
-            password=upload_token,
-            registry="http://" + upload_registry,
-        )
+        try:
+            docker_client.login(
+                username="pipeline",
+                password=upload_token,
+                registry="http://" + upload_registry,
+            )
+        except Exception as e:
+            _print(f"Failed to login to registry: {e}", "ERROR")
+            raise
+
+        _print(f"Successfully logged in to registry {upload_registry}")
 
         # Override the tag with the pipeline name from catalyst
         image_to_push = true_pipeline_name + ":" + hash_tag
@@ -509,22 +514,22 @@ Please try reduce the size of your pipeline or contact mystic.ai"""
             sys.stdout.write(print_string)
             sys.stdout.flush()
 
+    _print("Successfully pushed image to registry")
+
     new_deployment_request = http.post(
         endpoint="/v4/pipelines",
-        json_data=json.loads(
-            pipelines_schemas.PipelineCreate(
-                name=pipeline_name,
-                image=image_to_push_reg,
-                input_variables=[],
-                output_variables=[],
-                accelerators=pipeline_config.accelerators,
-                description=pipeline_config.description,
-                readme=pipeline_config.readme,
-                extras=pipeline_config.extras,
-                cluster=pipeline_config.cluster,
-                scaling_config=pipeline_config.scaling_config_name,
-            ).json()
-        ),
+        json_data=pipelines_schemas.PipelineCreate(
+            name=pipeline_name,
+            image=image_to_push_reg,
+            input_variables=[],
+            output_variables=[],
+            accelerators=pipeline_config.accelerators,
+            description=pipeline_config.description,
+            readme=pipeline_config.readme,
+            extras=pipeline_config.extras,
+            cluster=pipeline_config.cluster,
+            scaling_config=pipeline_config.scaling_config_name,
+        ).dict(),
     )
 
     new_deployment = pipelines_schemas.PipelineGet.parse_obj(
