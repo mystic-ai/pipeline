@@ -100,14 +100,8 @@ def setup_logging():
 
     use_json_logging = os.environ.get("USE_JSON_LOGGING", False)
     if use_json_logging:
-        handler = dict(
-            sink=json_log_handler,
-            colorize=False,
-        )
+        handler = dict(sink=json_log_handler, colorize=False, level="INFO")
     else:
-        handler = dict(
-            sink=default_log_handler,
-            colorize=True,
-        )
+        handler = dict(sink=default_log_handler, colorize=True, level="INFO")
     logger.configure(handlers=[handler])
     logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
