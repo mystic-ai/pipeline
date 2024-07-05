@@ -129,6 +129,13 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         description="Manage pipeline containers.",
         help="Manage pipeline containers.",
     )
+    container_parser.add_argument(
+        "--file",
+        "-f",
+        type=str,
+        help="Filepath to a pipeline configuration yaml file.",
+        default="./pipeline.yaml",
+    )
     container_parser.set_defaults(func=lambda _: container_parser.print_help())
     container_sub_parser = container_parser.add_subparsers(
         dest="target",
@@ -139,7 +146,7 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         description="Build a pipeline container.",
         help="Build a pipeline container.",
     )
-    build_parser.set_defaults(func=container._build_container)
+    build_parser.set_defaults(func=container.build_container)
 
     build_parser.add_argument(
         "--docker-file",
@@ -153,7 +160,7 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         description="Push a pipeline container.",
         help="Push a pipeline container.",
     )
-    push_parser.set_defaults(func=container._push_container)
+    push_parser.set_defaults(func=container.push_container)
     push_parser.add_argument(
         "--pointer",
         "-p",
@@ -182,7 +189,7 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         description="Start a pipeline container.",
         help="Start a pipeline container.",
     )
-    up_parser.set_defaults(func=container._up_container)
+    up_parser.set_defaults(func=container.up_container)
     up_parser.add_argument(
         "--debug",
         "-d",
@@ -217,12 +224,4 @@ def container_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> Non
         type=str,
         help="Name of the pipeline.",
     )
-    init_parser.set_defaults(func=container._init_dir)
-
-    container_parser.add_argument(
-        "--file",
-        "-f",
-        type=str,
-        help="Filepath to a pipeline configuration yaml file.",
-        default="./pipeline.yaml",
-    )
+    init_parser.set_defaults(func=container.init_dir)
