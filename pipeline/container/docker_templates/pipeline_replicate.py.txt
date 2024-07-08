@@ -1,0 +1,35 @@
+import httpx
+
+from pipeline import Pipeline, Variable, entity, pipe
+
+
+@entity
+class Replicate:
+    @pipe(run_once=True, on_startup=True)
+    def load(self) -> None:
+        # TODO - maybe check status of Replicate container?
+        pass
+
+    @pipe
+    def predict(self, {predict_args}) -> {output_type}:
+        print("Calling Replicate API...")
+        response = httpx.post(
+            "http://localhost:5000/predictions", json={{"input": {{ {api_inputs} }} }}
+        )
+        response.raise_for_status()
+        result = response.json()
+        assert result["status"] == "succeeded"
+        return result["output"]
+
+
+with Pipeline() as builder:
+    {inputs}
+
+    my_model = Replicate()
+    my_model.load()
+
+    output_var = my_model.predict({input_names})
+
+    builder.output(output_var)
+
+my_new_pipeline = builder.get_pipeline()

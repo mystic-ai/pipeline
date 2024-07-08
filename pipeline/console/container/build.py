@@ -12,10 +12,20 @@ from .schemas import PipelineConfig
 
 
 def build_container(namespace: Namespace):
-    _print("Starting build service...", "INFO")
-    template = docker_templates.dockerfile_template
+    config_file = getattr(namespace, "file", None)
+    dockerfile_path = getattr(namespace, "docker_file", None)
+    build_pipeline_container(config_file, dockerfile_path)
 
-    config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))
+
+def build_pipeline_container(
+    config_file_path: str | None = None,
+    dockerfile_path: str | None = None,
+    base_dir: Path = Path.cwd(),
+):
+    _print("Starting build service...", "INFO")
+    config_file_path = config_file_path or "pipeline.yaml"
+    config_file = base_dir / Path(config_file_path)
+    template = docker_templates.dockerfile_template
 
     if not config_file.exists():
         raise FileNotFoundError(f"Config file {config_file} not found")
@@ -31,7 +41,6 @@ def build_container(namespace: Namespace):
         raise ValueError("No python runtime config found")
 
     python_runtime = pipeline_config.runtime.python
-    dockerfile_path = getattr(namespace, "docker_file", None)
     if dockerfile_path is None:
         dockerfile_str = template.format(
             python_version=python_runtime.version,
@@ -51,14 +60,14 @@ def build_container(namespace: Namespace):
             pipeline_image=pipeline_config.pipeline_name,
         )
 
-        dockerfile_path = Path("./pipeline.dockerfile")
-        dockerfile_path.write_text(dockerfile_str)
+        dockerfile = base_dir / Path("pipeline.dockerfile")
+        dockerfile.write_text(dockerfile_str)
     else:
-        dockerfile_path = Path(dockerfile_path)
+        dockerfile = base_dir / Path(dockerfile_path)
     docker_client = docker.APIClient()
     generator = docker_client.build(
-        path="./",
-        dockerfile=dockerfile_path.absolute(),
+        path=str(base_dir),
+        dockerfile=str(dockerfile.absolute()),
         rm=True,
         decode=True,
         platform="linux/amd64",

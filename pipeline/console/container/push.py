@@ -135,6 +135,19 @@ def push_container(namespace: Namespace):
         image_to_push = true_pipeline_name + ":" + hash_tag
         image_to_push_reg = upload_registry + "/" + image_to_push
 
+    extras = pipeline_config.extras or {}
+    if extras.get("wrapping", {}).get("framework", {}) == "cog":
+        cog_image = extras.get("wrapping", {}).get("image", None)
+        assert cog_image
+        cog_image_to_push = upload_registry + "/" + cog_image
+        docker_client.images.get(cog_image).tag(cog_image_to_push)
+        _print(f"Pushing cog image to upload registry {upload_registry}", "INFO")
+        _push_docker_image(
+            docker_client=docker_client,
+            image=cog_image_to_push,
+            upload_token=upload_token,
+        )
+
     _print(f"Pushing image to upload registry {upload_registry}", "INFO")
 
     docker_client.images.get(pipeline_name).tag(image_to_push_reg)

@@ -22,6 +22,12 @@ class RuntimeConfig(BaseModel):
         extra = "forbid"
 
 
+class Converter(BaseModel):
+    # TODO - add enum?
+    framework: str
+    options: dict[str, t.Any] | None
+
+
 class PipelineConfig(BaseModel):
     runtime: RuntimeConfig
     accelerators: list[Accelerator] = []
@@ -33,6 +39,7 @@ class PipelineConfig(BaseModel):
     extras: dict[str, t.Any] | None
     cluster: cluster_schemas.PipelineClusterConfig | None = None
     scaling_config_name: str | None = None
+    converter: Converter | None = None
 
     class Config:
         extra = "forbid"
