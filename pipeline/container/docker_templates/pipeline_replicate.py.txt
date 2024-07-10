@@ -1,20 +1,44 @@
+import time
+
 import httpx
 
 from pipeline import Pipeline, Variable, entity, pipe
+from pipeline.objects.graph import InputField, InputSchema
 
+
+class ModelKwargs(InputSchema):
+    {input_fields}
 
 @entity
 class Replicate:
     @pipe(run_once=True, on_startup=True)
     def load(self) -> None:
-        # TODO - maybe check status of Replicate container?
-        pass
+        max_retries = 100
+        i = 0
+        while i < max_retries:
+            i += 1
+            try:
+                response = httpx.get("http://localhost:5000/health-check")
+                result = response.json()
+                status = result["status"]
+                if status == "READY":
+                    print("Cog model ready")
+                    return
+                elif status == "STARTING":
+                    print("Cog model starting...")
+                elif status == "SETUP_FAILED":
+                    logs = result["setup"].get("logs")
+                    raise Exception(f"Cog model setup failed: {{logs}}")
+            except Exception:
+                pass
+            time.sleep(5)
+        raise Exception("Cog model failed to load")
 
     @pipe
-    def predict(self, {predict_args}) -> {output_type}:
+    def predict(self, kwargs: ModelKwargs) -> {output_type}:
         print("Calling Replicate API...")
         response = httpx.post(
-            "http://localhost:5000/predictions", json={{"input": {{ {api_inputs} }} }}
+            "http://localhost:5000/predictions", timeout=300, json={{"input": {{ {api_inputs} }} }}
         )
         response.raise_for_status()
         result = response.json()
@@ -23,12 +47,16 @@ class Replicate:
 
 
 with Pipeline() as builder:
-    {inputs}
+    kwargs = Variable(
+        ModelKwargs,
+        description="Model arguments",
+        title="Model arguments",
+    )
 
     my_model = Replicate()
     my_model.load()
 
-    output_var = my_model.predict({input_names})
+    output_var = my_model.predict(kwargs)
 
     builder.output(output_var)
 

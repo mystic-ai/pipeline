@@ -11,14 +11,12 @@ from pipeline.util.logging import _print
 from .build import build_pipeline_container
 from .schemas import Converter, PipelineConfig, PythonRuntime, RuntimeConfig
 
-# TODO - add defaults to inputs
-
 PIPELINE_INPUT_TEMPLATE = """
-    {input_name} = Variable(
-        {input_type},
+    {input_name}: {input_type} | None = InputField(
+        title="{title}",
         description="{desc}",
-        title="{title}"
-        default={default}
+        default={default},
+        optional=True,
     )
 """
 
@@ -124,8 +122,6 @@ def _generate_pipeline_code():
     )
 
     inputs_python = []
-    input_names = []
-    predict_args = []
     api_inputs = []
     for name, val in inputs.items():
         if "type" not in val:
@@ -134,18 +130,20 @@ def _generate_pipeline_code():
         python_type = TYPES_MAP.get(val["type"])
         if not python_type:
             raise ValueError(f"Unknown model input type found: {val['type']}")
+
+        default = val.get("default", None)
+        if default is not None:
+            default = json.dumps(default)
         inputs_python.append(
             PIPELINE_INPUT_TEMPLATE.format(
                 input_name=name,
                 input_type=python_type,
                 desc=val.get("description", ""),
                 title=val.get("title", name),
-                default=val.get("default", None),
+                default=default,
             )
         )
-        input_names.append(name)
-        predict_args.append(f"{name}: {python_type}")
-        api_inputs.append(f'"{name}": {name}')
+        api_inputs.append(f'"{name}": kwargs.{name}')
 
     schema_output = schema.get("components", {}).get("schemas", {}).get("Output", {})
     schema_output_type = schema_output.get("type")
@@ -164,9 +162,7 @@ def _generate_pipeline_code():
 
     python_template = docker_templates.pipeline_replicate_template
     pipeline_code = python_template.format(
-        input_names=", ".join(input_names),
-        inputs="".join(inputs_python),
-        predict_args=", ".join(predict_args),
+        input_fields="".join(inputs_python),
         api_inputs=", ".join(api_inputs),
         output_type=python_output_type,
     )
