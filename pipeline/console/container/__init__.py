@@ -240,6 +240,7 @@ def _up_container(namespace: Namespace):
 
 def _build_container(namespace: Namespace):
     _print("Starting build service...", "INFO")
+
     template = docker_templates.dockerfile_template
 
     config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))
@@ -251,6 +252,9 @@ def _build_container(namespace: Namespace):
     pipeline_config_yaml = yaml.load(config, Loader=yaml.FullLoader)
 
     pipeline_config = PipelineConfig.parse_obj(pipeline_config_yaml)
+
+    if pipeline_config.extras and "turbo_registry" in pipeline_config.extras:
+        template = docker_templates.turbo_registry_template
 
     if not pipeline_config.runtime:
         raise ValueError("No runtime config found")
@@ -407,7 +411,11 @@ def _push_container(namespace: Namespace):
 
     docker_client = docker.from_env(timeout=300)
 
-    registry_info = http.get(endpoint="/v4/registry")
+    registry_params = {}
+    if pipeline_config.extras and "turbo_registry" in pipeline_config.extras:
+        registry_params["turbo_registry"] = "yes"
+
+    registry_info = http.get(endpoint="/v4/registry", params=registry_params)
     registry_info = registry_schemas.RegistryInformation.parse_raw(registry_info.text)
 
     upload_registry = registry_info.url
