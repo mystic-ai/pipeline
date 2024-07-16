@@ -240,7 +240,6 @@ def _up_container(namespace: Namespace):
 
 def _build_container(namespace: Namespace):
     _print("Starting build service...", "INFO")
-
     template = docker_templates.dockerfile_template
 
     config_file = Path(getattr(namespace, "file", "./pipeline.yaml"))

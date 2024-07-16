@@ -7,7 +7,7 @@ runtime:
     requirements:
       - pipeline-ai
       - tweet-preprocessor==0.6.0
-      - torch==2.3.1
+      - torch==2.0.1
       - transformers==4.32.0
 accelerators: ["nvidia_t4"]
 accelerator_memory: null
@@ -15,5 +15,4 @@ pipeline_graph: new_pipeline:my_new_pipeline
 pipeline_name: twitter-roberta-base-sentiment
 description: null
 readme: null
-extras:
-  turbo_registry: "yes"
+extras: {}
