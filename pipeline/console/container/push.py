@@ -87,7 +87,7 @@ def push_container(namespace: Namespace):
     docker_client: docker.DockerClient = docker.from_env(timeout=600)
 
     registry_params = {}
-    if pipeline_config.extras and "turbo_registry" in pipeline_config.extras:
+    if pipeline_config.extras and pipeline_config.extras.get("turbo_registry", False):
         registry_params["turbo_registry"] = "yes"
 
     registry_info = http.get(endpoint="/v4/registry", params=registry_params)
