@@ -25,6 +25,9 @@ def build_container(namespace: Namespace):
 
     pipeline_config = PipelineConfig.parse_obj(pipeline_config_yaml)
 
+    if pipeline_config.extras and pipeline_config.extras.get("turbo_registry", False):
+        template = docker_templates.turbo_registry_template
+
     if not pipeline_config.runtime:
         raise ValueError("No runtime config found")
     if not pipeline_config.runtime.python:

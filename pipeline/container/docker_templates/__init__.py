@@ -13,3 +13,4 @@ def _read_template(template_name: str) -> str:
 dockerfile_template = _read_template("dockerfile_template.txt")
 pipeline_template_python = _read_template("pipeline_template.py")
 readme_template = _read_template("readme_template.md")
+turbo_registry_template = _read_template("turbo_registry_template.txt")
