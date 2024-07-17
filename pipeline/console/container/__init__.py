@@ -252,7 +252,7 @@ def _build_container(namespace: Namespace):
 
     pipeline_config = PipelineConfig.parse_obj(pipeline_config_yaml)
 
-    if pipeline_config.extras and "turbo_registry" in pipeline_config.extras:
+    if pipeline_config.extras and pipeline_config.extras.get("turbo_registry", False):
         template = docker_templates.turbo_registry_template
 
     if not pipeline_config.runtime:
@@ -411,7 +411,7 @@ def _push_container(namespace: Namespace):
     docker_client = docker.from_env(timeout=300)
 
     registry_params = {}
-    if pipeline_config.extras and "turbo_registry" in pipeline_config.extras:
+    if pipeline_config.extras and pipeline_config.extras.get("turbo_registry", False):
         registry_params["turbo_registry"] = "yes"
 
     registry_info = http.get(endpoint="/v4/registry", params=registry_params)
