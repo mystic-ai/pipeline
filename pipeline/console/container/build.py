@@ -63,27 +63,29 @@ def build_container(namespace: Namespace):
         dockerfile_path = Path(dockerfile_path)
         
     docker_client = docker.APIClient()
-    dockerfile_obj = dockerfile_path.open("rb")
-    generator = docker_client.build(
-        fileobj=dockerfile_obj,
-        rm=True,
-        decode=True,
-        platform="linux/amd64",
-    )
-    docker_image_id = None
-    while True:
-        try:
-            output = generator.__next__()
-            if "aux" in output:
-                docker_image_id = output["aux"]["ID"]
-            if "stream" in output:
-                _print(output["stream"].strip("\n"))
-            if "errorDetail" in output:
-                raise Exception(output["errorDetail"])
-        except StopIteration:
-            _print("Docker image build complete.")
-            break
-
+    with dockerfile_path.open("rb") as dockerfile_obj:
+        generator = docker_client.build(
+            fileobj=dockerfile_obj,
+            rm=True,
+            decode=True,
+            platform="linux/amd64",
+        )
+        docker_image_id = None
+        while True:
+            try:
+                output = generator.__next__()
+                if "aux" in output:
+                    docker_image_id = output["aux"]["ID"]
+                if "stream" in output:
+                    _print(output["stream"].strip("\n"))
+                if "errorDetail" in output:
+                    raise Exception(output["errorDetail"])
+            except StopIteration:
+                _print("Docker image build complete.")
+                break
+    
+    
+    
     docker_client = docker.from_env()
     new_container = docker_client.images.get(docker_image_id)
 
