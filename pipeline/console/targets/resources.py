@@ -45,24 +45,28 @@ def list_resources() -> None:
                 for cached_pipelines in resource["pipeline_cache"].values()
                 for p_id in cached_pipelines
             ],
-            _shorten_id(str(resource["current_run"]))
-            if (resource["busy"] == 1 and resource["current_run"] != -1)
-            else "-",
+            (
+                _shorten_id(str(resource["current_run"]))
+                if (resource["busy"] == 1 and resource["current_run"] != -1)
+                else "-"
+            ),
             [_shorten_id(id) for id in resource["run_queue"]],
-            "cpu"
-            if not (accelerators := resource.get("gpus", None))
-            else (
+            (
                 "cpu"
-                if "cpu" in accelerators
-                else "\n".join(
-                    [
-                        f"{[accel['name'] for accel in accelerators].count(accelerator)}× {Accelerator.from_str(accelerator)} ({round(sum([accel['vram_total_mb'] for accel in accelerators if accel['name'] == accelerator]) / 1024.0, 1)}GB VRAM)"  # noqa E501
-                        for accelerator in set(
-                            [accel["name"] for accel in accelerators]
-                        )
-                    ]
+                if not (accelerators := resource.get("gpus", None))
+                else (
+                    "cpu"
+                    if "cpu" in accelerators
+                    else "\n".join(
+                        [
+                            f"{[accel['name'] for accel in accelerators].count(accelerator)}× {Accelerator.from_str(accelerator)} ({round(sum([accel['vram_total_mb'] for accel in accelerators if accel['name'] == accelerator]) / 1024.0, 1)}GB VRAM)"  # noqa E501
+                            for accelerator in set(
+                                [accel["name"] for accel in accelerators]
+                            )
+                        ]
+                    )
                 )
-            )
+            ),
             # "N/A"
             # if resource["gpus"] is None
             # else [gpu["name"].strip() for gpu in resource["gpus"]],

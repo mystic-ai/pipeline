@@ -61,7 +61,7 @@ def build_container(namespace: Namespace):
         dockerfile_path.write_text(dockerfile_str)
     else:
         dockerfile_path = Path(dockerfile_path)
-        
+
     docker_client = docker.APIClient()
     with dockerfile_path.open("rb") as dockerfile_obj:
         generator = docker_client.build(
@@ -83,9 +83,7 @@ def build_container(namespace: Namespace):
             except StopIteration:
                 _print("Docker image build complete.")
                 break
-    
-    
-    
+
     docker_client = docker.from_env()
     new_container = docker_client.images.get(docker_image_id)
 
