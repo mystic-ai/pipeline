@@ -61,10 +61,11 @@ def build_container(namespace: Namespace):
         dockerfile_path.write_text(dockerfile_str)
     else:
         dockerfile_path = Path(dockerfile_path)
+        
     docker_client = docker.APIClient()
+    dockerfile_obj = dockerfile_path.open("rb")
     generator = docker_client.build(
-        path="./",
-        dockerfile=dockerfile_path.absolute(),
+        fileobj=dockerfile_obj,
         rm=True,
         decode=True,
         platform="linux/amd64",
