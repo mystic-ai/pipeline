@@ -116,9 +116,11 @@ def _get(namespace: Namespace) -> None:
         return
 
     remotes = [
-        f"{_remote} (active)"
-        if _remote is current_configuration.active_remote
-        else f"{_remote}"
+        (
+            f"{_remote} (active)"
+            if _remote is current_configuration.active_remote
+            else f"{_remote}"
+        )
         for _remote in current_configuration.remotes
     ]
 

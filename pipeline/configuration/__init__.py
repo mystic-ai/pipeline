@@ -10,9 +10,11 @@ from pydantic import BaseModel
 PIPELINE_DIR = Path(
     os.getenv(
         "PIPELINE_DIR",
-        Path(os.getenv("LOCALAPPDATA")) / ".pipeline/"
-        if (sys.platform == "win32" or sys.platform == "cygwin")
-        else Path.home() / ".pipeline/",
+        (
+            Path(os.getenv("LOCALAPPDATA")) / ".pipeline/"
+            if (sys.platform == "win32" or sys.platform == "cygwin")
+            else Path.home() / ".pipeline/"
+        ),
     )
 )
 

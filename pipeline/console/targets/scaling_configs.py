@@ -59,9 +59,11 @@ def _get_scaling_config(args: Namespace) -> None:
         [
             scaling["id"],
             scaling["name"],
-            datetime.fromtimestamp(scaling.get("created_at"))
-            if "created_at" in scaling
-            else "N/A",
+            (
+                datetime.fromtimestamp(scaling.get("created_at"))
+                if "created_at" in scaling
+                else "N/A"
+            ),
             scaling["type"],
             scaling["args"],
         ]
