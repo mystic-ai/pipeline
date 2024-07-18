@@ -249,4 +249,5 @@ class Manager:
                 raise
             except Exception as exc:
                 raise RunnableError(exception=exc, traceback=traceback.format_exc())
+            logger.info("Run successful")
             return result

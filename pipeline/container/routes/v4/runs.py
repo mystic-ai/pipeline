@@ -49,7 +49,7 @@ async def run(
         response_queue: asyncio.Queue = asyncio.Queue()
         execution_queue.put_nowait((run_create, response_queue))
         run_output = await response_queue.get()
-
+        logger.info("Returning run result")
         response_schema, response.status_code = _generate_run_result(run_output)
         return response_schema
 
