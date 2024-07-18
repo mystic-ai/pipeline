@@ -25,7 +25,10 @@ def build_container(namespace: Namespace):
 
     pipeline_config = PipelineConfig.parse_obj(pipeline_config_yaml)
 
-    if pipeline_config.extras and pipeline_config.extras.get("turbo_registry", False):
+    turbo_registry = pipeline_config.extras and pipeline_config.extras.get(
+        "turbo_registry", False
+    )
+    if turbo_registry:
         template = docker_templates.turbo_registry_template
 
     if not pipeline_config.runtime:
@@ -82,6 +85,14 @@ def build_container(namespace: Namespace):
 
     docker_client = docker.from_env()
     new_container = docker_client.images.get(docker_image_id)
+
+    if turbo_registry:
+        if len(new_container.attrs["RootFS"]["Layers"]) > 1:
+            _print(
+                f"Turbo registry image built with multiple layers, this will cause issues with cold start optimization. Please contact Mystic support at support@mystic.ai",  # noqa
+                "ERROR",
+            )
+            raise Exception("Failed to build")
 
     created_image_full_id = new_container.id.split(":")[1]
     created_image_short_id = created_image_full_id[:12]

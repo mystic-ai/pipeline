@@ -87,7 +87,10 @@ def push_container(namespace: Namespace):
     docker_client: docker.DockerClient = docker.from_env(timeout=600)
 
     registry_params = {}
-    if pipeline_config.extras and pipeline_config.extras.get("turbo_registry", False):
+    turbo_registry = pipeline_config.extras and pipeline_config.extras.get(
+        "turbo_registry", False
+    )
+    if turbo_registry:
         registry_params["turbo_registry"] = "yes"
 
     registry_info = http.get(endpoint="/v4/registry", params=registry_params)
@@ -148,7 +151,10 @@ def push_container(namespace: Namespace):
         pipeline_name = true_pipeline_name
 
     _push_docker_image(
-        docker_client=docker_client, image=image_to_push_reg, upload_token=upload_token
+        docker_client=docker_client,
+        image=image_to_push_reg,
+        upload_token=upload_token,
+        turbo_registry=turbo_registry,
     )
 
     new_deployment_request = http.post(
@@ -183,8 +189,19 @@ def push_container(namespace: Namespace):
 
 
 def _push_docker_image(
-    docker_client: docker.DockerClient, image: str, upload_token: str
+    docker_client: docker.DockerClient,
+    image: str,
+    upload_token: str,
+    turbo_registry: bool,
 ):
+    inspect = docker_client.images.get(image)
+    if turbo_registry:
+        if len(inspect.attrs["RootFS"]["Layers"]) > 1:
+            _print(
+                f"Turbo registry image contains multiple layers, this will cause issues with cold start optimization. Please contact Mystic support at support@mystic.ai",  # noqa
+                "ERROR",
+            )
+            raise Exception("Failed to push")
     resp = docker_client.images.push(
         image,
         stream=True,
