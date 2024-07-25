@@ -124,6 +124,7 @@ def push_container(namespace: Namespace):
                 pipeline_name=pipeline_name,
                 pipeline_tag=None,
                 cluster=pipeline_config.cluster,
+                turbo_registry=True if turbo_registry else False,
             ).dict(),
         )
         start_upload_dict = start_upload_response.json()
