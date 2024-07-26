@@ -61,4 +61,4 @@ jobs:
           poetry install --no-interaction
       - name: test
         run: |
-          poetry run pytest
+          PYTHONASYNCIODEBUG=1 poetry run pytest

@@ -1,9 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-
-# from fastapi.testclient import TestClient
-from httpx import AsyncClient
+from fastapi.testclient import TestClient
 
 from pipeline.cloud.schemas import pipelines as pipeline_schemas
 from pipeline.cloud.schemas import runs as run_schemas
@@ -21,27 +19,19 @@ class DummyManager:
         return []
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 async def mock_manager():
-    # print(f"mock manager fixture; loop={id(asyncio.get_running_loop())}")
     with patch("pipeline.container.startup.Manager", DummyManager) as mock:
         yield mock
 
 
-# not quite sure why but session scope needed to ensure event loop is shared
-# across fixtures and tests
-# think this may be addressed in https://github.com/pytest-dev/pytest-asyncio/pull/871
-@pytest.fixture(scope="session")
+@pytest.fixture
 async def app(mock_manager):
-    # print(f"app fixture; loop={id(asyncio.get_running_loop())}")
     app = create_app()
-    yield app
-    app.state.execution_task.cancel()
+    return app
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 async def client(app):
-    # print(f"client fixture; loop={id(asyncio.get_running_loop())}")
-    # with TestClient(app) as client:
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    with TestClient(app) as client:
         yield client
