@@ -98,7 +98,7 @@ class Manager:
                 self.pipeline._startup()
             except Exception:
                 tb = traceback.format_exc()
-                logger.exception("Exception raised during pipeline execution")
+                logger.exception("Exception raised during pipeline startup")
                 self.pipeline_state = pipeline_schemas.PipelineState.startup_failed
                 self.pipeline_state_message = tb
             else:
