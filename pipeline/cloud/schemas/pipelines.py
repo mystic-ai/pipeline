@@ -35,6 +35,7 @@ class PipelineStartUpload(BaseModel):
     pipeline_tag: t.Optional[str]
     cluster: PipelineClusterConfig | None = None
     turbo_registry: bool = False
+    accelerators: list[Accelerator] = []
 
 
 class PipelineStartUploadResponse(BaseModel):
