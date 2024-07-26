@@ -16,7 +16,11 @@ class DummyManager:
         self.pipeline_state = pipeline_schemas.PipelineState.loaded
 
     def run(self, run_id: str | None, input_data: list[run_schemas.RunInput] | None):
-        return []
+        # sum the inputs
+        result = 0
+        for input in input_data or []:
+            result += input.value
+        return [result]
 
 
 @pytest.fixture
