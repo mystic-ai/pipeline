@@ -36,7 +36,9 @@ def create_app() -> FastAPI:
             "",
         )
     )
-    asyncio.create_task(execution_handler(app.state.execution_queue, app.state.manager))
+    app.state.execution_task = asyncio.create_task(
+        execution_handler(app.state.execution_queue, app.state.manager)
+    )
 
     app.include_router(router)
     app.include_router(status_router)
