@@ -24,8 +24,6 @@ class ModelKwargs(InputSchema):
 
 @entity
 class WhisperModel:
-    def __init__(self):
-        ...
 
     @pipe(on_startup=True, run_once=True)
     def load(self):

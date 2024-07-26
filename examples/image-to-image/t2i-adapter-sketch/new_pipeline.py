@@ -108,8 +108,6 @@ class ModelKwargs(InputSchema):
 
 @entity
 class DiffusionWithAdapter:
-    def __init__(self) -> None:
-        ...
 
     def apply_style(
         self, style_name: str, positive: str, negative: str = ""

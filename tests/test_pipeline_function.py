@@ -52,7 +52,7 @@ def test_function_tuple_output():
 
     @pipe
     def test_function_2(input_1: str):
-        ...
+        pass
 
     with pytest.raises(Exception):
         with Pipeline() as builder:

@@ -6,11 +6,6 @@ class Pipeline:
     _current_pipeline: Graph
     _pipeline_context_active: bool = False
 
-    def __init__(
-        self,
-    ):
-        ...
-
     def __enter__(self):
         Pipeline._pipeline_context_active = True
 
