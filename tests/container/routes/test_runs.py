@@ -38,29 +38,25 @@ class TestCreateRun:
         assert result.error is None
         assert result.outputs == [run_schemas.RunOutput(type="integer", value=15)]
 
-    async def test_when_pipeline_failed_to_load(self, get_test_client):
+    async def test_when_pipeline_failed_to_load(self, client_failed_pipeline):
+        client = client_failed_pipeline
+        payload = run_schemas.ContainerRunCreate(
+            run_id="run_123",
+            inputs=[
+                run_schemas.RunInput(type="integer", value=5),
+                run_schemas.RunInput(type="integer", value=4),
+            ],
+        )
+        response = await client.post("/v4/runs", json=payload.dict())
 
-        # use invalid path to simulate pipeline failed error
-        async with get_test_client(
-            pipeline_path="tests.container.fixtures.oops:my_pipeline"
-        ) as client:
-            payload = run_schemas.ContainerRunCreate(
-                run_id="run_123",
-                inputs=[
-                    run_schemas.RunInput(type="integer", value=5),
-                    run_schemas.RunInput(type="integer", value=4),
-                ],
-            )
-            response = await client.post("/v4/runs", json=payload.dict())
-
-            assert response.status_code == status.HTTP_200_OK
-            result = run_schemas.ContainerRunResult.parse_obj(response.json())
-            assert result.outputs is None
-            assert result.error is not None
-            error = run_schemas.ContainerRunError.parse_obj(result.error)
-            assert error.type == run_schemas.ContainerRunErrorType.startup_error
-            assert error.message == "Pipeline failed to load"
-            assert error.traceback is not None
+        assert response.status_code == status.HTTP_200_OK
+        result = run_schemas.ContainerRunResult.parse_obj(response.json())
+        assert result.outputs is None
+        assert result.error is not None
+        error = run_schemas.ContainerRunError.parse_obj(result.error)
+        assert error.type == run_schemas.ContainerRunErrorType.startup_error
+        assert error.message == "Pipeline failed to load"
+        assert error.traceback is not None
 
     async def test_when_invalid_inputs(self, client):
         payload = run_schemas.ContainerRunCreate(

@@ -27,7 +27,7 @@ router = APIRouter(prefix="/container")
     },
 )
 async def is_ready(request: Request, response: Response):
-    run_manager = request.app.state.manager
+    run_manager: Manager = request.app.state.manager
     if run_manager.pipeline_state in [
         pipeline_schemas.PipelineState.loading,
         pipeline_schemas.PipelineState.not_loaded,
@@ -42,6 +42,7 @@ async def is_ready(request: Request, response: Response):
     return pipeline_schemas.PipelineContainerState(
         state=run_manager.pipeline_state,
         message=run_manager.pipeline_state_message,
+        current_run_id=run_manager.current_run_id,
     )
 
 

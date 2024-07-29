@@ -32,3 +32,12 @@ async def client(get_test_client):
         pipeline_path="tests.container.fixtures.adder_pipeline:my_pipeline"
     ) as client:
         yield client
+
+
+@pytest.fixture
+async def client_failed_pipeline(get_test_client):
+    # use invalid path to simulate pipeline failed error
+    async with get_test_client(
+        pipeline_path="tests.container.fixtures.oops:my_pipeline"
+    ) as client:
+        yield client
