@@ -120,7 +120,7 @@ class PipelineState(str, Enum):
 class PipelineContainerState(BaseModel):
     state: PipelineState
     message: str | None
-    current_run_id: str | None
+    current_run: str | None
 
 
 class PipelineScalingInfo(BaseModel):

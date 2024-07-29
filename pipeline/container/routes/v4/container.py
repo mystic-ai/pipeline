@@ -42,7 +42,7 @@ async def is_ready(request: Request, response: Response):
     return pipeline_schemas.PipelineContainerState(
         state=run_manager.pipeline_state,
         message=run_manager.pipeline_state_message,
-        current_run_id=run_manager.current_run_id,
+        current_run=run_manager.current_run,
     )
 
 
