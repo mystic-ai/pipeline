@@ -10,7 +10,7 @@ from pipeline.cloud.compute_requirements import Accelerator
 
 
 def create_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
-    ...
+    pass
 
 
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
@@ -21,7 +21,7 @@ def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 
 
 def delete_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
-    ...
+    pass
 
 
 # Functions

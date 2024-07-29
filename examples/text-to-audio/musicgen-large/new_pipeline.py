@@ -4,8 +4,6 @@ from pipeline.objects import File
 
 @entity
 class MusicgenModel:
-    def __init__(self):
-        ...
 
     @pipe(on_startup=True, run_once=True)
     def load(self):

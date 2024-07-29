@@ -52,7 +52,7 @@ def use_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
 
 
 def remove_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:
-    ...
+    pass
 
 
 def get_parser(command_parser: "_SubParsersAction[ArgumentParser]") -> None:

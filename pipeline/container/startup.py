@@ -2,6 +2,7 @@ import asyncio
 import os
 import traceback
 import uuid
+from contextlib import asynccontextmanager
 
 import pkg_resources
 from fastapi import FastAPI, Request
@@ -20,23 +21,12 @@ from pipeline.container.status import router as status_router
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(
-        title="pipeline-container",
-    )
+    app = FastAPI(title="pipeline-container", lifespan=lifespan)
 
     setup_logging()
 
     setup_oapi(app)
     setup_middlewares(app)
-
-    app.state.execution_queue = asyncio.Queue()
-    app.state.manager = Manager(
-        pipeline_path=os.environ.get(
-            "PIPELINE_PATH",
-            "",
-        )
-    )
-    asyncio.create_task(execution_handler(app.state.execution_queue, app.state.manager))
 
     app.include_router(router)
     app.include_router(status_router)
@@ -51,6 +41,22 @@ def create_app() -> FastAPI:
     )
 
     return app
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    app.state.execution_queue = asyncio.Queue()
+    app.state.manager = Manager(
+        pipeline_path=os.environ.get(
+            "PIPELINE_PATH",
+            "",
+        )
+    )
+    task = asyncio.create_task(
+        execution_handler(app.state.execution_queue, app.state.manager)
+    )
+    yield
+    task.cancel()
 
 
 def setup_middlewares(app: FastAPI) -> None:
