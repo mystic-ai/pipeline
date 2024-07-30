@@ -119,7 +119,8 @@ class PipelineState(str, Enum):
 
 class PipelineContainerState(BaseModel):
     state: PipelineState
-    message: t.Optional[str]
+    message: str | None
+    current_run: str | None
 
 
 class PipelineScalingInfo(BaseModel):

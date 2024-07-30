@@ -6,17 +6,16 @@ from contextlib import asynccontextmanager
 
 import pkg_resources
 from fastapi import FastAPI, Request
-from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from loguru import logger
 
-from pipeline.cloud.schemas import runs as run_schemas
-from pipeline.container.logging import redirect_stdout, setup_logging
+from pipeline.container.logging import setup_logging
 from pipeline.container.manager import Manager
 from pipeline.container.routes import router
+from pipeline.container.services.run import execution_handler
 from pipeline.container.status import router as status_router
 
 
@@ -46,12 +45,10 @@ def create_app() -> FastAPI:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     app.state.execution_queue = asyncio.Queue()
-    app.state.manager = Manager(
-        pipeline_path=os.environ.get(
-            "PIPELINE_PATH",
-            "",
-        )
-    )
+    pipeline_path = os.environ.get("PIPELINE_PATH")
+    if pipeline_path is None:
+        raise ValueError("PIPELINE_PATH environment variable is not set")
+    app.state.manager = Manager(pipeline_path=pipeline_path)
     task = asyncio.create_task(
         execution_handler(app.state.execution_queue, app.state.manager)
     )
@@ -104,27 +101,3 @@ def setup_oapi(app: FastAPI) -> None:
         return app.openapi_schema
 
     app.openapi = custom_openapi
-
-
-async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) -> None:
-    with redirect_stdout():
-        await run_in_threadpool(manager.startup)
-
-        while True:
-            try:
-                args, response_queue = await execution_queue.get()
-                args: run_schemas.ContainerRunCreate
-                input_data = args.inputs
-                run_id = args.run_id
-                with logger.contextualize(run_id=run_id):
-                    try:
-                        output = await run_in_threadpool(
-                            manager.run, run_id=run_id, input_data=input_data
-                        )
-                    except Exception as e:
-                        logger.exception("Exception raised during pipeline execution")
-                        response_queue.put_nowait(e)
-                        continue
-                    response_queue.put_nowait(output)
-            except Exception:
-                logger.exception("Got an error in the execution loop handler")

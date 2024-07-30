@@ -32,6 +32,21 @@ def _get_url_or_path(input_schema: run_schemas.RunInput) -> str | None:
 
 
 class Manager:
+    def __init__(self, pipeline_path: str):
+        self.pipeline_state: pipeline_schemas.PipelineState = (
+            pipeline_schemas.PipelineState.not_loaded
+        )
+        self.pipeline_state_message: str | None = None
+        self.current_run: str | None = None
+        try:
+            self._load(pipeline_path)
+        except Exception:
+            tb = traceback.format_exc()
+            logger.exception("Exception raised when loading pipeline")
+            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
+            self.pipeline_state_message = tb
+            return
+
     def _load(self, pipeline_path: str):
         with logger.contextualize(pipeline_stage="loading"):
             logger.info("Loading pipeline")
@@ -74,20 +89,6 @@ class Manager:
 
             logger.info(f"Pipeline set to {self.pipeline_path}")
 
-    def __init__(self, pipeline_path: str):
-        self.pipeline_state: pipeline_schemas.PipelineState = (
-            pipeline_schemas.PipelineState.not_loaded
-        )
-        self.pipeline_state_message: str | None = None
-        try:
-            self._load(pipeline_path)
-        except Exception:
-            tb = traceback.format_exc()
-            logger.exception("Exception raised when loading pipeline")
-            self.pipeline_state = pipeline_schemas.PipelineState.load_failed
-            self.pipeline_state_message = tb
-            return
-
     def startup(self):
         if self.pipeline_state == pipeline_schemas.PipelineState.load_failed:
             return
@@ -98,7 +99,7 @@ class Manager:
                 self.pipeline._startup()
             except Exception:
                 tb = traceback.format_exc()
-                logger.exception("Exception raised during pipeline execution")
+                logger.exception("Exception raised during pipeline startup")
                 self.pipeline_state = pipeline_schemas.PipelineState.startup_failed
                 self.pipeline_state_message = tb
             else:
@@ -242,12 +243,15 @@ class Manager:
     ) -> t.Any:
         with logger.contextualize(run_id=run_id):
             logger.info("Running pipeline")
-            args = self._parse_inputs(input_data, self.pipeline)
+            self.current_run = run_id
             try:
+                args = self._parse_inputs(input_data, self.pipeline)
                 result = self.pipeline.run(*args)
             except RunInputException:
                 raise
             except Exception as exc:
                 raise RunnableError(exception=exc, traceback=traceback.format_exc())
+            finally:
+                self.current_run = None
             logger.info("Run successful")
             return result
