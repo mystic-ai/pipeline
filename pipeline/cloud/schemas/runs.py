@@ -265,14 +265,16 @@ class ContainerRunError(BaseModel):
 
 class ContainerRunCreate(BaseModel):
     # run_id is optional since it's just used for attaching logs to a run
-    run_id: t.Optional[str]
-    inputs: t.List[RunInput]
+    run_id: str | None
+    inputs: list[RunInput]
+    async_run: bool = False
+    callback_url: str | None
 
 
 class ContainerRunResult(BaseModel):
-    inputs: t.Optional[t.List[RunInput]]
-    outputs: t.Optional[t.List[RunOutput]]
-    error: t.Optional[ContainerRunError]
+    inputs: list[RunInput] | None
+    outputs: list[RunOutput] | None
+    error: ContainerRunError | None
 
     def outputs_formatted(self) -> t.List[t.Any]:
         outputs = self.outputs or []
@@ -319,10 +321,14 @@ class RunStateTransitions(BaseModel):
     data: t.List[RunStateTransition]
 
 
-class RunCreate(ContainerRunCreate):
+class RunCreate(BaseModel):
     # pipeline id or pointer
     pipeline: str
+    inputs: list[RunInput]
     async_run: bool = False
     # flag to determine whether the run will wait for compute resources to be
     # become available if none are currently running the pipeline
     wait_for_resources: bool | None = None
+    # run_id is not used and should not be provided (it is kept here for
+    # backwards compatibility)
+    run_id: str | None = None
