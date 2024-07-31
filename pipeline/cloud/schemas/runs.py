@@ -329,3 +329,6 @@ class RunCreate(BaseModel):
     # flag to determine whether the run will wait for compute resources to be
     # become available if none are currently running the pipeline
     wait_for_resources: bool | None = None
+    # run_id is not used and should not be provided (it is kept here for
+    # backwards compatibility)
+    run_id: str | None = None
