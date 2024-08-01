@@ -44,7 +44,7 @@ async def run(
     """
     run_id = run_create.run_id
     with logger.contextualize(run_id=run_id):
-        logger.info(f"Received run request; {run_create.async_run=}")
+        logger.info(f"Received run request; async_run={run_create.async_run}")
         manager: Manager = request.app.state.manager
         if result := _handle_pipeline_state_not_ready(manager):
             return result
