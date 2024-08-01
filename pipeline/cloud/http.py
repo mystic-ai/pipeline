@@ -138,6 +138,13 @@ def post_file(endpoint: str, files):
 
 
 @handle_http_status_error
+def post_data(endpoint: str, data):
+    client = _get_client()
+    response = client.post(endpoint, data=data)
+    return response
+
+
+@handle_http_status_error
 async def async_post(
     endpoint: str,
     json_data: dict = None,

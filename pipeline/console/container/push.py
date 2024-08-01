@@ -1,3 +1,4 @@
+from io import BytesIO
 import json
 import os
 import sys
@@ -9,6 +10,7 @@ import docker.errors
 import yaml
 
 from pipeline.cloud import http
+import httpx
 from pipeline.cloud.schemas import cluster as cluster_schemas
 from pipeline.cloud.schemas import pipelines as pipelines_schemas
 from pipeline.cloud.schemas import registry as registry_schemas
@@ -202,56 +204,74 @@ def _push_docker_image(
     image: str,
     upload_token: str,
 ):
-    resp = docker_client.images.push(
-        image,
-        stream=True,
-        decode=True,
-        auth_config=(
-            dict(username="pipeline", password=upload_token) if upload_token else None
-        ),
+    registry, repo = image.split("/")
+    repo = repo.split(":")[0]
+    print(f"http://{registry}/v3/{repo}")
+
+    image_obj = docker_client.images.get(image)
+    # image_data = b""
+    f = BytesIO()
+    for dat in image_obj.save(named=True, chunk_size=279396563):
+        f.write(dat)
+    print("saved")
+
+    f.seek(0)
+
+    httpx.post(
+        f"http://{registry}/v3/{repo}",
+        data=f.read(),
+        headers={"Authorization": "Basic dXNlcjpwYXNzd29yZA=="},
     )
+    #     resp = docker_client.images.push(
+    #         image,
+    #         stream=True,
+    #         decode=True,
+    #         auth_config=(
+    #             dict(username="pipeline", password=upload_token) if upload_token else None
+    #         ),
+    #     )
 
-    all_ids = []
+    #     all_ids = []
 
-    current_index = 0
+    #     current_index = 0
 
-    for line in resp:
-        if "error" in line:
-            if line["error"] == "unauthorized: authentication required":
-                print(
-                    """
-Failed to authenticate with the registry.
-This can happen if your pipeline took longer than an hour to push.
-Please try reduce the size of your pipeline or contact mystic.ai"""
-                )
-                return
-            raise ValueError(line["error"])
-        elif "status" in line:
-            if "id" not in line or line["status"] != "Pushing":
-                continue
+    #     for line in resp:
+    #         if "error" in line:
+    #             if line["error"] == "unauthorized: authentication required":
+    #                 print(
+    #                     """
+    # Failed to authenticate with the registry.
+    # This can happen if your pipeline took longer than an hour to push.
+    # Please try reduce the size of your pipeline or contact mystic.ai"""
+    #                 )
+    #                 return
+    #             raise ValueError(line["error"])
+    #         elif "status" in line:
+    #             if "id" not in line or line["status"] != "Pushing":
+    #                 continue
 
-            if "id" in line and line["id"] not in all_ids:
-                all_ids.append(line["id"])
-                print("Adding")
+    #             if "id" in line and line["id"] not in all_ids:
+    #                 all_ids.append(line["id"])
+    #                 print("Adding")
 
-            index_difference = all_ids.index(line["id"]) - current_index
+    #             index_difference = all_ids.index(line["id"]) - current_index
 
-            print_string = (
-                line["id"] + " " + line["progress"].replace("\n", "").replace("\r", "")
-            )
+    #             print_string = (
+    #                 line["id"] + " " + line["progress"].replace("\n", "").replace("\r", "")
+    #             )
 
-            if index_difference > 0:
-                print_string += "\n" * index_difference + "\r"
-                # print("up")
-            elif index_difference < 0:
-                print_string += "\033[A" * abs(index_difference) + "\r"
-                # print("down")
-            else:
-                print_string += "\r"
-                # print("same")
-            current_index = all_ids.index(line["id"])
+    #             if index_difference > 0:
+    #                 print_string += "\n" * index_difference + "\r"
+    #                 # print("up")
+    #             elif index_difference < 0:
+    #                 print_string += "\033[A" * abs(index_difference) + "\r"
+    #                 # print("down")
+    #             else:
+    #                 print_string += "\r"
+    #                 # print("same")
+    #             current_index = all_ids.index(line["id"])
 
-            sys.stdout.write(print_string)
-            sys.stdout.flush()
+    #             sys.stdout.write(print_string)
+    #             sys.stdout.flush()
 
     _print(f"Successfully pushed image '{image}' to registry")
