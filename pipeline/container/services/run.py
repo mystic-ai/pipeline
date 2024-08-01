@@ -25,7 +25,6 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
                 args: run_schemas.ContainerRunCreate
                 input_data = args.inputs
                 run_id = args.run_id
-                manager.current_run = run_id
                 with logger.contextualize(run_id=run_id):
                     try:
                         output = await run_in_threadpool(
@@ -52,8 +51,6 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
                         response_queue.put_nowait((response_schema, status_code))
             except Exception:
                 logger.exception("Got an error in the execution loop handler")
-            finally:
-                manager.current_run = None
 
 
 async def _send_async_result(

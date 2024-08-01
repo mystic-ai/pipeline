@@ -243,6 +243,7 @@ class Manager:
     ) -> t.Any:
         with logger.contextualize(run_id=run_id):
             logger.info("Running pipeline")
+            self.current_run = run_id
             try:
                 args = self._parse_inputs(input_data, self.pipeline)
                 result = self.pipeline.run(*args)
@@ -250,5 +251,7 @@ class Manager:
                 raise
             except Exception as exc:
                 raise RunnableError(exception=exc, traceback=traceback.format_exc())
+            finally:
+                self.current_run = None
             logger.info("Run successful")
             return result
