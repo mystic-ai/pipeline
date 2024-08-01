@@ -40,9 +40,13 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
                     if args.async_run is True:
                         # send response back to callback URL
                         assert args.callback_url is not None
-                        await _send_async_result(
-                            callback_url=args.callback_url,
-                            response_schema=response_schema,
+                        # send result in an async task so it runs in parallel
+                        # and we are free to process the next run
+                        asyncio.create_task(
+                            _send_async_result(
+                                callback_url=args.callback_url,
+                                response_schema=response_schema,
+                            )
                         )
                     else:
                         response_queue.put_nowait((response_schema, status_code))
