@@ -44,6 +44,7 @@ async def run(
     """
     run_id = run_create.run_id
     with logger.contextualize(run_id=run_id):
+        logger.info(f"Received run request; {run_create.async_run=}")
         manager: Manager = request.app.state.manager
         if result := _handle_pipeline_state_not_ready(manager):
             return result
@@ -64,7 +65,6 @@ async def run(
                     ),
                 )
 
-            logger.info("Performing async run...")
             execution_queue.put_nowait((run_create, None))
             # return empty result for now with a status code of 202 to indicate
             # we have accepted the request and are processing it in the
