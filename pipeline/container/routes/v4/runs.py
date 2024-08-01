@@ -1,7 +1,7 @@
 import asyncio
 import traceback
 
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request, Response, status
 from loguru import logger
 
 from pipeline.cloud.http import StreamingResponseWithStatusCode
@@ -25,6 +25,10 @@ router = APIRouter(prefix="/runs", tags=["runs"])
             "description": "Invalid input data",
             "model": run_schemas.ContainerRunResult,
         },
+        202: {
+            "description": "Async run initiated",
+            "model": run_schemas.ContainerRunResult,
+        },
     },
 )
 async def run(
@@ -32,13 +36,47 @@ async def run(
     request: Request,
     response: Response,
 ) -> run_schemas.ContainerRunResult:
+    """Run this pipeline with the given inputs.
+
+    If `async_run=True` then this route will return an empty result immediately,
+    then make a POST call to the provided `callback_url` once the run is
+    complete.
+    """
     run_id = run_create.run_id
     with logger.contextualize(run_id=run_id):
+        logger.info(f"Received run request; async_run={run_create.async_run}")
         manager: Manager = request.app.state.manager
         if result := _handle_pipeline_state_not_ready(manager):
             return result
 
         execution_queue: asyncio.Queue = request.app.state.execution_queue
+        # If async run, we put run on the queue and return immediately
+        if run_create.async_run is True:
+            # check request is valid
+            if not run_create.callback_url:
+                response.status_code = status.HTTP_400_BAD_REQUEST
+                return run_schemas.ContainerRunResult(
+                    outputs=None,
+                    inputs=None,
+                    error=run_schemas.ContainerRunError(
+                        type=run_schemas.ContainerRunErrorType.input_error,
+                        message="callback_url is required for async runs",
+                        traceback=None,
+                    ),
+                )
+
+            execution_queue.put_nowait((run_create, None))
+            # return empty result for now with a status code of 202 to indicate
+            # we have accepted the request and are processing it in the
+            # background
+            response.status_code = status.HTTP_202_ACCEPTED
+            return run_schemas.ContainerRunResult(
+                outputs=None,
+                error=None,
+                inputs=None,
+            )
+        # Otherwise, we put run on the queue then wait for the run to finish and
+        # return the result
         response_queue: asyncio.Queue = asyncio.Queue()
         execution_queue.put_nowait((run_create, response_queue))
 

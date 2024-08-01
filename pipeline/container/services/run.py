@@ -5,6 +5,7 @@ import shutil
 import uuid
 from pathlib import Path
 
+import httpx
 from fastapi.concurrency import run_in_threadpool
 from loguru import logger
 
@@ -34,9 +35,43 @@ async def execution_handler(execution_queue: asyncio.Queue, manager: Manager) ->
                         output = e
 
                     response_schema, status_code = _generate_run_result(output)
-                    response_queue.put_nowait((response_schema, status_code))
+
+                    if args.async_run is True:
+                        # send response back to callback URL
+                        assert args.callback_url is not None
+                        # send result in an async task so it runs in parallel
+                        # and we are free to process the next run
+                        asyncio.create_task(
+                            _send_async_result(
+                                callback_url=args.callback_url,
+                                response_schema=response_schema,
+                            )
+                        )
+                    else:
+                        response_queue.put_nowait((response_schema, status_code))
             except Exception:
                 logger.exception("Got an error in the execution loop handler")
+
+
+async def _send_async_result(
+    callback_url: str, response_schema: run_schemas.ContainerRunResult
+):
+    logger.info("Sending async result...")
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                callback_url, json=response_schema.dict(), timeout=10
+            )
+            response.raise_for_status()
+        except httpx.HTTPStatusError as exc:
+            logger.error(
+                f"Error sending async result: "
+                f"{exc.response.status_code} - {exc.response.text}"
+            )
+        except httpx.RequestError as exc:
+            logger.exception(f"Error sending async result: {exc}")
+        else:
+            logger.info("Sending async result successful")
 
 
 def _generate_run_result(run_output) -> tuple[run_schemas.ContainerRunResult, int]:
